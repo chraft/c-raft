@@ -6,63 +6,63 @@ using Chraft.Entity;
 
 namespace Chraft.Net
 {
-	public class MetaData
-	{
-		private Dictionary<int, object> Data = new Dictionary<int,object>();
+    public class MetaData
+    {
+        private Dictionary<int, object> Data = new Dictionary<int, object>();
 
-		public bool Sheared
-		{
-			get { return ((byte)Data[16] & 0x10) != 0; }
-			set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xef) | (value ? 0x10 : 0) : (value ? 0x10 : 0); }
-		}
+        public bool Sheared
+        {
+            get { return ((byte)Data[16] & 0x10) != 0; }
+            set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xef) | (value ? 0x10 : 0) : (value ? 0x10 : 0); }
+        }
 
-		public WoolColor WoolColor
-		{	
-			get { return (WoolColor)((byte)Data[16] & 0xf); }
-			set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xf) | (byte)value : (byte)value; }
-		}
+        public WoolColor WoolColor
+        {
+            get { return (WoolColor)((byte)Data[16] & 0xf); }
+            set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xf) | (byte)value : (byte)value; }
+        }
 
-		public bool IsOnFire
-		{
-			get { return ((byte)Data[0] & 0x1) != 0; }
-			set { Data[0] = (byte)((byte)Data[0] & 0xfe | (value ? 0x1 : 0)); }
-		}
-		public bool IsCrouched
-		{
-			get { return ((byte)Data[0] & 0x2) != 0; }
-			set { Data[0] = (byte)((byte)Data[0] & 0xfd | (value ? 0x2 : 0)); }
-		}
-		public bool IsRiding
-		{
-			get { return ((byte)Data[0] & 0x4) != 0; }
-			set { Data[0] = (byte)((byte)Data[0] & 0xfb | (value ? 0x4 : 0)); }
-		}
+        public bool IsOnFire
+        {
+            get { return ((byte)Data[0] & 0x1) != 0; }
+            set { Data[0] = (byte)((byte)Data[0] & 0xfe | (value ? 0x1 : 0)); }
+        }
+        public bool IsCrouched
+        {
+            get { return ((byte)Data[0] & 0x2) != 0; }
+            set { Data[0] = (byte)((byte)Data[0] & 0xfd | (value ? 0x2 : 0)); }
+        }
+        public bool IsRiding
+        {
+            get { return ((byte)Data[0] & 0x4) != 0; }
+            set { Data[0] = (byte)((byte)Data[0] & 0xfb | (value ? 0x4 : 0)); }
+        }
 
-		public MetaData()
-		{
-			if (!Data.ContainsKey(0))
-				Data.Add(0, (byte)0);
-		}
+        public MetaData()
+        {
+            if (!Data.ContainsKey(0))
+                Data.Add(0, (byte)0);
+        }
 
-		internal MetaData (BigEndianStream rx)
-		{
-			byte x;
-			while ((x = rx.ReadByte()) != 0x7f)
-			{
-				switch (x >> 5)
-				{
-				case 0: Data[x & 0x1f] = rx.ReadByte(); break;
-				case 1: Data[x & 0x1f] = rx.ReadShort(); break;
-				case 2: Data[x & 0x1f] = rx.ReadInt(); break;
-				case 3: Data[x & 0x1f] = rx.ReadFloat(); break;
-				case 4: Data[x & 0x1f] = rx.ReadString(); break;
-				default: Data[x & 0x1f] = null; break;
-				}
-			}
-		}
+        internal MetaData(BigEndianStream rx)
+        {
+            byte x;
+            while ((x = rx.ReadByte()) != 0x7f)
+            {
+                switch (x >> 5)
+                {
+                    case 0: Data[x & 0x1f] = rx.ReadByte(); break;
+                    case 1: Data[x & 0x1f] = rx.ReadShort(); break;
+                    case 2: Data[x & 0x1f] = rx.ReadInt(); break;
+                    case 3: Data[x & 0x1f] = rx.ReadFloat(); break;
+                    case 4: Data[x & 0x1f] = rx.ReadString16(64); break;
+                    default: Data[x & 0x1f] = null; break;
+                }
+            }
+        }
 
-		internal void Write(BigEndianStream tx)
-		{
+        internal void Write(BigEndianStream tx)
+        {
             try // I can't work out how it set this from SpawnAnimal.
             {
                 foreach (int k in Data.Values)
@@ -100,9 +100,9 @@ namespace Chraft.Net
             {
                 tx.WriteByte(0x7f);
             }
-		}
+        }
 
-        
+
         public enum Wood : byte
         {
             Normal, Redwood, Birch
@@ -202,5 +202,5 @@ namespace Chraft.Net
             East, South, West, North,
             Tick1, Tick2, Tick3, Tick4
         }
-	}
+    }
 }

@@ -14,5 +14,7 @@ namespace Chraft.Utils
         string GetGroupPrefix(string playerName);
         string GetGroupSuffix(string playerName);
         string[] GetGroupInheritance(string groupName);
+        bool CanPlayerBuild(string playername);
+        IEnumerable<string> GetPlayerGroups(string playerName);
     }
 }

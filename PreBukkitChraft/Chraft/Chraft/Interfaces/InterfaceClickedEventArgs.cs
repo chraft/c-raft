@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.Net.Packets;
 
-namespace Chraft.Inventory
+namespace Chraft.Interfaces
 {
 	public class InterfaceClickedEventArgs : EventArgs
 	{

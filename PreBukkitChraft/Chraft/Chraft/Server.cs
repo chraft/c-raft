@@ -4,18 +4,19 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Net.Sockets;
+using Chraft.Interfaces;
+using Chraft.Interfaces.Recipes;
+using Chraft.Net.Packets;
 using Chraft.Properties;
 using System.Net;
 using System.Threading;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Entity;
-using Chraft.Inventory;
 using Chraft.Net;
 using Chraft.Plugins;
 using System.Diagnostics;
 using Chraft.Resources;
-using Chraft.Inventory.Recipes;
 using Chraft.Irc;
 
 namespace Chraft
@@ -154,7 +155,7 @@ namespace Chraft
 		internal void Run()
 		{
 			Logger.Log(Logger.LogLevel.Info, "Starting C#raft...");
-			Permissions.CreateDefaultPermissionsConfig();
+		
 
 			Worlds = new List<WorldManager>();
 			Worlds.Add(new WorldManager(this));

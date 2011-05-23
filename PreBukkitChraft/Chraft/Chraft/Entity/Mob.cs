@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using Chraft.Net;
+using Chraft.Net.Packets;
 
 namespace Chraft.Entity
 {

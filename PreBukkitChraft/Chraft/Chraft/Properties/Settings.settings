@@ -86,5 +86,14 @@
     <Setting Name="AllowedChatChars" Type="System.String" Scope="User">
       <Value Profile="(Default)">abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV_ -=+~!@#$%^&amp;*()1234567890\[]{}|;':"",./&lt;&gt;?áéíóúäëïöüÁÉÍÓÚÄËÏÖÜÆæ</Value>
     </Setting>
+    <Setting Name="MaxPlayers" Type="System.String" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="ServerName" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C#raft</Value>
+    </Setting>
+    <Setting Name="WeatherChangeFrequency" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

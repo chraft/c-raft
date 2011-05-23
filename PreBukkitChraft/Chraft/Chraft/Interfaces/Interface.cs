@@ -4,12 +4,14 @@ using System.Linq;
 using System.Text;
 using Chraft.Net;
 using System.Runtime.Serialization;
+using Chraft.Net.Packets;
 using Chraft.Persistence;
 
-namespace Chraft.Inventory
+
+namespace Chraft.Interfaces
 {
 	[Serializable]
-	public abstract class Interface
+	public abstract class Interface 
 	{
 		private static volatile sbyte NextHandle = 0;
 		private bool IsTransactionInProgress = false;

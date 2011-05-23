@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
+using Chraft.Net.Packets;
 
 namespace Chraft.Net
 {

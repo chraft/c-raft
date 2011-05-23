@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Inventory.Recipes;
+using Chraft.Interfaces.Recipes;
 using Chraft.Net;
+using Chraft.Net.Packets;
 
-namespace Chraft.Inventory
+namespace Chraft.Interfaces
 {
 	public class WorkbenchInterface : Interface
 	{

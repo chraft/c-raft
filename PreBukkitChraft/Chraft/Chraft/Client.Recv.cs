@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Entity;
 using System.Text.RegularExpressions;
 using Chraft.Utils;
-using Chraft.Inventory;
+using Chraft.Interfaces;
 
 namespace Chraft
 {
@@ -232,7 +233,7 @@ namespace Chraft
                     {
                         // Think the client has a Notch bug where hoe's durability is not updated properly.
                         px = x; py = y; pz = z;
-                        World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Soil, 0x00);
+                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Soil, 0x00);
                     }
                     break;
 
@@ -271,7 +272,7 @@ namespace Chraft
                                 return;
                         }
 
-                        World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
+                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
                     }
                     else // Wall Sign
                     {
@@ -289,19 +290,19 @@ namespace Chraft
                                 return;
                         }
 
-                        World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
+                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
                     }
                     break;
 
                 case BlockData.Items.Seeds:
                     if (adjacentBlockType == BlockData.Blocks.Soil && e.Packet.Face == BlockFace.Down)
                     {
-                        World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Crops, 0x00);
+                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Crops, 0x00);
                     }
                     break;
 
                 case BlockData.Items.Redstone:
-                    World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
+                    World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
                     break;
 
                 case BlockData.Items.Minecart:
@@ -337,13 +338,13 @@ namespace Chraft
 
                         if ((BlockData.Items)pType == BlockData.Items.Iron_Door)
                         {
-                            World.SetBlockAndMetadata(px, py + 1, pz, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
-                            World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
+                            World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
+                            World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
                         }
                         else
                         {
-                            World.SetBlockAndMetadata(px, py + 1, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
-                            World.SetBlockAndMetadata(px, py, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
+                            World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
+                            World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
                         }
 
                         World.Update(px, py + 1, pz);
@@ -500,7 +501,7 @@ namespace Chraft
                     break;
             }
 
-            World.SetBlockAndMetadata(bx, by, bz, bType, bMetaData);
+            World.SetBlockAndData(bx, by, bz, bType, bMetaData);
             World.Update(bx, by, bz);
 
             Inventory.RemoveItem(Inventory.ActiveSlot);
@@ -593,10 +594,10 @@ namespace Chraft
                         case BlockData.Blocks.Ice:
                             if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
                             {
-                                World.SetBlockAndMetadata(x, y, z, 0, 0);
+                                World.SetBlockAndData(x, y, z, 0, 0);
                                 return;
                             }
-                            World.SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
+                            World.SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
                             return;
 
                         case BlockData.Blocks.Lapis_Lazuli_Ore:
@@ -668,7 +669,7 @@ namespace Chraft
                             return;
                     }
 
-                    World.SetBlockAndMetadata(x, y, z, 0, 0);
+                    World.SetBlockAndData(x, y, z, 0, 0);
                     World.Update(x, y, z);
 
                     Inventory.DamageItem(Inventory.ActiveSlot);

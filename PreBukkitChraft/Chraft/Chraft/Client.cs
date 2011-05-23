@@ -6,10 +6,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Chraft.Entity;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Utils;
 using Chraft.Properties;
-using Chraft.Inventory;
+using Chraft.Interfaces;
 
 namespace Chraft
 {
@@ -42,7 +43,7 @@ namespace Chraft
         /// <summary>
         /// The current inventory.
         /// </summary>
-        public InventoryInterface Inventory { get; private set; }
+        public Inventory Inventory { get; private set; }
 
         /// <summary>
         /// The health of the client
@@ -91,7 +92,7 @@ namespace Chraft
         {
             if (Inventory == null)
             {
-                Inventory = new InventoryInterface(this);
+                Inventory = new Inventory(this);
 
                 for (int i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
                 {
@@ -205,7 +206,7 @@ namespace Chraft
             {
                 // Generic damage from Mobs??
                 this.Health -= 1;
-            }          
+            }
 
             PacketHandler.SendPacket(new UpdateHealthPacket
             {
@@ -328,12 +329,12 @@ namespace Chraft
             Inventory.AddItem(item.ItemId, (sbyte)item.Count, item.Durability);
         }
 
-        
+
         private string FacingDirection(byte points)
         {
 
             byte rotation = (byte)(Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
-            
+
             if (points == 8)
             {
                 if (rotation < 17 || rotation > 240)
@@ -354,11 +355,11 @@ namespace Chraft
             }
             if (rotation < 32 || rotation > 224)
                 return "E";
-             if (rotation < 76)
+            if (rotation < 76)
                 return "S";
-             if (rotation > 140)
+            if (rotation > 140)
                 return "N";
-             return "W";
+            return "W";
         }
 
         private void SynchronizeEntities()

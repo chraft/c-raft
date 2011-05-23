@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -12,7 +10,7 @@ namespace Chraft.Utils
         public Dictionary<string, Dictionary<string, string>> _iniFileContent;
         private readonly Regex _sectionRegex = new Regex(@"(?<=\[)(?<SectionName>[^\]]+)(?=\])");
         private readonly Regex _keyValueRegex = new Regex(@"(?<Key>[^=]+)=(?<Value>.+)");
-
+        private readonly Regex _keyOnlyRegex = new Regex(@"(?<Key>[^=]+)=");
         public Server Server { get; private set; }
         public Logger Logger { get { return Server.Logger; } }
 
@@ -116,6 +114,27 @@ namespace Chraft.Utils
                                 kvpList[key] = value;
                                 _iniFileContent[currentSectionName] = kvpList;
                             }
+                            else
+                            {
+                                m = _keyOnlyRegex.Match(line);
+                                if (m.Success)
+                                {
+                                    string key = m.Groups["Key"].Value.ToLower();
+                                    string value = "";
+
+                                    Dictionary<string, string> kvpList;
+                                    if (_iniFileContent.ContainsKey(currentSectionName))
+                                    {
+                                        kvpList = _iniFileContent[currentSectionName];
+                                    }
+                                    else
+                                    {
+                                        kvpList = new Dictionary<string, string>();
+                                    }
+                                    kvpList[key] = value;
+                                    _iniFileContent[currentSectionName] = kvpList;
+                                }
+                            }
                         }
                     }
                     return true;
@@ -156,62 +175,6 @@ namespace Chraft.Utils
             catch
             {
                 return false;
-            }
-        }
-
-
-        public void CreateConfigurationFile(string directory, string fileName)
-        {
-            string fullPath = directory + "/" + fileName;
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            if (!File.Exists(fullPath))
-            {
-                Logger.Log(Logger.LogLevel.Info, "Creating file " + fullPath);
-                File.Create(fullPath);
-            }
-        }
-
-        /// <summary>
-        /// Creates default permissions files 
-        /// </summary>
-        public void CreateDefaultPermissionsConfig()
-        {
-            var userValues = new Dictionary<string, string> { { "groups", "admin" }, { "prefix", "" }, { "suffix", "" }, { "commands", "list,home,time" } };
-            var adminGroupValues = new Dictionary<string, string> { { "prefix", "[admin]" }, { "suffix", "" }, { "commands", "*" }, { "inherit", "default" } };
-            var defaultGroupValues = new Dictionary<string, string> { { "prefix", "[default]" }, { "suffix", "" }, { "commands", "list,spawn" }, { "inherit", "" } };
-            const string usersFile = "resources/users.ini";
-            const string groupsFile = "resources/groups.ini";
-            string[] users = { "ementalo", "Zenexer", "PhonicUK" };
-
-            if (!File.Exists(usersFile))
-            {
-                //Prepare usersfiles 
-                foreach (var user in users)
-                {
-                    SetSection(user, userValues);
-                }
-                //try to save usersfile, this will create the file if it does not exist
-                if (!Save(usersFile))
-                {
-                    Logger.Log(new IOException("Could not create file " + usersFile));
-                }
-                _iniFileContent = new Dictionary<string, Dictionary<string, string>>();
-            }
-
-            //prepare groupsfile
-            if (!File.Exists(groupsFile))
-            {
-                SetSection("default", defaultGroupValues);
-                SetSection("admin", adminGroupValues);
-
-                //try to save groupsfile, this will create the file if it does not exist
-                if (!Save(groupsFile))
-                {
-                    Logger.Log(new IOException("Could not create file " + groupsFile));
-                }
             }
         }
     }

@@ -8,10 +8,11 @@ using Chraft.Properties;
 using System.IO;
 using Chraft.Utils;
 using Chraft.Entity;
+using Chraft.World.Weather;
 
 namespace Chraft.World
 {
-    public class WorldManager : IDisposable
+    public partial class WorldManager : IDisposable
     {
         private Timer GlobalTick;
         private ChunkGenerator Generator;
@@ -26,6 +27,7 @@ namespace Chraft.World
         public Logger Logger { get { return Server.Logger; } }
         public string Name { get { return Settings.Default.DefaultWorldName; } }
         public string Folder { get { return Settings.Default.WorldsFolder + "/" + Name; } }
+        public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;
         public ChunkSet Chunks { get { return _Chunks; } }
@@ -59,6 +61,12 @@ namespace Chraft.World
 
             InitializeSpawn();
             InitializeThreads();
+            InitializeWeather();
+        }
+
+        private void InitializeWeather()
+        {
+            Weather = new WeatherManager(this);
         }
 
         public int GetHeight(int x, int z)
@@ -415,6 +423,20 @@ namespace Chraft.World
             return Chunks[x >> 4, z >> 4].GetData(x & 0xf, y, z & 0xf);
         }
 
+        public byte GetBlockLight(int x, int y, int z)
+        {
+            if (!ChunkExists(x >> 4, z >> 4))
+                return 0;
+            return Chunks[x >> 4, z >> 4].GetBlockLight(x & 0xf, y, z & 0xf);
+        }
+
+        public byte GetSkyLight(int x, int y, int z)
+        {
+            if (!ChunkExists(x >> 4, z >> 4))
+                return 0;
+            return Chunks[x >> 4, z >> 4].GetSkyLight(x & 0xf, y, z & 0xf);
+        }
+
         public byte? GetBlockOrNull(int x, int y, int z)
         {
             if (y < 0 || y > 127)
@@ -437,13 +459,19 @@ namespace Chraft.World
                 c.SendBlock(x, y, z, type, data);
         }
 
-        internal void SetBlockAndMetadata(int x, int y, int z, byte type, byte data)
+        public void SetBlockAndData(int x, int y, int z, byte type, byte data)
         {
             Chunk chunk = this[x >> 4, z >> 4];
             int bx = x & 0xf;
             int bz = z & 0xf;
             chunk[bx, y, bz] = type;
             chunk.SetData(bx, y, bz, data);
+            UpdateClients(x, y, z);
+        }
+
+        public void SetBlockData(int x, int y, int z, byte data)
+        {
+            this[x >> 4, z >> 4].SetData(x & 0xf, y, z & 0xf, data);
             UpdateClients(x, y, z);
         }
 
@@ -474,16 +502,16 @@ namespace Chraft.World
 
             if (type == BlockData.Blocks.Sand && y > 0 && GetBlockId(x, y - 1, z) == 0)
             {
-                SetBlockAndMetadata(x, y, z, 0, 0);
-                SetBlockAndMetadata(x, y - 1, z, (byte)BlockData.Blocks.Sand, 0);
+                SetBlockAndData(x, y, z, 0, 0);
+                SetBlockAndData(x, y - 1, z, (byte)BlockData.Blocks.Sand, 0);
                 Update(x, y - 1, z, updateClients);
                 return;
             }
 
             if (type == BlockData.Blocks.Gravel && y > 0 && GetBlockId(x, y - 1, z) == 0)
             {
-                SetBlockAndMetadata(x, y, z, 0, 0);
-                SetBlockAndMetadata(x, y - 1, z, (byte)BlockData.Blocks.Gravel, 0);
+                SetBlockAndData(x, y, z, 0, 0);
+                SetBlockAndData(x, y - 1, z, (byte)BlockData.Blocks.Gravel, 0);
                 Update(x, y - 1, z, updateClients);
                 return;
             }
@@ -501,9 +529,9 @@ namespace Chraft.World
                 if (water != GetBlockData(x, y, z))
                 {
                     if (water == 8)
-                        SetBlockAndMetadata(x, y, z, 0, 0);
+                        SetBlockAndData(x, y, z, 0, 0);
                     else
-                        SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Water, water);
+                        SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Water, water);
                     //Update(x, y, z, updateClients);
                     return;
                 }
@@ -513,14 +541,14 @@ namespace Chraft.World
             {
                 if (y < 127 && (GetBlockId(x, y + 1, z) == (byte)BlockData.Blocks.Water || GetBlockId(x, y + 1, z) == (byte)BlockData.Blocks.Still_Water))
                 {
-                    SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Water, 0);
+                    SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Water, 0);
                     //Update(x, y, z, updateClients);
                     return;
                 }
 
                 if (y < 127 && (GetBlockId(x, y + 1, z) == (byte)BlockData.Blocks.Lava || GetBlockId(x, y + 1, z) == (byte)BlockData.Blocks.Still_Lava))
                 {
-                    SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Lava, 0);
+                    SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Lava, 0);
                     //Update(x, y, z, updateClients);
                     return;
                 }
@@ -535,7 +563,7 @@ namespace Chraft.World
                 });
                 if (water < 8)
                 {
-                    SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Water, water);
+                    SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Water, water);
                     //Update(x, y, z, updateClients);
                     return;
                 }
@@ -550,21 +578,21 @@ namespace Chraft.World
                 });
                 if (water < 4)
                 {
-                    SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Lava, lava);
+                    SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Lava, lava);
                     //Update(x, y, z, updateClients);
                     return;
                 }
             }
         }
 
-        internal void GrowTree(int x, int y, int z, byte treeType = (byte) 0)
+        internal bool GrowTree(int x, int y, int z, byte treeType = (byte) 0)
         {
             // TODO: Expand this futher to build redwood.
             if (y > 120)
-                return;
+                return false;
 
             for (int by = y; by < y + 5; by++)
-                SetBlockAndMetadata(x, by, z, (byte)BlockData.Blocks.Log, treeType);
+                SetBlockAndData(x, by, z, (byte)BlockData.Blocks.Log, treeType);
 
             for (int by = y + 2; by < y + 5; by++)
                 for (int bx = x - 2; bx <= x + 2; bx++)
@@ -574,16 +602,17 @@ namespace Chraft.World
             for (int bx = x - 1; bx <= x + 1; bx++)
                 for (int bz = z - 1; bz <= z + 1; bz++)
                     SetLeaves(bx, y + 5, bz);
+            return true;
         }
 
         private void SetLeaves(int x, int y, int z, byte treeType = (byte) 0)
         {
             if (!ChunkExists(x >> 4, z >> 4) || GetBlockId(x, y, z) != 0)
                 return;
-            SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Leaves, treeType);
+            SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Leaves, treeType);
         }
 
-        internal void PlaceCactus(int x, int y, int z)
+        internal void GrowCactus(int x, int y, int z)
         {
             if (y > 120)
                 return;
@@ -598,9 +627,8 @@ namespace Chraft.World
 
             for (int by = y; by < y + 3; by++)
             {
-                SetBlockAndMetadata(x, by, z, (byte)BlockData.Blocks.Cactus, 0);
+                SetBlockAndData(x, by, z, (byte)BlockData.Blocks.Cactus, 0);
             }
-
         }
 
         internal void FromFace(int x, int y, int z, BlockFace blockFace, out int bx, out int by, out int bz)
@@ -611,6 +639,9 @@ namespace Chraft.World
 
             switch (blockFace)
             {
+                case BlockFace.Self:
+                    break;
+
                 case BlockFace.Up:
                     by++;
                     break;
@@ -634,7 +665,28 @@ namespace Chraft.World
                 case BlockFace.West:
                     bz++;
                     break;
+
+                case BlockFace.NorthEast:
+                    bx--;
+                    bz--;
+                    break;
+
+                case BlockFace.NorthWest:
+                    bx--;
+                    bz++;
+                    break;
+
+                case BlockFace.SouthEast:
+                    bx++;
+                    bz--;
+                    break;
+
+                case BlockFace.SouthWest:
+                    bx++;
+                    bz++;
+                    break;
             }
         }
     }
 }
+

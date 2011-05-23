@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 using System.IO;
+using Chraft.Net.Packets;
 using Chraft.World;
 using System.IO.Compression;
 

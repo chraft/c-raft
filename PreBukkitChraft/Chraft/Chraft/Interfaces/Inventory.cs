@@ -4,29 +4,34 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
 using Chraft.Net;
-using Chraft.Inventory.Recipes;
+using Chraft.Interfaces.Recipes;
+using Chraft.Net.Packets;
 
-namespace Chraft.Inventory
+namespace Chraft.Interfaces
 {
 	[Serializable]
-	public class InventoryInterface : Interface
+	public partial class Inventory : Interface
 	{
 		private Recipe[] Recipes;
 
 		private short _ActiveSlot;
 		public short ActiveSlot { get { return _ActiveSlot; } }
-		public ItemStack ActiveItem { get { return this[ActiveSlot]; } }
+
+        
+        public Chraft.Interfaces.ItemStack ActiveItem { 
+            get { return this[ActiveSlot]; }
+        }
 
 		/// <summary>
 		/// Used for serialization only.  Do not use.
 		/// </summary>
-		public InventoryInterface()
+		public Inventory()
 		{
 			_ActiveSlot = 36;
 			_IsOpen = true;
 		}
 
-		internal InventoryInterface(Client client)
+		internal Inventory(Client client)
 			: base(InterfaceType.Inventory, 45)
 		{
 			_ActiveSlot = 36;
@@ -192,7 +197,7 @@ namespace Chraft.Inventory
 						{
 							Accepted = false,
 							Transaction = packet.Transaction,
-							WindowId = packet.WindowId
+							WindowId = packet.WindowId                    
 						});
 						return;
 					}
@@ -214,19 +219,27 @@ namespace Chraft.Inventory
 				for (short i = 1; i <= 4; i++)
 					ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
 				Recipe recipe = GetRecipe();
-				for (int i = 0; i < ingredients.Count; i++)
-				{
-					if (ItemStack.IsVoid(ingredients[i]))
-						continue;
-					for (int i2 = 0; i2 < recipe.Ingredients2.Length; i2++)
-					{
-						if (ingredients[i].Type == recipe.Ingredients2[i2].Type)
-						{
-							ingredients[i].Count -= recipe.Ingredients2[i2].Count;
-							break;
-						}
-					}
-				}
+                if (recipe != null)
+                {
+                    for (int i = 0; i < ingredients.Count; i++)
+                    {
+                        if (ItemStack.IsVoid(ingredients[i]))
+                            continue;
+                        for (int i2 = 0; i2 < recipe.Ingredients2.Length; i2++)
+                        {
+                            if (ingredients[i].Type == recipe.Ingredients2[i2].Type)
+                            {
+                                ingredients[i].Count -= recipe.Ingredients2[i2].Count;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //DEBUG: throw exception later
+                    Console.WriteLine("Recipe is null");
+                }
 			}
 			else
 			{

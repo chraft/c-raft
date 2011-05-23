@@ -1,8 +1,11 @@
-﻿using Chraft.Entity;
+﻿using System;
+using Chraft.Entity;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Properties;
 using System.Threading;
+using Chraft.World.Weather;
 
 namespace Chraft
 {
@@ -81,7 +84,6 @@ namespace Chraft
 				ProtocolOrEntityId = this.SessionID,
 				Dimension = World.Dimension,
 				Username = "",
-				Password = "",
 				MapSeed = World.Seed
 			});
 		}
@@ -348,5 +350,10 @@ namespace Chraft
         }
 
         #endregion
+
+	    public void SendWeather(WeatherState weather, int i, int i1)
+	    {
+	        throw new NotImplementedException();
+	    }
 	}
 }

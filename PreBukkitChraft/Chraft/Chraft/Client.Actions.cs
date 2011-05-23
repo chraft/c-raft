@@ -2,9 +2,10 @@
 using System.Linq;
 using Chraft.Net;
 using Chraft.Entity;
+using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Utils;
-using Chraft.Inventory;
+using Chraft.Interfaces;
 
 namespace Chraft
 {
@@ -104,10 +105,10 @@ namespace Chraft
             }
             Logger.Log(Logger.LogLevel.Info, DisplayName + " issued server command: " + command);
             Server.Broadcast(DisplayName + " executed command " + command, this);
-            CommandProc(Chat.Tokenize(command));
+            CommandProc(command, Chat.Tokenize(command));
         }
 
-        private void CommandProc(string[] tokens)
+        private void CommandProc(string raw, string[] tokens)
         {
             switch (tokens[0].ToLower())
             {
@@ -166,10 +167,6 @@ namespace Chraft
                 case "mute":
                     MuteCommand(tokens);
                     break;
-
-                default:
-                    OnCommand(tokens);
-                    break;
             }
         }
 
@@ -202,7 +199,7 @@ namespace Chraft
                 {
                     for (int z = start.Z; z <= end.Z; z++)
                     {
-                        World.SetBlockAndMetadata(x, y, z, (byte)item.Type, (byte)item.Durability);
+                        World.SetBlockAndData(x, y, z, (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }
@@ -304,13 +301,6 @@ namespace Chraft
             }
         }
 
-        private void OnCommand(string[] tokens)
-        {
-            if (Command != null)
-                Command.Invoke(this, new CommandEventArgs(this, tokens));
-            Server.OnCommand(this, tokens);
-        }
-
         private void StopCommand(string[] tokens)
         {
             Server.Stop();
@@ -374,11 +364,6 @@ namespace Chraft
             client[0].IsMuted = !clientMuted;
             client[0].SendMessage(clientMuted ? "You have been unmuted" : "You have been muted");
             SendMessage(clientMuted ? tokens[1] + " has been unmuted" : tokens[1] + " has been muted");
-        }
-
-        internal void SendWeather(Chraft.World.Weather.WeatherState weather, int X, int Z)
-        {
-            throw new NotImplementedException();
         }
     }
 }

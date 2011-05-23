@@ -82,10 +82,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\IKVM.OpenJDK.Core.dll</HintPath>
     </Reference>
-    <Reference Include="IKVM.OpenJDK.Security, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Downloads\ikvmbin-0.44.0.5\ikvm-0.44.0.5\bin\IKVM.OpenJDK.Security.dll</HintPath>
-    </Reference>
     <Reference Include="IKVM.OpenJDK.Util, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\IKVM.OpenJDK.Util.dll</HintPath>
@@ -120,26 +116,27 @@
     <Compile Include="Entity\MobType.cs" />
     <Compile Include="Entity\TileEntity.cs" />
     <Compile Include="Entity\WoolColor.cs" />
-    <Compile Include="Inventory\ClickLocation.cs" />
-    <Compile Include="Inventory\DispenserInterface.cs" />
-    <Compile Include="Inventory\FurnaceInterface.cs" />
-    <Compile Include="Inventory\Interface.cs" />
-    <Compile Include="Inventory\InterfaceClickedEventArgs.cs" />
-    <Compile Include="Inventory\InterfaceType.cs" />
-    <Compile Include="Inventory\InventoryInterface.cs" />
-    <Compile Include="Inventory\LargeChestInterface.cs" />
-    <Compile Include="Inventory\Recipes\Recipe.cs" />
-    <Compile Include="Inventory\SmallChestInterface.cs" />
-    <Compile Include="Inventory\WorkbenchInterface.cs" />
+    <Compile Include="Interfaces\ClickLocation.cs" />
+    <Compile Include="Interfaces\DispenserInterface.cs" />
+    <Compile Include="Interfaces\FurnaceInterface.cs" />
+    <Compile Include="Interfaces\Interface.cs" />
+    <Compile Include="Interfaces\InterfaceClickedEventArgs.cs" />
+    <Compile Include="Interfaces\InterfaceType.cs" />
+    <Compile Include="Interfaces\Inventory.cs" />
+    <Compile Include="Interfaces\ItemStack.cs" />
+    <Compile Include="Interfaces\LargeChestInterface.cs" />
+    <Compile Include="Interfaces\Recipes\Recipe.cs" />
+    <Compile Include="Interfaces\SmallChestInterface.cs" />
+    <Compile Include="Interfaces\WorkbenchInterface.cs" />
     <Compile Include="Irc\HostMask.cs" />
     <Compile Include="Irc\IrcClient.cs" />
     <Compile Include="Irc\IrcClient.Recv.cs" />
     <Compile Include="Irc\IrcEventArgs.cs" />
     <Compile Include="Net\DigAction.cs" />
-    <Compile Include="Net\MapChunkPacket.cs" />
     <Compile Include="Net\Packets\IncrementStatisticPacket.cs" />
     <Compile Include="Net\Packets\InvalidStatePacket.cs" />
     <Compile Include="Net\Packets\MapChunkPacket.cs" />
+    <Compile Include="Net\Packets\Packet.cs" />
     <Compile Include="Net\Packets\WeatherPacket.cs" />
     <Compile Include="Net\TcpEventArgs.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
@@ -154,10 +151,8 @@
     <Compile Include="Utils\IPermissions.cs" />
     <Compile Include="Utils\Location.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Inventory\ItemStack.cs" />
     <Compile Include="Net\BigEndianStream.cs" />
     <Compile Include="Net\MetaData.cs" />
-    <Compile Include="Net\Packet.cs" />
     <Compile Include="Net\PacketEventArgs.cs" />
     <Compile Include="Net\PacketHandler.cs" />
     <Compile Include="Net\PacketMap.cs" />

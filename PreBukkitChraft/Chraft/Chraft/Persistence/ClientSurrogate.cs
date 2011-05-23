@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Inventory;
+using Chraft.Interfaces;
 using System.Runtime.Serialization;
 
 namespace Chraft.Persistence
@@ -15,6 +15,6 @@ namespace Chraft.Persistence
 		public double Z { get; set; }
 		public float Yaw { get; set; }
 		public float Pitch { get; set; }
-		public InventoryInterface Inventory { get; set; }
+		public Inventory Inventory { get; set; }
 	}
 }
