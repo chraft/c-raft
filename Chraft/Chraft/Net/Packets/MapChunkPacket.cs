@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net.Packets;
 using Chraft.World;
 using System.IO;
 using System.IO.Compression;
