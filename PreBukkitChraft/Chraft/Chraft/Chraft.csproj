@@ -194,6 +194,8 @@
     <Compile Include="World\NBT\TagNodeType.cs" />
     <Compile Include="World\PointI.cs" />
     <Compile Include="Mojang\World\WorldChunkManager.cs" />
+    <Compile Include="World\Weather\WeatherManager.cs" />
+    <Compile Include="World\Weather\WeatherState.cs" />
     <Compile Include="World\WorldManager.cs" />
   </ItemGroup>
   <ItemGroup>

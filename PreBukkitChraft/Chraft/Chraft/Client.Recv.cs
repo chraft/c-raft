@@ -9,91 +9,91 @@ using Chraft.Inventory;
 
 namespace Chraft
 {
-	public partial class Client
-	{
-		public bool OnGround { get; set; }
-		public double Stance { get; set; }
+    public partial class Client
+    {
+        public bool OnGround { get; set; }
+        public double Stance { get; set; }
 
-		private void InitializeRecv()
-		{
-			InitializeRecvBasic();
-			InitializeRecvPlayer();
-			InitializeRecvInterface();
-			InitializeRecvUse();
-		}
+        private void InitializeRecv()
+        {
+            InitializeRecvBasic();
+            InitializeRecvPlayer();
+            InitializeRecvInterface();
+            InitializeRecvUse();
+        }
 
-		private void InitializeRecvUse()
-		{
-			PacketHandler.UseEntity += new PacketEventHandler<UseEntityPacket>(PacketHandler_UseEntity);
-			PacketHandler.UseBed += new PacketEventHandler<UseBedPacket>(PacketHandler_UseBed);
-		}
+        private void InitializeRecvUse()
+        {
+            PacketHandler.UseEntity += new PacketEventHandler<UseEntityPacket>(PacketHandler_UseEntity);
+            PacketHandler.UseBed += new PacketEventHandler<UseBedPacket>(PacketHandler_UseBed);
+        }
 
-		private void InitializeRecvInterface()
-		{
-			PacketHandler.CloseWindow += PacketHandler_CloseWindow;
-			PacketHandler.WindowClick += PacketHandler_WindowClick;
-		}
+        private void InitializeRecvInterface()
+        {
+            PacketHandler.CloseWindow += PacketHandler_CloseWindow;
+            PacketHandler.WindowClick += PacketHandler_WindowClick;
+        }
 
-		private void InitializeRecvBasic()
-		{
-			PacketHandler.ChatMessage += PacketHandler_ChatMessage;
-			PacketHandler.LoginRequest += PacketHandler_LoginRequest;
-			PacketHandler.Handshake += PacketHandler_Handshake;
-			PacketHandler.Disconnect += PacketHandler_Disconnect;
-		}
+        private void InitializeRecvBasic()
+        {
+            PacketHandler.ChatMessage += PacketHandler_ChatMessage;
+            PacketHandler.LoginRequest += PacketHandler_LoginRequest;
+            PacketHandler.Handshake += PacketHandler_Handshake;
+            PacketHandler.Disconnect += PacketHandler_Disconnect;
+        }
 
-		private void InitializeRecvPlayer()
-		{
-			PacketHandler.Animation += new PacketEventHandler<AnimationPacket>(PacketHandler_Animation);
-			PacketHandler.PlayerPosition += PacketHandler_PlayerPosition;
-			PacketHandler.PlayerPositionRotation += PacketHandler_PlayerPositionRotation;
-			PacketHandler.PlayerRotation += PacketHandler_PlayerRotation;
-			PacketHandler.PlayerDigging += PacketHandler_PlayerDigging;
-			PacketHandler.Player += PacketHandler_Player;
-			PacketHandler.PlayerBlockPlacement += PacketHandler_PlayerBlockPlacement;
+        private void InitializeRecvPlayer()
+        {
+            PacketHandler.Animation += new PacketEventHandler<AnimationPacket>(PacketHandler_Animation);
+            PacketHandler.PlayerPosition += PacketHandler_PlayerPosition;
+            PacketHandler.PlayerPositionRotation += PacketHandler_PlayerPositionRotation;
+            PacketHandler.PlayerRotation += PacketHandler_PlayerRotation;
+            PacketHandler.PlayerDigging += PacketHandler_PlayerDigging;
+            PacketHandler.Player += PacketHandler_Player;
+            PacketHandler.PlayerBlockPlacement += PacketHandler_PlayerBlockPlacement;
             PacketHandler.HoldingChange += PacketHandler_HoldingChange;
             PacketHandler.Respawn += PacketHander_Respawn; // Does this need a new handler?
-		}
+        }
 
-		private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
-		{
-			foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
-			{
-				if (c == this)
-					continue;
-				c.PacketHandler.SendPacket(new AnimationPacket
-				{
-					Animation = e.Packet.Animation,
-					PlayerId = this.EntityId
-				});
-			}
-		}
+        private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            {
+                if (c == this)
+                    continue;
+                c.PacketHandler.SendPacket(new AnimationPacket
+                {
+                    Animation = e.Packet.Animation,
+                    PlayerId = this.EntityId
+                });
+            }
+        }
 
         private void PacketHander_Respawn(object sender, PacketEventArgs<RespawnPacket> e)
         {
             HandleRespawn();
         }
 
-		private void PacketHandler_ChatMessage(object sender, PacketEventArgs<ChatMessagePacket> e)
-		{
-			string clean = Chat.CleanMessage(e.Packet.Message);
+        private void PacketHandler_ChatMessage(object sender, PacketEventArgs<ChatMessagePacket> e)
+        {
+            string clean = Chat.CleanMessage(e.Packet.Message);
 
-			if (clean.StartsWith("/"))
-				ExecuteCommand(clean.Substring(1));
-			else
-				ExecuteChat(clean);
-		}
+            if (clean.StartsWith("/"))
+                ExecuteCommand(clean.Substring(1));
+            else
+                ExecuteChat(clean);
+        }
 
 
-		#region Use
+        #region Use
 
-		private void PacketHandler_UseBed(object sender, PacketEventArgs<UseBedPacket> e)
-		{
-			throw new NotImplementedException();
-		}
+        private void PacketHandler_UseBed(object sender, PacketEventArgs<UseBedPacket> e)
+        {
+            throw new NotImplementedException();
+        }
 
-		private void PacketHandler_UseEntity(object sender, PacketEventArgs<UseEntityPacket> e)
-		{
+        private void PacketHandler_UseEntity(object sender, PacketEventArgs<UseEntityPacket> e)
+        {
             //Console.WriteLine(e.Packet.Target);
             //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
 
@@ -153,42 +153,44 @@ namespace Chraft
                     this.SendMessage(e.Packet.Target + " has no interaction handler!");
                 }*/
             }
-		}
+        }
 
-		#endregion
+        #endregion
 
 
-		#region Interfaces
+        #region Interfaces
 
-		private void PacketHandler_WindowClick(object sender, PacketEventArgs<WindowClickPacket> e)
-		{
-			Interface iface = CurrentInterface ?? Inventory;
-			iface.OnClicked(e.Packet);
-		}
+        private void PacketHandler_WindowClick(object sender, PacketEventArgs<WindowClickPacket> e)
+        {
+            Interface iface = CurrentInterface ?? Inventory;
+            iface.OnClicked(e.Packet);
+        }
 
-		private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
-		{
-			CurrentInterface = null;
-		}
+        private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
+        {
+            CurrentInterface = null;
+        }
 
         private void PacketHandler_HoldingChange(object sender, PacketEventArgs<HoldingChangePacket> e)
         {
-            Inventory.OnActiveChanged((short) (e.Packet.Slot += 36));
-           
+            Inventory.OnActiveChanged((short)(e.Packet.Slot += 36));
+
             foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z).Where(c => c != this))
             {
                 c.SendHoldingEquipment(this);
             }
         }
 
-	    #endregion
+        #endregion
 
 
-		#region Block Con/Destruction
+        #region Block Con/Destruction
 
         private void PacketHandler_PlayerItemPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
         {
-           // if(!Permissions.CanPlayerBuild(Username)) return;
+            //check if they can build
+            if (!CanPlayerBuild(Username)) return;
+
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 255)
                 return;
 
@@ -237,7 +239,7 @@ namespace Chraft
                     break;
 
                 case BlockData.Items.Sign:
-                
+
                     if (e.Packet.Face == BlockFace.Up) // Floor Sign
                     {
                         // Get the direction the player is facing.
@@ -352,14 +354,16 @@ namespace Chraft
             }
 
             if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
-                Inventory.RemoveItem(Inventory.ActiveSlot); 
-            
+                Inventory.RemoveItem(Inventory.ActiveSlot);
+
             World.Update(px, py, pz);
         }
 
-		private void PacketHandler_PlayerBlockPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
-		{
-          //  if (!Permissions.CanPlayerBuild(Username)) return;
+        private void PacketHandler_PlayerBlockPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
+        {
+            //check if they can build
+            if (!CanPlayerBuild(Username)) return;
+
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)
                 return;
@@ -371,18 +375,18 @@ namespace Chraft
                 return;
             }
 
-			int x = e.Packet.X;
-			int y = e.Packet.Y;
-			int z = e.Packet.Z;
+            int x = e.Packet.X;
+            int y = e.Packet.Y;
+            int z = e.Packet.Z;
 
             BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
 
             // Built Block Info
-			int bx, by, bz;
+            int bx, by, bz;
             byte bType = (byte)Inventory.Slots[Inventory.ActiveSlot].Type;
             byte bMetaData = (byte)Inventory.Slots[Inventory.ActiveSlot].Durability;
 
-			World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
+            World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
 
             switch (type) // Can't build against these blocks.
             {
@@ -417,13 +421,13 @@ namespace Chraft
                 case BlockData.Blocks.Dispenser:
                     switch (e.Packet.Face) //Bugged, as the client has a mind of its own for facing
                     {
-                        case BlockFace.East: bMetaData = (byte)MetaData.Furnace.East; 
+                        case BlockFace.East: bMetaData = (byte)MetaData.Furnace.East;
                             break;
-                        case BlockFace.West: bMetaData = (byte)MetaData.Furnace.West; 
+                        case BlockFace.West: bMetaData = (byte)MetaData.Furnace.West;
                             break;
-                        case BlockFace.North: bMetaData = (byte)MetaData.Furnace.North; 
+                        case BlockFace.North: bMetaData = (byte)MetaData.Furnace.North;
                             break;
-                        case BlockFace.South: bMetaData = (byte)MetaData.Furnace.South; 
+                        case BlockFace.South: bMetaData = (byte)MetaData.Furnace.South;
                             break;
                         default:
                             switch (FacingDirection(4)) // Built on floor, set by facing dir
@@ -442,13 +446,13 @@ namespace Chraft
                                     break;
                                 default:
                                     return;
-                                    
+
                             }
                             break;
                     }
                     break;
 
-                case BlockData.Blocks.Rails: 
+                case BlockData.Blocks.Rails:
                     // TODO: Rail Logic                    
                     break;
 
@@ -504,92 +508,93 @@ namespace Chraft
             World.Update(bx, by, bz);
 
             Inventory.RemoveItem(Inventory.ActiveSlot);
-		}
+        }
 
-		private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
-		{
-			int x = e.Packet.X;
-			int y = e.Packet.Y;
-			int z = e.Packet.Z;
+        private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
+        {
+            int x = e.Packet.X;
+            int y = e.Packet.Y;
+            int z = e.Packet.Z;
 
-			byte type = World.GetBlockId(x, y, z);
-			byte data = World.GetBlockData(x, y, z);
+            byte type = World.GetBlockId(x, y, z);
+            byte data = World.GetBlockData(x, y, z);
 
-			switch (e.Packet.Action)
-			{
-			case DigAction.StartDigging:
-				if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
-					goto case DigAction.FinishDigging;
-				break;
-
-			case DigAction.FinishDigging:
-				short give = type;
-				sbyte count = 1;
-				short durability = data;
-
-				switch ((BlockData.Blocks)type)
-				{
-				case BlockData.Blocks.Adminium:
-					return;
-
-				case BlockData.Blocks.Air:
-					return;
-
-				case BlockData.Blocks.Bed:
-					give = (short)BlockData.Items.Bed;
-					break;
-
-				case BlockData.Blocks.Burning_Furnace:
-					give = (short)BlockData.Blocks.Furnace;
-					break;
-
-				case BlockData.Blocks.Cake:
-					give = (short)BlockData.Items.Cake;
-					break;
-
-				case BlockData.Blocks.Clay:
-					give = (short)BlockData.Items.Clay_Balls;
-					break;
-
-				case BlockData.Blocks.Coal_Ore:
-					give = (short)BlockData.Items.Coal;
-					break;
-
-                case BlockData.Blocks.Crops:
-                    // TODO: Check crops are mature enough before giving items.
-                    give = (short)BlockData.Items.Seeds;
-                    count = 2;
+            switch (e.Packet.Action)
+            {
+                case DigAction.StartDigging:
+                    if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
+                        goto case DigAction.FinishDigging;
                     break;
 
-				case BlockData.Blocks.Diamond_Ore:
-					give = (short)BlockData.Items.Diamond;
-					break;
+                case DigAction.FinishDigging:
+                    short give = type;
+                    sbyte count = 1;
+                    short durability = data;
 
-				case BlockData.Blocks.Double_Stone_Slab:
-					give = (short)BlockData.Blocks.Stair;
-					break;
+                    switch ((BlockData.Blocks)type)
+                    {
+                        case BlockData.Blocks.Adminium:
+                            return;
 
-				case BlockData.Blocks.Fire:
-					return;
+                        case BlockData.Blocks.Air:
+                            return;
 
-				case BlockData.Blocks.Glass:
-					give = -1;
-					break;
+                        case BlockData.Blocks.Bed:
+                            give = (short)BlockData.Items.Bed;
+                            break;
 
-				case BlockData.Blocks.Glowstone:
-					give = (short)BlockData.Items.Lightstone_Dust;
-					break;
+                        case BlockData.Blocks.Burning_Furnace:
+                            give = (short)BlockData.Blocks.Furnace;
+                            break;
 
-				case BlockData.Blocks.Grass:
-                case BlockData.Blocks.Soil:
-					give = (short)BlockData.Blocks.Dirt;
-					break;
+                        case BlockData.Blocks.Cake:
+                            give = (short)BlockData.Items.Cake;
+                            break;
 
-				case BlockData.Blocks.Gravel:
-					if (Server.Rand.Next(10) == 0)
-						Server.DropItem(World, x, y, z, new ItemStack((short)BlockData.Items.Flint));
-					break;
+                        case BlockData.Blocks.Clay:
+                            give = (short)BlockData.Items.Clay_Balls;
+                            break;
 
+                        case BlockData.Blocks.Coal_Ore:
+                            give = (short)BlockData.Items.Coal;
+                            break;
+
+                        case BlockData.Blocks.Crops:
+                            // TODO: Check crops are mature enough before giving items.
+                            give = (short)BlockData.Items.Seeds;
+                            count = 2;
+                            break;
+
+                        case BlockData.Blocks.Diamond_Ore:
+                            give = (short)BlockData.Items.Diamond;
+                            break;
+
+                        case BlockData.Blocks.Double_Stone_Slab:
+                            give = (short)BlockData.Blocks.Stair;
+                            break;
+
+                        case BlockData.Blocks.Fire:
+                            return;
+
+                        case BlockData.Blocks.Glass:
+                            give = -1;
+                            break;
+
+                        case BlockData.Blocks.Glowstone:
+                            give = (short)BlockData.Items.Lightstone_Dust;
+                            break;
+
+                        case BlockData.Blocks.Grass:
+                        case BlockData.Blocks.Soil:
+                            give = (short)BlockData.Blocks.Dirt;
+                            break;
+
+                        case BlockData.Blocks.Gravel:
+                            if (Server.Rand.Next(10) == 0)
+                                Server.DropItem(World, x, y, z, new ItemStackChraft((short)BlockData.Items.Flint));
+                            break;
+
+<<<<<<< .working
 				case BlockData.Blocks.Ice:
 					if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
 					{
@@ -598,147 +603,163 @@ namespace Chraft
 					}
 					World.SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
 					return;
+=======
+                        case BlockData.Blocks.Ice:
+                            if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
+                            {
+                                World.SetBlockAndData(x, y, z, 0, 0);
+                                return;
+                            }
+                            World.SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
+                            return;
+>>>>>>> .merge-right.r243
 
-				case BlockData.Blocks.Lapis_Lazuli_Ore:
-					give = (short)BlockData.Items.Ink_Sack;
-					durability = 4;
-					count = (sbyte)(3 + Server.Rand.Next(17));
-					break;
+                        case BlockData.Blocks.Lapis_Lazuli_Ore:
+                            give = (short)BlockData.Items.Ink_Sack;
+                            durability = 4;
+                            count = (sbyte)(3 + Server.Rand.Next(17));
+                            break;
 
-				case BlockData.Blocks.Lava:
-					return;
+                        case BlockData.Blocks.Lava:
+                            return;
 
-				case BlockData.Blocks.Leaves:
-					give = Server.Rand.Next(5) == 0 ? (short)BlockData.Blocks.Sapling : (short)-1;
-					break;
+                        case BlockData.Blocks.Leaves:
+                            give = Server.Rand.Next(5) == 0 ? (short)BlockData.Blocks.Sapling : (short)-1;
+                            break;
 
-                case BlockData.Blocks.Portal:
-				case BlockData.Blocks.Mob_Spawner:
-					give = -1;
-					break;
+                        case BlockData.Blocks.Portal:
+                        case BlockData.Blocks.Mob_Spawner:
+                            give = -1;
+                            break;
 
-				case BlockData.Blocks.Redstone_Ore:
-					give = (short)BlockData.Items.Redstone;
-					count = (sbyte)(2 + Server.Rand.Next(4));
-					break;
+                        case BlockData.Blocks.Redstone_Ore:
+                            give = (short)BlockData.Items.Redstone;
+                            count = (sbyte)(2 + Server.Rand.Next(4));
+                            break;
 
-				case BlockData.Blocks.Redstone_Repeater:
-				case BlockData.Blocks.Redstone_Repeater_On:
-					give = (short)BlockData.Items.Redstone_Repeater;
-					break;
+                        case BlockData.Blocks.Redstone_Repeater:
+                        case BlockData.Blocks.Redstone_Repeater_On:
+                            give = (short)BlockData.Items.Redstone_Repeater;
+                            break;
 
-				case BlockData.Blocks.Redstone_Torch_On:
-					give = (short)BlockData.Blocks.Redstone_Torch;
-					break;
+                        case BlockData.Blocks.Redstone_Torch_On:
+                            give = (short)BlockData.Blocks.Redstone_Torch;
+                            break;
 
-				case BlockData.Blocks.Redstone_Wire:
-					give = (short)BlockData.Items.Redstone;
-					break;
+                        case BlockData.Blocks.Redstone_Wire:
+                            give = (short)BlockData.Items.Redstone;
+                            break;
 
-				case BlockData.Blocks.Sign_Post:
-					give = (short)BlockData.Items.Sign;
-					break;
+                        case BlockData.Blocks.Sign_Post:
+                            give = (short)BlockData.Items.Sign;
+                            break;
 
-				case BlockData.Blocks.Snow:
-					give = (short)BlockData.Items.Snowball;
-					break;
+                        case BlockData.Blocks.Snow:
+                            give = (short)BlockData.Items.Snowball;
+                            break;
 
-				case BlockData.Blocks.Snow_Block:
-					give = (short)BlockData.Items.Snowball;
-					count = 3;
-					break;
+                        case BlockData.Blocks.Snow_Block:
+                            give = (short)BlockData.Items.Snowball;
+                            count = 3;
+                            break;
 
-				case BlockData.Blocks.Stationary_Lava:
-				case BlockData.Blocks.Stationary_Water:
-					return;
+                        case BlockData.Blocks.Stationary_Lava:
+                        case BlockData.Blocks.Stationary_Water:
+                            return;
 
-				case BlockData.Blocks.Stone:
-					give = (short)BlockData.Blocks.Cobblestone;
-					break;
+                        case BlockData.Blocks.Stone:
+                            give = (short)BlockData.Blocks.Cobblestone;
+                            break;
 
-                case BlockData.Blocks.TNT:
-                    // TODO: Spawn TNT Object and start explosion timer.
-                    return;
+                        case BlockData.Blocks.TNT:
+                            // TODO: Spawn TNT Object and start explosion timer.
+                            return;
 
-                case BlockData.Blocks.Wall_Sign:
-                    give = (short)BlockData.Items.Sign;
-                    break;
+                        case BlockData.Blocks.Wall_Sign:
+                            give = (short)BlockData.Items.Sign;
+                            break;
 
-				case BlockData.Blocks.Water:
-					return;
-				}
+                        case BlockData.Blocks.Water:
+                            return;
+                    }
 
+<<<<<<< .working
 				World.SetBlockAndMetadata(x, y, z, 0, 0);
 				World.Update(x, y, z);
+=======
+                    World.SetBlockAndData(x, y, z, 0, 0);
+                    World.Update(x, y, z);
+>>>>>>> .merge-right.r243
 
-                Inventory.DamageItem(Inventory.ActiveSlot);
+                    Inventory.DamageItem(Inventory.ActiveSlot);
 
-				if (give > 0)
-					Server.DropItem(World, x, y, z, new ItemStack(give, count, durability));
-				break;
-			}
-		}
+                    if (give > 0)
+                        Server.DropItem(World, x, y, z, new ItemStackChraft(give, count, durability));
+                    break;
+            }
+        }
 
-		#endregion
-
-
-		#region Movement and Updates
-
-		private void PacketHandler_Player(object sender, PacketEventArgs<PlayerPacket> e)
-		{
-			this.OnGround = e.Packet.OnGround;
-			this.UpdateEntities();
-		}
-
-		private void PacketHandler_PlayerRotation(object sender, PacketEventArgs<PlayerRotationPacket> e)
-		{
-			this.OnGround = e.Packet.OnGround;
-			this.RotateTo(e.Packet.Yaw, e.Packet.Pitch);
-			this.UpdateEntities();
-		}
-
-		private void PacketHandler_PlayerPositionRotation(object sender, PacketEventArgs<PlayerPositionRotationPacket> e)
-		{
-			this.OnGround = e.Packet.OnGround;
-			this.Stance = e.Packet.Stance;
-			this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
-		}
-
-		private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
-		{
-			this.OnGround = e.Packet.OnGround;
-			this.Stance = e.Packet.Stance;
-			this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
-		}
-
-		#endregion
+        #endregion
 
 
-		#region Login
+        #region Movement and Updates
 
-		private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
-		{
+        private void PacketHandler_Player(object sender, PacketEventArgs<PlayerPacket> e)
+        {
+            this.OnGround = e.Packet.OnGround;
+            this.UpdateEntities();
+        }
+
+        private void PacketHandler_PlayerRotation(object sender, PacketEventArgs<PlayerRotationPacket> e)
+        {
+            this.OnGround = e.Packet.OnGround;
+            this.RotateTo(e.Packet.Yaw, e.Packet.Pitch);
+            this.UpdateEntities();
+        }
+
+        private void PacketHandler_PlayerPositionRotation(object sender, PacketEventArgs<PlayerPositionRotationPacket> e)
+        {
+            this.OnGround = e.Packet.OnGround;
+            this.Stance = e.Packet.Stance;
+            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
+        }
+
+        private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
+        {
+            this.OnGround = e.Packet.OnGround;
+            this.Stance = e.Packet.Stance;
+            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
+        }
+
+        #endregion
+
+
+        #region Login
+
+        private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
+        {
             Logger.Log(Logger.LogLevel.Info, DisplayName + " disconnected: " + e.Packet.Reason);
-			Running = false;
-		}
+            Running = false;
+            Server.OnQuit(this);
+        }
 
-		private void PacketHandler_Handshake(object sender, PacketEventArgs<HandshakePacket> e)
-		{
-			Username = Regex.Replace(e.Packet.UsernameOrHash, Chat.DISALLOWED, "");
-			DisplayName = Username;
-			SendHandshake();
-		}
+        private void PacketHandler_Handshake(object sender, PacketEventArgs<HandshakePacket> e)
+        {
+            Username = Regex.Replace(e.Packet.UsernameOrHash, Chat.DISALLOWED, "");
+            DisplayName = Username;
+            SendHandshake();
+        }
 
-		private void PacketHandler_LoginRequest(object sender, PacketEventArgs<LoginRequestPacket> e)
-		{
-			if (!CheckUsername(e.Packet.Username))
-				Kick("Inconsistent username");
-			else if (e.Packet.ProtocolOrEntityId < ProtocolVersion)
-				Kick("Outdated client");
-			else
-				SendLoginSequence();
-		}
+        private void PacketHandler_LoginRequest(object sender, PacketEventArgs<LoginRequestPacket> e)
+        {
+            if (!CheckUsername(e.Packet.Username))
+                Kick("Inconsistent username");
+            else if (e.Packet.ProtocolOrEntityId < ProtocolVersion)
+                Kick("Outdated client");
+            else
+                SendLoginSequence();
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
