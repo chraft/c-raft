@@ -1,9 +1,17 @@
 ﻿using System;
-using Chraft.Interfaces;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using Chraft.World;
+using Chraft.Interfaces;
+using System.IO.Compression;
+using System.IO;
+using java.util.zip;
 using Chraft.Entity;
 
-namespace Chraft.Net.Packets
+namespace Chraft.Net
 {
 	public abstract class Packet
 	{
@@ -338,7 +346,7 @@ namespace Chraft.Net.Packets
 		public sbyte Y { get; set; }
 		public int Z { get; set; }
 		public BlockFace Face { get; set; }
-		public ItemStack Item { get; set; }
+		public ItemStackChraft Item { get; set; }
 
 		public override void Read(BigEndianStream stream)
 		{
@@ -346,7 +354,7 @@ namespace Chraft.Net.Packets
 			Y = stream.ReadSByte();
 			Z = stream.ReadInt();
 			Face = (BlockFace)stream.ReadSByte();
-			Item = ItemStack.Read(stream);
+			Item = ItemStackChraft.Read(stream);
 		}
 
 		public override void Write(BigEndianStream stream)
@@ -355,7 +363,7 @@ namespace Chraft.Net.Packets
 			stream.Write(Y);
 			stream.Write(Z);
 			stream.Write((sbyte)Face);
-			(Item ?? ItemStack.Void).Write(stream);
+			(Item ?? ItemStackChraft.Void).Write(stream);
 		}
 	}
 
@@ -1069,7 +1077,7 @@ namespace Chraft.Net.Packets
 		public bool RightClick { get; set; }
 		public short Transaction { get; set; }
         public bool Shift { get; set; }
-		public ItemStack Item { get; set; }
+		public ItemStackChraft Item { get; set; }
 
 		public override void Read(BigEndianStream stream)
 		{
@@ -1078,7 +1086,7 @@ namespace Chraft.Net.Packets
 			RightClick = stream.ReadBool();
 			Transaction = stream.ReadShort();
             Shift = stream.ReadBool();
-			Item = ItemStack.Read(stream);
+			Item = ItemStackChraft.Read(stream);
 		}
 
 		public override void Write(BigEndianStream stream)
@@ -1088,7 +1096,7 @@ namespace Chraft.Net.Packets
 			stream.Write(RightClick);
 			stream.Write(Transaction);
             stream.Write(Shift);
-			(Item ?? ItemStack.Void).Write(stream);
+			(Item ?? ItemStackChraft.Void).Write(stream);
 		}
 	}
 
@@ -1096,34 +1104,34 @@ namespace Chraft.Net.Packets
 	{
 		public sbyte WindowId { get; set; }
 		public short Slot { get; set; }
-		public ItemStack Item { get; set; }
+		public ItemStackChraft Item { get; set; }
 
 		public override void Read(BigEndianStream stream)
 		{
 			WindowId = stream.ReadSByte();
 			Slot = stream.ReadShort();
-			Item = ItemStack.Read(stream);
+			Item = ItemStackChraft.Read(stream);
 		}
 
 		public override void Write(BigEndianStream stream)
 		{
 			stream.Write(WindowId);
 			stream.Write(Slot);
-			(Item ?? ItemStack.Void).Write(stream);
+			(Item ?? ItemStackChraft.Void).Write(stream);
 		}
 	}
 
 	public class WindowItemsPacket : Packet
 	{
 		public sbyte WindowId { get; set; }
-		public ItemStack[] Items { get; set; }
+		public ItemStackChraft[] Items { get; set; }
 
 		public override void Read(BigEndianStream stream)
 		{
 			WindowId = stream.ReadSByte();
-			Items = new ItemStack[stream.ReadShort()];
+			Items = new ItemStackChraft[stream.ReadShort()];
 			for (int i = 0; i < Items.Length; i++)
-				Items[i] = ItemStack.Read(stream);
+				Items[i] = ItemStackChraft.Read(stream);
 		}
 
 		public override void Write(BigEndianStream stream)
@@ -1131,7 +1139,7 @@ namespace Chraft.Net.Packets
 			stream.Write(WindowId);
 			stream.Write((short)Items.Length);
 			for (int i = 0; i < Items.Length; i++)
-				(Items[i] ?? ItemStack.Void).Write(stream);
+				(Items[i] ?? ItemStackChraft.Void).Write(stream);
 		}
 	}
 
