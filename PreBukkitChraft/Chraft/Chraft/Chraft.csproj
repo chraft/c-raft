@@ -118,6 +118,7 @@
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\MobType.cs" />
+    <Compile Include="Entity\TileEntity.cs" />
     <Compile Include="Entity\WoolColor.cs" />
     <Compile Include="Inventory\ClickLocation.cs" />
     <Compile Include="Inventory\DispenserInterface.cs" />
@@ -136,6 +137,10 @@
     <Compile Include="Irc\IrcEventArgs.cs" />
     <Compile Include="Net\DigAction.cs" />
     <Compile Include="Net\MapChunkPacket.cs" />
+    <Compile Include="Net\Packets\IncrementStatisticPacket.cs" />
+    <Compile Include="Net\Packets\InvalidStatePacket.cs" />
+    <Compile Include="Net\Packets\MapChunkPacket.cs" />
+    <Compile Include="Net\Packets\WeatherPacket.cs" />
     <Compile Include="Net\TcpEventArgs.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
@@ -173,6 +178,7 @@
     <Compile Include="World\BlockSet.cs" />
     <Compile Include="World\Chunk.cs" />
     <Compile Include="Mojang\World\ChunkGenerator.cs" />
+    <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
     <Compile Include="Mojang\World\MapGenBase.cs" />

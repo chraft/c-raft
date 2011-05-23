@@ -375,5 +375,10 @@ namespace Chraft
             client[0].SendMessage(clientMuted ? "You have been unmuted" : "You have been muted");
             SendMessage(clientMuted ? tokens[1] + " has been unmuted" : tokens[1] + " has been muted");
         }
+
+        internal void SendWeather(Chraft.World.Weather.WeatherState weather, int X, int Z)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

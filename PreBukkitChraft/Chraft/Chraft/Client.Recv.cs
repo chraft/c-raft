@@ -188,9 +188,7 @@ namespace Chraft
 
         private void PacketHandler_PlayerItemPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
         {
-            //check if they can build
-            if (!CanPlayerBuild(Username)) return;
-
+            // if(!Permissions.CanPlayerBuild(Username)) return;
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 255)
                 return;
 
@@ -361,9 +359,7 @@ namespace Chraft
 
         private void PacketHandler_PlayerBlockPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
         {
-            //check if they can build
-            if (!CanPlayerBuild(Username)) return;
-
+            //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)
                 return;
@@ -591,28 +587,17 @@ namespace Chraft
 
                         case BlockData.Blocks.Gravel:
                             if (Server.Rand.Next(10) == 0)
-                                Server.DropItem(World, x, y, z, new ItemStackChraft((short)BlockData.Items.Flint));
+                                Server.DropItem(World, x, y, z, new ItemStack((short)BlockData.Items.Flint));
                             break;
 
-<<<<<<< .working
-				case BlockData.Blocks.Ice:
-					if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
-					{
-						World.SetBlockAndMetadata(x, y, z, 0, 0);
-						return;
-					}
-					World.SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
-					return;
-=======
                         case BlockData.Blocks.Ice:
                             if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
                             {
-                                World.SetBlockAndData(x, y, z, 0, 0);
+                                World.SetBlockAndMetadata(x, y, z, 0, 0);
                                 return;
                             }
-                            World.SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
+                            World.SetBlockAndMetadata(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
                             return;
->>>>>>> .merge-right.r243
 
                         case BlockData.Blocks.Lapis_Lazuli_Ore:
                             give = (short)BlockData.Items.Ink_Sack;
@@ -683,18 +668,13 @@ namespace Chraft
                             return;
                     }
 
-<<<<<<< .working
-				World.SetBlockAndMetadata(x, y, z, 0, 0);
-				World.Update(x, y, z);
-=======
-                    World.SetBlockAndData(x, y, z, 0, 0);
+                    World.SetBlockAndMetadata(x, y, z, 0, 0);
                     World.Update(x, y, z);
->>>>>>> .merge-right.r243
 
                     Inventory.DamageItem(Inventory.ActiveSlot);
 
                     if (give > 0)
-                        Server.DropItem(World, x, y, z, new ItemStackChraft(give, count, durability));
+                        Server.DropItem(World, x, y, z, new ItemStack(give, count, durability));
                     break;
             }
         }
@@ -740,7 +720,6 @@ namespace Chraft
         {
             Logger.Log(Logger.LogLevel.Info, DisplayName + " disconnected: " + e.Packet.Reason);
             Running = false;
-            Server.OnQuit(this);
         }
 
         private void PacketHandler_Handshake(object sender, PacketEventArgs<HandshakePacket> e)

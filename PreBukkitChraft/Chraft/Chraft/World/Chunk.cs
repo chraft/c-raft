@@ -7,42 +7,22 @@ using System.Threading;
 using ICSharpCode.SharpZipLib.GZip;
 using Chraft.Properties;
 using Ionic.Zlib;
+using Chraft.World.Weather;
 
 namespace Chraft.World
 {
-	public class Chunk : BlockSet
+	public class Chunk : ChunkBase
 	{
-		private List<Client> Clients;
-
 		private static object _SavingLock = new object();
 		private static volatile bool Saving = false;
 		private int MaxHeight;
 
 		public byte[,] HeightMap { get; private set; }
-		public int X { get; set; }
-		public short Y { get; set; }
-		public int Z { get; set; }
-		public int SizeX { get; set; }
-		public int SizeY { get; set; }
-		public int SizeZ { get; set; }
-		public WorldManager World { get; private set; }
 		public string DataFile { get { return World.Folder + "/x" + X + "_z" + Z + ".gz"; } }
 		public bool Persistent { get; set; }
 
-		public Chunk(WorldManager world, int x, short y, int z, byte sx, byte sy, byte sz)
-		{
-			World = world;
-			X = x;
-			Y = y;
-			Z = z;
-			SizeX = sx;
-			SizeY = sy;
-			SizeZ = sz;
-			Clients = new List<Client>();
-		}
-
-		public Chunk(WorldManager world, int x, int z)
-			: this(world, x, 0, z, 16, 128, 16)
+		internal Chunk(WorldManager world, int x, int z)
+			: base(world, x, z)
 		{
 		}
 
@@ -168,11 +148,11 @@ namespace Chraft.World
 
 		private void LoadAllBlocks(Stream strm)
 		{
-			for (int x = 0; x < SizeX; x++)
+			for (int x = 0; x < 16; x++)
 			{
-				for (int y = 0; y < SizeY; y++)
+				for (int y = 0; y < 128; y++)
 				{
-					for (int z = 0; z < SizeZ; z++)
+					for (int z = 0; z < 16; z++)
 						LoadBlock(x, y, z, strm);
 				}
 			}
@@ -213,11 +193,11 @@ namespace Chraft.World
 
 		private void WriteAllBlocks(Stream strm)
 		{
-			for (int x = 0; x < SizeX; x++)
+			for (int x = 0; x < 16; x++)
 			{
-				for (int y = 0; y < SizeY; y++)
+				for (int y = 0; y < 128; y++)
 				{
-					for (int z = 0; z < SizeZ; z++)
+					for (int z = 0; z < 16; z++)
 						WriteBlock(x, y, z, strm);
 				}
 			}
@@ -252,25 +232,20 @@ namespace Chraft.World
 			}
 		}
 
-		/// <summary>
-		/// Gets a thead-safe array of clients that have the chunk loaded.
-		/// </summary>
-		/// <returns>Array of clients that have the chunk loaded.</returns>
-		public Client[] GetClients()
-		{
-			return Clients.ToArray();
-		}
-
 		internal void AddClient(Client client)
 		{
 			lock (Clients)
 				Clients.Add(client);
+			lock (Entities)
+				Entities.Add(client);
 		}
 
 		internal void RemoveClient(Client client)
 		{
 			lock (Clients)
 				Clients.Remove(client);
+			lock (Entities)
+				Entities.Remove(client);
 
 			if (Clients.Count == 0 && !Persistent)
 			{
@@ -298,8 +273,10 @@ namespace Chraft.World
 			}
 
 			if (light < 7 && sky < 7)
-                SpawnMob(x, y + 1, z);
+			{
+				SpawnMob(x, y + 1, z);
 				return;
+			}
 
 			switch (type)
 			{
@@ -331,24 +308,24 @@ namespace Chraft.World
 
 		private void UpdateClients(int x, int y, int z)
 		{
-			World.UpdateClients(X + x, Y + y, Z + z);
+			World.UpdateClients(X + x, y, Z + z);
 		}
 
 		private void GrowSapling(int x, int y, int z)
 		{
 			GrowTree(x, y, z);
-			foreach (Client c in World.Server.GetNearbyPlayers(World, X, Y, Z))
-				c.SendBlockRegion(X - 3, Y, Z - 3, 7, 7, 7);
+			foreach (Client c in World.Server.GetNearbyPlayers(World, X + x, y, Z + z))
+				c.SendBlockRegion(X + x - 3, y, Z + z - 3, 7, 7, 7);
 		}
 
-		public void GrowTree(int x, int y, int z, byte treeType = 0)
+		public void GrowTree(int x, int y, int z, byte treeType = (byte) 0)
 		{
-			World.GrowTree(X + x, Y + y, Z + z, treeType);
+			World.GrowTree(X + x, y, Z + z, treeType);
 		}
 
         public void PlaceCactus(int x, int y, int z)
         {
-            World.PlaceCactus(x, y, z);
+            World.GrowCactus(x, y, z);
         }
 		public void ForAdjacent(int x, int y, int z, ForEachBlock predicate)
 		{
@@ -457,7 +434,7 @@ namespace Chraft.World
                 if (World.Time % 50 == 0)
                 {
                     if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                        World.SpawnAnimal(X + x, Y + y + 1, Z + z);
+                        World.SpawnAnimal(X + x, y + 1, Z + z);
                 }
 			}
 			else if (World.Server.Rand.Next(30) != 0)
@@ -493,8 +470,16 @@ namespace Chraft.World
             if (World.Time % 100 == 0)
             {
                 if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                    World.SpawnMob(X + x, Y + y, Z + z);
+                    World.SpawnMob(X + x, y, Z + z);
             }
         }
+
+		internal void SetWeather(WeatherState weather)
+		{
+			foreach (Client c in GetClients())
+			{
+				c.SendWeather(weather, X, Z);
+			}
+		}
 	}
 }
