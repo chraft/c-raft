@@ -7,6 +7,7 @@ using Chraft;
 using Chraft.Net;
 using Chraft.Utils;
 using Chraft.World;
+using Chraft.World.NBT;
 
 namespace Chraft.Entity
 {
@@ -28,7 +29,7 @@ namespace Chraft.Entity
         public sbyte PackedPitch { get { return (sbyte)(Pitch / 360.0f * 256.0f % 256.0f); } }
         public Server Server { get; private set; }
         public int TimeInWorld;
-        public World.NBT.Vector3 Position;
+        public Vector3 Position;
 
         public EntityBase(Server server, int entityId)
         {

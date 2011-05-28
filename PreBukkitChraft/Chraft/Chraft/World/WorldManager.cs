@@ -281,10 +281,7 @@ namespace Chraft.World
                 {
                     Mob m = (Mob)e;
 
-                    if (m.Hunter)
-                        m.HuntMode();
-                    else
-                        m.PassiveMode();
+                    m.Update();
                 }
                 else if (e is ItemEntity)
                 {

@@ -113,6 +113,7 @@
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Mob.cs" />
+    <Compile Include="Entity\Mob.AI.cs" />
     <Compile Include="Entity\MobType.cs" />
     <Compile Include="Entity\TileEntity.cs" />
     <Compile Include="Entity\WoolColor.cs" />
