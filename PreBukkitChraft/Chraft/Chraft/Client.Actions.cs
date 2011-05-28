@@ -207,13 +207,13 @@ namespace Chraft
 
         private void Pos2Command(string[] tokens)
         {
-            Point2 = new PointI((int)X, (int)Y, (int)Z);
+            Point2 = new PointI((int)Position.X, (int)Position.Y, (int)Position.Z);
             SendMessage("§7First position set.");
         }
 
         private void Pos1Command(string[] tokens)
         {
-            Point1 = new PointI((int)X, (int)Y, (int)Z);
+            Point1 = new PointI((int)Position.X, (int)Position.Y, (int)Position.Z);
             SendMessage("§7Second position set.");
         }
 
@@ -278,7 +278,7 @@ namespace Chraft
                 return;
             }
             World = targets[0].World;
-            TeleportTo(targets[0].X, targets[0].Y, targets[0].Z);
+            TeleportTo(targets[0].Position.X, targets[0].Position.Y, targets[0].Position.Z);
         }
 
         private void TphereCommand(string[] tokens)
@@ -297,7 +297,7 @@ namespace Chraft
             foreach (Client c in targets)
             {
                 c.World = World;
-                c.TeleportTo(X, Y, Z);
+                c.TeleportTo(Position.X, Position.Y, Position.Z);
             }
         }
 

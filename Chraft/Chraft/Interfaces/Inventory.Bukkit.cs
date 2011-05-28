@@ -11,17 +11,20 @@ namespace Chraft.Interfaces
 	{
 		public org.bukkit.inventory.ItemStack[] getArmorContents()
 		{
-			return new ItemStackChraft[] { Slots[5], Slots[6], Slots[7], Slots[8] };
+            return null;
+			//return new ItemStackChraft[] { Slots[5], Slots[6], Slots[7], Slots[8] };
 		}
 
 		public org.bukkit.inventory.ItemStack getBoots()
 		{
-			return Slots[8];
+            return null;
+			//return Slots[8];
 		}
-
+        
 		public org.bukkit.inventory.ItemStack getChestplate()
 		{
-			return Slots[6];
+            return null;
+			//return Slots[6];
 		}
 
 		public int getHeldItemSlot()
@@ -31,17 +34,20 @@ namespace Chraft.Interfaces
 
 		public org.bukkit.inventory.ItemStack getHelmet()
 		{
-			return Slots[5];
+            return null;
+			//return Slots[5];
 		}
 
 		public org.bukkit.inventory.ItemStack getItemInHand()
 		{
-			return ActiveItem;
+            return null;
+			//eturn ActiveItem;
 		}
 
 		public org.bukkit.inventory.ItemStack getLeggings()
 		{
-			return Slots[7];
+            return null;
+			//return Slots[7];
 		}
 
 		public void setBoots(org.bukkit.inventory.ItemStack @is)
@@ -195,12 +201,14 @@ namespace Chraft.Interfaces
 
 		public org.bukkit.inventory.ItemStack[] getContents()
 		{
-			return Slots;
+            return null;
+			//return Slots;
 		}
 
 		public org.bukkit.inventory.ItemStack getItem(int i)
 		{
-			return Slots[i];
+            return null;
+			//return Slots[i];
 		}
 
 		public string getName()

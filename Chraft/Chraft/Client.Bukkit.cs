@@ -242,7 +242,8 @@ namespace Chraft
 
 		public ItemStack getItemInHand()
 		{
-			return (ItemStackBukkit)Inventory.ActiveItem;
+            return null;
+			//return (ItemStackBukkit)Inventory.ActiveItem;
 		}
 
 		public string getName()

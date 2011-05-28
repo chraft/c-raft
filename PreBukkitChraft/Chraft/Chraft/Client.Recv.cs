@@ -58,7 +58,7 @@ namespace Chraft
 
         private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (c == this)
                     continue;
@@ -98,7 +98,7 @@ namespace Chraft
             //Console.WriteLine(e.Packet.Target);
             //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
 
-            foreach (EntityBase eb in Server.GetNearbyEntities(World, X, Y, Z))
+            foreach (EntityBase eb in Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z))
             {
                 if (eb.EntityId != e.Packet.Target)
                     continue;
@@ -116,7 +116,7 @@ namespace Chraft
                     {
                         // TODO: Store the object being ridden, so we can update player movement.
                         // This will ride the entity, sends -1 to dismount.
-                        foreach (Client cl in Server.GetNearbyPlayers(World, X, Y, Z))
+                        foreach (Client cl in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
                         {
                             cl.PacketHandler.SendPacket(new AttachEntityPacket
                             {
@@ -139,7 +139,7 @@ namespace Chraft
                     {
                         // TODO: Check Entity has saddle set.
                         // This will ride the entity, sends -1 to dismount.
-                        foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+                        foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
                         {
                             c.PacketHandler.SendPacket(new AttachEntityPacket
                             {
@@ -176,7 +176,7 @@ namespace Chraft
         {
             Inventory.OnActiveChanged((short)(e.Packet.Slot += 36));
 
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z).Where(c => c != this))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z).Where(c => c != this))
             {
                 c.SendHoldingEquipment(this);
             }

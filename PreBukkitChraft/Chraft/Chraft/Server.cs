@@ -373,7 +373,7 @@ namespace Chraft
 			int radius = Settings.Default.SightRadius << 4;
 			foreach (Client c in GetClients())
 			{
-				if (c.World == world && Math.Abs(x - c.X) <= radius && Math.Abs(z - c.Z) <= radius)
+                if (c.World == world && Math.Abs(x - c.Position.X) <= radius && Math.Abs(z - c.Position.Z) <= radius)
 					yield return c;
 			}
 		}
@@ -391,7 +391,7 @@ namespace Chraft
 			int radius = Settings.Default.SightRadius << 4;
 			foreach (EntityBase e in GetEntities())
 			{
-				if (e.World == world && Math.Abs(x - e.X) <= radius && Math.Abs(z - e.Z) <= radius)
+                if (e.World == world && Math.Abs(x - e.Position.X) <= radius && Math.Abs(z - e.Position.Z) <= radius)
 					yield return e;
 			}
 		}
@@ -404,7 +404,7 @@ namespace Chraft
 		/// <returns>The entity ID of the item drop.</returns>
 		public int DropItem(Client client, ItemStack stack)
 		{
-			return DropItem(client.World, (int)client.X, (int)client.Y, (int)client.Z, stack);
+            return DropItem(client.World, (int)client.Position.X, (int)client.Position.Y, (int)client.Position.Z, stack);
 		}
 
 		/// <summary>
@@ -422,9 +422,7 @@ namespace Chraft
 			Entities.Add(new ItemEntity(this, entityId)
 			{
 				World = world,
-				X = x + 0.5,
-				Y = y,
-				Z = z + 0.5,
+                Position = new World.NBT.Vector3(x + 0.5, y, z + 0.5),
 				ItemId = stack.Type,
 				Count = stack.Count,
 				Durability = stack.Durability

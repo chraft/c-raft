@@ -100,9 +100,9 @@ namespace Chraft
 		{
 			PacketHandler.SendPacket(new PlayerPositionRotationPacket
 			{
-				X = X,
-				Y = Y + 1,
-				Z = Z,
+                X = Position.X,
+                Y = Position.Y + 1,
+                Z = Position.Z,
 				Yaw = Yaw,
 				Pitch = Pitch,
 				Stance = Stance,
@@ -189,9 +189,9 @@ namespace Chraft
 				PacketHandler.SendPacket(new NamedEntitySpawnPacket
 				{
 					EntityId = c.EntityId,
-					X = c.X,
-					Y = c.Y,
-					Z = c.Z,
+                    X = c.Position.X,
+                    Y = c.Position.Y,
+                    Z = c.Position.Z,
 					Yaw = c.PackedYaw,
 					Pitch = c.PackedPitch,
 					PlayerName = c.Username + c.EntityId,
@@ -213,9 +213,9 @@ namespace Chraft
 				ItemEntity item = (ItemEntity)entity;
 				PacketHandler.SendPacket(new SpawnItemPacket
 				{
-					X = item.X,
-					Y = item.Y,
-					Z = item.Z,
+                    X = item.Position.X,
+                    Y = item.Position.Y,
+                    Z = item.Position.Z,
 					Yaw = item.PackedYaw,
 					Pitch = item.PackedPitch,
 					EntityId = item.EntityId,
@@ -229,12 +229,12 @@ namespace Chraft
 			{
 				
 				Mob mob = (Mob)entity;
-                Logger.Log(Logger.LogLevel.Debug, ("ClientSpawn: Sending Mob " + mob.Type + " (" + mob.X + ", " + mob.Y + ", " + mob.Z + ")"));
+                Logger.Log(Logger.LogLevel.Debug, ("ClientSpawn: Sending Mob " + mob.Type + " (" + mob.Position.X + ", " + mob.Position.Y + ", " + mob.Position.Z + ")"));
 				PacketHandler.SendPacket(new MobSpawnPacket
 				{
-					X = mob.X,
-					Y = mob.Y,
-					Z = mob.Z,
+                    X = mob.Position.X,
+                    Y = mob.Position.Y,
+                    Z = mob.Position.Z,
 					Yaw = mob.PackedYaw,
 					Pitch = mob.PackedPitch,
 					EntityId = mob.EntityId,
@@ -270,13 +270,13 @@ namespace Chraft
 			PacketHandler.SendPacket(new EntityTeleportPacket
 			{
 				EntityId = entity.EntityId,
-				X = entity.X,
-				Y = entity.Y,
-				Z = entity.Z,
+                X = entity.Position.X,
+                Y = entity.Position.Y,
+                Z = entity.Position.Z,
 				Yaw = entity.PackedYaw,
 				Pitch = entity.PackedPitch
 			});
-			SendMoveBy(entity, (sbyte)((X - (int)entity.X) * 32), (sbyte)((Y - (int)entity.Y) * 32), (sbyte)((Z - (int)entity.Z) * 32));
+            SendMoveBy(entity, (sbyte)((Position.X - (int)entity.Position.X) * 32), (sbyte)((Position.Y - (int)entity.Position.Y) * 32), (sbyte)((Position.Z - (int)entity.Position.Z) * 32));
 		}
 
 		internal void SendRotateBy(EntityBase entity, sbyte dyaw, sbyte dpitch)

@@ -17,9 +17,9 @@ namespace Chraft.Entity
     {
         public int EntityId { get; private set; }
         public WorldManager World { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
+        //public double X { get; set; }
+        //public double Y { get; set; }
+        //public double Z { get; set; }
         public float Yaw { get; set; }
         public float Pitch { get; set; }
         public short Health { get; set; }
@@ -28,6 +28,7 @@ namespace Chraft.Entity
         public sbyte PackedPitch { get { return (sbyte)(Pitch / 360.0f * 256.0f % 256.0f); } }
         public Server Server { get; private set; }
         public int TimeInWorld;
+        public World.NBT.Vector3 Position;
 
         public EntityBase(Server server, int entityId)
         {
@@ -50,13 +51,13 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public virtual void MoveTo(double x, double y, double z)
         {
-            sbyte dx = (sbyte)(32 * (x - X));
-            sbyte dy = (sbyte)(32 * (y - Y));
-            sbyte dz = (sbyte)(32 * (z - Z));
-            X = x;
-            Y = y;
-            Z = z;
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            sbyte dx = (sbyte)(32 * (x - Position.X));
+            sbyte dy = (sbyte)(32 * (y - Position.Y));
+            sbyte dz = (sbyte)(32 * (z - Position.Z));
+            Position.X = x;
+            Position.Y = y;
+            Position.Z = z;
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
                     c.SendMoveBy(this, dx, dy, dz);
@@ -71,10 +72,10 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public virtual bool TeleportTo(double x, double y, double z)
         {
-            X = x;
-            Y = y;
-            Z = z;
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            Position.X = x;
+            Position.Y = y;
+            Position.Z = z;
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
                     c.SendTeleportTo(this);
@@ -91,7 +92,7 @@ namespace Chraft.Entity
         {
             Yaw = yaw;
             Pitch = pitch;
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
                     c.SendRotateBy(this, PackedYaw, PackedPitch);
@@ -108,15 +109,15 @@ namespace Chraft.Entity
         /// <param name="pitch">The absolute pitch to which entity should change.</param>
         public virtual void MoveTo(double x, double y, double z, float yaw, float pitch)
         {
-            sbyte dx = (sbyte)(32 * (x - X));
-            sbyte dy = (sbyte)(32 * (y - Y));
-            sbyte dz = (sbyte)(32 * (z - Z));
-            X = x;
-            Y = y;
-            Z = z;
+            sbyte dx = (sbyte)(32 * (x - Position.X));
+            sbyte dy = (sbyte)(32 * (y - Position.Y));
+            sbyte dz = (sbyte)(32 * (z - Position.Z));
+            Position.X = x;
+            Position.Y = y;
+            Position.Z = z;
             Yaw = yaw;
             Pitch = pitch;
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
                     c.SendMoveRotateBy(this, dx, dy, dz, PackedYaw, PackedPitch);

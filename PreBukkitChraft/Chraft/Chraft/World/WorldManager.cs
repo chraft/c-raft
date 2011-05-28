@@ -288,7 +288,7 @@ namespace Chraft.World
                 }
                 else if (e is ItemEntity)
                 {
-                    byte? uBlock = GetBlockOrNull((int)e.X, (int)(e.Y - 0.4), (int)e.Z);
+                    byte? uBlock = GetBlockOrNull((int)e.Position.X, (int)(e.Position.Y - 0.4), (int)e.Position.Z);
 
                     if (uBlock != null) // Ignore if item is in an unloaded chunk.
                     {
@@ -313,7 +313,7 @@ namespace Chraft.World
                             case BlockData.Blocks.Torch:
                             case BlockData.Blocks.Water:
                             case BlockData.Blocks.Yellow_Flower:
-                                e.Y -= 0.4;
+                                e.Position.Y -= 0.4;
                                 break;
 
                             case BlockData.Blocks.Fire:
@@ -353,9 +353,7 @@ namespace Chraft.World
                 case MobType.Wolf: mob.Health = 10; break;
             }
 
-            mob.X = X + 0.5;
-            mob.Y = Y;
-            mob.Z = Z + 0.5;
+            mob.Position = new World.NBT.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
 
             mob.Hunter = true;
@@ -394,9 +392,7 @@ namespace Chraft.World
                 case MobType.Slime: mob.Health = 10; break;
             }
 
-            mob.X = X + 0.5;
-            mob.Y = Y;
-            mob.Z = Z + 0.5;
+            mob.Position = new World.NBT.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
 
             mob.Hunter = true;

@@ -46,11 +46,6 @@ namespace Chraft
         public Inventory Inventory { get; private set; }
 
         /// <summary>
-        /// The health of the client
-        /// </summary>
-        public short Health { get; set; }
-
-        /// <summary>
         /// Is the client muted from chat
         /// </summary>
         public bool IsMuted { get; set; }
@@ -83,9 +78,10 @@ namespace Chraft
         private void InitializePosition()
         {
             World = Server.GetDefaultWorld();
-            X = World.Spawn.X;
-            Y = World.Spawn.Y + 1;
-            Z = World.Spawn.Z;
+            Position = new World.NBT.Vector3(
+                World.Spawn.X,
+                World.Spawn.Y + 1,
+                World.Spawn.Z);
         }
 
         private void InitializeInventory()
@@ -167,7 +163,7 @@ namespace Chraft
 
         private void UpdateEntities()
         {
-            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, X, Y, Z);
+            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z);
 
             foreach (EntityBase e in nearbyEntities)
             {
@@ -175,7 +171,7 @@ namespace Chraft
                     continue;
                 if (!LoadedEntities.Contains(e))
                     SendCreateEntity(e);
-                if (e is ItemEntity && Math.Abs(e.X - X) < 1 && Math.Abs(e.Y - Y) < 1 && Math.Abs(e.Z - Z) < 1)
+                if (e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
                     PickupItem((ItemEntity)e);
             }
 
@@ -213,7 +209,7 @@ namespace Chraft
                 Health = this.Health
             });
 
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (c == this)
                     continue;
@@ -262,7 +258,7 @@ namespace Chraft
 
             deathMessage = this.DisplayName.ToString() + " was killed " + deathBy;
 
-            foreach (Client c in Server.GetNearbyPlayers(World, X, Y, Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 c.SendMessage(deathMessage);
 
@@ -280,7 +276,7 @@ namespace Chraft
             {
                 if (Inventory.Slots[i].Type > 0)
                 {
-                    Server.DropItem(World, (int)X, (int)Y, (int)Z, Inventory.Slots[i]);
+                    Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory.Slots[i]);
                     Inventory.Slots[i] = ItemStack.Void;
                 }
             }
@@ -294,9 +290,9 @@ namespace Chraft
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
             Server.Entities.Remove(this);
 
-            X = World.Spawn.X;
-            Y = World.Spawn.Y;
-            Z = World.Spawn.Z;
+            Position.X = World.Spawn.X;
+            Position.Y = World.Spawn.Y;
+            Position.Z = World.Spawn.Z;
 
             UpdateEntities();
             SendSpawnPosition();
@@ -317,7 +313,7 @@ namespace Chraft
                 Server.Entities.Remove(item);
             }
 
-            foreach (Client c in Server.GetNearbyPlayers(item.World, item.X, item.Y, item.Z))
+            foreach (Client c in Server.GetNearbyPlayers(item.World, item.Position.X, item.Position.Y, item.Position.Z))
             {
                 c.PacketHandler.SendPacket(new CollectItemPacket
                 {
@@ -364,16 +360,16 @@ namespace Chraft
 
         private void SynchronizeEntities()
         {
-            foreach (EntityBase e in Server.GetNearbyEntities(World, X, Y, Z))
+            foreach (EntityBase e in Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z))
             {
                 if (e.Equals(this))
                     continue;
                 PacketHandler.SendPacket(new EntityTeleportPacket
                 {
                     EntityId = e.EntityId,
-                    X = e.X,
-                    Y = e.Y,
-                    Z = e.Z,
+                    X = e.Position.X,
+                    Y = e.Position.Y,
+                    Z = e.Position.Z,
                     Yaw = e.PackedYaw,
                     Pitch = e.PackedPitch
                 });
@@ -392,8 +388,8 @@ namespace Chraft
         private void UpdateChunks(int radius)
         {
             List<PointI> nearbyChunks = new List<PointI>();
-            int chunkX = (int)X >> 4;
-            int chunkZ = (int)Z >> 4;
+            int chunkX = (int)Position.X >> 4;
+            int chunkZ = (int)Position.Z >> 4;
             for (int x = chunkX - radius; x <= chunkX + radius; x++)
             {
                 for (int z = chunkZ - radius; z <= chunkZ + radius; z++)
@@ -533,7 +529,9 @@ namespace Chraft
         //Check if the player has permissions to use the command
         public bool CanUseCommand(string command)
         {
-            return Permissions.CanUseCommand(Username, command);
+            Server.Worlds[0].SpawnAnimal((int)Position.X, (int)Position.Y, (int)Position.Z);
+            //return Permissions.CanUseCommand(Username, command);
+            return true;
         }
         //Returns the players prefix
         public string GetPlayerPrefix(string playerName)
