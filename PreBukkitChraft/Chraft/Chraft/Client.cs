@@ -529,9 +529,7 @@ namespace Chraft
         //Check if the player has permissions to use the command
         public bool CanUseCommand(string command)
         {
-            Server.Worlds[0].SpawnAnimal((int)Position.X, (int)Position.Y, (int)Position.Z);
-            //return Permissions.CanUseCommand(Username, command);
-            return true;
+            return Permissions.CanUseCommand(Username, command);
         }
         //Returns the players prefix
         public string GetPlayerPrefix(string playerName)
