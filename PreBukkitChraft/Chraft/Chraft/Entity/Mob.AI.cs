@@ -62,30 +62,16 @@ namespace Chraft.Entity {
         if (World.GetBlockId((int)Position.X, (int)Position.Y - 1, (int)Position.Z) == 0)
             Velocity.Y -= 1;
 
-            UpdatePosition();
+            // Emergency Collision Detection
+        if (World.GetBlockId((int)(Position.X + Velocity.X),
+            (int)(Position.Y + Velocity.Y),
+            (int)(Position.Z + Velocity.Z)) != 0) {
+            // We're going straight into a block! Oh nooooooes.
+                Velocity.Y += 1;
         }
 
-        /*
-        private void ProcessMovement(double mX, double mY, double mZ) {
-            int x = (int)(Position.X + (Math.Sign(mX - Position.X)));
-            int y = (int)(Position.Y - 1);
-            int z = (int)(Position.Z + (Math.Sign(mZ - Position.Z)));
-
-            byte b = World.GetBlockId(x, y, z);
-            //byte b1 = World.GetBlockId(x, y + 1, z);
-            //byte b2 = World.GetBlockId(x, y + 2, z);
-            //byte b3 = World.GetBlockId(x, y + 3, z);
-
-            //if (b != 0)
-            //    Position.Y += 1;
-
-            Position.X += (World.GetBlockId((int)Math.Sign(mX - Position.X), (int)Position.Y, (int)Position.Z) != 0) ? 0 : Math.Sign(mX - Position.X) * 0.2;
-            Position.Z += (World.GetBlockId((int)Position.X, (int)Position.Y, (int)Math.Sign(mZ - Position.Z)) != 0) ? 0 : Math.Sign(mZ - Position.Z) * 0.2;
-            Position.Y += (b == 0) ? -1 : 0;
-            if (World.GetBlockId((int)this.Position.X + 1, (int)this.Position.Y, (int)this.Position.Z) != 0)
-                Position.Y += 1;
-
-        }*/
+            UpdatePosition();
+        }
 
         public void UpdatePosition() {
             this.Position.X += Velocity.X;
