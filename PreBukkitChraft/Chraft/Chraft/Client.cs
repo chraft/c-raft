@@ -288,7 +288,7 @@ namespace Chraft
         private void HandleRespawn()
         {
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
-            Server.Entities.Remove(this);
+            Server.RemoveEntity(this);
 
             Position.X = World.Spawn.X;
             Position.Y = World.Spawn.Y;
@@ -301,17 +301,15 @@ namespace Chraft
             InitializeHealth();
 
             PacketHandler.SendPacket(new RespawnPacket { });
-            Server.Entities.Add(this);
+            Server.AddEntity(this);
         }
 
         private void PickupItem(ItemEntity item)
         {
-            lock (Server.Entities)
-            {
-                if (!Server.Entities.Contains(item))
-                    return;
-                Server.Entities.Remove(item);
-            }
+            if (!Server.GetEntities().Contains(item))
+                return;
+            Server.RemoveEntity(item);
+            
 
             foreach (Client c in Server.GetNearbyPlayers(item.World, item.Position.X, item.Position.Y, item.Position.Z))
             {
@@ -485,7 +483,7 @@ namespace Chraft
             PacketHandler.Dispose();
 
             Server.Clients.Remove(this.SessionID);
-            Server.Entities.Remove(this);
+            Server.RemoveEntity(this);
             foreach (PointI c in LoadedChunks)
                 World[c.X, c.Z].RemoveClient(this);
 

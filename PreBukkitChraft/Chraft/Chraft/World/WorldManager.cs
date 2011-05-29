@@ -316,7 +316,7 @@ namespace Chraft.World
                             case BlockData.Blocks.Fire:
                             case BlockData.Blocks.Lava:
                             case BlockData.Blocks.Still_Lava:
-                                Server.Entities.Remove(e);
+                                Server.RemoveEntity(e);
                                 break;
                         }
                     }
@@ -358,9 +358,7 @@ namespace Chraft.World
             mob.AttackRange = 10;
 
             //mob.Data // Set accessor is inaccebile?
-
-            lock (Server.Entities)
-                Server.Entities.Add(mob);
+            Server.AddEntity(mob);
         }
 
         public void SpawnMob(int X, int Y, int Z, MobType type = MobType.Pig)
@@ -397,9 +395,7 @@ namespace Chraft.World
             mob.AttackRange = 10;
 
             //mob.Data // Set accessor is inaccebile?
-
-            lock (Server.Entities)
-                Server.Entities.Add(mob); // TODO: Limit this in some way.
+            Server.AddEntity(mob); // TODO: Limit this in some way.
         }
 
         public byte GetBlockId(int x, int y, int z)

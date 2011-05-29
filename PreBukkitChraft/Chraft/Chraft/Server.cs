@@ -71,7 +71,11 @@ namespace Chraft
 		/// <summary>
 		/// Gets a thread-unsafe list of entities on the server.  Use GetEntities for a thread-safe version.
 		/// </summary>
-		public List<EntityBase> Entities { get { return _Entities; } }
+		//public List<EntityBase> Entities { get { return _Entities; } }
+
+        /// <summary>
+        /// Thread safe list of all entities on the server.
+        /// </summary>
 		private readonly List<EntityBase> _Entities = new List<EntityBase>();
 
 		/// <summary>
@@ -217,8 +221,7 @@ namespace Chraft
 
 				lock (Clients)
 					Clients.Add(c.EntityId, c);
-				lock (Entities)
-					Entities.Add(c);
+					AddEntity(c);
 				c.Start();
 				OnJoined(c);
 			}
@@ -357,8 +360,28 @@ namespace Chraft
 		/// <returns>A thread-safe array of all active entities.</returns>
 		public EntityBase[] GetEntities()
 		{
-			return Entities.ToArray();
+            lock (_Entities) {
+                return _Entities.ToArray();
+            }
 		}
+
+        /// <summary>
+        /// Thread-friendly way of removing server entities
+        /// </summary>
+        public void RemoveEntity(EntityBase e) {
+            lock (_Entities) {
+                _Entities.Remove(e);
+            }
+        }
+
+        /// <summary>
+        /// Thread-friendly way of adding server entities
+        /// </summary>
+        public void AddEntity(EntityBase e) {
+            lock (_Entities) {
+                _Entities.Add(e);
+            }
+        }
 
 		/// <summary>
 		/// Yields an enumerable of nearby players, thread-safe.
@@ -419,7 +442,7 @@ namespace Chraft
 		public int DropItem(WorldManager world, int x, int y, int z, ItemStack stack)
 		{
 			int entityId = AllocateEntity();
-			Entities.Add(new ItemEntity(this, entityId)
+			AddEntity(new ItemEntity(this, entityId)
 			{
 				World = world,
                 Position = new World.NBT.Vector3(x + 0.5, y, z + 0.5),

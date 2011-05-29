@@ -85,7 +85,7 @@ namespace Chraft.Entity
             removeTimer.Elapsed += delegate
             {
                 removeTimer.Stop();
-                World.Server.Entities.Remove(this);
+                World.Server.RemoveEntity(this);
                 removeTimer.Dispose();
             };
 
