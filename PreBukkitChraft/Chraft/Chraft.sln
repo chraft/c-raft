@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chraft", "Chraft\Chraft.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A9BA4CC9-A378-4BEE-A72F-4A2ACCAB8DA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChratUnitTests", "ChratUnitTests\ChratUnitTests.csproj", "{4396848A-2893-4337-941E-E0EB4EC18A12}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChraftUnitTests", "ChratUnitTests\ChraftUnitTests.csproj", "{4396848A-2893-4337-941E-E0EB4EC18A12}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
