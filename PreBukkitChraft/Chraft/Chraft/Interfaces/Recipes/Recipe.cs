@@ -16,7 +16,7 @@ namespace Chraft.Interfaces.Recipes
 
 		private Recipe(ItemStack result, ItemStack[,] ingredients, ItemStack[,] products, bool anyOrder)
 		{
-			Ingredients3 = ingredients;
+		    Ingredients3 = ingredients;
 			Result = result;
 			Products = products;
 			AnyOrder = anyOrder;
