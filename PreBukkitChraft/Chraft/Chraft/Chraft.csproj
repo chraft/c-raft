@@ -141,6 +141,7 @@
     <Compile Include="Net\Packets\WeatherPacket.cs" />
     <Compile Include="Net\TcpEventArgs.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
+    <Compile Include="Persistence\DataFile.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginAttribute.cs" />
@@ -194,7 +195,7 @@
     <Compile Include="World\NBT\TagNodeList.cs" />
     <Compile Include="World\NBT\TagNodeListNamed.cs" />
     <Compile Include="World\NBT\TagNodeType.cs" />
-    <Compile Include="World\NBT\Vector3.cs" />
+    <Compile Include="World\Vector3.cs" />
     <Compile Include="World\PointI.cs" />
     <Compile Include="Mojang\World\WorldChunkManager.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />

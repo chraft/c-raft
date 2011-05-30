@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
-using NUnit.Framework;
+//using NUnit.Framework;
 
 namespace ChratUnitTests
 {
     public class Recipies
     {
-        [Test]
+        //[Test]
         public void MakeWorkBench()
         {
             Recipe[] recipes = Recipe.FromFile("Resources/Recipes.dat");
@@ -19,7 +19,7 @@ namespace ChratUnitTests
             ingredients.Add(new ItemStack(5, 1, 0));
             ingredients.Add(new ItemStack(5, 1, 0));
             ingredients.Add(new ItemStack(5, 1, 0));
-            Assert.IsTrue(Recipe.GetRecipe(recipes, ingredients.ToArray()).Result.Type.Equals(58));
+            //Assert.IsTrue(Recipe.GetRecipe(recipes, ingredients.ToArray()).Result.Type.Equals(58));
         }
     }
 }

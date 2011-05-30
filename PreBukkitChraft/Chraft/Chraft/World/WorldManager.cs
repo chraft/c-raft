@@ -350,7 +350,7 @@ namespace Chraft.World
                 case MobType.Wolf: mob.Health = 10; break;
             }
 
-            mob.Position = new World.NBT.Vector3(X + 0.5, Y, Z + 0.5);
+            mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
 
             mob.Hunter = true;
@@ -387,7 +387,7 @@ namespace Chraft.World
                 case MobType.Slime: mob.Health = 10; break;
             }
 
-            mob.Position = new World.NBT.Vector3(X + 0.5, Y, Z + 0.5);
+            mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
 
             mob.Hunter = true;

@@ -78,7 +78,7 @@ namespace Chraft
         private void InitializePosition()
         {
             World = Server.GetDefaultWorld();
-            Position = new World.NBT.Vector3(
+            Position = new World.Vector3(
                 World.Spawn.X,
                 World.Spawn.Y + 1,
                 World.Spawn.Z);

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Chraft.Net;
 using Chraft.Net.Packets;
-using Chraft.World.NBT;
+using Chraft.World;
 
 namespace Chraft.Entity
 {

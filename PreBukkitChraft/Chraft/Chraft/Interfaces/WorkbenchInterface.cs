@@ -10,8 +10,6 @@ namespace Chraft.Interfaces
 {
 	public class WorkbenchInterface : Interface
 	{
-		private Recipe[] Recipes;
-
 		public WorkbenchInterface()
 			: base(InterfaceType.Workbench, 10)
 		{
@@ -19,7 +17,6 @@ namespace Chraft.Interfaces
 
 		public override void Associate(Client client)
 		{
-			Recipes = client.Server.Recipes;
 			base.Associate(client);
 		}
 
@@ -28,7 +25,7 @@ namespace Chraft.Interfaces
 			List<ItemStack> ingredients = new List<ItemStack>();
 			for (short i = 1; i <= 9; i++)
 				ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-			return Recipe.GetRecipe(Recipes, ingredients.ToArray());
+            return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
 		}
 
 		internal override void OnClicked(WindowClickPacket packet)

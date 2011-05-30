@@ -12,7 +12,6 @@ namespace Chraft.Interfaces
 	[Serializable]
 	public partial class Inventory : Interface
 	{
-		private Recipe[] Recipes;
 
 		private short _ActiveSlot;
 		public short ActiveSlot { get { return _ActiveSlot; } }
@@ -42,7 +41,6 @@ namespace Chraft.Interfaces
 
 		public override void Associate(Client client)
 		{
-			Recipes = client.Server.Recipes;
 			base.Associate(client);
 		}
 
@@ -168,25 +166,11 @@ namespace Chraft.Interfaces
 			List<ItemStack> ingredients = new List<ItemStack>();
 			for (short i = 1; i <= 4; i++)
 				ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-			return Recipe.GetRecipe(Recipes, ingredients.ToArray());
+            return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
 		}
 
 		internal override void OnClicked(WindowClickPacket packet)
 		{
-			if (packet.Slot >= 1 && packet.Slot <= 4)
-			{
-				Recipe recipe = GetRecipe();
-				if (recipe == null)
-				{
-					this[0].Type = 0;
-					this[0].Durability = 0;
-				}
-				else
-				{
-					this[0] = recipe.Result;
-				}
-			}
-
 			if (packet.Slot == 0)
 			{
 				if (!ItemStack.IsVoid(Cursor))
@@ -213,33 +197,6 @@ namespace Chraft.Interfaces
 				}
 
 				this.Cursor.Count += this[0].Count;
-				this[0] = ItemStack.Void;
-
-				List<ItemStack> ingredients = new List<ItemStack>();
-				for (short i = 1; i <= 4; i++)
-					ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-				Recipe recipe = GetRecipe();
-                if (recipe != null)
-                {
-                    for (int i = 0; i < ingredients.Count; i++)
-                    {
-                        if (ItemStack.IsVoid(ingredients[i]))
-                            continue;
-                        for (int i2 = 0; i2 < recipe.Ingredients2.Length; i2++)
-                        {
-                            if (ingredients[i].Type == recipe.Ingredients2[i2].Type)
-                            {
-                                ingredients[i].Count -= recipe.Ingredients2[i2].Count;
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    //DEBUG: throw exception later
-                    Console.WriteLine("Recipe is null");
-                }
 			}
 			else
 			{

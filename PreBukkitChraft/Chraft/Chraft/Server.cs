@@ -91,7 +91,7 @@ namespace Chraft
 		/// <summary>
 		/// Gets a list of user-defined recipes known to the server.
 		/// </summary>
-		public Recipe[] Recipes { get; private set; }
+		public static Recipe[] Recipes { get; private set; }
 
 		/// <summary>
 		/// Gets the IRC client, if it has been initialized.
@@ -110,6 +110,11 @@ namespace Chraft
 			if (Settings.Default.IrcEnabled)
 				InitializeIrc();
 		}
+
+        public static Recipe[] GetRecipes() {
+            lock(Recipes)
+                return Recipes;
+        }
 
 		private void InitializeIrc()
 		{
@@ -445,7 +450,7 @@ namespace Chraft
 			AddEntity(new ItemEntity(this, entityId)
 			{
 				World = world,
-                Position = new World.NBT.Vector3(x + 0.5, y, z + 0.5),
+                Position = new World.Vector3(x + 0.5, y, z + 0.5),
 				ItemId = stack.Type,
 				Count = stack.Count,
 				Durability = stack.Durability
