@@ -68,11 +68,6 @@ namespace Chraft
 		/// </summary>
 		public Random Rand { get; private set; }
 
-		/// <summary>
-		/// Gets a thread-unsafe list of entities on the server.  Use GetEntities for a thread-safe version.
-		/// </summary>
-		//public List<EntityBase> Entities { get { return _Entities; } }
-
         /// <summary>
         /// Thread safe list of all entities on the server.
         /// </summary>

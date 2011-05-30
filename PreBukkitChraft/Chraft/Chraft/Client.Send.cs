@@ -142,7 +142,7 @@ namespace Chraft
             InitializeHealth();
 			OnJoined();
 			SendMotd();
-			UpdateChunks(Settings.Default.SightRadius);
+			//UpdateChunks(Settings.Default.SightRadius);
 			SendMessage("§cLoading complete.");
 
 			Thread thread = new Thread(UpdateChunksThread);
