@@ -10,7 +10,7 @@ using Chraft.Net.Packets;
 namespace Chraft.Interfaces
 {
 	[Serializable]
-	public partial class Inventory : Interface
+	public partial class Inventory : CraftingInterface
 	{
 
 		private short _ActiveSlot;
@@ -28,10 +28,11 @@ namespace Chraft.Interfaces
 		{
 			_ActiveSlot = 36;
 			_IsOpen = true;
+            this.CraftingSlotCount = 4;
 		}
 
 		internal Inventory(Client client)
-			: base(InterfaceType.Inventory, 45)
+			: base(InterfaceType.Inventory, 4, 45)
 		{
 			_ActiveSlot = 36;
 			Associate(client);
@@ -126,7 +127,6 @@ namespace Chraft.Interfaces
                     this[slot].Count -= 1;
                 }
             }
-
         }
 
         internal bool DamageItem(short slot)
@@ -160,48 +160,5 @@ namespace Chraft.Interfaces
 
             return false;
         }
-
-		private Recipe GetRecipe()
-		{
-			List<ItemStack> ingredients = new List<ItemStack>();
-			for (short i = 1; i <= 4; i++)
-				ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-            return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
-		}
-
-		internal override void OnClicked(WindowClickPacket packet)
-		{
-			if (packet.Slot == 0)
-			{
-				if (!ItemStack.IsVoid(Cursor))
-				{
-					if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
-					{
-						PacketHandler.SendPacket(new TransactionPacket
-						{
-							Accepted = false,
-							Transaction = packet.Transaction,
-							WindowId = packet.WindowId                    
-						});
-						return;
-					}
-					this[0].Count += Cursor.Count;
-					Cursor = ItemStack.Void;
-				}
-				else
-				{
-					this.Cursor = ItemStack.Void;
-					this.Cursor.Slot = -1;
-					this.Cursor.Type = this[0].Type;
-					this.Cursor.Durability = this[0].Durability;
-				}
-
-				this.Cursor.Count += this[0].Count;
-			}
-			else
-			{
-				base.OnClicked(packet);
-			}
-		}
 	}
 }

@@ -152,23 +152,29 @@ namespace Chraft.Interfaces
 						}
 					}
 				}
-				else if (e.RightClick && ItemStack.IsVoid(Cursor))
-				{	// Right-click with empty cursor: split stack in half
-					int count = target.Slots[e.Slot].Count;
-					target.Slots[e.Slot].Count /= 2;
-					count -= target.Slots[e.Slot].Count;
-					Cursor = new ItemStack(target.Slots[e.Slot].Type, (sbyte)count, target.Slots[e.Slot].Durability);
-				}
-				else if (e.RightClick)
-				{	// Right-click on different type: ignored click
-					e.Cancel();
-				}
-				else
-				{	// Left-click on different type: swap stacks
-					ItemStack swap = target.Slots[e.Slot];
-					target.Slots[e.Slot] = Cursor;
-					Cursor = swap;
-				}
+                else if (e.RightClick && ItemStack.IsVoid(target.Slots[e.Slot]))
+                {
+                    // TODO: Right-click on empty slot with items in cursor: drop one item from Cursor into slot
+                    e.Cancel();
+                    //Cursor.Count--;
+                }
+                else if (e.RightClick && ItemStack.IsVoid(Cursor))
+                {	// Right-click with empty cursor: split stack in half
+                    int count = target.Slots[e.Slot].Count;
+                    target.Slots[e.Slot].Count /= 2;
+                    count -= target.Slots[e.Slot].Count;
+                    Cursor = new ItemStack(target.Slots[e.Slot].Type, (sbyte)count, target.Slots[e.Slot].Durability);
+                }
+                else if (e.RightClick)
+                {	// Right-click on different type: ignored click
+                    e.Cancel();
+                }
+                else
+                {	// Left-click on different type: swap stacks
+                    ItemStack swap = target.Slots[e.Slot];
+                    target.Slots[e.Slot] = Cursor;
+                    Cursor = swap;
+                }
 			}
 			catch (Exception ex)
 			{
@@ -228,7 +234,7 @@ namespace Chraft.Interfaces
 
 		public virtual void UpdateClient()
 		{
-			for (short i = 0; i < 45; i++)
+			for (short i = 0; i < SlotCount; i++)
 			{
 				if (!ItemStack.IsVoid(Slots[i]))
 					SendUpdate(i);

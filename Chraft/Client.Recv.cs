@@ -360,8 +360,40 @@ namespace Chraft
 
         private void PacketHandler_PlayerBlockPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
         {
+            /*
+             * Scenarios:
+             * 
+             * 1) using an item against a block (e.g. stone and flint)
+             * 2) placing a new block
+             * 3) using a block: e.g. open/close door, open chest, open workbench, open furnace
+             * 
+             * */
+
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
+
+            int x = e.Packet.X;
+            int y = e.Packet.Y;
+            int z = e.Packet.Z;
+
+            BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
+
+            if (type == BlockData.Blocks.Chest)
+            {
+                CurrentInterface = new SmallChestInterface();
+                CurrentInterface.Associate(this);
+                CurrentInterface.Open();
+                return;
+            }
+            else if (type == BlockData.Blocks.Workbench)
+            {
+                CurrentInterface = new WorkbenchInterface();
+                CurrentInterface.Associate(this);
+                CurrentInterface.Open();
+                return;
+            }
+
+
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)
                 return;
 
@@ -371,12 +403,6 @@ namespace Chraft
                 PacketHandler_PlayerItemPlacement(sender, e);
                 return;
             }
-
-            int x = e.Packet.X;
-            int y = e.Packet.Y;
-            int z = e.Packet.Z;
-
-            BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
 
             // Built Block Info
             int bx, by, bz;
@@ -737,7 +763,28 @@ namespace Chraft
             else if (e.Packet.ProtocolOrEntityId < ProtocolVersion)
                 Kick("Outdated client");
             else
+            {
+                if (this.Server.UseOfficalAuthentication)
+                {
+                    try
+                    {
+                        string authenticated = Http.GetHttpResponse(new Uri(String.Format("http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}", e.Packet.Username, this.Server.ServerHash)));
+                        if (authenticated != "YES")
+                        {
+                            Kick("Authentication failed");
+                            return;
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Kick("Error while authenticating...");
+                        this.Logger.Log(exc);
+                        return;
+                    }
+                }
+
                 SendLoginSequence();
+            }
         }
 
         #endregion
