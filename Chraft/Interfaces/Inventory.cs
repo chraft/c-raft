@@ -126,7 +126,6 @@ namespace Chraft.Interfaces
                     this[slot].Count -= 1;
                 }
             }
-
         }
 
         internal bool DamageItem(short slot)
@@ -171,11 +170,11 @@ namespace Chraft.Interfaces
 
 		internal override void OnClicked(WindowClickPacket packet)
 		{
-			if (packet.Slot == 0)
+            if (packet.Slot == 0 && !ItemStack.IsVoid(this[0]))
 			{
 				if (!ItemStack.IsVoid(Cursor))
 				{
-					if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
+                    if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
 					{
 						PacketHandler.SendPacket(new TransactionPacket
 						{
@@ -185,8 +184,9 @@ namespace Chraft.Interfaces
 						});
 						return;
 					}
-					this[0].Count += Cursor.Count;
-					Cursor = ItemStack.Void;
+					// TODO: Why was this here? We can't modify the this[0] item as this will change the result of the recipe (it is currently a reference to recipe.Result)
+                    //this[0].Count += Cursor.Count;
+					//Cursor = ItemStack.Void;
 				}
 				else
 				{
@@ -196,11 +196,58 @@ namespace Chraft.Interfaces
 					this.Cursor.Durability = this[0].Durability;
 				}
 
-				this.Cursor.Count += this[0].Count;
+				// Add the newly crafted item to the Cursor
+                this.Cursor.Count += this[0].Count;
+
+				// Cook Ingredients, and update recipe output slot in case ingredients are now insufficient for another
+                if (!ItemStack.IsVoid(this[0]))
+                {
+                    Recipe recipe = GetRecipe();
+                    if (recipe != null)
+                    {
+                        List<ItemStack> ingredients = new List<ItemStack>();
+                        for (short i = 1; i <= 4; i++)
+                            ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
+                        
+                        // Use the ingredients
+                        recipe.UseIngredients(ingredients.ToArray());
+
+                        // Check if any now have a count of 0 then set the slot to void
+                        foreach (var item in ingredients)
+                        {
+                            if (!ItemStack.IsVoid(item) && item.Count <= 0) // should never be less than 0, just some defensive coding
+                            {
+                                this[item.Slot] = ItemStack.Void;
+                            }
+                        }
+
+                        // We have to try and get the recipe again to make sure there is enough ingredients left to do one more
+                        recipe = GetRecipe();
+                        if (recipe == null)
+                        {
+                            // Not enough ingredients, set recipe output slot to void item
+                            this[0] = ItemStack.Void;
+                        }
+                    }
+                }
 			}
 			else
 			{
 				base.OnClicked(packet);
+
+                // If one of the ingredient slots have just been updated, update the contents of the recipe output slot
+                if (packet.Slot >= 1 && packet.Slot <= 4)
+                {
+                    Recipe recipe = GetRecipe();
+                    if (recipe == null)
+                    {
+                        this[0] = ItemStack.Void;
+                    }
+                    else
+                    {
+                        this[0] = recipe.Result;
+                    }
+                }
 			}
 		}
 	}
