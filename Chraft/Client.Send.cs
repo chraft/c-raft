@@ -124,7 +124,10 @@ namespace Chraft
 		{
 			PacketHandler.SendPacket(new HandshakePacket
 			{
-				UsernameOrHash = "-" // No authentication
+				
+                UsernameOrHash = (this.Server.UseOfficalAuthentication ? this.Server.ServerHash : "-")
+                //UsernameOrHash = "-" // No authentication
+                //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
 			});
 		}
 

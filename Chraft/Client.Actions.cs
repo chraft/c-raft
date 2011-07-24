@@ -233,7 +233,7 @@ namespace Chraft
             }
 
             sbyte count = -1;
-            if (tokens.Length > 2)
+            if (tokens.Length > 3)
                 sbyte.TryParse(tokens[3], out count);
 
             foreach (Client c in Server.GetClients(tokens[1]))

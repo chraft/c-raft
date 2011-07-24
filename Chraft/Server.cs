@@ -93,8 +93,21 @@ namespace Chraft
 		/// </summary>
 		public IrcClient Irc { get; private set; }
 
+        /// <summary>
+        /// Gets the server hash. Used for authentication, guaranteed to be unique between instances
+        /// </summary>
+        public string ServerHash { get; private set; }
+
+        /// <summary>
+        /// Determines whether to use the official minecraft authentication or none
+        /// </summary>
+        public bool UseOfficalAuthentication { get; private set; }
+
 		internal Server()
 		{
+            ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
+            UseOfficalAuthentication = true;
+
 			Clients = new Dictionary<int, Client>();
 			Rand = new Random();
 			Logger = new Logger(Settings.Default.LogFile);

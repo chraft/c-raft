@@ -45,7 +45,9 @@ namespace Chraft.Interfaces.Recipes
 						{
 							ItemStack ing1 = Ingredients3[y - h, x - w];
 							ItemStack ing2 = ingredients[y * s + x];
-							if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
+                            if (ItemStack.IsVoid(ing1) && ItemStack.IsVoid(ing2))
+                                continue;
+                            else if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 								continue;
 							goto continue1;
 						}
@@ -90,8 +92,75 @@ namespace Chraft.Interfaces.Recipes
 
 		private bool Matches(ItemStack[] ingredients)
 		{
-			return AnyOrder ? MatchesUnordered(ingredients) : MatchesOrdered(ingredients);
+            // 1. check that the correct number of ingredients exist (quickly excludes any recipes of differing number of ingredients)
+            //    fixes #69: "Recipies do not evaluate full recipe, they select first found"
+            if (MatchesIngredientsCount(ingredients))
+            {
+                // 2. now do the check for whether this recipe matches the provided ingredients
+                return AnyOrder ? MatchesUnordered(ingredients) : MatchesOrdered(ingredients);
+            }
+            else
+            {
+                return false;
+            }
 		}
+
+        /// <summary>
+        /// This ensures that we are matching the correct number of ingredients (e.g. two separate blocks of wood, not three). Fixes #69 (https://www.assembla.com/spaces/chraft/tickets/69-recipies-do-not-evaluate-full-recipe--they-select-first-found).
+        /// </summary>
+        /// <param name="ingredients">ingredients to count</param>
+        /// <returns>true if the number of individual ingredients match</returns>
+        private bool MatchesIngredientsCount(ItemStack[] ingredients)
+        {
+            return (Ingredients2.Length - CountVoidIngredients(Ingredients2)) == (ingredients.Length - CountVoidIngredients(ingredients));
+        }
+
+        /// <summary>
+        /// Counts the number of ingredients that are Void items
+        /// </summary>
+        /// <param name="ingredients"></param>
+        /// <returns>The number of ItemStack.IsVoid() ingredients</returns>
+        private int CountVoidIngredients(ItemStack[] ingredients)
+        {
+            int result = 0;
+            foreach (ItemStack item in ingredients)
+            {
+                if (ItemStack.IsVoid(item))
+                    result++;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Subtracts the ingredients that are required to craft this recipe, by updating the ingredient.Count property
+        /// </summary>
+        /// <param name="ingredients">The ingredients to be used</param>
+        public void UseIngredients(ItemStack[] ingredients)
+        {
+            // Assumption: 
+            // Recipes ingredients are loaded left to right, top to bottom, which is the same order of workbench/inventory recipe slots
+            // e.g. 1  2 <- inventory
+            //      3  4
+            //-------------
+            //      1  2  3 <- workbench
+            //      4  5  6
+            //      7  8  9
+            int indx = 0;
+            foreach (var item in this.Ingredients2)
+            {
+                // Based on assumption about load order: simply getting the next non-void ingredient will match the current recipe ingredient, then subtract the number required.
+                for (int i = indx; i < ingredients.Length; i++)
+                {
+                    if (!ItemStack.IsVoid(ingredients[i]))
+                    {
+                        ingredients[i].Count -= item.Count;
+                        indx = i + 1;
+                        break;
+                    }
+                }
+            }
+        }
 
 		public static Recipe GetRecipe(Recipe[] recipes, ItemStack[] ingredients)
 		{
@@ -134,7 +203,7 @@ namespace Chraft.Interfaces.Recipes
 				ItemStack[,] ing = new ItemStack[height, width];
 				for (int h = 0; h < height; h++)
 				{
-					string[] items = r[0].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] items = r[h].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 					for (int w = 0; w < width; w++)
 						ing[h, w] = ItemStack.Parse(items[w]);
 				}
