@@ -10,7 +10,7 @@ using Chraft.Net.Packets;
 namespace Chraft.Interfaces
 {
 	[Serializable]
-	public partial class Inventory : Interface
+	public partial class Inventory : CraftingInterface
 	{
 
 		private short _ActiveSlot;
@@ -28,10 +28,11 @@ namespace Chraft.Interfaces
 		{
 			_ActiveSlot = 36;
 			_IsOpen = true;
+            this.CraftingSlotCount = 4;
 		}
 
 		internal Inventory(Client client)
-			: base(InterfaceType.Inventory, 45)
+			: base(InterfaceType.Inventory, 4, 45)
 		{
 			_ActiveSlot = 36;
 			Associate(client);
@@ -159,96 +160,5 @@ namespace Chraft.Interfaces
 
             return false;
         }
-
-		private Recipe GetRecipe()
-		{
-			List<ItemStack> ingredients = new List<ItemStack>();
-			for (short i = 1; i <= 4; i++)
-				ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-            return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
-		}
-
-		internal override void OnClicked(WindowClickPacket packet)
-		{
-            if (packet.Slot == 0 && !ItemStack.IsVoid(this[0]))
-			{
-				if (!ItemStack.IsVoid(Cursor))
-				{
-                    if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
-					{
-						PacketHandler.SendPacket(new TransactionPacket
-						{
-							Accepted = false,
-							Transaction = packet.Transaction,
-							WindowId = packet.WindowId                    
-						});
-						return;
-					}
-					// TODO: Why was this here? We can't modify the this[0] item as this will change the result of the recipe (it is currently a reference to recipe.Result)
-                    //this[0].Count += Cursor.Count;
-					//Cursor = ItemStack.Void;
-				}
-				else
-				{
-					this.Cursor = ItemStack.Void;
-					this.Cursor.Slot = -1;
-					this.Cursor.Type = this[0].Type;
-					this.Cursor.Durability = this[0].Durability;
-				}
-
-				// Add the newly crafted item to the Cursor
-                this.Cursor.Count += this[0].Count;
-
-				// Cook Ingredients, and update recipe output slot in case ingredients are now insufficient for another
-                if (!ItemStack.IsVoid(this[0]))
-                {
-                    Recipe recipe = GetRecipe();
-                    if (recipe != null)
-                    {
-                        List<ItemStack> ingredients = new List<ItemStack>();
-                        for (short i = 1; i <= 4; i++)
-                            ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
-                        
-                        // Use the ingredients
-                        recipe.UseIngredients(ingredients.ToArray());
-
-                        // Check if any now have a count of 0 then set the slot to void
-                        foreach (var item in ingredients)
-                        {
-                            if (!ItemStack.IsVoid(item) && item.Count <= 0) // should never be less than 0, just some defensive coding
-                            {
-                                this[item.Slot] = ItemStack.Void;
-                            }
-                        }
-
-                        // We have to try and get the recipe again to make sure there is enough ingredients left to do one more
-                        recipe = GetRecipe();
-                        if (recipe == null)
-                        {
-                            // Not enough ingredients, set recipe output slot to void item
-                            this[0] = ItemStack.Void;
-                        }
-                    }
-                }
-			}
-			else
-			{
-				base.OnClicked(packet);
-
-                // If one of the ingredient slots have just been updated, update the contents of the recipe output slot
-                if (packet.Slot >= 1 && packet.Slot <= 4)
-                {
-                    Recipe recipe = GetRecipe();
-                    if (recipe == null)
-                    {
-                        this[0] = ItemStack.Void;
-                    }
-                    else
-                    {
-                        this[0] = recipe.Result;
-                    }
-                }
-			}
-		}
 	}
 }

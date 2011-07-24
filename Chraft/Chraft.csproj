@@ -118,6 +118,7 @@
     <Compile Include="Entity\TileEntity.cs" />
     <Compile Include="Entity\WoolColor.cs" />
     <Compile Include="Interfaces\ClickLocation.cs" />
+    <Compile Include="Interfaces\CraftingInterface.cs" />
     <Compile Include="Interfaces\DispenserInterface.cs" />
     <Compile Include="Interfaces\FurnaceInterface.cs" />
     <Compile Include="Interfaces\Interface.cs" />
@@ -150,6 +151,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Resources\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
+    <Compile Include="Utils\Hash.cs" />
+    <Compile Include="Utils\Http.cs" />
     <Compile Include="Utils\IPermissions.cs" />
     <Compile Include="Utils\Location.cs" />
     <Compile Include="Logger.cs" />

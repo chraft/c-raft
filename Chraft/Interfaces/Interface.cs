@@ -234,7 +234,7 @@ namespace Chraft.Interfaces
 
 		public virtual void UpdateClient()
 		{
-			for (short i = 0; i < 45; i++)
+			for (short i = 0; i < SlotCount; i++)
 			{
 				if (!ItemStack.IsVoid(Slots[i]))
 					SendUpdate(i);

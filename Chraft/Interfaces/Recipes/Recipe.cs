@@ -45,7 +45,9 @@ namespace Chraft.Interfaces.Recipes
 						{
 							ItemStack ing1 = Ingredients3[y - h, x - w];
 							ItemStack ing2 = ingredients[y * s + x];
-							if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
+                            if (ItemStack.IsVoid(ing1) && ItemStack.IsVoid(ing2))
+                                continue;
+                            else if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 								continue;
 							goto continue1;
 						}
@@ -110,7 +112,7 @@ namespace Chraft.Interfaces.Recipes
         /// <returns>true if the number of individual ingredients match</returns>
         private bool MatchesIngredientsCount(ItemStack[] ingredients)
         {
-            return Ingredients2.Length == (ingredients.Length - CountVoidIngredients(ingredients));
+            return (Ingredients2.Length - CountVoidIngredients(Ingredients2)) == (ingredients.Length - CountVoidIngredients(ingredients));
         }
 
         /// <summary>
@@ -201,7 +203,7 @@ namespace Chraft.Interfaces.Recipes
 				ItemStack[,] ing = new ItemStack[height, width];
 				for (int h = 0; h < height; h++)
 				{
-					string[] items = r[0].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+					string[] items = r[h].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 					for (int w = 0; w < width; w++)
 						ing[h, w] = ItemStack.Parse(items[w]);
 				}
