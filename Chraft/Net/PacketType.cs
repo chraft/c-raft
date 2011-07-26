@@ -58,6 +58,7 @@ namespace Chraft.Net
         UpdateProgressBar = 0x69,           //   <--
         Transaction = 0x6A,                 //   <->
         UpdateSign = 0x82,                  //   <->
+        MapData = 0x83,                     //   -->
         Disconnect = 0xFF                   //   <->
 	}
 }

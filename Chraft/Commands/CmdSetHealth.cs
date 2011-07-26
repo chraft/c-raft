@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net.Packets;
 
 namespace Chraft.Commands
 {
@@ -13,12 +14,19 @@ namespace Chraft.Commands
         {
             if (tokens.Length < 1)
             {
-                client.SetHealth(20);
+                SetHealth(client, 20);
                 return;
-           }
-            client.SetHealth(short.Parse(tokens[1]));
+            }
+            SetHealth(client, short.Parse(tokens[1]));
         }
-
+        private void SetHealth(Client client, short health)
+        {
+            if (health > 20)
+            {
+                health = 20;
+            }
+            client.PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
+        }
         public void Help(Client client)
         {
             client.SendMessage("/sethealth <Health> - Sets your health to <Health>");
