@@ -6,6 +6,7 @@ using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Utils;
 using Chraft.Interfaces;
+using Chraft.Commands;
 
 namespace Chraft
 {
@@ -110,63 +111,24 @@ namespace Chraft
 
         private void CommandProc(string raw, string[] tokens)
         {
-            switch (tokens[0].ToLower())
+            ClientCommand cmd;
+            try
             {
-                case "who":
-                case "playerlist":
-                case "list":
-                    ListCommand(tokens);
-                    break;
-
-                case "spawn":
-                    SpawnCommand(tokens);
-                    break;
-
-                case "stop":
-                    StopCommand(tokens);
-                    break;
-
-                case "time":
-                    TimeCommand(tokens);
-                    break;
-
-                case "tp":
-                    TpCommand(tokens);
-                    break;
-
-                case "tphere":
-                case "s":
-                    TphereCommand(tokens);
-                    break;
-
-                case "item":
-                    ItemCommand(tokens);
-                    break;
-
-                case "give":
-                    GiveCommand(tokens);
-                    break;
-
-                case "1":
-                case "pos1":
-                case "/pos1":
-                    Pos1Command(tokens);
-                    break;
-
-                case "2":
-                case "pos2":
-                case "/pos2":
-                    Pos2Command(tokens);
-                    break;
-
-                case "/set":
-                case "set":
-                    SetCommand(tokens);
-                    break;
-
-                case "mute":
-                    MuteCommand(tokens);
-                    break;
+                cmd = Server.ClientCommandHandler.Find(tokens[0]) as ClientCommand;
+            }
+            catch (CommandNotFoundException e)
+            {
+                SendMessage(ChatColor.Red + e.Message);
+                return;
+            }
+            try
+            {
+                cmd.Use(this, tokens);
+            }
+            catch(Exception e)
+            {
+                SendMessage("There was an error while executing the command.");
+                Server.Logger.Log(e);
             }
         }
 

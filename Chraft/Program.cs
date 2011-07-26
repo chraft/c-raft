@@ -2,12 +2,14 @@
 using System.Threading;
 using System.Reflection;
 using Chraft.Properties;
+using Chraft.Commands;
 
 namespace Chraft
 {
 	internal static class Program
 	{
 		private static Server Server;
+        private static bool Stoped = false;
 
 		static Program()
 		{
@@ -51,7 +53,7 @@ namespace Chraft
 				Server.Stop();
 		}
 
-		private static void Exit()
+		public static void Exit()
 		{
 			Server.Stop();
 			Server = null;
@@ -74,19 +76,21 @@ namespace Chraft
 			while (true)
 			{
                 string input = Console.ReadLine();
+                if (Server == null) return;
                 string[] inputParts = input.Split();
-
-				switch (inputParts[0])
-				{
-				    case "stop":
-                        Server.Logger.Log(Logger.LogLevel.Info, "Stopping Server...");
-					    Exit();
-					    return;
-                    default:
-                        Server.Logger.Log(Logger.LogLevel.Info, "Unrecognised command:", inputParts[0]);
-                        break;
-				}
-			}
+                ServerCommand Cmd;
+                try
+                {
+                    Cmd = Server.ServerCommandHandler.Find(inputParts[0]) as ServerCommand;
+                    Cmd.Use(Server, inputParts);
+                }
+                catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }
+                catch (Exception e)
+                {
+                    Server.Logger.Log(Logger.LogLevel.Error, "There was an error while executing the command.");
+                    Server.Logger.Log(e);
+                }
+            }
 		}
 
 		private static void UnhandledException_Handler(object sender, UnhandledExceptionEventArgs e)
