@@ -169,6 +169,8 @@ namespace Chraft
 
         private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
         {
+            if (CurrentInterface != null)
+                CurrentInterface.Close(false);
             CurrentInterface = null;
         }
 
@@ -375,14 +377,64 @@ namespace Chraft
             int x = e.Packet.X;
             int y = e.Packet.Y;
             int z = e.Packet.Z;
-
+            
             BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
+
+            int bx, by, bz;
+            World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
 
             if (type == BlockData.Blocks.Chest)
             {
-                CurrentInterface = new SmallChestInterface();
-                CurrentInterface.Associate(this);
-                CurrentInterface.Open();
+                if (!BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(bx, by, bz)))
+                {
+                    // Cannot open a chest if no space is above it
+                    return;
+                }
+                
+                Chunk chunk = World.GetBlockChunk(x, y, z);
+
+                // Double chest?
+                // TODO: simplify chunk API so that no bit shifting is required
+                if (chunk.IsNSEWTo(x & 0xf, y, z & 0xf, (byte)type))
+                {
+                    // Is this chest the "North or East", or the "South or West"
+                    BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
+                    PointI[] nsewBlockPositions = new PointI[4];
+                    int nsewCount = 0;
+                    chunk.ForNSEW(x & 0xf, y, z & 0xf, (x1, y1, z1) =>
+                    {
+                        nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
+                        nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
+                        nsewCount++;
+                    });
+
+                    if (nsewBlocks[0] == type) // North
+                    {
+                        CurrentInterface = new LargeChestInterface(World, nsewBlockPositions[0], new PointI(x, y, z));
+                    }
+                    else if (nsewBlocks[2] == type) // East
+                    {
+                        CurrentInterface = new LargeChestInterface(World, nsewBlockPositions[2], new PointI(x, y, z));
+                    }
+                    else if (nsewBlocks[1] == type) // South
+                    {
+                        CurrentInterface = new LargeChestInterface(World, new PointI(x, y, z), nsewBlockPositions[1]);
+                    }
+                    else if (nsewBlocks[3] == type) // West
+                    {
+                        CurrentInterface = new LargeChestInterface(World, new PointI(x, y, z), nsewBlockPositions[3]);
+                    }
+                }
+                else
+                {
+                    CurrentInterface = new SmallChestInterface(World, x, y, z);
+                }
+
+                if (CurrentInterface != null)
+                {
+                    CurrentInterface.Associate(this);
+                    CurrentInterface.Open();
+                }
                 return;
             }
             else if (type == BlockData.Blocks.Workbench)
@@ -405,11 +457,9 @@ namespace Chraft
             }
 
             // Built Block Info
-            int bx, by, bz;
+
             byte bType = (byte)Inventory.Slots[Inventory.ActiveSlot].Type;
             byte bMetaData = (byte)Inventory.Slots[Inventory.ActiveSlot].Durability;
-
-            World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
 
             switch (type) // Can't build against these blocks.
             {
@@ -440,6 +490,47 @@ namespace Chraft
                     }
                     break;
 
+                case BlockData.Blocks.Chest:
+                    // Load the blocks surrounding the position (NSEW) not diagonals
+                    Chunk chunk = World.GetBlockChunk(x, y, z);
+                    BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
+                    PointI[] nsewBlockPositions = new PointI[4];
+                    int nsewCount = 0;
+                    chunk.ForNSEW(bx & 0xf, by, bz & 0xf, (x1, y1, z1) => 
+                    {
+                        nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
+                        nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
+                        nsewCount++;
+                    });
+
+                    // Count chests in list
+                    if (nsewBlocks.Where((b) => b == BlockData.Blocks.Chest).Count() > 1)
+                    {
+                        // Cannot place next to two chests
+                        return;
+                    }
+
+                    // A chest cannot be surrounded by two blocks on the same axis when placed
+                    //if (BlockData.IsSolid(nsewBlocks[0]) && BlockData.IsSolid(nsewBlocks[1]))
+                    //{
+                    //    return;
+                    //}
+                    //if (BlockData.IsSolid(nsewBlocks[2]) && BlockData.IsSolid(nsewBlocks[3]))
+                    //{
+                    //    return;
+                    //}
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        PointI p = nsewBlockPositions[i];
+                        if (nsewBlocks[i] == BlockData.Blocks.Chest && chunk.IsNSEWTo(p.X & 0xf, p.Y, p.Z & 0xf, (byte)BlockData.Blocks.Chest))
+                        {
+                            // Cannot place next to a double chest
+                            return;
+                        }
+                    }
+
+                    break;
                 case BlockData.Blocks.Furnace:
                 case BlockData.Blocks.Dispenser:
                     switch (e.Packet.Face) //Bugged, as the client has a mind of its own for facing

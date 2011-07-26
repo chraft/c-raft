@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Chraft.Interfaces
 {
-	public class DispenserInterface : Interface
+	public class DispenserInterface : SingleContainerInterface
 	{
-		public DispenserInterface()
-			: base(InterfaceType.Dispenser, 9)
+        public DispenserInterface(World.WorldManager world, int x, int y, int z)
+            : base(world, InterfaceType.Dispenser, x, y, z, 9)
 		{
 		}
 	}

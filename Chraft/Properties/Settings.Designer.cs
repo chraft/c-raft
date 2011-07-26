@@ -395,5 +395,17 @@ namespace Chraft.Properties {
                 this["WeatherChangeFrequency"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Containers")]
+        public string ContainersFolder {
+            get {
+                return ((string)(this["ContainersFolder"]));
+            }
+            set {
+                this["ContainersFolder"] = value;
+            }
+        }
     }
 }

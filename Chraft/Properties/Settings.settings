@@ -95,5 +95,8 @@
     <Setting Name="WeatherChangeFrequency" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1</Value>
     </Setting>
+    <Setting Name="ContainersFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Containers</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
