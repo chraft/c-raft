@@ -128,6 +128,7 @@ namespace Chraft.Commands
             RegisterCommand(new CmdMute());
             RegisterCommand(new CmdTime());
             RegisterCommand(new CmdTp());
+            RegisterCommand(new CmdSetHealth());
         }
     }
 }

@@ -116,6 +116,7 @@
     <Compile Include="Commands\CmdPlayers.cs" />
     <Compile Include="Commands\CmdPos.cs" />
     <Compile Include="Commands\CmdSet.cs" />
+    <Compile Include="Commands\CmdSetHealth.cs" />
     <Compile Include="Commands\CmdSpawn.cs" />
     <Compile Include="Commands\CmdStop.cs" />
     <Compile Include="Commands\CmdTime.cs" />
