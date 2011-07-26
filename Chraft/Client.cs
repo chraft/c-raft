@@ -274,11 +274,9 @@ namespace Chraft
 
             for (int i = 0; i < Inventory.Slots.Length; i++)
             {
-                if (Inventory.Slots[i].Type > 0)
-                {
-                    Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory.Slots[i]);
-                    Inventory.Slots[i] = ItemStack.Void;
-                }
+                if (Inventory.Slots[i].Type <= 0) continue;
+                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory.Slots[i]);
+                Inventory.Slots[i] = ItemStack.Void;
             }
         }
 
@@ -406,10 +404,8 @@ namespace Chraft
                 SendChunk(World[c.X, c.Z]);
             }
 
-            foreach (PointI c in LoadedChunks)
+            foreach (PointI c in LoadedChunks.Where(c => !nearbyChunks.Contains(c)))
             {
-                if (nearbyChunks.Contains(c))
-                    continue;
                 SendPreChunk(c.X, c.Z, false);
                 World[c.X, c.Z].RemoveClient(this);
             }
@@ -422,8 +418,7 @@ namespace Chraft
         /// </summary>
         public void Start()
         {
-            RxThread = new Thread((ThreadStart)RxProc);
-            RxThread.IsBackground = true;
+            RxThread = new Thread(RxProc) {IsBackground = true};
             RxThread.Start();
         }
 
@@ -459,7 +454,7 @@ namespace Chraft
             {
                 while (Running)
                 {
-                    if (!this.PacketHandler.ProcessPacket())
+                    if (!PacketHandler.ProcessPacket())
                         break;
                 }
             }
@@ -521,6 +516,15 @@ namespace Chraft
         {
             LoggedIn = true;
             Server.Broadcast(DisplayName + " has logged in", this);
+        }
+
+        private void SetHealth(short health)
+        {
+            if (health > 20)
+            {
+                health = 20;
+            }
+            PacketHandler.SendPacket(new UpdateHealthPacket {Health = health});
         }
 
         #region Permission related commands

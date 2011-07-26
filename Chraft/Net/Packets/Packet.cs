@@ -200,12 +200,16 @@ namespace Chraft.Net.Packets
 
 	public class RespawnPacket : Packet
 	{
+        public byte World { get; set; }
+
 		public override void Read(BigEndianStream stream)
 		{
+		    World = stream.ReadByte();
 		}
 
 		public override void Write(BigEndianStream stream)
 		{
+            stream.Write(World);
 		}
 	}
 
