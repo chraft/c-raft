@@ -542,7 +542,7 @@ namespace Chraft
         #endregion
     }
     //Cheat enum since enums can't be strings.
-    public class ChatColor
+    public static class ChatColor
     {
         public static string Black = "§0",
         DarkBlue = "§1",
