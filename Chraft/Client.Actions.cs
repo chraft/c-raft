@@ -260,7 +260,7 @@ namespace Chraft
             }
 
             sbyte count = -1;
-            if (tokens.Length > 1)
+            if (tokens.Length > 2)
                 sbyte.TryParse(tokens[2], out count);
 
             Inventory.AddItem(item.Type, count < 0 ? item.Count : count, item.Durability);
