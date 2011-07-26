@@ -137,6 +137,7 @@
     <Compile Include="Entity\MobType.cs" />
     <Compile Include="Entity\TileEntity.cs" />
     <Compile Include="Entity\WoolColor.cs" />
+    <Compile Include="Interfaces\PersistentContainerInterface.cs" />
     <Compile Include="Interfaces\ClickLocation.cs" />
     <Compile Include="Interfaces\CraftingInterface.cs" />
     <Compile Include="Interfaces\DispenserInterface.cs" />
@@ -148,6 +149,7 @@
     <Compile Include="Interfaces\ItemStack.cs" />
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
+    <Compile Include="Interfaces\SingleContainerInterface.cs" />
     <Compile Include="Interfaces\SmallChestInterface.cs" />
     <Compile Include="Interfaces\WorkbenchInterface.cs" />
     <Compile Include="Irc\HostMask.cs" />
@@ -228,7 +230,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
+      <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="Resources\Groups.ini">

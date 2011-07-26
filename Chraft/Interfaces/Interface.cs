@@ -15,7 +15,7 @@ namespace Chraft.Interfaces
 	{
 		private static volatile sbyte NextHandle = 0;
 		private bool IsTransactionInProgress = false;
-		private Client Client;
+        protected Client Client { get; private set; }
 
 		public event EventHandler<InterfaceClickedEventArgs> Clicked;
 
@@ -228,8 +228,8 @@ namespace Chraft.Interfaces
 				InventoryType = Type,
 				SlotCount = SlotCount
 			});
-			UpdateClient();
-			_IsOpen = true;
+            _IsOpen = true;
+            UpdateClient();
 		}
 
 		public virtual void UpdateClient()
@@ -246,13 +246,26 @@ namespace Chraft.Interfaces
 			SendUpdate(-1);
 		}
 
-		public void Close()
+        protected virtual void DoClose()
+        {
+        }
+
+        public void Close(bool sendCloseToClient)
 		{
-			_IsOpen = false;
-			PacketHandler.SendPacket(new CloseWindowPacket
-			{
-				WindowId = Handle
-			});
+            if (_IsOpen)
+            {
+                _IsOpen = false;
+
+                DoClose();
+
+                if (sendCloseToClient)
+                {
+                    PacketHandler.SendPacket(new CloseWindowPacket
+                    {
+                        WindowId = Handle
+                    });
+                }
+            }
 		}
 	}
 }
