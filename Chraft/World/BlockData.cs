@@ -458,9 +458,9 @@ namespace Chraft.World
             return !Air.Contains((Blocks)p) && p != (int)Blocks.Glass && p != (int)Blocks.Ice;
         }
 
-        public static bool IsSolid(Blocks blocks)
+        public static bool IsSolid(Blocks block)
         {
-            return !Air.Contains((Blocks)blocks);
+            return !Air.Contains((Blocks)block) && !IsLiquid(block);
         }
 
         public static bool IsLiquid(Blocks material)
