@@ -398,6 +398,13 @@ namespace Chraft.World
             Server.AddEntity(mob); // TODO: Limit this in some way.
         }
 
+        public Chunk GetBlockChunk(int x, int y, int z)
+        {
+            if (!ChunkExists(x >> 4, z >> 4))
+                return null;
+            return Chunks[x >> 4, z >> 4];
+        }
+
         public byte GetBlockId(int x, int y, int z)
         {
             if (!ChunkExists(x >> 4, z >> 4))
@@ -610,7 +617,7 @@ namespace Chraft.World
             // TODO: Fixing this, NSEW isn't working as it's supposed to.
             for (int by = y; by < y + 3; by++)
             {
-                if (!this[x >> 4, z >> 4].IsNSEWTo(x, by, z, (byte)BlockData.Blocks.Air))
+                if (!this[x >> 4, z >> 4].IsNSEWTo(x & 0xf, by, z & 0xf, (byte)BlockData.Blocks.Air))
                     return;
             }
 
