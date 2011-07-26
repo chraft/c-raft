@@ -359,11 +359,11 @@ namespace Chraft.World
 
         public bool IsNSEWTo(int x, int y, int z, byte block)
         {
-            bool retval = true;
+            bool retval = false;
             ForNSEW(x, y, z, delegate(int bx, int by, int bz)
             {
-                if (World.GetBlockId(bx, by, bz) != block)
-                    retval = false;
+                if (World.GetBlockId(bx, by, bz) == block)
+                    retval = true;
             });
             return retval;
         }
