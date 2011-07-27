@@ -8,68 +8,62 @@ using Chraft.Properties;
 
 namespace Chraft.Resources
 {
-	public class ItemDb
-	{
-		private Dictionary<string, short> Items = new Dictionary<string, short>();
-		private Dictionary<string, short> Durabilities = new Dictionary<string, short>();
+    public class ItemDb
+    {
+        private Dictionary<string, short> Items = new Dictionary<string, short>();
+        private Dictionary<string, short> Durabilities = new Dictionary<string, short>();
 
-		public ItemStack this[string item]
-		{
-			get
-			{
-				if (Contains(item))
-					return new ItemStack(Items[item], Settings.Default.DefaultStackSize, Durabilities[item]);
-				else
-					return ItemStack.Void;
-			}
-		}
+        public ItemStack this[string item]
+        {
+            get
+            {
+                try
+                {
+                    //change this to take into account numerical values
+                    return Contains(item) ? new ItemStack(Items[item], Settings.Default.DefaultStackSize, Durabilities[item]) : ItemStack.Void;
+                }
+                catch (Exception)
+                {
+                    return ItemStack.Void;
+                }
+            }
+        }
 
-		public ItemDb(string file)
-		{
-			if (!File.Exists(file))
-				return;
+        public ItemDb(string file)
+        {
+            if (!File.Exists(file))
+                return;
 
-			foreach (String l in File.ReadAllLines(file))
-			{
-				if (l.StartsWith("#"))
-					continue;
+            foreach (string[] parts in File.ReadAllLines(file).Where(l => !l.StartsWith("#")).Select(l => l.Split(',')).Where(parts => parts.Length >= 2))
+            {
+                short numeric;
+                if (!short.TryParse(parts[1], out numeric))
+                    continue;
 
-				string[] parts = l.Split(',');
-				if (parts.Length < 2)
-					continue;
+                short durability;
+                if (parts.Length < 3 || !short.TryParse(parts[2], out durability))
+                    durability = 0;
 
-				short numeric;
-				if (!short.TryParse(parts[1], out numeric))
-					continue;
+                string item = parts[0].ToLower();
+                Items.Add(item, numeric);
+                Durabilities.Add(item, durability);
+            }
+        }
 
-				short durability;
-				if (parts.Length < 3 || !short.TryParse(parts[2], out durability))
-					durability = 0;
-
-				string item = parts[0].ToLower();
-				Items.Add(item, numeric);
-				Durabilities.Add(item, durability);
-			}
-		}
-
-		public bool Contains(string item)
-		{
-			short numeric;
-			return Items.ContainsKey(item) || (short.TryParse(item, out numeric) && Items.ContainsValue(numeric));
-		}
+        public bool Contains(string item)
+        {
+            short numeric = -1;
+            return Items.ContainsKey(item) || (short.TryParse(item, out numeric) && numeric != -1 && Items.ContainsValue(numeric));
+        }
 
         public string ItemName(short item) // Returns top item name (...or Use Enum.Parse instead?)
         {
-            foreach (KeyValuePair<string, short> kvp in Items)
+            foreach (var kvp in Items.Where(kvp => kvp.Value == item))
             {
-                if (kvp.Value == item)
-                {
-                    return kvp.Key;
-                }
+                return kvp.Key;
             }
 
             return "Not Found";
-
         }
-	}
+    }
 }

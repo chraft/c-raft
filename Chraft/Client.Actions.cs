@@ -167,6 +167,9 @@ namespace Chraft
                 case "mute":
                     MuteCommand(tokens);
                     break;
+                case "sethealth":
+                    SetHealth(tokens);
+                    break;
             }
         }
 
@@ -257,7 +260,7 @@ namespace Chraft
             }
 
             sbyte count = -1;
-            if (tokens.Length > 1)
+            if (tokens.Length > 2)
                 sbyte.TryParse(tokens[2], out count);
 
             Inventory.AddItem(item.Type, count < 0 ? item.Count : count, item.Durability);
@@ -364,6 +367,16 @@ namespace Chraft
             client[0].IsMuted = !clientMuted;
             client[0].SendMessage(clientMuted ? "You have been unmuted" : "You have been muted");
             SendMessage(clientMuted ? tokens[1] + " has been unmuted" : tokens[1] + " has been muted");
+        }
+
+        private void SetHealth(string[] tokens)
+        {
+            if (tokens.Length < 1)
+            {
+                SetHealth(20);
+                return;
+            }
+            SetHealth(short.Parse(tokens[1]));
         }
     }
 }

@@ -40,6 +40,7 @@ namespace Chraft.Net
 		public event PacketEventHandler<KeepAlivePacket> KeepAlive;
 		public event PacketEventHandler<LoginRequestPacket> LoginRequest;
 		public event PacketEventHandler<MapChunkPacket> MapChunk;
+        public event PacketEventHandler<MapDataPacket> MapData;
 		public event PacketEventHandler<MobSpawnPacket> MobSpawn;
 		public event PacketEventHandler<MultiBlockChangePacket> MultiBlockChange;
 		public event PacketEventHandler<NamedEntitySpawnPacket> NamedEntitySpawn;
@@ -164,6 +165,7 @@ namespace Chraft.Net
 			case PacketType.KeepAlive: OnKeepAlive((KeepAlivePacket)p); break;
 			case PacketType.LoginRequest: OnLoginRequest((LoginRequestPacket)p); break;
 			case PacketType.MapChunk: OnMapChunk((MapChunkPacket)p); break;
+            case PacketType.MapData: OnMapData((MapDataPacket)p); break;
 			case PacketType.MobSpawn: OnMobSpawn((MobSpawnPacket)p); break;
 			case PacketType.MultiBlockChange: OnMultiBlockChange((MultiBlockChangePacket)p); break;
 			case PacketType.NamedEntitySpawn: OnNamedEntitySpawn((NamedEntitySpawnPacket)p); break;
@@ -219,7 +221,8 @@ namespace Chraft.Net
 		private void OnHoldingChange(HoldingChangePacket p) { if (HoldingChange != null) HoldingChange.Invoke(this, new PacketEventArgs<HoldingChangePacket>(p)); }
 		private void OnKeepAlive(KeepAlivePacket p) { if (KeepAlive != null) KeepAlive.Invoke(this, new PacketEventArgs<KeepAlivePacket>(p)); }
 		private void OnLoginRequest(LoginRequestPacket p) { if (LoginRequest != null) LoginRequest.Invoke(this, new PacketEventArgs<LoginRequestPacket>(p)); }
-		private void OnMapChunk(MapChunkPacket p) { if (MapChunk != null) MapChunk.Invoke(this, new PacketEventArgs<MapChunkPacket>(p)); }
+        private void OnMapData(MapDataPacket p) { if (MapData != null) MapData.Invoke(this, new PacketEventArgs<MapDataPacket>(p)); }
+        private void OnMapChunk(MapChunkPacket p) { if (MapChunk != null) MapChunk.Invoke(this, new PacketEventArgs<MapChunkPacket>(p)); }
 		private void OnMobSpawn(MobSpawnPacket p) { if (MobSpawn != null) MobSpawn.Invoke(this, new PacketEventArgs<MobSpawnPacket>(p)); }
 		private void OnMultiBlockChange(MultiBlockChangePacket p) { if (MultiBlockChange != null) MultiBlockChange.Invoke(this, new PacketEventArgs<MultiBlockChangePacket>(p)); }
 		private void OnNamedEntitySpawn(NamedEntitySpawnPacket p) { if (NamedEntitySpawn != null) NamedEntitySpawn.Invoke(this, new PacketEventArgs<NamedEntitySpawnPacket>(p)); }
