@@ -19,13 +19,14 @@ namespace Chraft
 			ClientSurrogate client;
 			using (FileStream rx = File.OpenRead(DataFile))
 				client = (ClientSurrogate)Xml.Deserialize(rx);
-			this.Position.X = client.X;
-            this.Position.Y = client.Y + 1; // Players drop one block upon spawning
-            this.Position.Z = client.Z;
-			this.Yaw = client.Yaw;
-			this.Pitch = client.Pitch;
-			this.Inventory = client.Inventory;
-			this.Inventory.Associate(this);
+			Position.X = client.X;
+            Position.Y = client.Y + 1; // Players drop one block upon spawning
+            Position.Z = client.Z;
+			Yaw = client.Yaw;
+			Pitch = client.Pitch;
+		    if (client.Inventory == null) return;
+		    Inventory = client.Inventory;
+		    Inventory.Associate(this);
 		}
 
 		private void Save()
