@@ -51,6 +51,7 @@ namespace Chraft.Net
 			{ PacketType.PreChunk, typeof(PreChunkPacket) },
 			{ PacketType.Respawn, typeof(RespawnPacket) },
 			{ PacketType.SetSlot, typeof(SetSlotPacket) },
+            { PacketType.SoundEffect, typeof(SoundEffectPacket) },
 			{ PacketType.SpawnPosition, typeof(SpawnPositionPacket) },
 			{ PacketType.TimeUpdate, typeof(TimeUpdatePacket) },
 			{ PacketType.Transaction, typeof(TransactionPacket) },
