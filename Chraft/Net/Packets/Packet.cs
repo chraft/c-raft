@@ -540,27 +540,54 @@ namespace Chraft.Net.Packets
     public class AddObjectVehiclePacket : Packet
     {
         public int EntityId { get; set; }
-        public sbyte Type { get; set; }
+        public ObjectType Type { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
+        public int UnknownFlag { get; set; }
+        public short UnknownA { get; set; }
+        public short UnknownB { get; set; }
+        public short UnknownC { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             EntityId = stream.ReadInt();
-            Type = stream.ReadSByte();
-            X = (double)stream.ReadInt() / 32.0d;
+            Type = (ObjectType)stream.ReadSByte();
+            X = (double)stream.ReadInt() / 32.0d; // ((double)intX / 32.0d) => representation of X as double
             Y = (double)stream.ReadInt() / 32.0d;
             Z = (double)stream.ReadInt() / 32.0d;
+            UnknownFlag = stream.ReadInt();
+            UnknownA = stream.ReadShort();
+            UnknownB = stream.ReadShort();
+            UnknownC = stream.ReadShort();
         }
 
         public override void Write(BigEndianStream stream)
         {
             stream.Write(EntityId);
-            stream.Write(Type);
+            stream.Write((sbyte)Type);
             stream.Write((int)(X * 32));
             stream.Write((int)(Y * 32));
             stream.Write((int)(Z * 32));
+            stream.Write(UnknownFlag);
+            stream.Write(UnknownA);
+            stream.Write(UnknownB);
+            stream.Write(UnknownC);
+        }
+
+        public enum ObjectType : sbyte
+        {
+            Boat = 1,
+            Minecart = 10,
+            StorageCart = 11,
+	        PoweredCart = 12,
+            ActivatedTNT = 50,
+            Arrow = 60,
+            ThrownSnowball = 61,
+            ThrownEgg = 62,
+            FallingSand = 70,
+            FallingGravel = 71,
+            FishingFloat = 90,
         }
     }
 
