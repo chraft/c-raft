@@ -56,14 +56,14 @@ namespace Chraft.Interfaces
 		/// <returns>Quick slots from left to right</returns>
 		public IEnumerable<ItemStack> GetQuickSlots()
 		{
-			for (short i = 36; i < 43; i++)
+			for (short i = 36; i < this.SlotCount; i++)
 				yield return this[i];
 		}
 
 		internal void AddItem(short id, sbyte count, short durability)
 		{
 			// Quickslots, stacking
-			for (short i = 36; i < 43; i++)
+			for (short i = 36; i < this.SlotCount; i++)
 			{
 				if (!ItemStack.IsVoid(Slots[i]) && Slots[i].Type == id && Slots[i].Durability == durability)
 				{
@@ -93,7 +93,7 @@ namespace Chraft.Interfaces
 			}
 
 			// Quickslots, not stacking
-			for (short i = 36; i < 43; i++)
+			for (short i = 36; i < this.SlotCount; i++)
 			{
 				if (ItemStack.IsVoid(Slots[i]))
 				{
