@@ -418,7 +418,11 @@ namespace Chraft
         /// </summary>
         public void Start()
         {
+<<<<<<< HEAD
+            RxThread = new Thread(RxProc) {IsBackground = true};
+=======
             RxThread = new Thread(RxProc) { IsBackground = true };
+>>>>>>> 56c49d64dd7cdd011632a9d998b2279dfddd9b48
             RxThread.Start();
         }
 
@@ -524,16 +528,11 @@ namespace Chraft
             {
                 health = 20;
             }
+<<<<<<< HEAD
             PacketHandler.SendPacket(new UpdateHealthPacket {Health = health});
-        }
-
-        private void SetHealth(short health)
-        {
-            if (health > 20)
-            {
-                health = 20;
-            }
+=======
             PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
+>>>>>>> 56c49d64dd7cdd011632a9d998b2279dfddd9b48
         }
 
         #region Permission related commands

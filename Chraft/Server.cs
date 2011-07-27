@@ -18,6 +18,7 @@ using Chraft.Plugins;
 using System.Diagnostics;
 using Chraft.Resources;
 using Chraft.Irc;
+using Chraft.Commands;
 
 namespace Chraft
 {
@@ -52,6 +53,16 @@ namespace Chraft
 		/// Gets the PluginManager for the server.
 		/// </summary>
 		public PluginManager PluginManager { get; private set; }
+
+        /// <summary>
+        /// Gets the ClientCommandHandler for the server.
+        /// </summary>
+        public ClientCommandHandler ClientCommandHandler { get; private set; }
+
+        /// <summary>
+        /// Gets the ServerCommandHandler for the server.
+        /// </summary>
+        public ServerCommandHandler ServerCommandHandler { get; private set; }
 
 		/// <summary>
 		/// Gets a thread-unsafe list of clients.  Use GetClients for a thread-safe version.
@@ -115,6 +126,8 @@ namespace Chraft
 			PluginManager = new PluginManager(Settings.Default.PluginFolder);
 			Items = new ItemDb(Settings.Default.ItemsFile);
 			Recipes = Recipe.FromFile(Settings.Default.RecipesFile);
+            ClientCommandHandler = new ClientCommandHandler();
+            ServerCommandHandler = new ServerCommandHandler();
 			if (Settings.Default.IrcEnabled)
 				InitializeIrc();
 		}
@@ -517,10 +530,10 @@ namespace Chraft
 				Irc.Stop();
 		}
 
-		internal void OnCommand(Client client, string[] tokens)
+		internal void OnCommand(Client client, ClientCommand cmd, string[] tokens)
 		{
 			if (Command != null)
-				Command.Invoke(client, new CommandEventArgs(client, tokens));
+				Command.Invoke(client, new CommandEventArgs(client, cmd, tokens));
 		}
 	}
 }
