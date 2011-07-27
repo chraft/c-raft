@@ -56,6 +56,7 @@ namespace Chraft.Net
 		public event PacketEventHandler<PreChunkPacket> PreChunk;
 		public event PacketEventHandler<RespawnPacket> Respawn;
 		public event PacketEventHandler<SetSlotPacket> SetSlot;
+        public event PacketEventHandler<SoundEffectPacket> SoundEffect;
 		public event PacketEventHandler<SpawnPositionPacket> SpawnPosition;
 		public event PacketEventHandler<TimeUpdatePacket> TimeUpdate;
 		public event PacketEventHandler<TransactionPacket> Transaction;
@@ -238,7 +239,8 @@ namespace Chraft.Net
 		private void OnPreChunk(PreChunkPacket p) { if (PreChunk != null) PreChunk.Invoke(this, new PacketEventArgs<PreChunkPacket>(p)); }
 		private void OnRespawn(RespawnPacket p) { if (Respawn != null) Respawn.Invoke(this, new PacketEventArgs<RespawnPacket>(p)); }
 		private void OnSetSlot(SetSlotPacket p) { if (SetSlot != null) SetSlot.Invoke(this, new PacketEventArgs<SetSlotPacket>(p)); }
-		private void OnSpawnPosition(SpawnPositionPacket p) { if (SpawnPosition != null) SpawnPosition.Invoke(this, new PacketEventArgs<SpawnPositionPacket>(p)); }
+        private void OnSoundEffect(SoundEffectPacket p) { if (SoundEffect != null) SoundEffect.Invoke(this, new PacketEventArgs<SoundEffectPacket>(p)); }
+        private void OnSpawnPosition(SpawnPositionPacket p) { if (SpawnPosition != null) SpawnPosition.Invoke(this, new PacketEventArgs<SpawnPositionPacket>(p)); }
 		private void OnTimeUpdate(TimeUpdatePacket p) { if (TimeUpdate != null) TimeUpdate.Invoke(this, new PacketEventArgs<TimeUpdatePacket>(p)); }
 		private void OnTransaction(TransactionPacket p) { if (Transaction != null) Transaction.Invoke(this, new PacketEventArgs<TransactionPacket>(p)); }
 		private void OnUnknownA(UnknownAPacket p) { if (UnknownA != null) UnknownA.Invoke(this, new PacketEventArgs<UnknownAPacket>(p)); }

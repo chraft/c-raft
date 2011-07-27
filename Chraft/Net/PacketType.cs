@@ -50,6 +50,7 @@ namespace Chraft.Net
         BlockChange = 0x35,                 //   <--
         PlayNoteBlock = 0x36,               //   <--
         Explosion = 0x3C,                   //   <--
+        SoundEffect = 0x3D,                 //   <--
         OpenWindow = 0x64,                  //   <--
         CloseWindow = 0x65,                 //   <--
         WindowClick = 0x66,                 //   -->

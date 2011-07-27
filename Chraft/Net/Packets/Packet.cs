@@ -1027,6 +1027,73 @@ namespace Chraft.Net.Packets
         }
     }
 
+    public class SoundEffectPacket : Packet
+    {
+        /// <summary>
+        /// The ID of the sound effect to play
+        /// </summary>
+        public SoundEffect EffectID { get; set; }
+        /// <summary>
+        /// The X location of the effect
+        /// </summary>
+        public int X { get; set; }
+        /// <summary>
+        /// The Y location of the effect
+        /// </summary>
+        public byte Y { get; set; }
+        /// <summary>
+        /// The Z location of the effect
+        /// </summary>
+        public int Z { get; set; }
+        /// <summary>
+        /// Extra data about RECORD_PLAY, SMOKE, and BLOCK_BREAK
+        /// </summary>
+        public int SoundData { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            EffectID = (SoundEffect)stream.ReadInt();
+            X = stream.ReadInt();
+            Y = stream.ReadByte();
+            Z = stream.ReadInt();
+            SoundData = stream.ReadInt();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write((int)EffectID);
+            stream.Write(X);
+            stream.Write(Y);
+            stream.Write(Z);
+            stream.Write((int)SoundData);
+        }
+
+        public enum SoundEffect : int
+        {
+            CLICK2 = 1000,
+            CLICK1 = 1001,
+            BOW_FIRE = 1002,
+            DOOR_TOGGLE = 1003,
+            EXTINGUISH = 1004,
+            RECORD_PLAY = 1005, // Has SoundData (probably record ID)
+            SMOKE = 2000,       // Has SoundData (direction, see SmokeDirection)
+            BLOCK_BREAK = 2001  // Has SoundData (Block ID broken)
+        }
+
+        public enum SmokeDirection : int
+        {
+            SouthEast = 0,
+            South = 1,
+            SouthWest = 2,
+            East = 3,
+            UpOrMiddle = 4, // ? not clear at http://mc.kev009.com/Protocol#Sound_effect_.280x3D.29
+            West = 5,
+            NorthEast = 6,
+            North = 7,
+            NorthWest = 8
+        }
+    }
+
     public class OpenWindowPacket : Packet
     {
         public sbyte WindowId { get; set; }
