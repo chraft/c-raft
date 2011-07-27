@@ -152,11 +152,15 @@ namespace Chraft.Interfaces
 						}
 					}
 				}
-                else if (e.RightClick && ItemStack.IsVoid(target.Slots[e.Slot]))
+                else if (!ItemStack.IsVoid(Cursor) && e.RightClick && ItemStack.IsVoid(target.Slots[e.Slot]))
                 {
-                    // TODO: Right-click on empty slot with items in cursor: drop one item from Cursor into slot
-                    e.Cancel();
-                    //Cursor.Count--;
+                    // Right-click on empty slot with items in cursor: drop one item from Cursor into slot
+                    target.Slots[e.Slot].Type = Cursor.Type;
+                    target.Slots[e.Slot].Durability = Cursor.Durability;
+                    target.Slots[e.Slot].Count = 1;
+                    Cursor.Count--;
+                    if (Cursor.Count == 0)
+                    	Cursor = ItemStack.Void;
                 }
                 else if (e.RightClick && ItemStack.IsVoid(Cursor))
                 {	// Right-click with empty cursor: split stack in half
