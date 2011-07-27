@@ -21,18 +21,14 @@ Builds are available on request (IRC) but will be made generally available soon.
 
 Raising Issues:
 Raise issues here: https://github.com/chraft/c-raft/issues
-example format - 
-----------------------------------------------------
-Tile: Doing something breaks the server.
-----------------------------------------------------
 
+example format - 
+
+Title: Doing something breaks the server.
 To Reproduce:
     1. Smash some trees
 	2. Get some wood
 	3. Make sitcks
 	4. Crash
-	
-----------------------------------------------------
 Error file : http://pastie.org/
 Screenshot: http://imgur.com/
-----------------------------------------------------
