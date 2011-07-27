@@ -48,7 +48,7 @@ namespace Chraft.Net
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
         BlockChange = 0x35,                 //   <--
-        PlayNoteBlock = 0x36,               //   <--
+        BlockAction = 0x36,               //   <--
         Explosion = 0x3C,                   //   <--
         SoundEffect = 0x3D,                 //   <--
         OpenWindow = 0x64,                  //   <--

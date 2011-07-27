@@ -987,21 +987,21 @@ namespace Chraft.Net.Packets
         }
     }
 
-    public class PlayNoteBlockPacket : Packet
+    public class BlockActionPacket : Packet
     {
         public int X { get; set; }
         public int Y { get; set; }
         public int Z { get; set; }
-        public sbyte Instrument { get; set; }
-        public sbyte Pitch { get; set; }
+        public sbyte DataA { get; set; }
+        public sbyte DataB { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadInt();
             Z = stream.ReadInt();
-            Instrument = stream.ReadSByte();
-            Pitch = stream.ReadSByte();
+            DataA = stream.ReadSByte();
+            DataB = stream.ReadSByte();
         }
 
         public override void Write(BigEndianStream stream)
@@ -1009,9 +1009,86 @@ namespace Chraft.Net.Packets
             stream.Write(X);
             stream.Write(Y);
             stream.Write(Z);
-            stream.Write(Instrument);
-            stream.Write(Pitch);
+            stream.Write(DataA);
+            stream.Write(DataB);
         }
+
+        #region Note Block Action
+        public void SetNoteBlockAction(int x, int y, int z, Instrument instrument, Pitch pitch)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+            DataA = (sbyte)instrument;
+            DataB = (sbyte)pitch;
+        }
+
+        public enum Instrument : sbyte
+        {
+            Harp = 0,
+            DoubleBass = 1,
+            SnareDrum = 2,
+            Sticks = 3,
+            BassDrum = 4
+        }
+        public enum Pitch : sbyte
+        {
+            Octave1_00_Fsharp   = 0,
+            Octave1_01_G        = 1,
+            Octave1_02_Gsharp   = 2,
+            Octave1_03_A        = 3,
+            Octave1_04_Asharp   = 4,
+            Octave1_05_B        = 5,
+            Octave1_06_C        = 6,
+            Octave1_07_Csharp   = 7,
+            Octave1_08_D        = 8,
+            Octave1_09_Dsharp   = 9,
+            Octave1_10_E        = 10,
+            Octave1_11_F        = 11,
+            Octave2_00_Fsharp   = 12,
+            Octave2_01_G        = 13,
+            Octave2_02_Gsharp   = 14,
+            Octave2_03_A        = 15,
+            Octave2_04_Asharp   = 16,
+            Octave2_05_B        = 17,
+            Octave2_06_Bsharp   = 18,
+            Octave2_07_C        = 19,
+            Octave2_08_Csharp   = 20,
+            Octave2_09_D        = 21,
+            Octave2_10_Dsharp   = 22,
+            Octave2_11_E        = 23,
+            Octave2_12_F        = 24,
+        }
+        #endregion
+
+        #region Piston Action
+
+        public void SetPistonAction(int x, int y, int z, PistonState state, PistonDirection direction)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+            DataA = (sbyte)state;
+            DataB = (sbyte)direction;
+        }
+
+        public enum PistonState : sbyte
+        {
+            Pushing = 0,
+            Pulling = 1,
+        }
+
+        public enum PistonDirection : sbyte
+        {
+            Down = 0,
+            Up = 1,
+            East = 2,
+            West = 3,
+            North = 4,
+            South = 5,
+        }
+
+        #endregion
     }
 
     public class ExplosionPacket : Packet
