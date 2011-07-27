@@ -18,7 +18,8 @@ namespace Chraft.Net
 		public event PacketEventHandler<AnimationPacket> Animation;
 		public event PacketEventHandler<AttachEntityPacket> AttachEntity;
 		public event PacketEventHandler<BlockChangePacket> BlockChange;
-		public event PacketEventHandler<ChatMessagePacket> ChatMessage;
+        public event PacketEventHandler<BlockActionPacket> BlockAction;
+        public event PacketEventHandler<ChatMessagePacket> ChatMessage;
 		public event PacketEventHandler<CloseWindowPacket> CloseWindow;
 		public event PacketEventHandler<CollectItemPacket> CollectItem;
 		public event PacketEventHandler<DestroyEntityPacket> DestroyEntity;
@@ -52,7 +53,6 @@ namespace Chraft.Net
 		public event PacketEventHandler<PlayerPositionPacket> PlayerPosition;
 		public event PacketEventHandler<PlayerPositionRotationPacket> PlayerPositionRotation;
 		public event PacketEventHandler<PlayerRotationPacket> PlayerRotation;
-		public event PacketEventHandler<PlayNoteBlockPacket> PlayNoteBlock;
 		public event PacketEventHandler<PreChunkPacket> PreChunk;
 		public event PacketEventHandler<RespawnPacket> Respawn;
 		public event PacketEventHandler<SetSlotPacket> SetSlot;
@@ -144,6 +144,7 @@ namespace Chraft.Net
                 case PacketType.Animation: OnAnimation((AnimationPacket)p); break;
                 case PacketType.AttachEntity: OnAttachEntity((AttachEntityPacket)p); break;
                 case PacketType.BlockChange: OnBlockChange((BlockChangePacket)p); break;
+                case PacketType.BlockAction: OnBlockAction((BlockActionPacket)p); break;
                 case PacketType.ChatMessage: OnChatMessage((ChatMessagePacket)p); break;
                 case PacketType.CloseWindow: OnCloseWindow((CloseWindowPacket)p); break;
                 case PacketType.CollectItem: OnCollectItem((CollectItemPacket)p); break;
@@ -178,7 +179,6 @@ namespace Chraft.Net
                 case PacketType.PlayerPosition: OnPlayerPosition((PlayerPositionPacket)p); break;
                 case PacketType.PlayerPositionRotation: OnPlayerPositionRotation((PlayerPositionRotationPacket)p); break;
                 case PacketType.PlayerRotation: OnPlayerRotation((PlayerRotationPacket)p); break;
-                case PacketType.PlayNoteBlock: OnPlayNoteBlock((PlayNoteBlockPacket)p); break;
                 case PacketType.PreChunk: OnPreChunk((PreChunkPacket)p); break;
                 case PacketType.Respawn: OnRespawn((RespawnPacket)p); break;
                 case PacketType.SetSlot: OnSetSlot((SetSlotPacket)p); break;
@@ -202,6 +202,7 @@ namespace Chraft.Net
 		private void OnAnimation(AnimationPacket p) { if (Animation != null) Animation.Invoke(this, new PacketEventArgs<AnimationPacket>(p)); }
 		private void OnAttachEntity(AttachEntityPacket p) { if (AttachEntity != null) AttachEntity.Invoke(this, new PacketEventArgs<AttachEntityPacket>(p)); }
 		private void OnBlockChange(BlockChangePacket p) { if (BlockChange != null) BlockChange.Invoke(this, new PacketEventArgs<BlockChangePacket>(p)); }
+        private void OnBlockAction(BlockActionPacket p) { if (BlockAction != null) BlockAction.Invoke(this, new PacketEventArgs<BlockActionPacket>(p)); }
 		private void OnChatMessage(ChatMessagePacket p) { if (ChatMessage != null) ChatMessage.Invoke(this, new PacketEventArgs<ChatMessagePacket>(p)); }
 		private void OnCloseWindow(CloseWindowPacket p) { if (CloseWindow != null) CloseWindow.Invoke(this, new PacketEventArgs<CloseWindowPacket>(p)); }
 		private void OnCollectItem(CollectItemPacket p) { if (CollectItem != null) CollectItem.Invoke(this, new PacketEventArgs<CollectItemPacket>(p)); }
@@ -236,7 +237,6 @@ namespace Chraft.Net
 		private void OnPlayerPosition(PlayerPositionPacket p) { if (PlayerPosition != null) PlayerPosition.Invoke(this, new PacketEventArgs<PlayerPositionPacket>(p)); }
 		private void OnPlayerPositionRotation(PlayerPositionRotationPacket p) { if (PlayerPositionRotation != null) PlayerPositionRotation.Invoke(this, new PacketEventArgs<PlayerPositionRotationPacket>(p)); }
 		private void OnPlayerRotation(PlayerRotationPacket p) { if (PlayerRotation != null) PlayerRotation.Invoke(this, new PacketEventArgs<PlayerRotationPacket>(p)); }
-		private void OnPlayNoteBlock(PlayNoteBlockPacket p) { if (PlayNoteBlock != null) PlayNoteBlock.Invoke(this, new PacketEventArgs<PlayNoteBlockPacket>(p)); }
 		private void OnPreChunk(PreChunkPacket p) { if (PreChunk != null) PreChunk.Invoke(this, new PacketEventArgs<PreChunkPacket>(p)); }
 		private void OnRespawn(RespawnPacket p) { if (Respawn != null) Respawn.Invoke(this, new PacketEventArgs<RespawnPacket>(p)); }
 		private void OnSetSlot(SetSlotPacket p) { if (SetSlot != null) SetSlot.Invoke(this, new PacketEventArgs<SetSlotPacket>(p)); }
