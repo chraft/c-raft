@@ -527,15 +527,7 @@ namespace Chraft
             PacketHandler.SendPacket(new UpdateHealthPacket {Health = health});
         }
 
-        private void SetHealth(short health)
-        {
-            if (health > 20)
-            {
-                health = 20;
-            }
-            PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
-        }
-
+      
         #region Permission related commands
         //Check if the player has permissions to use the command
         public bool CanUseCommand(string command)

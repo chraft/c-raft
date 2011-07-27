@@ -113,9 +113,6 @@ namespace Chraft
         {
             ClientCommand cmd;
             try
-                case "sethealth":
-                    SetHealth(tokens);
-                    break;
             {
                 cmd = Server.ClientCommandHandler.Find(tokens[0]) as ClientCommand;
             }
