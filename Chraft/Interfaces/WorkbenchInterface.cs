@@ -20,5 +20,20 @@ namespace Chraft.Interfaces
 			base.Associate(client);
 		}
 
+        protected override void DoClose()
+        {
+            base.DoClose();
+
+            // Drop all items from the workbench
+            for (short i = 0; i < SlotCount; i++)
+            {
+                ItemStack stack = Slots[i];
+                if (!ItemStack.IsVoid(stack))
+                {
+                    this.Client.Server.DropItem(this.Client, stack);
+                    Slots[i] = ItemStack.Void;
+                }
+            }
+        }
 	}
 }

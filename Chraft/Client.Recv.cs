@@ -170,7 +170,13 @@ namespace Chraft
         private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
         {
             if (CurrentInterface != null)
+            {
                 CurrentInterface.Close(false);
+            }
+            else if (this.Inventory != null && e.Packet.WindowId == this.Inventory.Handle)
+            {
+                this.Inventory.Close(false);
+            }
             CurrentInterface = null;
         }
 
