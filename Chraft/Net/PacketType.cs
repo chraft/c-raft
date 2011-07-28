@@ -48,9 +48,11 @@ namespace Chraft.Net
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
         BlockChange = 0x35,                 //   <--
-        BlockAction = 0x36,               //   <--
+        BlockAction = 0x36,                 //   <--
         Explosion = 0x3C,                   //   <--
         SoundEffect = 0x3D,                 //   <--
+        NewInvalidState = 0x46,             //   ???
+        Thunderbolt = 0x47,                 //   <--
         OpenWindow = 0x64,                  //   <--
         CloseWindow = 0x65,                 //   <--
         WindowClick = 0x66,                 //   -->
@@ -60,6 +62,7 @@ namespace Chraft.Net
         Transaction = 0x6A,                 //   <->
         UpdateSign = 0x82,                  //   <->
         MapData = 0x83,                     //   -->
+        IncrementStatistic = 0xC8,          //   ???
         Disconnect = 0xFF                   //   <->
 	}
 }

@@ -5,6 +5,12 @@ using Chraft.Entity;
 
 namespace Chraft.Net.Packets
 {
+    /// <summary>
+    /// Contains all the packet read / write methods.
+    /// Propeties must be read in order as specified by the protocol http://mc.kev009.com/Protocol
+    /// use sbytes for handling bytes of negative value (-128 to 127) otherwise normal bytes (0-255) are fine
+    /// </summary>
+
     public abstract class Packet
     {
         public abstract void Read(BigEndianStream stream);
@@ -17,7 +23,7 @@ namespace Chraft.Net.Packets
 
         public PacketType GetPacketType()
         {
-            return PacketMap.GetPacketType(this.GetType());
+            return PacketMap.GetPacketType(GetType());
         }
 
         public static Packet Read(PacketType type, BigEndianStream stream)
@@ -334,6 +340,12 @@ namespace Chraft.Net.Packets
             stream.Write(Z);
             stream.Write(Face);
         }
+        public enum DigAction : byte
+        {
+            StartDigging = 0,
+            FinishDigging = 2,
+            DropItem = 4
+        }
     }
 
     public class PlayerBlockPlacementPacket : Packet
@@ -343,14 +355,15 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public BlockFace Face { get; set; }
         public ItemStack Item { get; set; }
-
+        
         public override void Read(BigEndianStream stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadSByte();
             Z = stream.ReadInt();
-            Face = (BlockFace)stream.ReadSByte();
+            Face = (BlockFace)stream.ReadSByte(); 
             Item = ItemStack.Read(stream);
+            //amount in hand and durability are handled int ItemStack.Read
         }
 
         public override void Write(BigEndianStream stream)
@@ -1418,6 +1431,103 @@ namespace Chraft.Net.Packets
             stream.Write(TextLength);
             for (int i = 0; i < TextLength; i++)
                 stream.Write(Text[i]);
+        }
+    }
+
+    public class NewInvalidStatePacket : Packet
+    {
+        public NewInvalidReason Reason { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            Reason = (NewInvalidReason)stream.ReadByte();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write((byte)Reason);
+        }
+
+        public enum NewInvalidReason : byte
+        {
+            InvalidBed = 0,
+            BeginRaining = 1,
+            EndRaining = 2
+        }
+    }
+
+    public class IncrementStatisticPacket : Packet
+    {
+        public int Statistic { get; set; }
+        public byte Amount { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            Statistic = stream.ReadInt();
+            Amount = stream.ReadByte();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(Statistic);
+            stream.Write(Amount);
+        }
+
+        public enum Statistics
+        {
+            StartGame = 1000,
+            CreateWorld = 1001,
+            LoadWorld = 1002,
+            JoinMultiplayer = 1003,
+            LeaveGame = 1004,
+            PlayOneMinute = 1100,
+            WalkOneCm = 2000,
+            SwimOneCm = 2001,
+            FallOneCm = 2002,
+            ClimbOneCm = 2003,
+            FlyOneCm = 2004,
+            DiveOneCm = 2005,
+            MinecartOneCm = 2006,
+            BoatOneCm = 2007,
+            PigOneCm = 2008,
+            Jump = 2010,
+            Drop = 2011,
+            DamageDealt = 2020,
+            DamageTaken = 2021,
+            Deaths = 2022,
+            MobKills = 2023,
+            PlayerKills = 2024,
+            FishCaught = 2025,
+            MineBlock = 16777216,	// Note: Add an item ID to this value
+            CraftItem = 16842752,	// Note: Add an item ID to this value
+            UseItem = 16908288,		// Note: Add an item ID to this value
+            BreakItem = 16973824	// Note: Add an item ID to this value
+        }
+    }
+    public class ThunderBoltPacket : Packet
+    {
+        public int EntityId { get; set; }
+        public bool Unknown { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            EntityId = stream.ReadInt();
+            Unknown = stream.ReadBool();
+            X = stream.ReadDoublePacked();
+            Y = stream.ReadDoublePacked();
+            Z = stream.ReadDoublePacked();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(EntityId);
+            stream.Write(Unknown);
+            stream.Write(X);
+            stream.Write(Y);
+            stream.Write(Z);
         }
     }
 }

@@ -156,12 +156,8 @@
     <Compile Include="Irc\IrcClient.cs" />
     <Compile Include="Irc\IrcClient.Recv.cs" />
     <Compile Include="Irc\IrcEventArgs.cs" />
-    <Compile Include="Net\DigAction.cs" />
-    <Compile Include="Net\Packets\IncrementStatisticPacket.cs" />
-    <Compile Include="Net\Packets\InvalidStatePacket.cs" />
     <Compile Include="Net\Packets\MapChunkPacket.cs" />
     <Compile Include="Net\Packets\Packet.cs" />
-    <Compile Include="Net\Packets\WeatherPacket.cs" />
     <Compile Include="Net\TcpEventArgs.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
     <Compile Include="Persistence\DataFile.cs" />

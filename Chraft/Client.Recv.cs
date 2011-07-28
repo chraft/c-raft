@@ -641,12 +641,12 @@ namespace Chraft
 
             switch (e.Packet.Action)
             {
-                case DigAction.StartDigging:
+                case PlayerDiggingPacket.DigAction.StartDigging:
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
-                        goto case DigAction.FinishDigging;
+                        goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
 
-                case DigAction.FinishDigging:
+                case PlayerDiggingPacket.DigAction.FinishDigging:
                     short give = type;
                     sbyte count = 1;
                     short durability = data;

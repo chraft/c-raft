@@ -14,29 +14,68 @@ namespace Chraft.Net
         {
             get { return ((byte)Data[16] & 0x10) != 0; }
             set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xef) | (value ? 0x10 : 0) : (value ? 0x10 : 0); }
+            //TODO - find out the significance of 0xef
         }
 
         public WoolColor WoolColor
         {
             get { return (WoolColor)((byte)Data[16] & 0xf); }
             set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xf) | (byte)value : (byte)value; }
+            //TODO - find out the significance of 0xff
         }
 
         public bool IsOnFire
         {
             get { return ((byte)Data[0] & 0x1) != 0; }
             set { Data[0] = (byte)((byte)Data[0] & 0xfe | (value ? 0x1 : 0)); }
+            //TODO - find out the significance of 0xfe
         }
         public bool IsCrouched
         {
             get { return ((byte)Data[0] & 0x2) != 0; }
             set { Data[0] = (byte)((byte)Data[0] & 0xfd | (value ? 0x2 : 0)); }
+            //TODO - find out the significance of 0xfd
         }
         public bool IsRiding
         {
             get { return ((byte)Data[0] & 0x4) != 0; }
             set { Data[0] = (byte)((byte)Data[0] & 0xfb | (value ? 0x4 : 0)); }
+            //TODO - find out the significance of 0xfb
         }
+
+
+        #region Wolf Meta Data
+        /// <summary>
+        /// Gets / Sets wolfs tamed state
+        /// </summary>
+        public bool IsSitting
+        {
+            get { return ((byte) Data[16] & 0x1) != 0; }
+            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x1 : 0)); }
+            //TODO - find out the significance of 0xfb
+        }
+
+        /// <summary>
+        /// Gets / Sets wolfs tamed state
+        /// </summary>
+        public bool IsAggressive
+        {
+            get { return ((byte)Data[16] & 0x2) != 0; }
+            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x2 : 0)); }
+            //TODO - find out the significance of 0xfb
+        }
+
+        /// <summary>
+        /// Gets / Sets wolfs tamed state
+        /// </summary>
+        public bool IsTamed
+        {
+            get { return ((byte)Data[16] & 0x4) != 0; }
+            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x4 : 0)); }
+            //TODO - find out the significance of 0xfb
+        }
+#endregion
+
 
         public MetaData()
         {

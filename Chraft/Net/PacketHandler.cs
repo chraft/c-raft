@@ -39,12 +39,14 @@ namespace Chraft.Net
         public event PacketEventHandler<HandshakePacket> Handshake;
         public event PacketEventHandler<HoldingChangePacket> HoldingChange;
         public event PacketEventHandler<KeepAlivePacket> KeepAlive;
+        public event PacketEventHandler<IncrementStatisticPacket> IncrementStatistic; 
         public event PacketEventHandler<LoginRequestPacket> LoginRequest;
         public event PacketEventHandler<MapChunkPacket> MapChunk;
         public event PacketEventHandler<MapDataPacket> MapData;
         public event PacketEventHandler<MobSpawnPacket> MobSpawn;
         public event PacketEventHandler<MultiBlockChangePacket> MultiBlockChange;
         public event PacketEventHandler<NamedEntitySpawnPacket> NamedEntitySpawn;
+        public event PacketEventHandler<NewInvalidStatePacket> NewInvalidStatePacket;
         public event PacketEventHandler<OpenWindowPacket> OpenWindow;
         public event PacketEventHandler<SpawnItemPacket> PickupSpawn;
         public event PacketEventHandler<PlayerPacket> Player;
@@ -58,6 +60,7 @@ namespace Chraft.Net
         public event PacketEventHandler<SetSlotPacket> SetSlot;
         public event PacketEventHandler<SoundEffectPacket> SoundEffect;
         public event PacketEventHandler<SpawnPositionPacket> SpawnPosition;
+        public event PacketEventHandler<ThunderBoltPacket> ThunderBolt;
         public event PacketEventHandler<TimeUpdatePacket> TimeUpdate;
         public event PacketEventHandler<TransactionPacket> Transaction;
         public event PacketEventHandler<UnknownAPacket> UnknownA;
@@ -164,6 +167,7 @@ namespace Chraft.Net
                 case PacketType.Explosion: OnExplosion((ExplosionPacket)p); break;
                 case PacketType.Handshake: OnHandshake((HandshakePacket)p); break;
                 case PacketType.HoldingChange: OnHoldingChange((HoldingChangePacket)p); break;
+                case PacketType.IncrementStatistic: OnIncrementStatistic((IncrementStatisticPacket)p); break;
                 case PacketType.KeepAlive: OnKeepAlive((KeepAlivePacket)p); break;
                 case PacketType.LoginRequest: OnLoginRequest((LoginRequestPacket)p); break;
                 case PacketType.MapChunk: OnMapChunk((MapChunkPacket)p); break;
@@ -171,6 +175,7 @@ namespace Chraft.Net
                 case PacketType.MobSpawn: OnMobSpawn((MobSpawnPacket)p); break;
                 case PacketType.MultiBlockChange: OnMultiBlockChange((MultiBlockChangePacket)p); break;
                 case PacketType.NamedEntitySpawn: OnNamedEntitySpawn((NamedEntitySpawnPacket)p); break;
+                case PacketType.NewInvalidState: OnNewInvalidState((NewInvalidStatePacket)p); break;
                 case PacketType.OpenWindow: OnOpenWindow((OpenWindowPacket)p); break;
                 case PacketType.PickupSpawn: OnPickupSpawn((SpawnItemPacket)p); break;
                 case PacketType.Player: OnPlayer((PlayerPacket)p); break;
@@ -184,6 +189,7 @@ namespace Chraft.Net
                 case PacketType.SetSlot: OnSetSlot((SetSlotPacket)p); break;
                 case PacketType.SoundEffect: OnSoundEffect((SoundEffectPacket)p); break;
                 case PacketType.SpawnPosition: OnSpawnPosition((SpawnPositionPacket)p); break;
+                case PacketType.Thunderbolt: OnThunderBolt((ThunderBoltPacket)p); break;
                 case PacketType.TimeUpdate: OnTimeUpdate((TimeUpdatePacket)p); break;
                 case PacketType.Transaction: OnTransaction((TransactionPacket)p); break;
                 case PacketType.UnknownA: OnUnknownA((UnknownAPacket)p); break;
@@ -222,6 +228,7 @@ namespace Chraft.Net
         private void OnExplosion(ExplosionPacket p) { if (Explosion != null) Explosion.Invoke(this, new PacketEventArgs<ExplosionPacket>(p)); }
         private void OnHandshake(HandshakePacket p) { if (Handshake != null) Handshake.Invoke(this, new PacketEventArgs<HandshakePacket>(p)); }
         private void OnHoldingChange(HoldingChangePacket p) { if (HoldingChange != null) HoldingChange.Invoke(this, new PacketEventArgs<HoldingChangePacket>(p)); }
+        private void OnIncrementStatistic(IncrementStatisticPacket p) { if (IncrementStatistic != null) IncrementStatistic.Invoke(this, new PacketEventArgs<IncrementStatisticPacket>(p)); }
         private void OnKeepAlive(KeepAlivePacket p) { if (KeepAlive != null) KeepAlive.Invoke(this, new PacketEventArgs<KeepAlivePacket>(p)); }
         private void OnLoginRequest(LoginRequestPacket p) { if (LoginRequest != null) LoginRequest.Invoke(this, new PacketEventArgs<LoginRequestPacket>(p)); }
         private void OnMapData(MapDataPacket p) { if (MapData != null) MapData.Invoke(this, new PacketEventArgs<MapDataPacket>(p)); }
@@ -229,6 +236,7 @@ namespace Chraft.Net
         private void OnMobSpawn(MobSpawnPacket p) { if (MobSpawn != null) MobSpawn.Invoke(this, new PacketEventArgs<MobSpawnPacket>(p)); }
         private void OnMultiBlockChange(MultiBlockChangePacket p) { if (MultiBlockChange != null) MultiBlockChange.Invoke(this, new PacketEventArgs<MultiBlockChangePacket>(p)); }
         private void OnNamedEntitySpawn(NamedEntitySpawnPacket p) { if (NamedEntitySpawn != null) NamedEntitySpawn.Invoke(this, new PacketEventArgs<NamedEntitySpawnPacket>(p)); }
+        private void OnNewInvalidState(NewInvalidStatePacket p) { if (NewInvalidStatePacket != null) NewInvalidStatePacket.Invoke(this, new PacketEventArgs<NewInvalidStatePacket>(p)); }
         private void OnOpenWindow(OpenWindowPacket p) { if (OpenWindow != null) OpenWindow.Invoke(this, new PacketEventArgs<OpenWindowPacket>(p)); }
         private void OnPickupSpawn(SpawnItemPacket p) { if (PickupSpawn != null) PickupSpawn.Invoke(this, new PacketEventArgs<SpawnItemPacket>(p)); }
         private void OnPlayer(PlayerPacket p) { if (Player != null) Player.Invoke(this, new PacketEventArgs<PlayerPacket>(p)); }
@@ -242,6 +250,7 @@ namespace Chraft.Net
         private void OnSetSlot(SetSlotPacket p) { if (SetSlot != null) SetSlot.Invoke(this, new PacketEventArgs<SetSlotPacket>(p)); }
         private void OnSoundEffect(SoundEffectPacket p) { if (SoundEffect != null) SoundEffect.Invoke(this, new PacketEventArgs<SoundEffectPacket>(p)); }
         private void OnSpawnPosition(SpawnPositionPacket p) { if (SpawnPosition != null) SpawnPosition.Invoke(this, new PacketEventArgs<SpawnPositionPacket>(p)); }
+        private void OnThunderBolt(ThunderBoltPacket p) { if (ThunderBolt != null) ThunderBolt.Invoke(this, new PacketEventArgs<ThunderBoltPacket>(p)); }
         private void OnTimeUpdate(TimeUpdatePacket p) { if (TimeUpdate != null) TimeUpdate.Invoke(this, new PacketEventArgs<TimeUpdatePacket>(p)); }
         private void OnTransaction(TransactionPacket p) { if (Transaction != null) Transaction.Invoke(this, new PacketEventArgs<TransactionPacket>(p)); }
         private void OnUnknownA(UnknownAPacket p) { if (UnknownA != null) UnknownA.Invoke(this, new PacketEventArgs<UnknownAPacket>(p)); }
