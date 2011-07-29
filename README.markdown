@@ -1,41 +1,42 @@
 C#raft Development Readme
 =============================
 
-The official repository is at: 
+The official repository is at:  
 https://github.com/chraft/c-raft
 
-IRC Channel: 
+IRC Channel:  
 irc.esper.net:6667 #c#raft
 
 Contributing
 =============================
 
-Development: 
+Development:  
 Fork the code and submit pull requests for the master branch, once coding standards have been verified you may be given direct commit access.
 You need the .NET 4 Framework if you wish to contribute, builds are also compiled against the mono compiler to check compatibility.
 Comment your code well, remember that you are not the only one contributing.
-Builds are built on each commit and the status output to the IRC channel.
+Builds are built on each commit and the status output to the IRC channel. 
+Use spaces as tabs, you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx  
 
-Testing: 
+Testing:  
 Builds are available on request (IRC) but will be made generally available soon.
 
-Raising Issues: 
+Raising Issues:  
 Raise issues here: https://github.com/chraft/c-raft/issues
 
-Running: 
+Running:  
 You need the .net4 framework for windows, and mono 2.10+ for linux. 
 For windows just run the exe, for linux plese run using mono --debug Chraft.exe 
 
-example format - 
+example format -  
 
-Title: Doing something breaks the server.
+Title: Doing something breaks the server.  
+  
+To Reproduce:  
+    1. Smash some trees  
+    2. Get some wood  
+    3. Make sticks  
+    4. Crash  
 
-To Reproduce: 
-    1. Smash some trees 
-    2. Get some wood 
-    3. Make sticks 
-    4. Crash 
+Error file : http://pastie.org/  
 
-Error file : http://pastie.org/
-
-Screenshot: http://imgur.com/
+Screenshot: http://imgur.com/  
