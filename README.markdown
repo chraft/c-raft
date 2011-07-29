@@ -21,10 +21,10 @@ Testing:
 Builds are available on request (IRC) but will be made generally available soon.
 
 Raising Issues:  
-Raise issues here: https://github.com/chraft/c-raft/issues
+Raise issues here: https://github.com/chraft/c-raft/issues  
 
 Running:  
-You need the .net4 framework for windows, and mono 2.10+ for linux. 
+You need the .net4 framework for windows, and mono 2.10+ for linux.  
 For windows just run the exe, for linux plese run using mono --debug Chraft.exe 
 
 example format -  
