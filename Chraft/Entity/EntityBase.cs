@@ -34,7 +34,7 @@ namespace Chraft.Entity
 
         public EntityBase(Server server, int entityId)
         {
-            this.Server = Server;
+            this.Server = server;
             this.EntityId = entityId;
             this.TimeInWorld = 0;
         }
