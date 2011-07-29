@@ -160,5 +160,13 @@ namespace Chraft.Interfaces
 
             return false;
         }
+
+        protected override void DoClose()
+        {
+            base.DoClose();
+
+            // Always leave the inventory open
+            _IsOpen = true;
+        }
 	}
 }

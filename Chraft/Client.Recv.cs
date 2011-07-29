@@ -170,7 +170,13 @@ namespace Chraft
         private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
         {
             if (CurrentInterface != null)
+            {
                 CurrentInterface.Close(false);
+            }
+            else if (this.Inventory != null && e.Packet.WindowId == this.Inventory.Handle)
+            {
+                this.Inventory.Close(false);
+            }
             CurrentInterface = null;
         }
 
@@ -635,12 +641,12 @@ namespace Chraft
 
             switch (e.Packet.Action)
             {
-                case DigAction.StartDigging:
+                case PlayerDiggingPacket.DigAction.StartDigging:
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
-                        goto case DigAction.FinishDigging;
+                        goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
 
-                case DigAction.FinishDigging:
+                case PlayerDiggingPacket.DigAction.FinishDigging:
                     short give = type;
                     sbyte count = 1;
                     short durability = data;
