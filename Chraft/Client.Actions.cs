@@ -7,6 +7,7 @@ using Chraft.World;
 using Chraft.Utils;
 using Chraft.Interfaces;
 using Chraft.Commands;
+using Chraft.Plugins.Events.Args;
 
 namespace Chraft
 {
@@ -68,6 +69,13 @@ namespace Chraft
         /// <param name="clean">The pre-cleaned message to be sent.</param>
         public void ExecuteChat(string clean)
         {
+            //Event
+            ClientPreChatEventArgs e1 = new ClientPreChatEventArgs(this, clean);
+            Server.PluginManager.CallEvent("PLAYER_PRE_CHAT", e1);
+            if (e1.EventCanceled) return;
+            clean = e1.Message;
+            //End Event
+            
             if (IsMuted)
             {
                 SendMessage("You have been muted");
@@ -76,6 +84,13 @@ namespace Chraft
 
             if ((clean = OnChat(clean)) != null)
             {
+                //Event
+                ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
+                Server.PluginManager.CallEvent("PLAYER_CHAT", e2);
+                if (e2.EventCanceled) return;
+                clean = e2.Message;
+                //End Event
+                
                 Server.Broadcast(Chat.Format(DisplayName, clean));
                 Logger.Log(Logger.LogLevel.Info, "{0}: {1}", DisplayName, clean);
             }
@@ -99,6 +114,13 @@ namespace Chraft
         /// <param name="command">The command text, with the slash removed.</param>
         public void ExecuteCommand(string command)
         {
+            //Event
+            ClientPreCommandEventArgs e = new ClientPreCommandEventArgs(this, command);
+            Server.PluginManager.CallEvent("PLAYER_PRE_COMMAND", e);
+            if (e.EventCanceled) return;
+            command = e.Command;
+            //End Event
+            
             if (!CanUseCommand(command))
             {
                 SendMessage("You do not have permission to use that command");
@@ -123,6 +145,13 @@ namespace Chraft
             }
             try
             {
+                //Event
+                ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, tokens);
+                Server.PluginManager.CallEvent("PLAYER_COMMAND", e);
+                if (e.EventCanceled) return;
+                tokens = e.Tokens;
+                //End Event
+                
                 cmd.Use(this, tokens);
             }
             catch(Exception e)

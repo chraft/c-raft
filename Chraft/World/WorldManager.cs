@@ -9,6 +9,7 @@ using System.IO;
 using Chraft.Utils;
 using Chraft.Entity;
 using Chraft.World.Weather;
+using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World
 {
@@ -51,19 +52,31 @@ namespace Chraft.World
         }
 
         public WorldManager(Server server)
+        {          
+            _Chunks = new ChunkSet();
+            Server = server;
+            Load();
+        }
+
+        public bool Load()
         {
             EnsureDirectory();
 
+            //Event
+            WorldLoadEventArgs e = new WorldLoadEventArgs(this);
+            Server.PluginManager.CallEvent("WORLD_LOAD", e);
+            if (e.EventCanceled) return false;
+            //End Event
+
             Generator = new ChunkGenerator(this, GetSeed());
             ChunkManager = new WorldChunkManager(this);
-            _Chunks = new ChunkSet();
-            Server = server;
 
             InitializeSpawn();
             InitializeThreads();
             InitializeWeather();
+            return true;
         }
-
+        
         private void InitializeWeather()
         {
             Weather = new WeatherManager(this);
@@ -357,6 +370,13 @@ namespace Chraft.World
             mob.Hunting = false;
             mob.AttackRange = 10;
 
+            //Event
+            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
+            if (e.EventCanceled) return;
+            mob.Position = e.Location;
+            //End Event
+            
             //mob.Data // Set accessor is inaccebile?
             Server.AddEntity(mob);
         }
@@ -394,6 +414,13 @@ namespace Chraft.World
             mob.Hunting = false;
             mob.AttackRange = 10;
 
+            //Event
+            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
+            if (e.EventCanceled) return;
+            mob.Position = e.Location;
+            //End Event
+            
             //mob.Data // Set accessor is inaccebile?
             Server.AddEntity(mob); // TODO: Limit this in some way.
         }

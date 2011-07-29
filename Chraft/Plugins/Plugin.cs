@@ -52,6 +52,11 @@ namespace Chraft.Plugins
 		/// </summary>
 		public bool IsPluginEnabled { get; private set; }
 
+        /// <summary>
+        /// The PluginManager associated with the plugin. 
+        /// </summary>
+        public PluginManager PluginManager { get; private set; }
+
 		/// <summary>
 		/// Instantiate a new plugin via .ctor
 		/// </summary>
@@ -67,12 +72,14 @@ namespace Chraft.Plugins
 		}
 
 		/// <summary>
-		/// Associates a Server with the plugin.
+		/// Associates a Server and a PluginManager with the plugin.
 		/// </summary>
 		/// <param name="server">The Server object to be associated with the plugin.</param>
-		public void Associate(Server server)
+        /// <param name="pluginManager">The PluginManager to be associated with the plugin.</param>
+		public void Associate(Server server, PluginManager pluginManager)
 		{
 			Server = server;
+            PluginManager = pluginManager;
 		}
 
 		/// <summary>

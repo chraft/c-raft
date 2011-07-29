@@ -8,6 +8,7 @@ using Chraft.Net;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.World.NBT;
+using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Entity
 {
@@ -52,12 +53,20 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public virtual void MoveTo(double x, double y, double z)
         {
-            sbyte dx = (sbyte)(32 * (x - Position.X));
-            sbyte dy = (sbyte)(32 * (y - Position.Y));
-            sbyte dz = (sbyte)(32 * (z - Position.Z));
-            Position.X = x;
-            Position.Y = y;
-            Position.Z = z;
+            Vector3 newPosition = new Vector3(x, y, z);
+
+            //Event
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
+            if (e.EventCanceled) return;
+            newPosition = e.NewPosition;
+            //End Event
+
+            sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
+            sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
+            sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
+            Position = newPosition;
+            
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
@@ -76,9 +85,10 @@ namespace Chraft.Entity
             Position.X = x;
             Position.Y = y;
             Position.Z = z;
+            //TODO: Fix bug that sets the users Position.Y to .0 insted of .5
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Equals(this))
+                //if (!c.Equals(this))
                     c.SendTeleportTo(this);
             }
             return true;
@@ -110,12 +120,19 @@ namespace Chraft.Entity
         /// <param name="pitch">The absolute pitch to which entity should change.</param>
         public virtual void MoveTo(double x, double y, double z, float yaw, float pitch)
         {
-            sbyte dx = (sbyte)(32 * (x - Position.X));
-            sbyte dy = (sbyte)(32 * (y - Position.Y));
-            sbyte dz = (sbyte)(32 * (z - Position.Z));
-            Position.X = x;
-            Position.Y = y;
-            Position.Z = z;
+            Vector3 newPosition = new Vector3(x, y, z);
+
+            //Event
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
+            if (e.EventCanceled) return;
+            newPosition = e.NewPosition;
+            //End Event
+
+            sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
+            sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
+            sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
+            Position = newPosition;
             Yaw = yaw;
             Pitch = pitch;
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
