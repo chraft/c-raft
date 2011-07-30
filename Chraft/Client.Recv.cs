@@ -12,7 +12,99 @@ namespace Chraft
 {
     public partial class Client
     {
-        public bool OnGround { get; set; }
+        DateTime? _inAirStartTime = null;
+        /// <summary>
+        /// Returns the amount of time since the client was set as in the air
+        /// </summary>
+        public TimeSpan AirTime
+        {
+            get
+            {
+                if (_inAirStartTime == null)
+                {
+                    return new TimeSpan(0);
+                }
+                else
+                {
+                    return DateTime.Now - _inAirStartTime.Value;
+                }
+            }
+        }
+        
+        double _beginInAirY = -1;
+        double _lastGroundY = -1;
+        bool _onGround = false;
+        public bool OnGround
+        {
+            get
+            {
+                return _onGround;
+            }
+            set
+            {
+                if (_onGround != value)
+                {
+                    _onGround = value;
+
+                    if (!_onGround)
+                    {
+                        _beginInAirY = this.Position.Y;
+                        _inAirStartTime = DateTime.Now;
+                    }
+                    else
+                    {
+                        if (_inAirStartTime != null)
+                        {
+                            // Check how long in the air for (e.g. flying)
+                            if (AirTime.TotalSeconds > 5)
+                            {
+                                // TODO: make the number of seconds configurable
+                                // TODO: plugin event? providing ability to ignore this??
+                                Kick("Flying!!");
+                            }
+                            
+                            _inAirStartTime = null;
+                        }
+                        
+                        double blockCount = 0;
+
+                        if (_lastGroundY < this.Position.Y) 
+                        {
+                            // We have climbed
+                            blockCount = (_lastGroundY - this.Position.Y);
+                        }
+                        else
+                        {
+                            // We have fallen
+                            double startY = Math.Max(_lastGroundY, _beginInAirY);
+                            blockCount = (startY - this.Position.Y);
+                        }
+                        _lastGroundY = this.Position.Y;
+
+                        if (blockCount != 0)
+                        {
+                            if (blockCount > 0.5)
+                            {
+#if DEBUG
+                                this.SendMessage(String.Format("Fell {0} blocks", blockCount));
+#endif
+                                double fallDamage = (blockCount - 3) / 2.0;
+                                if (fallDamage > 0)
+                                {
+                                    // TODO: round number and apply damage
+                                }
+                            }
+                            else if (blockCount < -0.5)
+                            {
+#if DEBUG
+                                this.SendMessage(String.Format("Climbed {0} blocks", blockCount * -1));
+#endif
+                            }
+                        }
+                    }
+                }
+            }
+        }
         public double Stance { get; set; }
 
         private void InitializeRecv()
@@ -816,23 +908,23 @@ namespace Chraft
 
         private void PacketHandler_PlayerRotation(object sender, PacketEventArgs<PlayerRotationPacket> e)
         {
-            this.OnGround = e.Packet.OnGround;
             this.RotateTo(e.Packet.Yaw, e.Packet.Pitch);
+            this.OnGround = e.Packet.OnGround;
             this.UpdateEntities();
         }
 
         private void PacketHandler_PlayerPositionRotation(object sender, PacketEventArgs<PlayerPositionRotationPacket> e)
         {
+            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
-            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
         }
 
         private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
         {
+            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
-            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
         }
 
         #endregion
