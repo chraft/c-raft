@@ -91,9 +91,9 @@ namespace Chraft
             {
                 Inventory = new Inventory(this);
 
-                for (int i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
+                for (short i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
                 {
-                    Inventory.Slots[i] = ItemStack.Void;
+                    Inventory[i] = ItemStack.Void;
                 }
 
                 Inventory[Inventory.ActiveSlot] = new ItemStack(278, 1, 0);
@@ -273,11 +273,11 @@ namespace Chraft
                 });
             }
 
-            for (int i = 0; i < Inventory.Slots.Length; i++)
+            for (short i = 0; i < Inventory.SlotCount; i++)
             {
-                if (Inventory.Slots[i].Type <= 0) continue;
-                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory.Slots[i]);
-                Inventory.Slots[i] = ItemStack.Void;
+                if (ItemStack.IsVoid(Inventory[i])) continue;
+                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory[i]);
+                Inventory[i] = ItemStack.Void;
             }
         }
 

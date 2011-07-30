@@ -7,6 +7,7 @@ using Chraft.Net.Packets;
 
 namespace Chraft.Interfaces
 {
+    [Serializable]
     public abstract class CraftingInterface : Interface
     {
         protected sbyte CraftingSlotCount { get; set; }
