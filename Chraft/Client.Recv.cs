@@ -447,7 +447,7 @@ namespace Chraft
             {
                 CurrentInterface = new WorkbenchInterface();
                 CurrentInterface.Associate(this);
-                CurrentInterface.Open();
+                ((WorkbenchInterface)CurrentInterface).Open(bx, by, bz);
                 return;
             }
 
@@ -843,7 +843,7 @@ namespace Chraft
         private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
         {
             Logger.Log(Logger.LogLevel.Info, DisplayName + " disconnected: " + e.Packet.Reason);
-            Running = false;
+            this.Stop();
         }
 
         private void PacketHandler_Handshake(object sender, PacketEventArgs<HandshakePacket> e)
