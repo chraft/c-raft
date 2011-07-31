@@ -18,8 +18,7 @@ namespace Chraft
         /// </summary>
         public TimeSpan AirTime
         {
-            get
-            {
+            get{
                 if (_inAirStartTime == null)
                 {
                     return new TimeSpan(0);
@@ -91,7 +90,8 @@ namespace Chraft
                                 double fallDamage = (blockCount - 3) / 2.0;
                                 if (fallDamage > 0)
                                 {
-                                    // TODO: round number and apply damage
+                                    DamageClient(DamageCause.Fall, null, Math.Round(fallDamage));
+                                    //TODO damage based on water landing / reeds etc
                                 }
                             }
                             else if (blockCount < -0.5)

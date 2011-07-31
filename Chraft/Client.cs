@@ -213,7 +213,7 @@ namespace Chraft
                 case DamageCause.Fall:
                     if (args != null && args.Length > 0)
                     {
-                        Health = (short) args[0];
+                        Health -= Convert.ToInt16(args[0]);
                     }
                     break;
                 case DamageCause.Fire:
