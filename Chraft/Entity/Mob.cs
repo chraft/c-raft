@@ -68,7 +68,7 @@ namespace Chraft.Entity
                 }
 
                 //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitBy);
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitBy, DamageCause.EntityAttack);
                 Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
                 if (e.EventCanceled) return;
                 damage = e.Damage;
@@ -83,7 +83,7 @@ namespace Chraft.Entity
             {
                 short damage = 1;
                 //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitBy);
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
                 Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
                 if (e.EventCanceled) return;
                 damage = e.Damage;

@@ -54,12 +54,14 @@ namespace Chraft.Plugins.Events.Args
     {
         public short Damage { get; set; }
         public Client DamagedBy { get; set; }
+        public DamageCause Cause { get; set; }
 
-        public EntityDamageEventArgs(EntityBase entity, short damage, Client damagedBy)
+        public EntityDamageEventArgs(EntityBase entity, short damage, Client damagedBy, DamageCause cause)
             : base(entity)
         {
             Damage = damage;
             DamagedBy = damagedBy;
+            Cause = cause;
         }
     }
     public class EntityAttackEventArgs : EntityEventArgs

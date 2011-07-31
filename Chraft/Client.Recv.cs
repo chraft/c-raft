@@ -2,6 +2,8 @@
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Plugins.Events;
+using Chraft.Plugins.Events.Args;
 using Chraft.World;
 using Chraft.Entity;
 using System.Text.RegularExpressions;
@@ -18,7 +20,8 @@ namespace Chraft
         /// </summary>
         public TimeSpan AirTime
         {
-            get{
+            get
+            {
                 if (_inAirStartTime == null)
                 {
                     return new TimeSpan(0);
@@ -29,7 +32,7 @@ namespace Chraft
                 }
             }
         }
-        
+
         double _beginInAirY = -1;
         double _lastGroundY = -1;
         bool _onGround = false;
@@ -61,13 +64,13 @@ namespace Chraft
                                 // TODO: plugin event? providing ability to ignore this??
                                 Kick("Flying!!");
                             }
-                            
+
                             _inAirStartTime = null;
                         }
-                        
+
                         double blockCount = 0;
 
-                        if (_lastGroundY < this.Position.Y) 
+                        if (_lastGroundY < this.Position.Y)
                         {
                             // We have climbed
                             blockCount = (_lastGroundY - this.Position.Y);
@@ -90,7 +93,14 @@ namespace Chraft
                                 double fallDamage = (blockCount - 3);// (we don't devide by two because DamageClient uses whole numbers i.e. 20 = 10 health)
                                 if (fallDamage > 0)
                                 {
-                                    DamageClient(DamageCause.Fall, null, Math.Round(fallDamage, 1));
+                                    var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
+                                    //event start
+                                    EntityDamageEventArgs entevent = new EntityDamageEventArgs(this, roundedValue, null, DamageCause.Fall);
+                                    Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
+                                    if (entevent.EventCanceled) return;
+                                    //event end
+
+                                    DamageClient(DamageCause.Fall, null, roundedValue);
                                     //TODO damage based on water landing / reeds etc
                                 }
                             }

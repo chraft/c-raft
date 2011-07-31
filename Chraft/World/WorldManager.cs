@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO.Compression;
 using System.Linq;
-using System.Text;
 using System.Threading;
+using Chraft.Plugins.Events;
 using Chraft.Properties;
 using System.IO;
-using Chraft.Utils;
 using Chraft.Entity;
 using Chraft.World.Weather;
 using Chraft.Plugins.Events.Args;
@@ -64,7 +61,7 @@ namespace Chraft.World
 
             //Event
             WorldLoadEventArgs e = new WorldLoadEventArgs(this);
-            Server.PluginManager.CallEvent("WORLD_LOAD", e);
+            Server.PluginManager.CallEvent(Event.WORLD_LOAD, e);
             if (e.EventCanceled) return false;
             //End Event
 

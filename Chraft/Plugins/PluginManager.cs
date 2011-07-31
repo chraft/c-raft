@@ -11,9 +11,9 @@ using Chraft.Commands;
 
 namespace Chraft.Plugins
 {
-	public class PluginManager
-	{
-		private List<IPlugin> Plugins = new List<IPlugin>();
+    public class PluginManager
+    {
+        private List<IPlugin> Plugins = new List<IPlugin>();
         private Server Server;
         /// <summary>
         /// An EventList holding all of EventHandlers.
@@ -25,23 +25,23 @@ namespace Chraft.Plugins
         /// </summary>
         private Dictionary<Command, IPlugin> PluginCommands = new Dictionary<Command, IPlugin>();
 
-		/// <summary>
-		/// The folder searched at runtime for available plugins.
-		/// </summary>
-		public string Folder { get; private set; }
+        /// <summary>
+        /// The folder searched at runtime for available plugins.
+        /// </summary>
+        public string Folder { get; private set; }
 
-		/// <summary>
-		/// Invoked when a plugin is loaded.
-		/// </summary>
-		public event EventHandler<PluginEventArgs> PluginLoaded;
+        /// <summary>
+        /// Invoked when a plugin is loaded.
+        /// </summary>
+        public event EventHandler<PluginEventArgs> PluginLoaded;
 
-		/// <summary>
-		/// Initializes a new PluginManager with the given plugin folder.
-		/// </summary>
-		/// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
-		internal PluginManager(Server server, string folder)
-		{
-			Folder = folder;
+        /// <summary>
+        /// Initializes a new PluginManager with the given plugin folder.
+        /// </summary>
+        /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
+        internal PluginManager(Server server, string folder)
+        {
+            Folder = folder;
             Server = server;
             PluginHooks.Add(new ClientEvent());
             PluginHooks.Add(new PluginEvent());
@@ -49,67 +49,67 @@ namespace Chraft.Plugins
             PluginHooks.Add(new ServerEvent());
             PluginHooks.Add(new WorldEvent());
             PluginHooks.Add(new EntityEvent());
-		}
+        }
 
-		/// <summary>
-		/// Gets a thread-safe array of loaded plugins.  Note that while this array is safe for enumeration, it
-		/// does not necessarily ensure the thread-safety of the underlying plugins.
-		/// </summary>
-		/// <returns>A shallow-thread-safe array of plugins.</returns>
-		public IPlugin[] GetPlugins()
-		{
-			return Plugins.ToArray();
-		}
+        /// <summary>
+        /// Gets a thread-safe array of loaded plugins.  Note that while this array is safe for enumeration, it
+        /// does not necessarily ensure the thread-safety of the underlying plugins.
+        /// </summary>
+        /// <returns>A shallow-thread-safe array of plugins.</returns>
+        public IPlugin[] GetPlugins()
+        {
+            return Plugins.ToArray();
+        }
 
-		/// <summary>
-		/// Loads all the assemblies in the plugin folder and the current assembly.
-		/// </summary>
-		internal void LoadDefaultAssemblies()
-		{
-			LoadAssembly(Assembly.GetExecutingAssembly());
-			if (Directory.Exists(Folder))
-			{
-				foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
-					LoadAssembly(f);
-			}
-		}
+        /// <summary>
+        /// Loads all the assemblies in the plugin folder and the current assembly.
+        /// </summary>
+        internal void LoadDefaultAssemblies()
+        {
+            LoadAssembly(Assembly.GetExecutingAssembly());
+            if (Directory.Exists(Folder))
+            {
+                foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
+                    LoadAssembly(f);
+            }
+        }
 
-		/// <summary>
-		/// Load all plugins in the given file.
-		/// </summary>
-		/// <param name="file">The path to the assembly containing the plugin(s).</param>
-		public void LoadAssembly(string file)
-		{
-			LoadAssembly(Assembly.LoadFile(Path.GetFullPath(file)));
-		}
+        /// <summary>
+        /// Load all plugins in the given file.
+        /// </summary>
+        /// <param name="file">The path to the assembly containing the plugin(s).</param>
+        public void LoadAssembly(string file)
+        {
+            LoadAssembly(Assembly.LoadFile(Path.GetFullPath(file)));
+        }
 
-		/// <summary>
-		/// Load all plugins in the given assembly.
-		/// </summary>
-		/// <param name="asm">The assembly containing the plugin(s).</param>
-		public void LoadAssembly(Assembly asm)
-		{
-			foreach (Type t in from t in asm.GetTypes()
-							   where t.GetInterfaces().Contains(typeof(IPlugin))
-							   && t.GetCustomAttributes(typeof(PluginAttribute), false).Length > 0
-							   select t)
-				LoadPlugin(Ctor(t));
-		}
+        /// <summary>
+        /// Load all plugins in the given assembly.
+        /// </summary>
+        /// <param name="asm">The assembly containing the plugin(s).</param>
+        public void LoadAssembly(Assembly asm)
+        {
+            foreach (Type t in from t in asm.GetTypes()
+                               where t.GetInterfaces().Contains(typeof(IPlugin))
+                               && t.GetCustomAttributes(typeof(PluginAttribute), false).Length > 0
+                               select t)
+                LoadPlugin(Ctor(t));
+        }
 
-		/// <summary>
-		/// Loads a plugin into the PluginManager so that it can be managed by the server.
-		/// </summary>
-		/// <param name="plugin">The plugin to be loaded.</param>
-		public void LoadPlugin(IPlugin plugin)
-		{
+        /// <summary>
+        /// Loads a plugin into the PluginManager so that it can be managed by the server.
+        /// </summary>
+        /// <param name="plugin">The plugin to be loaded.</param>
+        public void LoadPlugin(IPlugin plugin)
+        {
             //Event
             PluginEnabledEventArgs e = new PluginEnabledEventArgs(plugin);
-            CallEvent("PLUGIN_ENABLED", e);
+            CallEvent(Event.PLUGIN_ENABLED, e);
             if (e.EventCanceled) return;
             //End Event
 
-			lock (Plugins)
-				Plugins.Add(plugin);
+            lock (Plugins)
+                Plugins.Add(plugin);
             try
             {
                 OnPluginLoaded(plugin);
@@ -122,13 +122,13 @@ namespace Chraft.Plugins
                 Server.Logger.Log(Logger.LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
                 Server.Logger.Log(ex);
             }
-		}
+        }
 
-		private void OnPluginLoaded(IPlugin plugin)
-		{
-			if (PluginLoaded != null)
-				PluginLoaded.Invoke(this, new PluginEventArgs(plugin));
-		}
+        private void OnPluginLoaded(IPlugin plugin)
+        {
+            if (PluginLoaded != null)
+                PluginLoaded.Invoke(this, new PluginEventArgs(plugin));
+        }
         /// <summary>
         /// Called to disable a plugin.
         /// 
@@ -187,20 +187,21 @@ namespace Chraft.Plugins
             }
             return events.ToArray();
         }
-		/// <summary>
-		/// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
-		/// </summary>
-		/// <param name="t">The IPlugin type to be constructed.</param>
-		/// <returns>A new plugin from the type's constructor.</returns>
-		public IPlugin Ctor(Type t)
-		{
-			return (IPlugin)t.GetConstructor(Type.EmptyTypes).Invoke(null);
-		}
+        /// <summary>
+        /// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
+        /// </summary>
+        /// <param name="t">The IPlugin type to be constructed.</param>
+        /// <returns>A new plugin from the type's constructor.</returns>
+        public IPlugin Ctor(Type t)
+        {
+            return (IPlugin)t.GetConstructor(Type.EmptyTypes).Invoke(null);
+        }
         /// <summary>
         /// Calles an event.
         /// </summary>
         /// <param name="Event">The Event to be called</param>
         /// <param name="args">The Event Args.</param>
+
         public void CallEvent(Event Event, ChraftEventArgs args)
         {
             PluginHooks.Find(Event).CallEvent(Event, args);
@@ -211,6 +212,7 @@ namespace Chraft.Plugins
         /// <param name="Event">The Event to be called</param>
         /// <param name="args">The Event Args.</param>
         //TODO: Convert all calls to CallEvent(string, ChraftEventArgs) to the new format.
+        [Obsolete("Use CallEvent(Event Event, ChraftEventArgs args)", true)]
         public void CallEvent(string Event, ChraftEventArgs args)
         {
             //Temporary fix.
@@ -239,7 +241,7 @@ namespace Chraft.Plugins
             {
                 PluginHooks.Find(Listener.Event).RegisterEvent(Listener);
             }
-            catch(EventNotFoundException e)
+            catch (EventNotFoundException e)
             {
                 //Use the plugin's Chraft.Server to log the error.
                 Listener.Plugin.Server.Logger.Log(e);
@@ -278,7 +280,7 @@ namespace Chraft.Plugins
                 {
                     UnregisterEvent(el);
                 }
-            }                
+            }
         }
         /// <summary>
         /// Unsubscribes from an event.
@@ -329,7 +331,7 @@ namespace Chraft.Plugins
                 {
                     //Event
                     CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
-                    CallEvent("COMMAND_ADDED", e);
+                    CallEvent(Event.COMMAND_ADDED, e);
                     if (e.EventCanceled) return;
                     //End Event
 
@@ -341,13 +343,13 @@ namespace Chraft.Plugins
                     Plugin.Server.Logger.Log(e);
                 }
             }
-            else if(cmd is ServerCommand)
+            else if (cmd is ServerCommand)
             {
                 try
                 {
                     //Event
                     CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
-                    CallEvent("COMMAND_ADDED", e);
+                    CallEvent(Event.COMMAND_ADDED, e);
                     if (e.EventCanceled) return;
                     //End Event
 
@@ -390,7 +392,7 @@ namespace Chraft.Plugins
         {
             //Event
             CommandRemovedEventArgs e = new CommandRemovedEventArgs(Plugin, cmd);
-            CallEvent("COMMAND_REMOVED", e);
+            CallEvent(Event.COMMAND_ADDED, e);
             if (e.EventCanceled) return;
             //End Event
 
@@ -430,5 +432,5 @@ namespace Chraft.Plugins
         {
             UnregisterCommands(commands.ToArray(), Plugin);
         }
-	}
+    }
 }

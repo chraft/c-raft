@@ -7,6 +7,7 @@ using System.Threading;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Plugins.Events;
 using Chraft.World;
 using Chraft.Utils;
 using Chraft.Properties;
@@ -475,7 +476,7 @@ namespace Chraft
         {
             //Event
             ClientKickedEventArgs e = new ClientKickedEventArgs(this, reason);
-            Server.PluginManager.CallEvent("PLAYER_KICKED", e);
+            Server.PluginManager.CallEvent(Event.PLAYER_KICKED, e);
             if (e.EventCanceled) return;
             reason = e.Message;
             //End Event
@@ -566,7 +567,7 @@ namespace Chraft
             string DisplayMessage = DisplayName + " has logged in";
             //Event
             ClientJoinedEventArgs e = new ClientJoinedEventArgs(this);
-            Server.PluginManager.CallEvent("PLAYER_JOINED", e);
+            Server.PluginManager.CallEvent(Event.PLAYER_JOINED, e);
             //We kick the player because it would not work to use return.
             if (e.EventCanceled) Kick("");
             DisplayMessage = e.BrodcastMessage;
