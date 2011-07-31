@@ -87,7 +87,7 @@ namespace Chraft
 #if DEBUG
                                 this.SendMessage(String.Format("Fell {0} blocks", blockCount));
 #endif
-                                double fallDamage = (blockCount - 3) / 2.0;
+                                double fallDamage = (blockCount - 3);// (we don't devide by two because DamageClient uses whole numbers i.e. 20 = 10 health)
                                 if (fallDamage > 0)
                                 {
                                     DamageClient(DamageCause.Fall, null, Math.Round(fallDamage, 1));
