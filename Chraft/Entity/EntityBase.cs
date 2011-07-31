@@ -130,4 +130,21 @@ namespace Chraft.Entity
             return other.EntityId == EntityId;
         }
     }
+    public enum DamageCause
+    {
+        Contact,
+        EntityAttack,
+        Projectile,
+        Suffocation,
+        Fall,
+        Fire,
+        FireBurn,
+        Lava,
+        Drowning,
+        BlockExplosion,
+        EntityExplosion,
+        Void,
+        Lightning,
+        Custom
+    }
 }

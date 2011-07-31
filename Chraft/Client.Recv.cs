@@ -110,7 +110,7 @@ namespace Chraft
                     if (e.Packet.LeftClick)
                     {
                         if (c.Health > 0)
-                            c.DamageClient(this);
+                            c.DamageClient(DamageCause.EntityAttack, this);
                     }
                     else
                     {
@@ -383,7 +383,7 @@ namespace Chraft
             int x = e.Packet.X;
             int y = e.Packet.Y;
             int z = e.Packet.Z;
-            
+
             BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
 
             int bx, by, bz;
@@ -396,7 +396,7 @@ namespace Chraft
                     // Cannot open a chest if no space is above it
                     return;
                 }
-                
+
                 Chunk chunk = World.GetBlockChunk(x, y, z);
 
                 // Double chest?
@@ -502,7 +502,7 @@ namespace Chraft
                     BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
                     PointI[] nsewBlockPositions = new PointI[4];
                     int nsewCount = 0;
-                    chunk.ForNSEW(bx & 0xf, by, bz & 0xf, (x1, y1, z1) => 
+                    chunk.ForNSEW(bx & 0xf, by, bz & 0xf, (x1, y1, z1) =>
                     {
                         nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
                         nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);

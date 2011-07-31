@@ -188,20 +188,51 @@ namespace Chraft
         /// <summary>
         /// Updates nearby players when Client is hurt.
         /// </summary>
+        /// <param name="cause"></param>
         /// <param name="hitBy">The Client hurting the current Client.</param>
-        public void DamageClient(EntityBase hitBy = null)
+        /// <param name="args"></param>
+        public void DamageClient(DamageCause cause, EntityBase hitBy = null, params object[] args)
         {
-            // TODO: Calcualte Damage vs Amour etc
-            //this.SendMessage("Hit with: " + hitBy.Inventory.ActiveItem.Type);
-            if (hitBy != null)
+            switch (cause)
             {
-                // Get the Clients held item.
-                this.Health -= 1;
-            }
-            else
-            {
-                // Generic damage from Mobs??
-                this.Health -= 1;
+                case DamageCause.BlockExplosion:
+                    break;
+                case DamageCause.Contact:
+                    break;
+                case DamageCause.Drowning:
+                    break;
+                case DamageCause.EntityAttack:
+                    if (hitBy != null)
+                    {
+                        //work out damage
+                    }
+                    break;
+                case DamageCause.EntityExplosion:
+                    break;
+                case DamageCause.Fall:
+                    if (args != null && args.Length > 0)
+                    {
+                        Health = (short) args[0];
+                    }
+                    break;
+                case DamageCause.Fire:
+                    break;
+                case DamageCause.FireBurn:
+                    break;
+                case DamageCause.Lava:
+                    break;
+                case DamageCause.Lightning:
+                    break;
+                case DamageCause.Projectile:
+                    break;
+                case DamageCause.Suffocation:
+                    break;
+                case DamageCause.Void:
+                    break;
+                default:
+                    Health -= 1;
+                    break;
+
             }
 
             PacketHandler.SendPacket(new UpdateHealthPacket
@@ -524,10 +555,10 @@ namespace Chraft
             {
                 health = 20;
             }
-            PacketHandler.SendPacket(new UpdateHealthPacket {Health = health});
+            PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
         }
 
-      
+
         #region Permission related commands
         //Check if the player has permissions to use the command
         public bool CanUseCommand(string command)
