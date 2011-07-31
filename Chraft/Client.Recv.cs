@@ -90,7 +90,7 @@ namespace Chraft
                                 double fallDamage = (blockCount - 3) / 2.0;
                                 if (fallDamage > 0)
                                 {
-                                    DamageClient(DamageCause.Fall, null, Math.Round(fallDamage));
+                                    DamageClient(DamageCause.Fall, null, Math.Round(fallDamage, 1));
                                     //TODO damage based on water landing / reeds etc
                                 }
                             }
