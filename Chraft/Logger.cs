@@ -1,15 +1,19 @@
 ﻿using System;
 using Chraft.Properties;
 using System.IO;
+using Chraft.Plugins.Events.Args;
+using Chraft.Plugins.Events;
 
 namespace Chraft
 {
 	public class Logger
 	{
 		private StreamWriter WriteLog;
+        private Server Server;
 
-		internal Logger(string file)
+		internal Logger(Server server, string file)
 		{
+            Server = server;
 			try
 			{
 				WriteLog = new StreamWriter(file, true);
@@ -39,6 +43,14 @@ namespace Chraft
 
         public void Log(LogLevel level, string message)
 		{
+            //Event
+            LoggerEventArgs e = new LoggerEventArgs(this, level, message);
+            Server.PluginManager.CallEvent(Event.LOGGER_LOG, e);
+            if (e.EventCanceled) return;
+            level = e.LogLevel;
+            message = e.LogMessage;
+            //End Event
+
             LogToConsole(level, message);
 			LogToFile(level, message);
 		}
@@ -57,6 +69,12 @@ namespace Chraft
 
 		public void Log(Exception ex)
 		{
+            //Event
+            LoggerEventArgs e = new LoggerEventArgs(this, LogLevel.Debug, ex.ToString(), ex);
+            Server.PluginManager.CallEvent(Event.LOGGER_LOG, e);
+            if (e.EventCanceled) return;
+            //End Event
+
 			Log(LogLevel.Debug, ex.ToString());
 		}
 

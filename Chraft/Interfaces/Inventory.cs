@@ -25,10 +25,12 @@ namespace Chraft.Interfaces
 		/// Used for serialization only.  Do not use.
 		/// </summary>
 		public Inventory()
+            : base(InterfaceType.Inventory, 4, 45)
 		{
 			_ActiveSlot = 36;
 			_IsOpen = true;
-            this.CraftingSlotCount = 4;
+            // Inventory is always WindowId 0
+            Handle = 0;
 		}
 
 		internal Inventory(Client client)
@@ -37,6 +39,8 @@ namespace Chraft.Interfaces
 			_ActiveSlot = 36;
 			Associate(client);
 			_IsOpen = true;
+            // Inventory is always WindowId 0
+            Handle = 0;
 			UpdateClient();
 		}
 

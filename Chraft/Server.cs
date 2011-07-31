@@ -19,6 +19,8 @@ using System.Diagnostics;
 using Chraft.Resources;
 using Chraft.Irc;
 using Chraft.Commands;
+using Chraft.Plugins.Events.Args;
+using Chraft.Plugins.Events;
 
 namespace Chraft
 {
@@ -121,9 +123,9 @@ namespace Chraft
 
 			Clients = new Dictionary<int, Client>();
 			Rand = new Random();
-			Logger = new Logger(Settings.Default.LogFile);
+			Logger = new Logger(this, Settings.Default.LogFile);
 			Permissions = new PermissionConfiguration(this);
-			PluginManager = new PluginManager(Settings.Default.PluginFolder);
+			PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
 			Items = new ItemDb(Settings.Default.ItemsFile);
 			Recipes = Recipe.FromFile(Settings.Default.RecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
@@ -203,9 +205,18 @@ namespace Chraft
 		/// <returns>The newly created world.</returns>
 		public WorldManager CreateWorld(string name)
 		{
+            
 			WorldManager world = new WorldManager(this);
+
+            //Event
+            WorldCreatedEventArgs e = new WorldCreatedEventArgs(world);
+            PluginManager.CallEvent("WORLD_CREATED", e);
+            if (e.EventCanceled) return null;
+            //End Event
+
 			lock (Worlds)
 				Worlds.Add(world);
+
 			return world;
 		}
 
@@ -244,6 +255,11 @@ namespace Chraft
 			if (OnBeforeAccept(tcp))
 			{
 				Client c = new Client(this, AllocateEntity(), tcp);
+                //Event
+                ClientAcceptedEventArgs e = new ClientAcceptedEventArgs(this, c);
+                PluginManager.CallEvent(Event.SERVER_ACCEPT, e);
+                //Do not check for EventCanceled because that could make this unstable.
+                //End Event
 
 				lock (Clients)
 					Clients.Add(c.EntityId, c);
@@ -338,6 +354,14 @@ namespace Chraft
 		/// <param name="excludeClient">The client to excluded; usually the sender.</param>
 		public void Broadcast(string message, Client excludeClient = null, bool sendToIrc = true)
 		{
+            //Event
+            ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
+            PluginManager.CallEvent(Event.SERVER_BROADCAST, e);
+            if (e.EventCanceled) return;
+            message = e.Message;
+            excludeClient = e.ExcludeClient;
+            //End Event
+
 			foreach (Client c in GetClients())
 			{
 				if (c != excludeClient)
@@ -471,7 +495,7 @@ namespace Chraft
 			AddEntity(new ItemEntity(this, entityId)
 			{
 				World = world,
-                Position = new World.Vector3(x + 0.5, y, z + 0.5),
+                Position = new World.Vector3(x + 0.5, y, z + 0.5), // Put in the middle of the block (ignoring Y)
 				ItemId = stack.Type,
 				Count = stack.Count,
 				Durability = stack.Durability

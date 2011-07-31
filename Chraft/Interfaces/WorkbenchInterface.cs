@@ -20,6 +20,27 @@ namespace Chraft.Interfaces
 			base.Associate(client);
 		}
 
+        bool _useProvidedDropCoordinates = false;
+        int DropX;
+        int DropY;
+        int DropZ;
+
+        /// <summary>
+        /// Opens the Workbench and specifies where items should be dropped if exiting the workbench with items still in it.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        public virtual void Open(int x, int y, int z)
+        {
+            _useProvidedDropCoordinates = true;
+            DropX = x;
+            DropY = y;
+            DropZ = z;
+
+            this.Open();
+        }
+
         protected override void DoClose()
         {
             base.DoClose();
@@ -30,7 +51,14 @@ namespace Chraft.Interfaces
                 ItemStack stack = Slots[i];
                 if (!ItemStack.IsVoid(stack))
                 {
-                    this.Client.Server.DropItem(this.Client, stack);
+                    if (_useProvidedDropCoordinates)
+                    {
+                        this.Client.Server.DropItem(this.Client.World, DropX, DropY, DropZ, stack);
+                    }
+                    else
+                    {
+                        this.Client.Server.DropItem(this.Client, stack);
+                    }
                     Slots[i] = ItemStack.Void;
                 }
             }

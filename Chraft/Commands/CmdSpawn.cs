@@ -11,7 +11,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.TeleportTo(client.World.Spawn.X, client.World.Spawn.Y, client.World.Spawn.Z);
+            client.TeleportTo(client.World.Spawn.X, client.World.Spawn.Y + 1, client.World.Spawn.Z);
         }
 
         public void Help(Client client)

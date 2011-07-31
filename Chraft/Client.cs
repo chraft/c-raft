@@ -11,6 +11,7 @@ using Chraft.World;
 using Chraft.Utils;
 using Chraft.Properties;
 using Chraft.Interfaces;
+using Chraft.Plugins.Events.Args;
 
 namespace Chraft
 {
@@ -90,9 +91,9 @@ namespace Chraft
             {
                 Inventory = new Inventory(this);
 
-                for (int i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
+                for (short i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
                 {
-                    Inventory.Slots[i] = ItemStack.Void;
+                    Inventory[i] = ItemStack.Void;
                 }
 
                 Inventory[Inventory.ActiveSlot] = new ItemStack(278, 1, 0);
@@ -303,11 +304,11 @@ namespace Chraft
                 });
             }
 
-            for (int i = 0; i < Inventory.Slots.Length; i++)
+            for (short i = 0; i < Inventory.SlotCount; i++)
             {
-                if (Inventory.Slots[i].Type <= 0) continue;
-                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory.Slots[i]);
-                Inventory.Slots[i] = ItemStack.Void;
+                if (ItemStack.IsVoid(Inventory[i])) continue;
+                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory[i]);
+                Inventory[i] = ItemStack.Void;
             }
         }
 
@@ -472,6 +473,12 @@ namespace Chraft
         /// <param name="reason">The reason to be displayed to the player.</param>
         public void Kick(string reason)
         {
+            //Event
+            ClientKickedEventArgs e = new ClientKickedEventArgs(this, reason);
+            Server.PluginManager.CallEvent("PLAYER_KICKED", e);
+            if (e.EventCanceled) return;
+            reason = e.Message;
+            //End Event
             PacketHandler.SendPacket(new DisconnectPacket
             {
                 Reason = reason
@@ -504,6 +511,16 @@ namespace Chraft
         /// </summary>
         public void Dispose()
         {
+            string disconnectMsg = ChatColor.Yellow + DisplayName + " has left the game.";
+
+            //Event
+            ClientLeftEventArgs e = new ClientLeftEventArgs(this);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.PLAYER_LEFT, e);
+            //You cant stop the player from leaving so dont try.
+            disconnectMsg = e.BrodcastMessage;
+            //End Event
+            Server.Broadcast(disconnectMsg);
+
             Save();
             Running = false;
             PacketHandler.Dispose();
@@ -546,8 +563,17 @@ namespace Chraft
         private void OnJoined()
         {
             LoggedIn = true;
-            Server.Broadcast(DisplayName + " has logged in", this);
+            string DisplayMessage = DisplayName + " has logged in";
+            //Event
+            ClientJoinedEventArgs e = new ClientJoinedEventArgs(this);
+            Server.PluginManager.CallEvent("PLAYER_JOINED", e);
+            //We kick the player because it would not work to use return.
+            if (e.EventCanceled) Kick("");
+            DisplayMessage = e.BrodcastMessage;
+            //End Event
+            Server.Broadcast(DisplayMessage);
         }
+        
 
         private void SetHealth(short health)
         {

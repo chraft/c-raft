@@ -20,9 +20,9 @@ namespace Chraft.Interfaces
 		public event EventHandler<InterfaceClickedEventArgs> Clicked;
 
 		public ItemStack[] Slots { get; set; }
-		public sbyte SlotCount { get { return (sbyte)Slots.Length; } }
+        public short SlotCount { get { return (short)Slots.Length; } }
 		public string Title { get; set; }
-		internal sbyte Handle { get; private set; }
+        internal sbyte Handle { get; set; }
 		internal InterfaceType Type { get; private set; }
 		protected internal PacketHandler PacketHandler { protected get; set; }
 		public ItemStack Cursor { get; set; }
@@ -30,7 +30,7 @@ namespace Chraft.Interfaces
 		protected bool _IsOpen = false;
 		public bool IsOpen { get { return _IsOpen; } }
 
-		public ItemStack this[short slot]
+        public ItemStack this[int slot]
 		{
 			get
 			{
@@ -41,9 +41,9 @@ namespace Chraft.Interfaces
 				if (Slots[slot] != null)
 					Slots[slot].Changed -= ItemStack_Changed;
 				Slots[slot] = value ?? ItemStack.Void;
-				Slots[slot].Slot = slot;
+				Slots[slot].Slot = (short)slot;
 				Slots[slot].Changed += ItemStack_Changed;
-				SendUpdate(slot);
+				SendUpdate((short)slot);
 			}
 		}
 
@@ -116,7 +116,7 @@ namespace Chraft.Interfaces
 				if (ItemStack.IsVoid(Cursor))
 					Cursor = ItemStack.Void;
 				if (ItemStack.IsVoid(target.Slots[e.Slot]))
-					target.Slots[e.Slot] = ItemStack.Void;
+					target[e.Slot] = ItemStack.Void;
 
 				// The fun begins.
 				if (target.Slots[e.Slot].StacksWith(Cursor))
@@ -175,8 +175,8 @@ namespace Chraft.Interfaces
                 }
                 else
                 {	// Left-click on different type: swap stacks
-                    ItemStack swap = target.Slots[e.Slot];
-                    target.Slots[e.Slot] = Cursor;
+                    ItemStack swap = target[e.Slot];
+                    target[e.Slot] = Cursor;
                     Cursor = swap;
                 }
 			}
@@ -200,7 +200,7 @@ namespace Chraft.Interfaces
 
 		protected void SendUpdate(short slot)
 		{
-			if (IsOpen && !IsTransactionInProgress)
+			if (IsOpen && !IsTransactionInProgress && PacketHandler != null)
 			{
 				ItemStack item = slot < 0 ? Cursor : Slots[slot];
 				PacketHandler.SendPacket(new SetSlotPacket
@@ -230,7 +230,7 @@ namespace Chraft.Interfaces
 				WindowId = Handle,
 				WindowTitle = Title,
 				InventoryType = Type,
-				SlotCount = SlotCount
+				SlotCount = (sbyte)SlotCount
 			});
             _IsOpen = true;
             UpdateClient();

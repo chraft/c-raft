@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Plugins.Events;
 
 namespace Chraft.Plugins
 {
@@ -37,6 +38,11 @@ namespace Chraft.Plugins
 		/// </summary>
 		Server Server { get; }
 
+        /// <summary>
+        /// The PluginManager associated with the plugin.
+        /// </summary>
+        PluginManager PluginManager { get; }
+
 		/// <summary>
 		/// A value indicating whether the plugin is currently enabled.
 		/// </summary>
@@ -47,11 +53,12 @@ namespace Chraft.Plugins
 		/// </summary>
 		void Initialize();
 
-		/// <summary>
-		/// Associates a Server with the plugin.
-		/// </summary>
-		/// <param name="server">The Server object to be associated with the plugin.</param>
-		void Associate(Server server);
+        /// <summary>
+        /// Associates a Server and a PluginManager with the plugin.
+        /// </summary>
+        /// <param name="server">The Server object to be associated with the plugin.</param>
+        /// <param name="pluginManager">The PluginManager to be associated with the plugin.</param>
+        void Associate(Server server, PluginManager pluginManager);
 
 		/// <summary>
 		/// Called when the parent PluginManager enables the plugin.

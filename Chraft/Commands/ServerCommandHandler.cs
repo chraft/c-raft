@@ -118,6 +118,7 @@ namespace Chraft.Commands
         {
             RegisterCommand(new CmdHelp());
             RegisterCommand(new CmdStop());
+            RegisterCommand(new CmdSay());
         }
     }
 }
