@@ -52,16 +52,24 @@ namespace Chraft
                     {
                         _beginInAirY = this.Position.Y;
                         _inAirStartTime = DateTime.Now;
+#if DEBUG
+                        this.SendMessage("In air");
+#endif
                     }
                     else
                     {
+#if DEBUG
+                        this.SendMessage("On ground");
+#endif
+                        // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
+                        BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
+                        
                         if (_inAirStartTime != null)
                         {
-                            // Check how long in the air for (e.g. flying)
-                            if (AirTime.TotalSeconds > 5)
+                            // Check how long in the air for (e.g. flying) - don't count if we are in water
+                            if (currentBlock != BlockData.Blocks.Water && AirTime.TotalSeconds > 5)
                             {
                                 // TODO: make the number of seconds configurable
-                                // TODO: plugin event? providing ability to ignore this??
                                 Kick("Flying!!");
                             }
 
@@ -72,7 +80,7 @@ namespace Chraft
 
                         if (_lastGroundY < this.Position.Y)
                         {
-                            // We have climbed
+                            // We have climbed (using _lastGroundY gives us a more accurate value than using _beginInAirY when climbing)
                             blockCount = (_lastGroundY - this.Position.Y);
                         }
                         else
@@ -91,6 +99,21 @@ namespace Chraft
                                 this.SendMessage(String.Format("Fell {0} blocks", blockCount));
 #endif
                                 double fallDamage = (blockCount - 3);// (we don't devide by two because DamageClient uses whole numbers i.e. 20 = 10 health)
+
+                                #region Adjust based on falling into water
+                                // For each sixteen blocks of altitude the water must be one block deep, if the jump altitude is higher as sixteen blocks and the water is only one deep damage is taken from the total altitude minus sixteen (19 is safe i.e. 19-16 = 3 => no damage)
+                                // If we are in water, count how many blocks above are also water
+                                BlockData.Blocks block = currentBlock;
+                                int waterCount = 0;
+                                while (block == BlockData.Blocks.Water)
+                                {
+                                    waterCount++;
+                                    block = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y + waterCount, (int)this.Position.Z);
+                                }
+                                
+                                fallDamage -= waterCount * 16;
+                                #endregion
+
                                 if (fallDamage > 0)
                                 {
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
@@ -101,7 +124,6 @@ namespace Chraft
                                     //event end
 
                                     DamageClient(DamageCause.Fall, null, roundedValue);
-                                    //TODO damage based on water landing / reeds etc
                                 }
                             }
                             else if (blockCount < -0.5)
