@@ -1,0 +1,20 @@
+﻿# Cobblestone -> Stone
+4,1
+# Sand -> Glass
+12,20
+# Gold Ore -> Gold Ingot
+14,266
+# Iron Ore -> Iron Ingot
+15,265
+# Log -> Charcoal
+17,263:1
+# Clay ball -> clay brick
+337,336
+# Pork -> grilled pork
+319,320
+# Raw fish -> cooked fish
+349,350
+# Cactus -> Cactus Green (dye)
+81,351:2
+# Diamond Ore -> Diamond
+56,264
