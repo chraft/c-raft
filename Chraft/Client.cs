@@ -305,12 +305,7 @@ namespace Chraft
                 });
             }
 
-            for (short i = 0; i < Inventory.SlotCount; i++)
-            {
-                if (ItemStack.IsVoid(Inventory[i])) continue;
-                Server.DropItem(World, (int)Position.X, (int)Position.Y, (int)Position.Z, Inventory[i]);
-                Inventory[i] = ItemStack.Void;
-            }
+            Inventory.DropAll((int)Position.X, (int)Position.Y, (int)Position.Z);
         }
 
         /// <summary>
