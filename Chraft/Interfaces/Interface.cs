@@ -277,5 +277,33 @@ namespace Chraft.Interfaces
                 }
             }
 		}
+
+        public void DropAll(int dropX, int dropY, int dropZ)
+        {
+            // Drop all items from the workbench
+            for (short i = 0; i < SlotCount; i++)
+            {
+                ItemStack stack = Slots[i];
+                if (!ItemStack.IsVoid(stack))
+                {
+                    this.Client.Server.DropItem(this.Client.World, dropX, dropY, dropZ, stack);
+                    this[i] = ItemStack.Void;
+                }
+            }
+        }
+
+        protected bool IsEmpty()
+        {
+            bool empty = true;
+            foreach (var item in this.Slots)
+            {
+                if (!ItemStack.IsVoid(item))
+                {
+                    empty = false;
+                    break;
+                }
+            }
+            return empty;
+        }
 	}
 }

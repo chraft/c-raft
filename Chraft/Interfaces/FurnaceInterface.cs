@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Chraft.Interfaces
 {
-	public class FurnaceInterface : Interface
+	public class FurnaceInterface : SingleContainerInterface
 	{
-		public FurnaceInterface()
-			: base(InterfaceType.Furnace, 3)
+		public FurnaceInterface(World.WorldManager world, int x, int y, int z)
+            : base(world, InterfaceType.Furnace, x, y, z, 3)
 		{
 		}
 	}

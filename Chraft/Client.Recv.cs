@@ -788,21 +788,35 @@ namespace Chraft
                             break;
 
                         case BlockData.Blocks.Burning_Furnace:
+                        case BlockData.Blocks.Furnace:
                             give = (short)BlockData.Blocks.Furnace;
+                            FurnaceInterface fi = new FurnaceInterface(this.World, x, y, z);
+                            fi.Associate(this);
+                            fi.DropAll(x, y, z);
+                            fi.Save();
                             break;
 
                         case BlockData.Blocks.Cake:
                             give = (short)BlockData.Items.Cake;
                             break;
 
+                        case BlockData.Blocks.Chest:
+                            // Need to drop the chest contents
+                            SmallChestInterface sci = new SmallChestInterface(this.World, x, y, z);
+                            sci.Associate(this);
+                            sci.DropAll(x, y, z);
+                            sci.Save();
+                            break;
+
                         case BlockData.Blocks.Clay:
                             give = (short)BlockData.Items.Clay_Balls;
+                            count = 4;
                             break;
 
                         case BlockData.Blocks.Coal_Ore:
                             give = (short)BlockData.Items.Coal;
+                            //count = (sbyte)(1 + Server.Rand.Next(3));
                             break;
-
                         case BlockData.Blocks.Crops:
                             // TODO: Check crops are mature enough before giving items.
                             give = (short)BlockData.Items.Seeds;
@@ -811,6 +825,14 @@ namespace Chraft
 
                         case BlockData.Blocks.Diamond_Ore:
                             give = (short)BlockData.Items.Diamond;
+                            break;
+
+                        case BlockData.Blocks.Dispenser:
+                            // Drop the contents of the dispenser
+                            DispenserInterface di = new DispenserInterface(this.World, x, y, z);
+                            di.Associate(this);
+                            di.DropAll(x, y, z);
+                            di.Save();
                             break;
 
                         case BlockData.Blocks.Double_Stone_Slab:
@@ -865,6 +887,7 @@ namespace Chraft
                             give = -1;
                             break;
 
+                        case BlockData.Blocks.Redstone_Ore_Glowing:
                         case BlockData.Blocks.Redstone_Ore:
                             give = (short)BlockData.Items.Redstone;
                             count = (sbyte)(2 + Server.Rand.Next(4));
@@ -886,7 +909,6 @@ namespace Chraft
                         case BlockData.Blocks.Sign_Post:
                             give = (short)BlockData.Items.Sign;
                             break;
-
                         case BlockData.Blocks.Snow:
                             give = (short)BlockData.Items.Snowball;
                             break;
@@ -903,7 +925,6 @@ namespace Chraft
                         case BlockData.Blocks.Stone:
                             give = (short)BlockData.Blocks.Cobblestone;
                             break;
-
                         case BlockData.Blocks.TNT:
                             // TODO: Spawn TNT Object and start explosion timer.
                             return;
