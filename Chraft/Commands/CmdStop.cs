@@ -24,7 +24,12 @@ namespace Chraft.Commands
         {
             get { return CommandType.Mod; }
         }
-                
+
+        public string Permission
+        {
+            get { return "chraft.stop"; }
+        }
+
         public void Use(Server server, string[] tokens)
         {
             server.Broadcast("The server is shutting down.");

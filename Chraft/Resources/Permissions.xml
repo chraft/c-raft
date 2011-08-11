@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<Permissions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Groups>
+    <Group Name="default" IsDefault="true">
+      <Prefix>[Admin]</Prefix>
+      <Suffix></Suffix>
+      <CanBuild>true</CanBuild>
+      <Permission>
+        <Allowed>chraft.list</Allowed>
+        <Denied>chraft.set</Denied>
+      </Permission>
+    </Group>
+    <Group Name="admin" Inherits="Default">
+      <Prefix>[Admin]</Prefix>
+      <Suffix></Suffix>
+      <CanBuild>true</CanBuild>
+      <Permission>
+        <Allowed>*</Allowed>
+        <Denied>chraft.set</Denied>
+      </Permission>
+    </Group>
+  </Groups>
+
+  <Users>
+    <User Name="ementalo" Groups="Admin">
+      <Prefix></Prefix>
+      <Suffix></Suffix>
+      <CanBuild>true</CanBuild>
+      <Permission>
+        <Allowed>say</Allowed>
+        <Denied>list</Denied>
+      </Permission>
+    </User>
+  </Users>
+</Permissions>

@@ -66,5 +66,10 @@ namespace Chraft.Commands
         {
             get { return CommandType.Build; }
         }
+
+        public string Permission
+        {
+            get { return "chraft.set"; }
+        }
     }
 }

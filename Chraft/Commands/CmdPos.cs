@@ -35,6 +35,11 @@ namespace Chraft.Commands
         {
             get { return CommandType.Build; }
         }
+
+        public string Permission
+        {
+            get { return "chraft.pos1"; }
+        }
     }
     public class CmdPos2 : ClientCommand
     {
@@ -64,6 +69,11 @@ namespace Chraft.Commands
         public CommandType Type
         {
             get { return CommandType.Build; }
+        }
+
+        public string Permission
+        {
+            get { return "chraft.pos2"; }
         }
     }
 }

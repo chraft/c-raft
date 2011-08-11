@@ -104,6 +104,7 @@
     <Compile Include="ChatEventArgs.cs" />
     <Compile Include="Client.Actions.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="Client.Permissions.cs" />
     <Compile Include="Client.Persistence.cs" />
     <Compile Include="Client.Recv.cs" />
     <Compile Include="Client.Send.cs" />
@@ -194,6 +195,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Resources\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
+    <Compile Include="Utils\Configuration.cs" />
+    <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="Utils\Hash.cs" />
     <Compile Include="Utils\Http.cs" />
     <Compile Include="Utils\IPermissions.cs" />
@@ -213,7 +216,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Utils\PermissionConfiguration.cs" />
-    <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="World\BlockData.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -269,6 +271,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Mojang\LICENSE.TXT" />
+    <Content Include="Resources\Permissions.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -13,6 +13,7 @@ namespace Chraft.Commands
         public string Name { get { return "help"; } }
         public string Shortcut { get { return ""; } }
         public CommandType Type { get { return CommandType.Information; } }
+        public string Permission{get { return "chraft.help"; }}
 
         public void Use(Client client, string[] tokens)
         {

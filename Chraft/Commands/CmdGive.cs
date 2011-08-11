@@ -54,5 +54,10 @@ namespace Chraft.Commands
         {
             get { return CommandType.Mod; }
         }
+
+        public string Permission
+        {
+            get { return "chraft.give"; }
+        }
     }
 }

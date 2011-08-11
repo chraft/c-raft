@@ -40,6 +40,11 @@ namespace Chraft.Commands
             get { return CommandType.Mod; }
         }
 
+        public string Permission
+        {
+            get { return "chraft.say"; }
+        }
+
         public void Use(Server server, string[] tokens)
         {
             string message = "";

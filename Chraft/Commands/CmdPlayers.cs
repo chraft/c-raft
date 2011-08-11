@@ -35,5 +35,10 @@ namespace Chraft.Commands
         {
             get { return CommandType.Other; }
         }
+
+        public string Permission
+        {
+            get { return "chraft.players"; }
+        }
     }
 }

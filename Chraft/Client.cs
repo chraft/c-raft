@@ -28,7 +28,7 @@ namespace Chraft
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         private volatile bool LoggedIn = false;
         private Interface CurrentInterface = null;
-        private PermissionHandler Permissions;
+        public ClientPermission Permissions;
 
         internal int SessionID { get; private set; }
 
@@ -71,10 +71,10 @@ namespace Chraft
             Tcp = tcp;
             PacketHandler = new PacketHandler(Server, tcp);
             Inventory = null;
-            Permissions = new PermissionHandler(Server);
             DisplayName = Username;
             InitializePosition();
             InitializeRecv();
+            Permissions = PermissionHandler.LoadClientPermission(this);
         }
 
         private void InitializePosition()
@@ -590,17 +590,17 @@ namespace Chraft
         //Check if the player has permissions to use the command
         public bool CanUseCommand(string command)
         {
-            return Permissions.CanUseCommand(Username, command);
+            return PermissionHandler.HasPermission(Username, command);
         }
         //Returns the players prefix
         public string GetPlayerPrefix(string playerName)
         {
-            return Permissions.GetPlayerPrefix(playerName);
+            return PermissionHandler.GetPlayerPrefix(playerName);
         }
         //returns the players suffix
         public string GetPlayerSuffix(string playerName)
         {
-            return Permissions.GetPlayerSuffix(playerName);
+            return PermissionHandler.GetPlayerSuffix(playerName);
         }
         #endregion
     }

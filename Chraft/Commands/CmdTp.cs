@@ -45,6 +45,11 @@ namespace Chraft.Commands
         {
             get { return CommandType.Mod; }
         }
+
+        public string Permission
+        {
+            get { return "chraft.tp"; }
+        }
     }
     public class CmdSummon : ClientCommand
     {
@@ -89,6 +94,11 @@ namespace Chraft.Commands
         public CommandType Type
         {
             get { return CommandType.Mod; }
+        }
+
+        public string Permission
+        {
+            get { return "chraft.tphere"; }
         }
     }
 }

@@ -1,164 +1,100 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+
 namespace Chraft.Utils
 {
     class Configuration
     {
 
-        private Dictionary<string, Dictionary<string, string>> _iniFileContent;
-        private readonly Regex _sectionRegex = new Regex(@"(?<=\[)(?<SectionName>[^\]]+)(?=\])");
-        private readonly Regex _keyValueRegex = new Regex(@"(?<Key>[^=]+)=(?<Value>.+)");
+        public Server Server { get; private set; }
+        public Logger Logger { get { return Server.Logger; } }
+        private XDocument Config { get; set; }
 
-        public Configuration() : this(null) { }
-
-        public Configuration(string filename)
+        public Configuration(Server server)
+            : this(server, null)
         {
-            _iniFileContent = new Dictionary<string, Dictionary<string, string>>();
-            if (filename != null) Load(filename);
         }
 
-        public string GetValue(string sectionName, string key)
+        public Configuration(Server server, string filename)
         {
-            return _iniFileContent.ContainsKey(sectionName) && _iniFileContent[sectionName].ContainsKey(key)
-                       ? _iniFileContent[sectionName][key]
-                       : null;
+            Server = server;
+            Config = Load(filename);
         }
 
-
-        public void SetValue(string sectionName, string key, string value)
+        public ArrayList GetList(string nodeName, string parentNode = null)
         {
-            if (!_iniFileContent.ContainsKey(sectionName)) _iniFileContent[sectionName] = new Dictionary<string, string>();
-            _iniFileContent[sectionName][key] = value;
+            var list = new ArrayList();
+
+            foreach (var node in Config.Descendants(parentNode).Where(node => node.Name == nodeName))
+            {
+                list.Add(node.Value);
+            }
+            return list;
         }
 
-        //get all section values
-        public Dictionary<string, string> GetSection(string sectionName)
+        public bool GetBoolean()
         {
-            return _iniFileContent.ContainsKey(sectionName) ? new Dictionary<string, string>(_iniFileContent[sectionName]) : new Dictionary<string, string>();
+            return true;
         }
 
-        //set a full section
-        public void SetSection(string sectionName, IDictionary<string, string> sectionValues)
+        public string GetString()
         {
-            if (sectionValues == null) return;
-            _iniFileContent[sectionName] = new Dictionary<string, string>(sectionValues);
+            return "";
         }
 
-        //load file
-        public bool Load(string filename)
+        public int GetInt()
+        {
+            return 0;
+        }
+        public XElement GetNodeByAttribute(string attributename)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// loads a permission file
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns>bool whether load was successful</returns>
+        public XDocument Load(string filename)
         {
             if (File.Exists(filename))
             {
                 try
                 {
-                    var content = File.ReadAllLines(filename);
-                    _iniFileContent = new Dictionary<string, Dictionary<string, string>>();
-                    string currentSectionName = string.Empty;
-                    foreach (var line in content)
-                    {
-                        Match m = _sectionRegex.Match(line);
-                        if (m.Success)
-                        {
-                            currentSectionName = m.Groups["SectionName"].Value;
-                        }
-                        else
-                        {
-                            m = _keyValueRegex.Match(line);
-                            if (m.Success)
-                            {
-                                string key = m.Groups["Key"].Value;
-                                string value = m.Groups["Value"].Value;
-
-                                Dictionary<string, string> kvpList;
-                                if (_iniFileContent.ContainsKey(currentSectionName))
-                                {
-                                    kvpList = _iniFileContent[currentSectionName];
-                                }
-                                else
-                                {
-                                    kvpList = new Dictionary<string, string>();
-                                }
-                                kvpList[key] = value;
-                                _iniFileContent[currentSectionName] = kvpList;
-                            }
-                        }
-                    }
-                    return true;
+                    return XDocument.Load(filename);
                 }
                 catch
                 {
-                    return false;
+                    return null;
                 }
 
             }
-            return false;
+            return null;
         }
 
-        //save 
-        public bool Save(string filename)
+        /// <summary>
+        /// Saves the permissions file, will create file if it does not exist
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns>bool whether file created successfully</returns>
+        private bool Save(string filename)
         {
-            var sb = new StringBuilder();
-            if (_iniFileContent != null)
-            {
-                foreach (var sectionName in _iniFileContent)
-                {
-                    sb.AppendFormat("[{0}]\r\n", sectionName.Key);
-                    foreach (var keyValue in sectionName.Value)
-                    {
-                        sb.AppendFormat("{0}={1}\r\n", keyValue.Key, keyValue.Value);
-                    }
-                }
-            }
+
             try
             {
-                File.WriteAllText(filename, sb.ToString());
+
                 return true;
             }
             catch
             {
                 return false;
             }
-        }
-
-        public void CreateConfigurationFile(string directory, string fileName)
-        {
-            string fullPath = directory + "/" + fileName;
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-            if (!File.Exists(fullPath))
-            {
-                Logger.Log(Logger.LogLevel.Info, "Creating file " + fullPath);
-                File.Create(fullPath);
-            }
-        }
-
-        public void CreateDefaultConfig()
-        {
-            var userValues = new Dictionary<string, string> { { "groups", "admin" }, { "commands", "list,home,time" } };
-            var groupValues = new Dictionary<string, string> { { "prefix", "[Admin]" }, { "suffix", "" }, { "commands", "list,home,time" } };
-            string exampleUsersFile = "data/exampleusers.ini";
-            string exampleGroupsFiles = "data/examplegroups.ini";
-            CreateConfigurationFile("Data", "users.ini");
-            CreateConfigurationFile("Data", "groups.ini");
-
-            if (!File.Exists(exampleUsersFile))
-            {
-                SetSection("ementalo", userValues);
-                Save("data/exampleusers.ini");
-                _iniFileContent = new Dictionary<string, Dictionary<string, string>>();
-            }
-            if (!File.Exists(exampleGroupsFiles))
-            {
-                SetSection("admin", groupValues);
-                Save("data/examplegroups.ini");
-            }
-
         }
     }
 }

@@ -10,5 +10,6 @@ namespace Chraft.Commands
         string Name { get; }
         string Shortcut { get; }
         CommandType Type { get; }
+        string Permission { get; }
     }
 }
