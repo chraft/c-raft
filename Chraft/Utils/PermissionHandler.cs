@@ -9,28 +9,33 @@ namespace Chraft.Utils
 {
     public class PermissionHandler : IPermissions
     {
-        private Configuration PermissionConfig;
-        private static XDocument PermissionXml;
+        private static Configuration _permissionConfig;
+        private static XDocument _permissionXml;
         private const string Permfile = "resources/Permissions.xml";
         private static Server _server;
 
         public PermissionHandler(Server server)
         {
             _server = server;
-            PermissionConfig = new Configuration(server, Permfile);
-            PermissionXml = PermissionConfig.Load(Permfile);
+            _permissionConfig = new Configuration(server, Permfile);
+            _permissionXml = _permissionConfig.Load(Permfile);
         }
 
         public ClientPermission LoadClientPermission(Client client)
         {
             //TODO - use ConfigurationClass for loading things
-            var p = new ClientPermission();
+            var p = new ClientPermission
+            {
+                Groups = new List<string>(),
+                AllowedPermissions = new List<string>(),
+                DeniedPermissions = new List<string>()
+            };
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm = PermissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
+            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
 
             //default group we grab the first with default attrbute defined
-            var gperm = PermissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
+            var gperm = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
             if (gperm == null)
             {
                 //no default defined
@@ -63,13 +68,7 @@ namespace Chraft.Utils
                 }
                 if (p.Groups != null)
                 {
-                    foreach (
-                        var el in
-                            p.Groups.Select(
-                                s =>
-                                PermissionXml.Descendants("Groups").Descendants("Group").Where(
-                                    n => (string)n.Attribute("Name") == s.ToLower())).SelectMany(
-                                        groupPerm => groupPerm))
+                    foreach (var el in p.Groups.Select(s => _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("Name") == s.ToLower())).SelectMany(groupPerm => groupPerm))
                     {
                         if (string.IsNullOrEmpty(p.Prefix))
                         {
@@ -81,8 +80,7 @@ namespace Chraft.Utils
                         }
                         if (p.CanBuild == null)
                         {
-                            p.CanBuild =
-                                bool.Parse(el.Element("CanBuild") == null ? null : el.Element("Suffix").Value);
+                            p.CanBuild = bool.Parse(el.Element("CanBuild") == null ? null : el.Element("Suffix").Value);
                         }
                         foreach (var element in el.Element("Permission").Elements())
                         {
@@ -90,7 +88,7 @@ namespace Chraft.Utils
                             {
                                 preAllowList.Add(element.Value);
                             }
-                            if (element.Name == "Disallowed")
+                            if (element.Name == "Denied")
                             {
                                 preDisallowedList.Add(element.Value);
                             }
@@ -115,7 +113,7 @@ namespace Chraft.Utils
                         {
                             preAllowList.Add(element.Value);
                         }
-                        if (element.Name == "Disallowed")
+                        if (element.Name == "Denied")
                         {
                             preDisallowedList.Add(element.Value);
                         }
@@ -256,9 +254,7 @@ namespace Chraft.Utils
         /// <returns>bool</returns>
         private bool GroupExists(string groupName)
         {
-            var count =
-                PermissionXml.Descendants("Groups").Descendants("Group").Where(
-                    n => n.Attribute("Name").Value.ToLower() == groupName.ToLower()).Count();
+            var count = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => n.Attribute("Name").Value.ToLower() == groupName.ToLower()).Count();
             return count > 0;
         }
 

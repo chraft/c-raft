@@ -76,7 +76,7 @@ namespace Chraft
             InitializePosition();
             InitializeRecv();
             PermHandler = new PermissionHandler(server);
-            Permissions = PermHandler.LoadClientPermission(this);
+            
         }
 
         private void InitializePosition()

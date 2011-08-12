@@ -1006,7 +1006,7 @@ namespace Chraft
                 Kick("Outdated client");
             else
             {
-                if (this.Server.UseOfficalAuthentication)
+                if (Server.UseOfficalAuthentication)
                 {
                     try
                     {
