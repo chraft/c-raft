@@ -23,7 +23,7 @@ namespace Chraft.Commands
             PointI start = client.SelectionStart.Value;
             PointI end = client.SelectionEnd.Value;
 
-            ItemStack item = client.Server.Items[tokens[2]];
+            ItemStack item = client.Server.Items[tokens[1]];
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
