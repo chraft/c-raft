@@ -19,7 +19,11 @@ namespace Chraft.Resources
             {
                 try
                 {
-                    //change this to take into account numerical values
+                    short numeric = -1;
+                    if(short.TryParse(item, out numeric))
+                    {
+                        item = ItemName(numeric);
+                    }
                     return Contains(item) ? new ItemStack(Items[item], Settings.Default.DefaultStackSize, Durabilities[item]) : ItemStack.Void;
                 }
                 catch (Exception)
@@ -49,11 +53,14 @@ namespace Chraft.Resources
                 Durabilities.Add(item, durability);
             }
         }
-
         public bool Contains(string item)
         {
             short numeric = -1;
-            return Items.ContainsKey(item) || (short.TryParse(item, out numeric) && numeric != -1 && Items.ContainsValue(numeric));
+            if (Items.ContainsKey(item))
+            {
+                return true;
+            }
+            return (short.TryParse(item, out numeric) && Items.ContainsValue(numeric));
         }
 
         public string ItemName(short item) // Returns top item name (...or Use Enum.Parse instead?)
