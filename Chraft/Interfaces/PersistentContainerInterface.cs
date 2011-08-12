@@ -117,30 +117,37 @@ namespace Chraft.Interfaces
 
         protected virtual void DoSaveToFile(ItemStack[] itemStack, string file)
         {
-            try
+            if (this.IsEmpty())
             {
-                using (FileStream fileStream = File.Create(file + ".tmp"))
+                File.Delete(file);
+            }
+            else
+            {
+                try
                 {
-                    using (BigEndianStream bigEndian = new BigEndianStream(fileStream))
+                    using (FileStream fileStream = File.Create(file + ".tmp"))
                     {
-                        foreach (ItemStack stack in itemStack)
+                        using (BigEndianStream bigEndian = new BigEndianStream(fileStream))
                         {
-                            if (stack != null)
+                            foreach (ItemStack stack in itemStack)
                             {
-                                stack.Write(bigEndian);
-                            }
-                            else
-                            {
-                                ItemStack.Void.Write(bigEndian);
+                                if (stack != null)
+                                {
+                                    stack.Write(bigEndian);
+                                }
+                                else
+                                {
+                                    ItemStack.Void.Write(bigEndian);
+                                }
                             }
                         }
                     }
                 }
-            }
-            finally
-            {
-                File.Delete(file);
-                File.Move(file + ".tmp", file);
+                finally
+                {
+                    File.Delete(file);
+                    File.Move(file + ".tmp", file);
+                }
             }
         }
 

@@ -46,21 +46,13 @@ namespace Chraft.Interfaces
             base.DoClose();
 
             // Drop all items from the workbench
-            for (short i = 0; i < SlotCount; i++)
+            if (_useProvidedDropCoordinates)
             {
-                ItemStack stack = Slots[i];
-                if (!ItemStack.IsVoid(stack))
-                {
-                    if (_useProvidedDropCoordinates)
-                    {
-                        this.Client.Server.DropItem(this.Client.World, DropX, DropY, DropZ, stack);
-                    }
-                    else
-                    {
-                        this.Client.Server.DropItem(this.Client, stack);
-                    }
-                    Slots[i] = ItemStack.Void;
-                }
+                base.DropAll(DropX, DropY, DropZ);
+            }
+            else
+            {
+                base.DropAll((int)this.Client.Position.X, (int)this.Client.Position.Y, (int)this.Client.Position.Z);
             }
         }
 	}

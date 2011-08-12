@@ -502,7 +502,8 @@ namespace Chraft.World
             Sandstone = 24,
             Note_Block = 25,
             Bed = 26,
-
+            
+            // TODO: add pistons, 29 and 33
             Cloth = 35,
             Wool = 35,
             Yellow_Flower = 37,
@@ -576,6 +577,8 @@ namespace Chraft.World
             Cake = 92,
             Redstone_Repeater = 93,
             Redstone_Repeater_On = 94
+            // TODO: add TrapDoor
+
         }
 
         public enum Items : short
@@ -709,6 +712,33 @@ namespace Chraft.World
             Green_Record = 2257
         }
 
+        /// <summary>
+        /// Block Flammability/Burn Efficiency -> value / 20 => number of seconds burn time. 10secs = 1 item cooked
+        /// </summary>
+        public static readonly Dictionary<Blocks, short> BlockBurnEfficiency = new Dictionary<Blocks, short>()
+        {
+            {Blocks.Bookshelf, 300},
+            {Blocks.Chest, 300},
+            {Blocks.Workbench, 300},
+            {Blocks.Fence, 300},
+            {Blocks.Jukebox, 300},
+            {Blocks.Note_Block, 300},
+            {Blocks.Log, 300},
+            {Blocks.Wood, 300},
+            {Blocks.Wooden_Stairs, 300},
+
+            {Blocks.Sapling, 100},
+        };
+
+        /// <summary>
+        /// Item Flammability/Burn Efficiency -> value / 20 => number of seconds burn time. 10secs = 1 item cooked
+        /// </summary>
+        public static readonly Dictionary<Items, short> ItemBurnEfficiency = new Dictionary<Items, short>()
+        {
+            {Items.Lava_Bucket, 20000},
+            {Items.Coal, 1600},
+            {Items.Stick, 100},
+        };
 
         public static readonly Dictionary<Items, short> ToolDuarability = new Dictionary<Items, short>() {
             // TODO: Put in a csv for user control.
