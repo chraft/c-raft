@@ -31,7 +31,7 @@ namespace Chraft.Commands
                 switch (tokens[1].ToLower())
                 {
                     case "build":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Build && client.CanUseCommand(c.Name) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Build && client.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -41,7 +41,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "mod":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Mod && client.CanUseCommand(c.Name) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Mod && client.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -52,7 +52,7 @@ namespace Chraft.Commands
                         break;
                     case "information":
                     case "info":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Information && client.CanUseCommand(c.Name) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Information && client.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -62,7 +62,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "other":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Other && client.CanUseCommand(c.Name) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Other && client.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -72,7 +72,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "short":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where client.CanUseCommand(c.Name) && !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
+                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where client.CanUseCommand(c) && !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -92,7 +92,7 @@ namespace Chraft.Commands
                         {
                             cmd.Help(client);
                             client.SendMessage("Type: " + cmd.Type.ToString());
-                            if (client.CanUseCommand(tokens[1]))
+                            if (client.CanUseCommand(cmd))
                             {
                                 client.SendMessage(ChatColor.BrightGreen + "You can use this command.");
                             }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Chraft.Commands;
-using NotImplementedException = sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 
 namespace Chraft.Utils
 {
@@ -23,7 +23,7 @@ namespace Chraft.Utils
             PermissionXml = PermissionConfig.Load(Permfile);
         }
 
-        public static ClientPermission LoadClientPermission(Client client)
+        public ClientPermission LoadClientPermission(Client client)
         {
             //TODO - use ConfigurationClass for loading things
             var p = new ClientPermission();
@@ -137,19 +137,14 @@ namespace Chraft.Utils
         /// <param name="playerName"></param>
         /// <param name="permissionNode"></param>
         /// <returns>bool</returns>
-        public static bool HasPermission(string playerName, string permissionNode)
+        public bool HasPermission(string playerName, string permissionNode)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
             return client != null && (client.Permissions.AllowedPermissions.Contains("*") || client.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) && !client.Permissions.DeniedPermissions.Contains(permissionNode.ToLower()));
         }
 
 
-        bool IPermissions.HasPermission(string playerName, string command)
-        {
-            return HasPermission(playerName, command);
-        }
-
-        /// <summary>
+   /// <summary>
         /// Check if a player is in a group
         /// </summary>
         /// <param name="playerName"></param>
@@ -161,16 +156,7 @@ namespace Chraft.Utils
             return client != null && client.Permissions.Groups.Contains(groupName.ToLower());
         }
 
-        string IPermissions.GetPlayerPrefix(string playerName)
-        {
-            return GetPlayerPrefix(playerName);
-        }
-
-        string IPermissions.GetPlayerSuffix(string playerName)
-        {
-            return GetPlayerSuffix(playerName);
-        }
-
+   
         public bool IsInGroup(Client client, string groupName)
         {
             return client.Permissions.Groups.Contains(groupName.ToLower());
@@ -180,7 +166,7 @@ namespace Chraft.Utils
         /// </summary>
         /// <param name="playerName"></param>
         /// <returns>value or null</returns>
-        public static string GetPlayerSuffix(string playerName)
+        public string GetPlayerSuffix(string playerName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
             return client != null ? client.Permissions.Suffix : string.Empty;
@@ -195,7 +181,7 @@ namespace Chraft.Utils
         /// </summary>
         /// <param name="playerName"></param>
         /// <returns>value or null</returns>
-        public static string GetPlayerPrefix(string playerName)
+        public string GetPlayerPrefix(string playerName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
             return client != null ? client.Permissions.Prefix : string.Empty;
@@ -254,7 +240,7 @@ namespace Chraft.Utils
         /// </summary>
         /// <param name="groupName"></param>
         /// <returns>bool</returns>
-        private static bool GroupExists(string groupName)
+        private bool GroupExists(string groupName)
         {
             var count =
                 PermissionXml.Descendants("Groups").Descendants("Group").Where(

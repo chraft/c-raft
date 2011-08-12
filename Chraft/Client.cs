@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Chraft.Commands;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -28,8 +29,8 @@ namespace Chraft
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         private volatile bool LoggedIn = false;
         private Interface CurrentInterface = null;
+        private PermissionHandler PermHandler;
         public ClientPermission Permissions;
-
         internal int SessionID { get; private set; }
 
         /// <summary>
@@ -74,7 +75,8 @@ namespace Chraft
             DisplayName = Username;
             InitializePosition();
             InitializeRecv();
-            Permissions = PermissionHandler.LoadClientPermission(this);
+            PermHandler = new PermissionHandler(server);
+            Permissions = PermHandler.LoadClientPermission(this);
         }
 
         private void InitializePosition()
@@ -587,20 +589,27 @@ namespace Chraft
 
 
         #region Permission related commands
-        //Check if the player has permissions to use the command
+        //Check if the player has permissions to use the command from a command object
+        public bool CanUseCommand(Command command)
+        {
+            return PermHandler.HasPermission(this, command);
+        }
+
+        //
         public bool CanUseCommand(string command)
         {
-            return PermissionHandler.HasPermission(Username, command);
+            return PermHandler.HasPermission(Username, command);
         }
+
         //Returns the players prefix
-        public string GetPlayerPrefix(string playerName)
+        public string GetPlayerPrefix()
         {
-            return PermissionHandler.GetPlayerPrefix(playerName);
+            return PermHandler.GetPlayerPrefix(this);
         }
         //returns the players suffix
-        public string GetPlayerSuffix(string playerName)
+        public string GetPlayerSuffix()
         {
-            return PermissionHandler.GetPlayerSuffix(playerName);
+            return PermHandler.GetPlayerSuffix(this);
         }
         #endregion
     }
