@@ -12,8 +12,6 @@ namespace Chraft.Utils
         private Configuration PermissionConfig;
         private static XDocument PermissionXml;
         private const string Permfile = "resources/Permissions.xml";
-        private Dictionary<string, string> _groupOutValue = new Dictionary<string, string>();
-        private Dictionary<string, string> _usersOutValue = new Dictionary<string, string>();
         private static Server _server;
 
         public PermissionHandler(Server server)
@@ -29,31 +27,48 @@ namespace Chraft.Utils
             var p = new ClientPermission();
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm =
-                PermissionXml.Descendants("Users").Descendants("User").Where(
-                    n => n.Attribute("Name").Value.ToLower() == client.Username.ToLower());
-            if (perm.Count() > 0)
+            var perm = PermissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
+
+            //default group we grab the first with default attrbute defined
+            var gperm = PermissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
+            if (gperm == null)
             {
-                foreach (var xElement in perm)
+                //no default defined
+                _server.Logger.Log(Logger.LogLevel.Warning, "Required default group is not defined in permissions file. Add IsDefault=\"true\" to a group");
+                return null;
+            }
+            if (perm != null)
+            {
+                if (perm.Attribute("Groups") == null)
                 {
-                    p.Groups = xElement.Attribute("Groups") == null
-                                   ? null
-                                   : xElement.Attribute("Groups").Value.Split(',');
-                    p.Prefix = xElement.Element("Prefix") == null ? string.Empty : xElement.Element("Prefix").Value;
-                    p.Suffix = xElement.Element("Suffix") == null ? string.Empty : xElement.Element("Suffix").Value;
-                    p.CanBuild = bool.Parse(xElement.Element("CanBuild").Value);
-                    foreach (var element in xElement.Element("Permission").Elements())
+                    p.Groups.Add((string)gperm.Attribute("Name"));
+                }
+                else
+                {
+                    p.Groups.AddRange(perm.Attribute("Groups").Value.Split(','));
+                }
+                p.Prefix = perm.Element("Prefix") == null ? string.Empty : perm.Element("Prefix").Value;
+                p.Suffix = perm.Element("Suffix") == null ? string.Empty : perm.Element("Suffix").Value;
+                p.CanBuild = bool.Parse(perm.Element("CanBuild").Value);
+                foreach (var element in perm.Element("Permission").Elements())
+                {
+                    if (element.Name == "Allowed")
                     {
-                        if (element.Name == "Allowed")
-                        {
-                            preAllowList.Add(element.Value);
-                        }
-                        if (element.Name == "Disallowed")
-                        {
-                            preDisallowedList.Add(element.Value);
-                        }
+                        preAllowList.Add(element.Value);
                     }
-                    foreach (var el in p.Groups.Select(s => PermissionXml.Descendants("Groups").Descendants("Group").Where(n => n.Attribute("Name").Value.ToLower() == s.ToLower())).SelectMany(
+                    if (element.Name == "Disallowed")
+                    {
+                        preDisallowedList.Add(element.Value);
+                    }
+                }
+                if (p.Groups != null)
+                {
+                    foreach (
+                        var el in
+                            p.Groups.Select(
+                                s =>
+                                PermissionXml.Descendants("Groups").Descendants("Group").Where(
+                                    n => (string)n.Attribute("Name") == s.ToLower())).SelectMany(
                                         groupPerm => groupPerm))
                     {
                         if (string.IsNullOrEmpty(p.Prefix))
@@ -66,7 +81,8 @@ namespace Chraft.Utils
                         }
                         if (p.CanBuild == null)
                         {
-                            p.CanBuild = bool.Parse(el.Element("CanBuild") == null ? null : el.Element("Suffix").Value);
+                            p.CanBuild =
+                                bool.Parse(el.Element("CanBuild") == null ? null : el.Element("Suffix").Value);
                         }
                         foreach (var element in el.Element("Permission").Elements())
                         {
@@ -85,39 +101,36 @@ namespace Chraft.Utils
             }
             else
             {
-                //default group we grab the first with default attrbute defined
-                var gperm =
-                    PermissionXml.Descendants("Groups").Descendants("Group").Where(
-                        n => n.Attribute("IsDefault").Value.ToLower() == "true").FirstOrDefault();
-                p.Groups = gperm.Attribute("Groups") == null
-                                   ? null
-                                   : gperm.Attribute("Groups").Value.Split(',');
+                p.Groups.Add((string)gperm.Attribute("Name"));
                 p.Prefix = gperm.Element("Prefix") == null ? string.Empty : gperm.Element("Prefix").Value;
                 p.Suffix = gperm.Element("Suffix") == null ? string.Empty : gperm.Element("Suffix").Value;
-                p.CanBuild = bool.Parse(gperm.Element("CanBuild").Value);
-                foreach (var element in gperm.Element("Permission").Elements())
+                bool bCanBuild;
+                bool.TryParse((string)gperm.Element("CanBuild"), out bCanBuild);
+                p.CanBuild = bCanBuild;
+                if (gperm.Element("Permission") != null)
                 {
-                    if (element.Name == "Allowed")
+                    foreach (var element in gperm.Element("Permission").Elements())
                     {
-                        preAllowList.Add(element.Value);
-                    }
-                    if (element.Name == "Disallowed")
-                    {
-                        preDisallowedList.Add(element.Value);
+                        if (element.Name == "Allowed")
+                        {
+                            preAllowList.Add(element.Value);
+                        }
+                        if (element.Name == "Disallowed")
+                        {
+                            preDisallowedList.Add(element.Value);
+                        }
                     }
                 }
             }
             p.AllowedPermissions = RemoveDuplicates(preAllowList);
             p.DeniedPermissions = RemoveDuplicates(preDisallowedList);
             return p;
-
         }
 
         static List<string> RemoveDuplicates(IEnumerable<string> inputList)
         {
             var uniqueStore = new Dictionary<string, int>();
             var finalList = new List<string>();
-
             foreach (string currValue in inputList.Where(currValue => !uniqueStore.ContainsKey(currValue)))
             {
                 uniqueStore.Add(currValue, 0);
@@ -144,7 +157,7 @@ namespace Chraft.Utils
         }
 
 
-   /// <summary>
+        /// <summary>
         /// Check if a player is in a group
         /// </summary>
         /// <param name="playerName"></param>
@@ -156,7 +169,7 @@ namespace Chraft.Utils
             return client != null && client.Permissions.Groups.Contains(groupName.ToLower());
         }
 
-   
+
         public bool IsInGroup(Client client, string groupName)
         {
             return client.Permissions.Groups.Contains(groupName.ToLower());
@@ -187,10 +200,10 @@ namespace Chraft.Utils
             return client != null ? client.Permissions.Prefix : string.Empty;
         }
 
-         public string GetPlayerPrefix(Client client)
-         {
-             return client.Permissions.Prefix;
-         }
+        public string GetPlayerPrefix(Client client)
+        {
+            return client.Permissions.Prefix;
+        }
         /// <summary>
         /// Return the prefix of a specific group
         /// </summary>
@@ -198,7 +211,8 @@ namespace Chraft.Utils
         /// <returns>value or null</returns>
         public string GetGroupPrefix(string groupName)
         {
-            return GroupExists(groupName) ? (from u in _groupOutValue where u.Key == "prefix" select u.Value).FirstOrDefault() : null;
+            throw new NotImplementedException();
+            // return GroupExists(groupName) ? (from u in _groupOutValue where u.Key == "prefix" select u.Value).FirstOrDefault() : null;
         }
 
         /// <summary>
@@ -209,7 +223,7 @@ namespace Chraft.Utils
         public string GetGroupSuffix(string groupName)
         {
             throw new NotImplementedException();
-         //   return GroupExists(groupName) ? (from u in _groupOutValue where u.Key == "suffix" select u.Value).FirstOrDefault() : null;
+            //   return GroupExists(groupName) ? (from u in _groupOutValue where u.Key == "suffix" select u.Value).FirstOrDefault() : null;
         }
 
         /// <summary>
