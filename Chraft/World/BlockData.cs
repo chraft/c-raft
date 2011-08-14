@@ -713,7 +713,7 @@ namespace Chraft.World
         }
 
         /// <summary>
-        /// Block Flammability/Burn Efficiency -> value / 20 => number of seconds burn time. 10secs = 1 item cooked
+        /// Block Flammability/Burn Efficiency measured in world ticks (x0.05secs). Value / 20 => number of seconds burn time. 10secs = 1 item smelted
         /// </summary>
         public static readonly Dictionary<Blocks, short> BlockBurnEfficiency = new Dictionary<Blocks, short>()
         {
@@ -731,7 +731,7 @@ namespace Chraft.World
         };
 
         /// <summary>
-        /// Item Flammability/Burn Efficiency -> value / 20 => number of seconds burn time. 10secs = 1 item cooked
+        /// Item Flammability/Burn Efficiency measured in world ticks (x0.05secs). Value / 20 => number of seconds burn time. 10secs = 1 item smelted
         /// </summary>
         public static readonly Dictionary<Items, short> ItemBurnEfficiency = new Dictionary<Items, short>()
         {

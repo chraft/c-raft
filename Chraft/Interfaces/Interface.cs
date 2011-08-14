@@ -19,7 +19,7 @@ namespace Chraft.Interfaces
 
 		public event EventHandler<InterfaceClickedEventArgs> Clicked;
 
-		public ItemStack[] Slots { get; set; }
+		public virtual ItemStack[] Slots { get; set; }
         public short SlotCount { get { return (short)Slots.Length; } }
 		public string Title { get; set; }
         internal sbyte Handle { get; set; }
@@ -30,7 +30,7 @@ namespace Chraft.Interfaces
 		protected bool _IsOpen = false;
 		public bool IsOpen { get { return _IsOpen; } }
 
-        public ItemStack this[int slot]
+        public virtual ItemStack this[int slot]
 		{
 			get
 			{
@@ -61,7 +61,7 @@ namespace Chraft.Interfaces
 			Handle = NextHandle;
 			Slots = new ItemStack[slotCount];
 			Title = "C#raft Interface";
-			NextHandle = NextHandle == 127 ? (sbyte)0 : (sbyte)(NextHandle + 1);
+			NextHandle = NextHandle == 127 ? (sbyte)1 : (sbyte)(NextHandle + 1); // Handles between 1 and 127. 0 is reserved for Inventory
 		}
 
 		protected void StartTransaction()
@@ -212,9 +212,14 @@ namespace Chraft.Interfaces
 			}
 		}
 
-		private void ItemStack_Changed(object sender, EventArgs e)
+        protected virtual void OnItemStackChanged(ItemStack stack)
+        {
+            SendUpdate(stack.Slot);
+        }
+
+        private void ItemStack_Changed(object sender, EventArgs e)
 		{
-			SendUpdate(((ItemStack)sender).Slot);
+            OnItemStackChanged(((ItemStack)sender));
 		}
 
 		public virtual void Associate(Client client)
@@ -223,7 +228,11 @@ namespace Chraft.Interfaces
 			client.AssociateInterface(this);
 		}
 
-		public void Open()
+        protected virtual void DoOpen()
+        {
+        }
+
+        public void Open()
 		{
 			PacketHandler.SendPacket(new OpenWindowPacket
 			{
@@ -232,7 +241,10 @@ namespace Chraft.Interfaces
 				InventoryType = Type,
 				SlotCount = (sbyte)SlotCount
 			});
+
+            DoOpen();
             _IsOpen = true;
+
             UpdateClient();
 		}
 

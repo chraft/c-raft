@@ -574,6 +574,13 @@ namespace Chraft
                 ((WorkbenchInterface)CurrentInterface).Open(bx, by, bz);
                 return;
             }
+            else if (type == BlockData.Blocks.Furnace || type == BlockData.Blocks.Burning_Furnace)
+            {
+                CurrentInterface = new FurnaceInterface(World, x, y, z);
+                CurrentInterface.Associate(this);
+                CurrentInterface.Open();
+                return;
+            }
 
 
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)

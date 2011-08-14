@@ -1325,8 +1325,20 @@ namespace Chraft.Net.Packets
 
     public class UpdateProgressBarPacket : Packet
     {
+        /// <summary>
+        /// The id of the window that the progress bar is in.
+        /// </summary>
         public sbyte WindowId { get; set; }
+        /// <summary>
+        /// Which of the progress bars that should be updated. (For furnaces, 0 = progress arrow, 1 = fire icon)
+        /// </summary>
         public short ProgressBar { get; set; }
+        /// <summary>
+        /// <para>The value of the progress bar. </para>
+        /// <para>
+        /// The maximum values vary depending on the progress bar. Presumably the values are specified as in-game ticks. Some progress bar values increase, while others decrease. For furnaces, 0 is empty, full progress arrow = about 180, full fire icon = about 250)
+        /// </para>
+        /// </summary>
         public short Value { get; set; }
 
         public override void Read(BigEndianStream stream)

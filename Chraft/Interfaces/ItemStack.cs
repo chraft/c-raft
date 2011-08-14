@@ -121,6 +121,10 @@ namespace Chraft.Interfaces
         /// </summary>
         /// <param name="stack">The stack to be compared with the current object.</param>
         /// <returns>True if the objects stack; otherwise false.</returns>
+        /// <remarks>
+        /// <para>This method does not take into consideration whether or not the item type can be stacked (e.g. pork).</para>
+        /// <para>This method is used under this assumption throughout the server.</para>
+        /// </remarks>
         public bool StacksWith(ItemStack stack)
         {
             return Type == stack.Type && stack.Durability == Durability;

@@ -98,5 +98,11 @@
     <Setting Name="ContainersFolder" Type="System.String" Scope="User">
       <Value Profile="(Default)">Containers</Value>
     </Setting>
+    <Setting Name="SmeltingRecipesFile" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Resources/Smelting.dat</Value>
+    </Setting>
+    <Setting Name="UseOfficalAuthentication" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

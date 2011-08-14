@@ -152,6 +152,7 @@
     <Compile Include="Interfaces\ItemStack.cs" />
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
+    <Compile Include="Interfaces\Recipes\SmeltingRecipe.cs" />
     <Compile Include="Interfaces\SingleContainerInterface.cs" />
     <Compile Include="Interfaces\SmallChestInterface.cs" />
     <Compile Include="Interfaces\WorkbenchInterface.cs" />

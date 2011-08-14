@@ -99,6 +99,11 @@ namespace Chraft
         public static Recipe[] Recipes { get; private set; }
 
         /// <summary>
+        /// Gets a list of user-defined smelting recipes known to the server.
+        /// </summary>
+        public static SmeltingRecipe[] SmeltingRecipes { get; private set; }
+
+        /// <summary>
         /// Gets the IRC client, if it has been initialized.
         /// </summary>
         public IrcClient Irc { get; private set; }
@@ -116,7 +121,7 @@ namespace Chraft
         internal Server()
         {
             ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
-            UseOfficalAuthentication = true;
+            UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
 
             Clients = new Dictionary<int, Client>();
             Rand = new Random();
@@ -125,6 +130,7 @@ namespace Chraft
             PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
             Items = new ItemDb(Settings.Default.ItemsFile);
             Recipes = Recipe.FromFile(Settings.Default.RecipesFile);
+            SmeltingRecipes = SmeltingRecipe.FromFile(Settings.Default.SmeltingRecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
             ServerCommandHandler = new ServerCommandHandler();
             if (Settings.Default.IrcEnabled)
@@ -134,6 +140,12 @@ namespace Chraft
         public static Recipe[] GetRecipes() {
             lock(Recipes)
                 return Recipes;
+        }
+
+        public static SmeltingRecipe[] GetSmeltingRecipes()
+        {
+            lock (SmeltingRecipes)
+                return SmeltingRecipes;
         }
 
         private void InitializeIrc()

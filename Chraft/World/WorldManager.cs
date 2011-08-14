@@ -32,10 +32,26 @@ namespace Chraft.World
 
         private volatile int _Time;
         private readonly object _TimeWriteLock = new object();
+        /// <summary>
+        /// In units of 0.05 seconds (between 0 and 23999)
+        /// </summary>
         public int Time
         {
             get { return _Time; }
             set { lock (_TimeWriteLock) _Time = value; }
+        }
+
+        private volatile uint _worldTicks = 0;
+        
+        /// <summary>
+        /// The current World Tick independant of the world's current Time (1 tick = 0.05 secs with a max value of 4,294,967,295 gives approx. 6.9 years of ticks)
+        /// </summary>
+        public uint WorldTicks
+        {
+            get
+            {
+                return _worldTicks;
+            }
         }
 
         public Chunk this[int x, int z]
@@ -184,6 +200,9 @@ namespace Chraft.World
 
         private void GlobalTickProc(object state)
         {
+            // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
+            _worldTicks++;
+
             int time;
             lock (_TimeWriteLock)
             {	// Lock Time so that others cannot write to it
@@ -195,7 +214,8 @@ namespace Chraft.World
                 }
             }
 
-            if (time % 200 == 0)
+            // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
+            if (this.WorldTicks % 200 == 0)
             {	// Triggered once every ten seconds
                 Thread thread = new Thread(Server.DoPulse);
                 thread.IsBackground = true;

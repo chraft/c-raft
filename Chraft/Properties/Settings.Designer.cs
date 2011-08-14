@@ -407,5 +407,29 @@ namespace Chraft.Properties {
                 this["ContainersFolder"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Resources/Smelting.dat")]
+        public string SmeltingRecipesFile {
+            get {
+                return ((string)(this["SmeltingRecipesFile"]));
+            }
+            set {
+                this["SmeltingRecipesFile"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UseOfficalAuthentication {
+            get {
+                return ((bool)(this["UseOfficalAuthentication"]));
+            }
+            set {
+                this["UseOfficalAuthentication"] = value;
+            }
+        }
     }
 }
