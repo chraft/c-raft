@@ -455,7 +455,7 @@ namespace Chraft
             int radius = Settings.Default.SightRadius << 4;
             foreach (Client c in GetClients())
             {
-                if (c.World == world && Math.Abs(x - c.Position.X) <= radius && Math.Abs(z - c.Position.Z) <= radius)
+                if (c.World == world && Math.Abs(x - c.Position.X) <= radius && Math.Abs(y - c.Position.Y) <= radius && Math.Abs(z - c.Position.Z) <= radius)
                     yield return c;
             }
         }
@@ -473,7 +473,7 @@ namespace Chraft
             int radius = Settings.Default.SightRadius << 4;
             foreach (EntityBase e in GetEntities())
             {
-                if (e.World == world && Math.Abs(x - e.Position.X) <= radius && Math.Abs(z - e.Position.Z) <= radius)
+                if (e.World == world && Math.Abs(x - e.Position.X) <= radius && Math.Abs(y - e.Position.Y) <= radius && Math.Abs(z - e.Position.Z) <= radius)
                     yield return e;
             }
         }
