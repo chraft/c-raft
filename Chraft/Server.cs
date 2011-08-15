@@ -443,6 +443,22 @@ namespace Chraft
         }
 
         /// <summary>
+        /// Sends a packet in parallel to each nearby player.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="x">The center X coordinate.</param>
+        /// <param name="y">The center Y coordinate.</param>
+        /// <param name="z">The center Z coordinate.</param>
+        /// <param name="packet">The packet to send</param>
+        public void SendPacketToNearbyPlayers(WorldManager world, double x, double y, double z, Packet packet)
+        {
+            System.Threading.Tasks.Parallel.ForEach(this.GetNearbyPlayers(world, x, y, z), (client) =>
+            {
+                client.PacketHandler.SendPacket(packet);
+            });
+        }
+
+        /// <summary>
         /// Yields an enumerable of nearby players, thread-safe.
         /// </summary>
         /// <param name="world">The world containing the coordinates.</param>

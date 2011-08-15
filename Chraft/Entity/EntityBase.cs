@@ -24,8 +24,14 @@ namespace Chraft.Entity
         //public double Z { get; set; }
         public float Yaw { get; set; }
         public float Pitch { get; set; }
-        public short Health { get; set; }
-        public short MaxHealth { get; set; }
+        /// <summary>
+        /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts
+        /// </summary>
+        public virtual short Health { get; set; }
+        /// <summary>
+        /// MaxHealth for this entity represented as "halves of a heart".
+        /// </summary>
+        public virtual short MaxHealth { get { return 10; } }
         public sbyte PackedYaw { get { return (sbyte)(Yaw / 360.0f * 256.0f % 256.0f); } }
         public sbyte PackedPitch { get { return (sbyte)(Pitch / 360.0f * 256.0f % 256.0f); } }
         public Server Server { get; private set; }

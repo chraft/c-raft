@@ -338,7 +338,6 @@ namespace Chraft
                 return;
             Server.RemoveEntity(item);
 
-
             foreach (Client c in Server.GetNearbyPlayers(item.World, item.Position.X, item.Position.Y, item.Position.Z))
             {
                 c.PacketHandler.SendPacket(new CollectItemPacket

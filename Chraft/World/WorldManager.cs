@@ -303,7 +303,7 @@ namespace Chraft.World
 
         private void MovProc()
         {
-            foreach (EntityBase e in Server.GetEntities())
+            foreach (EntityBase e in Server.GetEntities().Where((entity) => entity.World == this))
             {
                 e.TimeInWorld++;
 
@@ -367,7 +367,7 @@ namespace Chraft.World
                 case 3: type = MobType.Sheep; break;
             }
 
-            Mob mob = new Mob(Server, Server.AllocateEntity(), type);
+            Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
 
             switch (type) // Assign type specific stats
             {
@@ -411,7 +411,7 @@ namespace Chraft.World
                 }
             }
 
-            Mob mob = new Mob(Server, Server.AllocateEntity(), type);
+            Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
 
             switch (type) // Assign type specific stats
             {

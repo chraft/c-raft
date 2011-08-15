@@ -9,26 +9,28 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Entity
 {
-	public partial class Mob : EntityBase
+	public abstract partial class Mob : EntityBase
 	{
-		public MobType Type { get; set; }
-		public MetaData Data { get; private set; }
+        public abstract string Name { get; }
+        public abstract short AttackStrength { get; }
+
+        public MobType Type { get; set; }
+		public MetaData Data { get; internal set; }
 
         public int AttackRange; // Clients within this range will take damage
         public int SightRange; // Clients within this range will be hunted
         public int GotoLoc; // Location as int entity should move towards
         public Vector3 gotoPos; // Location entity should move towards
-        
-		public Mob(Server server, int entityId, MobType type)
-			: this(server, entityId, type, new MetaData())
-		{
-		}
 
-		public Mob(Server server, int entityId, MobType type, MetaData data)
-			: base(server, entityId)
+        protected Mob(WorldManager world, int entityId, MobType type, MetaData data)
+			: base(world.Server, entityId)
 		{
-			Data = data;
-			Type = type;
+            if (data == null)
+                data = new MetaData();
+            this.Data = data;
+            this.Type = type;
+            this.World = world;
+            this.Health = this.MaxHealth;
 		}
 
         public void DamageMob(Client hitBy = null)
@@ -76,7 +78,7 @@ namespace Chraft.Entity
                 //End Event
 
                 //Debug
-                hitBy.SendMessage("You hit a " + this.Type.ToString() + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
+                hitBy.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
                 this.Health -= damage;
             }
             else
@@ -113,6 +115,11 @@ namespace Chraft.Entity
             if (this.Health == 0) HandleDeath(hitBy);
         }
 
+        /// <summary>
+        /// Perform any item drop logic during death
+        /// </summary>
+        //protected abstract void DoDrop();
+
         public void HandleDeath(Client hitBy = null)
         {
             //Event
@@ -127,16 +134,15 @@ namespace Chraft.Entity
                 // TODO: Stats/Achievement hook or something
             }
 
-            foreach (Client c in World.Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
-            {
-                c.PacketHandler.SendPacket(new EntityStatusPacket // Death Action
+            World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z, 
+                new EntityStatusPacket // Death Action
                 {
                     EntityId = this.EntityId,
                     EntityStatus = 3
                 });
-            }
 
-            // TODO: Spawn goodies
+            // Spawn goodies
+            //DoDrop();
 
             System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
 
@@ -148,6 +154,13 @@ namespace Chraft.Entity
             };
 
             removeTimer.Start();
+        }
+
+        public void Despawn()
+        {
+            this.Server.RemoveEntity(this);
+
+            // Client.UpdateEntities() will handle any notifications about this entity disappearing
         }
 	}
 }
