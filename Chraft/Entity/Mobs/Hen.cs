@@ -20,6 +20,14 @@ namespace Chraft.Entity.Mobs
             }
         }
 
+        public override short MaxHealth
+        {
+            get
+            {
+                return 4; // 2 hearts;
+            }
+        }
+
         internal Hen(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Hen, data)
         {

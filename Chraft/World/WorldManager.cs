@@ -369,17 +369,6 @@ namespace Chraft.World
 
             Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
 
-            switch (type) // Assign type specific stats
-            {
-                case MobType.Cow: mob.Health = 10; break;
-                case MobType.Hen: mob.Health = 5; break;
-                case MobType.Pig: mob.Health = 10; break;
-                case MobType.Sheep: mob.Health = 10; break;
-                case MobType.PigZombie: mob.Health = 10; break;
-                case MobType.Squid: mob.Health = 10; break;
-                case MobType.Wolf: mob.Health = 10; break;
-            }
-
             mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
 
@@ -412,17 +401,6 @@ namespace Chraft.World
             }
 
             Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
-
-            switch (type) // Assign type specific stats
-            {
-                case MobType.Zombie: mob.Health = 10; break;
-                case MobType.Skeleton: mob.Health = 10; break;
-                case MobType.Creeper: mob.Health = 10; break;
-                case MobType.Spider: mob.Health = 10; break;
-                case MobType.Ghast: mob.Health = 10; break;
-                case MobType.Giant: mob.Health = 10; break;
-                case MobType.Slime: mob.Health = 10; break;
-            }
 
             mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
             mob.World = this;
