@@ -291,7 +291,7 @@ namespace Chraft.Interfaces
                     _burnForTicks = BlockData.ItemBurnEfficiency[(BlockData.Items)this[FUEL_SLOT].Type];
 
                 // Set block to burning furnace
-                this.World.SetBlockAndData(this.X, this.Y, this.Z, (byte)BlockData.Blocks.Burning_Furnace, 0);
+                this.World.SetBlockAndData(this.X, this.Y, this.Z, (byte)BlockData.Blocks.Burning_Furnace, this.World.GetBlockData(this.X, this.Y, this.Z));
                 _burnerStartTick = this.World.WorldTicks;
                 _furnaceInstance.IsBurning = true;
 
