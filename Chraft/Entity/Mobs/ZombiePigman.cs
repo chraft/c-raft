@@ -24,5 +24,12 @@ namespace Chraft.Entity.Mobs
             : base(world, entityId, MobType.PigZombie, data)
         {
         }
+
+        protected override void DoDeath()
+        {
+            sbyte count = (sbyte)Server.Rand.Next(3);
+            if (count > 0)
+                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Grilled_Pork, count, 0));
+        }
     }
 }

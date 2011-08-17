@@ -261,16 +261,20 @@ namespace Chraft
                     }
                     else
                     {
+                        // We are interacting with a Mob - tell it what we are using to interact with it
+                        m.InteractWith(this, this.Inventory.ActiveItem);
+
+                        // TODO: move the following to appropriate mob locations
                         // TODO: Check Entity has saddle set.
-                        // This will ride the entity, sends -1 to dismount.
-                        foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
-                        {
-                            c.PacketHandler.SendPacket(new AttachEntityPacket
-                            {
-                                EntityId = this.EntityId,
-                                VehicleId = c.EntityId
-                            });
-                        }
+                        //// This will ride the entity, sends -1 to dismount.
+                        //foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+                        //{
+                        //    c.PacketHandler.SendPacket(new AttachEntityPacket
+                        //    {
+                        //        EntityId = this.EntityId,
+                        //        VehicleId = c.EntityId
+                        //    });
+                        //}
                     }
                 }
                 /*else
@@ -324,7 +328,7 @@ namespace Chraft
             // if(!Permissions.CanPlayerBuild(Username)) return;
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 255)
                 return;
-
+            
             int x = e.Packet.X;
             int y = e.Packet.Y;
             int z = e.Packet.Z;

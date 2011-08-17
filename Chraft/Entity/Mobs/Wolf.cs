@@ -24,5 +24,9 @@ namespace Chraft.Entity.Mobs
             : base(world, entityId, MobType.Wolf, data)
         {
         }
+
+        protected override void DoDeath()
+        {
+        }
     }
 }
