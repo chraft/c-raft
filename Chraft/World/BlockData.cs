@@ -707,6 +707,8 @@ namespace Chraft.World
             Bed = 355,
             Redstone_Repeater = 356,
             Cookie = 357,
+            Map = 358,
+            Shears = 359,
 
             Gold_Record = 2256,
             Green_Record = 2257

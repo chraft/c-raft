@@ -23,6 +23,13 @@ namespace Chraft.Entity.Mobs
         internal Wolf(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Wolf, data)
         {
+            this.Data.IsSitting = false;
+            this.Data.IsTamed = false;
+            this.Data.IsTamed = false;
+        }
+
+        protected override void DoDeath()
+        {
         }
     }
 }

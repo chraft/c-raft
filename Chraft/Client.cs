@@ -107,7 +107,7 @@ namespace Chraft
 
         private void InitializeHealth()
         {
-            if (Health == 0)
+            if (Health <= 0)
             {
                 Health = 20;
             }

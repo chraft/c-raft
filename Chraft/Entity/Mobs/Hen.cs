@@ -32,5 +32,12 @@ namespace Chraft.Entity.Mobs
             : base(world, entityId, MobType.Hen, data)
         {
         }
+
+        protected override void DoDeath()
+        {
+            sbyte count = (sbyte)Server.Rand.Next(2);
+            if (count > 0)
+                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Feather, count, 0));
+        }
     }
 }

@@ -33,6 +33,16 @@ namespace Chraft.Entity
             this.Health = this.MaxHealth;
 		}
 
+        protected void SendMetadataUpdate()
+        {
+            World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z,
+               new EntityMetadataPacket // Metadata update
+               {
+                   EntityId = this.EntityId,
+                   Data = this.Data
+               });
+        }
+
         public void DamageMob(Client hitBy = null)
         {
             
@@ -115,10 +125,26 @@ namespace Chraft.Entity
             if (this.Health == 0) HandleDeath(hitBy);
         }
 
+        protected virtual void DoInteraction(Client client, ItemStack item)
+        {
+        }
+
+        /// <summary>
+        /// When a player interacts with a mob (right-click) with an item / hand
+        /// </summary>
+        /// <param name="client">The client that is interacting</param>
+        /// <param name="item">The item being used (could be Void e.g. Hand)</param>
+        public void InteractWith(Client client, ItemStack item)
+        {
+            // TODO: create a plugin event for this action
+
+            DoInteraction(client, item);
+        }
+
         /// <summary>
         /// Perform any item drop logic during death
         /// </summary>
-        //protected abstract void DoDrop();
+        protected abstract void DoDeath();
 
         public void HandleDeath(Client hitBy = null)
         {
@@ -129,10 +155,11 @@ namespace Chraft.Entity
             hitBy = e.KilledBy;
             //End Event
             
-            if (hitBy != null)
-            {
-                // TODO: Stats/Achievement hook or something
-            }
+            // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
+            //if (hitBy != null)
+            //{
+            //    // TODO: Stats/Achievement hook or something
+            //}
 
             World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z, 
                 new EntityStatusPacket // Death Action
@@ -141,8 +168,8 @@ namespace Chraft.Entity
                     EntityStatus = 3
                 });
 
-            // Spawn goodies
-            //DoDrop();
+            // Spawn goodies / perform achievements etc..
+            DoDeath();
 
             System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
 

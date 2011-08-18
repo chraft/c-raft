@@ -232,7 +232,11 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+<<<<<<< HEAD
+=======
+    <Compile Include="Utils\PermissionConfiguration.cs" />
     <Compile Include="Utils\ProportionValue.cs" />
+>>>>>>> 9b5822e88982ed4fd5b6f6df7353bae7cb446701
     <Compile Include="World\BlockData.cs">
       <SubType>Code</SubType>
     </Compile>
