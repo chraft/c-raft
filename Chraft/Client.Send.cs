@@ -247,10 +247,15 @@ namespace Chraft
                 });
             }
             else
-            {
-                SendEntity(entity);
-                SendTeleportTo(entity);
-            }
+                if (entity is TileEntity)
+                {
+                    
+                }
+                else
+                {
+                    SendEntity(entity);
+                    SendTeleportTo(entity);
+                }
         }
 
         internal void SendEntity(EntityBase entity)

@@ -26,12 +26,12 @@ namespace Chraft.Interfaces
         protected World.WorldManager World { get; private set; }
 
         internal PersistentContainerInterface(World.WorldManager world, InterfaceType interfaceType, sbyte slotCount)
-			: base(interfaceType, slotCount)
-		{
+            : base(interfaceType, slotCount)
+        {
             this.World = world;
 
             EnsureDirectory();
-		}
+        }
 
         static bool directoryInitialised = false;
         private void EnsureDirectory()

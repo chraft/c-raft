@@ -23,7 +23,7 @@ namespace Chraft
 {
     public class Server
     {
-        private readonly PermissionConfiguration Permissions = null;
+       
         private volatile int NextEntityId = 0;
         private bool Running = true;
         private TcpListener Tcp = null;
@@ -122,11 +122,9 @@ namespace Chraft
         {
             ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
-
             Clients = new Dictionary<int, Client>();
             Rand = new Random();
             Logger = new Logger(this, Settings.Default.LogFile);
-            Permissions = new PermissionConfiguration(this);
             PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
             Items = new ItemDb(Settings.Default.ItemsFile);
             Recipes = Recipe.FromFile(Settings.Default.RecipesFile);

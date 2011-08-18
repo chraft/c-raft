@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Net.Packets;
-using Chraft.World;
-using System.IO;
-using System.IO.Compression;
+﻿using Chraft.World;
 using java.util.zip;
 
-namespace Chraft.Net
+namespace Chraft.Net.Packets
 {
 	public class MapChunkPacket : Packet
 	{
