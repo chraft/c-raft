@@ -124,6 +124,13 @@ namespace Chraft
                                     //event end
 
                                     DamageClient(DamageCause.Fall, null, roundedValue);
+
+                                    if (this.Health <= 0)
+                                    {
+                                        // Make sure that we don't think we have fallen onto the respawn
+                                        _lastGroundY = -1;
+                                        _beginInAirY = -1;
+                                    }
                                 }
                             }
                             else if (blockCount < -0.5)
