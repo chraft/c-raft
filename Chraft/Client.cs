@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Chraft.Commands;
 using Chraft.Entity;
+using Chraft.Entity.Mobs;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
@@ -194,9 +195,16 @@ namespace Chraft
         /// </summary>
         /// <param name="cause"></param>
         /// <param name="hitBy">The Client hurting the current Client.</param>
-        /// <param name="args"></param>
+        /// <param name="args">First argument should always be the damage amount.</param>
         public void DamageClient(DamageCause cause, EntityBase hitBy = null, params object[] args)
         {
+
+            //event start
+            EntityDamageEventArgs entevent = new EntityDamageEventArgs(this, Convert.ToInt16(args[0]), null, cause);
+            Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
+            if (entevent.EventCanceled) return;
+            //event end
+
             switch (cause)
             {
                 case DamageCause.BlockExplosion:
@@ -208,13 +216,13 @@ namespace Chraft
                 case DamageCause.EntityAttack:
                     if (hitBy != null)
                     {
-                        //work out damage
+                       
                     }
                     break;
                 case DamageCause.EntityExplosion:
                     break;
                 case DamageCause.Fall:
-                    if (args != null && args.Length > 0)
+                    if (args.Length > 0)
                     {
                         Health -= Convert.ToInt16(args[0]);
                     }

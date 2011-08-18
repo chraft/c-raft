@@ -117,12 +117,6 @@ namespace Chraft
                                 if (fallDamage > 0)
                                 {
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
-                                    //event start
-                                    EntityDamageEventArgs entevent = new EntityDamageEventArgs(this, roundedValue, null, DamageCause.Fall);
-                                    Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
-                                    if (entevent.EventCanceled) return;
-                                    //event end
-
                                     DamageClient(DamageCause.Fall, null, roundedValue);
 
                                     if (this.Health <= 0)
