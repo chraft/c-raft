@@ -33,6 +33,16 @@ namespace Chraft.Entity
             this.Health = this.MaxHealth;
 		}
 
+        protected void SendMetadataUpdate()
+        {
+            World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z,
+               new EntityMetadataPacket // Metadata update
+               {
+                   EntityId = this.EntityId,
+                   Data = this.Data
+               });
+        }
+
         public void DamageMob(Client hitBy = null)
         {
             

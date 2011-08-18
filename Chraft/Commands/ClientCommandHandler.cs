@@ -123,6 +123,7 @@ namespace Chraft.Commands
             RegisterCommand(new CmdPos2());
             RegisterCommand(new CmdPlayers());
             RegisterCommand(new CmdSpawn());
+            RegisterCommand(new CmdSpawnMob());
             RegisterCommand(new CmdGive());
             RegisterCommand(new CmdSummon());
             RegisterCommand(new CmdMute());

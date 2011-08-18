@@ -13,15 +13,15 @@ namespace Chraft.Net
         public bool Sheared
         {
             get { return ((byte)Data[16] & 0x10) != 0; }
-            set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xef) | (value ? 0x10 : 0) : (value ? 0x10 : 0); }
+            set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xef) | (value ? 0x10 : 0) : (value ? 0x10 : 0)); }
             //TODO - find out the significance of 0xef
         }
 
         public WoolColor WoolColor
         {
             get { return (WoolColor)((byte)Data[16] & 0xf); }
-            set { Data[16] = Data.ContainsKey(16) ? ((byte)Data[16] & 0xf) | (byte)value : (byte)value; }
-            //TODO - find out the significance of 0xff
+            set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xf) | (byte)value : (byte)value); }
+            //TODO - find out the significance of 0xf
         }
 
         public bool IsOnFire
@@ -51,7 +51,7 @@ namespace Chraft.Net
         public bool IsSitting
         {
             get { return ((byte) Data[16] & 0x1) != 0; }
-            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x1 : 0)); }
+            set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x1 : 0)) : (value ? 0x1 : 0)); }
             //TODO - find out the significance of 0xfb
         }
 
@@ -61,7 +61,7 @@ namespace Chraft.Net
         public bool IsAggressive
         {
             get { return ((byte)Data[16] & 0x2) != 0; }
-            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x2 : 0)); }
+            set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x2 : 0)) : (value ? 0x1 : 0)); }
             //TODO - find out the significance of 0xfb
         }
 
@@ -71,7 +71,7 @@ namespace Chraft.Net
         public bool IsTamed
         {
             get { return ((byte)Data[16] & 0x4) != 0; }
-            set { Data[16] = (byte)((byte)Data[16] & 0xfb | (value ? 0x4 : 0)); }
+            set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x4 : 0)) : (value ? 0x4 : 0)); }
             //TODO - find out the significance of 0xfb
         }
 #endregion
@@ -104,7 +104,7 @@ namespace Chraft.Net
         {
             try // I can't work out how it set this from SpawnAnimal.
             {
-                foreach (int k in Data.Values)
+                foreach (int k in Data.Keys)
                 {
                     Type type = Data[k].GetType();
                     if (type == typeof(byte))

@@ -233,6 +233,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Utils\PermissionConfiguration.cs" />
+    <Compile Include="Utils\ProportionValue.cs" />
     <Compile Include="World\BlockData.cs">
       <SubType>Code</SubType>
     </Compile>
