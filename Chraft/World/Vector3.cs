@@ -4,13 +4,9 @@ namespace Chraft.World
 {
     /// <summary>
     /// Vector of doubles with three components (x,y,z)
-    /// </summary>
-    /// <author>
+    /// 
     /// Adapted from Richard Potter BSc(Hons) http://www.codeproject.com/KB/recipes/VectorType.aspx
-    /// </author>
-    /// <created>Jun-04</created>
-    /// <modified>Feb-07</modified>
-    /// <version>1.20</version>
+    /// </summary>
     public class Vector3 : IComparable, IComparable<Vector3>, IEquatable<Vector3>, IFormattable
     {
         private double x = 0;

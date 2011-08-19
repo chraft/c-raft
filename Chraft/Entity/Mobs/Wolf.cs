@@ -25,7 +25,7 @@ namespace Chraft.Entity.Mobs
         {
             this.Data.IsSitting = false;
             this.Data.IsTamed = false;
-            this.Data.IsTamed = false;
+            this.Data.IsAggressive = false;
         }
 
         protected override void DoDeath()
