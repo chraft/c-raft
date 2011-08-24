@@ -24,10 +24,16 @@ namespace Chraft.Entity
         //public double Z { get; set; }
         public float Yaw { get; set; }
         public float Pitch { get; set; }
+
+        short _health;
         /// <summary>
         /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts
         /// </summary>
-        public virtual short Health { get; set; }
+        public virtual short Health
+        {
+            get { return _health; }
+            set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
+        }
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>

@@ -213,6 +213,7 @@
     <Compile Include="Resources\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
     <Compile Include="Utils\Configuration.cs" />
+    <Compile Include="Utils\MathExtensions.cs" />
     <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="Utils\Hash.cs" />
     <Compile Include="Utils\Http.cs" />
