@@ -374,7 +374,6 @@ namespace Chraft.World
 
             mob.Hunter = true;
             mob.Hunting = false;
-            mob.AttackRange = 10;
 
             //Event
             EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
@@ -407,7 +406,6 @@ namespace Chraft.World
 
             mob.Hunter = true;
             mob.Hunting = false;
-            mob.AttackRange = 10;
 
             //Event
             EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);

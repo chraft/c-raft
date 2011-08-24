@@ -12,14 +12,6 @@ namespace Chraft.Entity.Mobs
             get { return "Chicken"; }
         }
 
-        public override short AttackStrength
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
         public override short MaxHealth
         {
             get
@@ -33,7 +25,7 @@ namespace Chraft.Entity.Mobs
         {
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)

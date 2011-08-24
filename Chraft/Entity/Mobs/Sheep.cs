@@ -15,14 +15,6 @@ namespace Chraft.Entity.Mobs
             get { return "Sheep"; }
         }
 
-        public override short AttackStrength
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
         static ProportionValue<WoolColor>[] _woolColor = new[]{
                 ProportionValue.Create(0.8184, WoolColor.White), // 81.84% chance for White
                 ProportionValue.Create(0.05, WoolColor.Silver),  // 5% chance for light gray
@@ -103,7 +95,7 @@ namespace Chraft.Entity.Mobs
             }
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
             if (!this.Data.Sheared)
                 Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));

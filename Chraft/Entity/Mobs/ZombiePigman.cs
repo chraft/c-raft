@@ -25,7 +25,7 @@ namespace Chraft.Entity.Mobs
         {
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
             sbyte count = (sbyte)Server.Rand.Next(3);
             if (count > 0)

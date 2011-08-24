@@ -26,13 +26,31 @@ namespace Chraft.Entity.Mobs
         {
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
-            sbyte count = (sbyte)Server.Rand.Next(2);
-            if (count > 0)
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
-            
-            // TODO: if killed by a skeleton drop a music disc - currently we do not record non-Client related kills
+            var killedByMob = killedBy as Mob;
+
+            if (killedByMob.Type == MobType.Skeleton)
+            {
+                // If killed by a skeleton drop a music disc
+                sbyte count = 1;
+                short item;
+                if (Server.Rand.Next(2) > 1)
+                {
+                    item = (short)BlockData.Items.Gold_Record;
+                }
+                else
+                {
+                    item = (short)BlockData.Items.Green_Record;
+                }
+                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack(item, count, 0));
+            }
+            else
+            {
+                sbyte count = (sbyte)Server.Rand.Next(2);
+                if (count > 0)
+                    Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
+            }
         }
     }
 }

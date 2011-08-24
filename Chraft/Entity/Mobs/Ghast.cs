@@ -20,12 +20,20 @@ namespace Chraft.Entity.Mobs
             }
         }
 
+        public override int SightRange
+        {
+            get
+            {
+                return 100;
+            }
+        }
+
         internal Ghast(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Ghast, data)
         {
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)

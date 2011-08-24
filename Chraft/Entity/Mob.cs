@@ -12,13 +12,43 @@ namespace Chraft.Entity
 	public abstract partial class Mob : EntityBase
 	{
         public abstract string Name { get; }
-        public abstract short AttackStrength { get; }
 
         public MobType Type { get; set; }
 		public MetaData Data { get; internal set; }
 
-        public int AttackRange; // Clients within this range will take damage
-        public int SightRange; // Clients within this range will be hunted
+        /// <summary>
+        /// The amount of damage this Mob can inflict
+        /// </summary>
+        public virtual short AttackStrength
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Targets within this range will take damage
+        /// </summary>
+        public virtual int AttackRange
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// How far the mob can see (i.e. if aggressive a client will be hunted if seen within this range)
+        /// </summary>
+        public virtual int SightRange 
+        {
+            get
+            {
+                return 16;
+            }
+        }
+
         public int GotoLoc; // Location as int entity should move towards
         public Vector3 gotoPos; // Location entity should move towards
 
@@ -43,16 +73,17 @@ namespace Chraft.Entity
                });
         }
 
-        public void DamageMob(Client hitBy = null)
+        public void DamageMob(EntityBase hitBy = null)
         {
-            
-            if (hitBy != null)
+            var hitByClient = hitBy as Client;
+            var hitByMob = hitBy as Mob;
+            if (hitByClient != null)
             {
                 //TODO: Make damage more customizable.  CSV anyone?
                 //TODO: Fix damage.
                 //Damage values taken from http://www.minecraftwiki.net/wiki/Damage#Dealing_Damage
                 short damage = 2;
-                ItemStack itemHeld = hitBy.Inventory.ActiveItem;
+                ItemStack itemHeld = hitByClient.Inventory.ActiveItem;
                 switch (itemHeld.Type)
                 {
                     case 268:
@@ -80,15 +111,29 @@ namespace Chraft.Entity
                 }
 
                 //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitBy, DamageCause.EntityAttack);
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitByClient, DamageCause.EntityAttack);
                 Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
                 if (e.EventCanceled) return;
                 damage = e.Damage;
-                hitBy = e.DamagedBy;
+                hitByClient = e.DamagedBy;
                 //End Event
 
                 //Debug
-                hitBy.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
+                hitByClient.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
+                this.Health -= damage;
+            }
+            else if (hitByMob != null)
+            {
+                // Hit by a Mob so apply its' attack strength as damage
+                short damage = hitByMob.AttackStrength;
+                //Event
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
+                Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
+                if (e.EventCanceled) return;
+                damage = e.Damage;
+                //End Event
+
+                // TODO: Generic damage from falling/lava/fire?
                 this.Health -= damage;
             }
             else
@@ -122,7 +167,7 @@ namespace Chraft.Entity
 
             // TODO: Entity Knockback
 
-            if (this.Health == 0) HandleDeath(hitBy);
+            if (this.Health <= 0) HandleDeath(hitByClient);
         }
 
         protected virtual void DoInteraction(Client client, ItemStack item)
@@ -144,15 +189,17 @@ namespace Chraft.Entity
         /// <summary>
         /// Perform any item drop logic during death
         /// </summary>
-        protected abstract void DoDeath();
+        protected abstract void DoDeath(EntityBase killedBy);
 
-        public void HandleDeath(Client hitBy = null)
+        public void HandleDeath(EntityBase killedBy = null)
         {
+            var killedByClient = killedBy as Client;
+            
             //Event
-            EntityDeathEventArgs e = new EntityDeathEventArgs(this, hitBy);
+            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedByClient);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DEATH, e);
             if (e.EventCanceled) return;
-            hitBy = e.KilledBy;
+            killedByClient = e.KilledBy;
             //End Event
             
             // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
@@ -169,7 +216,7 @@ namespace Chraft.Entity
                 });
 
             // Spawn goodies / perform achievements etc..
-            DoDeath();
+            DoDeath(killedBy);
 
             System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
 

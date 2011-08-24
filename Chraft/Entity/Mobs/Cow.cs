@@ -14,20 +14,12 @@ namespace Chraft.Entity.Mobs
             get { return "Cow"; }
         }
 
-        public override short AttackStrength
-        {
-            get
-            {
-                return 0;
-            }
-        }
-
         internal Cow(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Cow, data)
         {
         }
 
-        protected override void DoDeath()
+        protected override void DoDeath(EntityBase killedBy)
         {
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)

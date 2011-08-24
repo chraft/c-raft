@@ -50,7 +50,7 @@ namespace Chraft.Net
         /// </summary>
         public bool IsSitting
         {
-            get { return ((byte) Data[16] & 0x1) != 0; }
+            get { return (Data.ContainsKey(16) ? ((byte)Data[16] & 0x1) != 0 : false); }
             set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x1 : 0)) : (value ? 0x1 : 0)); }
             //TODO - find out the significance of 0xfb
         }
@@ -60,7 +60,7 @@ namespace Chraft.Net
         /// </summary>
         public bool IsAggressive
         {
-            get { return ((byte)Data[16] & 0x2) != 0; }
+            get { return (Data.ContainsKey(16) ? ((byte)Data[16] & 0x2) != 0 : false); }
             set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x2 : 0)) : (value ? 0x1 : 0)); }
             //TODO - find out the significance of 0xfb
         }
@@ -70,9 +70,21 @@ namespace Chraft.Net
         /// </summary>
         public bool IsTamed
         {
-            get { return ((byte)Data[16] & 0x4) != 0; }
+            get { return (Data.ContainsKey(16) ? ((byte)Data[16] & 0x4) != 0 : false); }
             set { Data[16] = (byte)(Data.ContainsKey(16) ? ((byte)Data[16] & 0xfb | (value ? 0x4 : 0)) : (value ? 0x4 : 0)); }
             //TODO - find out the significance of 0xfb
+        }
+
+        public string TamedBy
+        {
+            get { return (Data.ContainsKey(17) ? (string)Data[17] : String.Empty); }
+            set { Data[17] = value; }
+        }
+
+        public int Health
+        {
+            get { return (Data.ContainsKey(18) ? (int)Data[18] : 8); }
+            set { Data[18] = value; }
         }
 #endregion
 
