@@ -5,7 +5,7 @@ using Chraft.World;
 namespace Chraft.Entity {
     partial class Mob {
 
-        public Vector3 Velocity { get; set; } // What direction are we going.
+        public Vector3 Velocity = new Vector3(0, 0, 0); // What direction are we going.
 
         // Behaviour junk
         private bool AIWaiting;
@@ -14,6 +14,7 @@ namespace Chraft.Entity {
 
         public void Update()
         {
+            
             // TODO: Theory of Cosines to get direction heading from yaw or pitch.
 
             // TODO: confirm when is sine and which is cosine
@@ -28,7 +29,7 @@ namespace Chraft.Entity {
                     case 1:
                         Velocity = new Vector3(1, 0, 0);
                         break;
-                    case 2:
+                    case 2:  
                         Velocity = new Vector3(-1, 0, 0);
                         break;
                     case 3:

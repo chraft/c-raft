@@ -1,4 +1,5 @@
 ﻿using System;
+using Chraft.Utils;
 
 namespace Chraft.World 
 {
@@ -7,31 +8,31 @@ namespace Chraft.World
     /// 
     /// Adapted from Richard Potter BSc(Hons) http://www.codeproject.com/KB/recipes/VectorType.aspx
     /// </summary>
-    public class Vector3 : IComparable, IComparable<Vector3>, IEquatable<Vector3>, IFormattable
+    public struct Vector3 : IComparable, IComparable<Vector3>, IEquatable<Vector3>, IFormattable
     {
-        private double x = 0;
-        private double y = 0;
-        private double z = 0;
+        private double _x;
+        private double _y;
+        private double _z;
 
         // X component of the vector.
         public double X
         {
-            get { return x; }
-            set { x = value; }
+            get { return _x; }
+            set { _x = value; }
         }
 
         // Y component of the vector.
         public double Y
         {
-            get { return y; }
-            set { y = value; }
+            get { return _y; }
+            set { _y = value; }
         }
 
         // Z component of the vector.
         public double Z
         {
-            get { return z; }
-            set { z = value; }
+            get { return _z; }
+            set { _z = value; }
         }
 
         /// <summary>
@@ -52,18 +53,25 @@ namespace Chraft.World
                 if (this == new Vector3(0, 0, 0))
                 { throw new ArgumentException(ORIGIN_VECTOR_MAGNITUDE, "this"); }
 
-                (this * (value / Magnitude)).CopyTo(this);
+                var newV = (this * (value / Magnitude));
+                this.X = newV.X;
+                this.Y = newV.Y;
+                this.Z = newV.Z;
             }
         }
 
         //
         // Constructors
         //
-        public Vector3(double xin, double yin, double zin)
+        public Vector3(double x, double y, double z)
         {
-            X = xin;
-            Y = yin;
-            Z = zin;
+            _x = 0;
+            _y = 0;
+            _z = 0;
+
+            X = x;
+            Y = y;
+            Z = z;
         }
 
         /// <summary>
@@ -76,6 +84,10 @@ namespace Chraft.World
         public Vector3(Vector3 v1)
         {
             // Initialisation
+            _x = 0;
+            _y = 0;
+            _z = 0;
+
             X = v1.X;
             Y = v1.Y;
             Z = v1.Z;
@@ -83,16 +95,17 @@ namespace Chraft.World
 
         #region Operators
 
-        public static void CopyTo(Vector3 fromVector, Vector3 toVector)
+        public static Vector3 Copy(Vector3 fromVector)
         {
-            toVector.X = fromVector.X;
-            toVector.Y = fromVector.Y;
-            toVector.Z = fromVector.Z;
+            return new Vector3(
+                fromVector.X,
+                fromVector.Y,
+                fromVector.Z);
         }
 
-        public void CopyTo(Vector3 toVector)
+        public Vector3 Copy()
         {
-            CopyTo(this, toVector);
+            return Vector3.Copy(this);
         }
 
         /// <summary>
@@ -333,7 +346,7 @@ namespace Chraft.World
         }
 
         /// <summary>
-        /// The sum of this Vector3's squared components
+        /// The sum of this Vector3's squared components (aka LengthSquared or MagnitudeSquared)
         /// </summary>
         /// <returns>The sum of the Vectors X^2, Y^2 and Z^2 components</returns>
         /// <implementation>
@@ -373,9 +386,9 @@ namespace Chraft.World
         /// <see cref="PowComponents(Vector3, Double)"/>
         /// The Components.PowComponents(Vector3, double) function has been used to prevent code duplication
         /// </implementation>
-        public void PowComponents(double power)
+        public Vector3 PowComponents(double power)
         {
-            PowComponents(this, power).CopyTo(this);
+            return PowComponents(this, power);
         }
 
         /// <summary>
@@ -404,9 +417,9 @@ namespace Chraft.World
         /// <see cref="SqrtComponents(Vector3)"/>
         /// The Components.SqrtComponents(Vector3) function has been used to prevent code duplication
         /// </implementation>
-        public void SqrtComponents()
+        public Vector3 SqrtComponents()
         {
-            SqrtComponents(this).CopyTo(this);
+            return SqrtComponents(this);
         }
 
         /// <summary>
@@ -435,9 +448,9 @@ namespace Chraft.World
         /// <see cref="SqrtComponents(Vector3)"/>
         /// The Components.SqrComponents(Vector3) function has been used to prevent code duplication
         /// </implementation>
-        public void SqrComponents()
+        public Vector3 SqrComponents()
         {
-            SqrtComponents(this).CopyTo(this);
+            return SqrtComponents(this);
         }
 
         #endregion
@@ -606,9 +619,9 @@ namespace Chraft.World
         /// Thrown when the normalisation of a zero magnitude vector is attempted
         /// </exception>
         /// <Acknowledgement>This code is adapted from Exocortex - Ben Houston </Acknowledgement>
-        public void Normalize()
+        public Vector3 Normalize()
         {
-            Normalize(this).CopyTo(this);
+            return Normalize(this);
         }
 
         /// <summary>
@@ -778,6 +791,39 @@ namespace Chraft.World
         }
 
         /// <summary>
+        /// Returned the signed angle between two vectors
+        /// </summary>
+        /// <param name="source">The source vector</param>
+        /// <param name="dest">The destination vector</param>
+        /// <param name="destsRight">A vector perpendicular to the right of <paramref name="dest"/></param>
+        /// <returns></returns>
+        public static double SignedAngle(Vector3 source, Vector3 dest, Vector3 destsRight)
+        {
+            // We make sure all of our vectors are unit length (but not modifying originals)
+            source = source.Normalize();
+            dest = dest.Normalize();
+            destsRight = destsRight.Normalize();
+
+            double forwardDot = Vector3.DotProduct(source, dest);
+            double rightDot = Vector3.DotProduct(source, destsRight);
+
+            // Make sure we stay in range no matter what, so Acos doesn't fail later 
+            forwardDot = forwardDot.Clamp(-1.0, 1.0);
+
+            double angleBetween = Math.Acos(forwardDot);
+
+            if (rightDot < 0.0)
+                angleBetween *= -1.0;
+
+            return angleBetween;
+        }
+
+        public double SignedAngle(Vector3 dest, Vector3 destsRight)
+        {
+            return SignedAngle(this, dest, destsRight);
+        }
+
+        /// <summary>
         /// compares the magnitude of two Vectors and returns the greater Vector3
         /// </summary>
         /// <param name="v1">The vector to compare</param>
@@ -864,9 +910,9 @@ namespace Chraft.World
         /// <see cref="Yaw(Vector3, Double)"/>
         /// Uses function Yaw(Vector3, double) to avoid code duplication
         /// </implementation>
-        public void Yaw(double degree)
+        public Vector3 Yaw(double degree)
         {
-            Yaw(this, degree).CopyTo(this);
+            return Yaw(this, degree);
         }
 
         /// <summary>
@@ -894,9 +940,9 @@ namespace Chraft.World
         /// <implementation>
         /// Uses function Pitch(Vector3, double) to avoid code duplication
         /// </implementation>
-        public void Pitch(double degree)
+        public Vector3 Pitch(double degree)
         {
-            Pitch(this, degree).CopyTo(this);
+            return Pitch(this, degree);
         }
 
         /// <summary>
@@ -924,35 +970,11 @@ namespace Chraft.World
         /// <see cref="Roll(Vector3, Double)"/>
         /// Uses function Roll(Vector3, double) to avoid code duplication
         /// </implementation>
-        public void Roll(double degree)
+        public Vector3 Roll(double degree)
         {
-            Roll(this, degree).CopyTo(this);
+            return Roll(this, degree);
         }
 
-        /*	/// <summary>
-            /// Reflect a Vector3 about a given normal
-            /// </summary>
-            /// <param name="normal">The normal Vector3 to reflect about</param>
-            /// <returns>
-            /// The reflected Vector3
-            /// </returns>
-            public Vector3 Reflection(Vector3 normal)
-            {
-                return 
-                (
-                    (
-                        this.Normalize() - 
-                        (
-                            normal *
-                            2 *
-                            this.Normalize().DotProduct(normal)
-                        )
-                    ) *
-                    this.Magnitude() *
-                    this
-                );
-            }
-        */
         /// <summary>
         /// Reflect this Vector3 about a given other vector
         /// </summary>
@@ -1030,7 +1052,7 @@ namespace Chraft.World
             // http://mathworld.wolfram.com/Reflection.html
             // V1_projectedOn_V2 = v2 * (v1 * v2 / (|v2| ^ 2))
 
-            return new Vector3(v2 * (v1.DotProduct(v2) / Math.Pow(v2.Magnitude, 2)));
+            return new Vector3(v2 * (v1.DotProduct(v2) / v2.SumComponentSqrs()));
         }
 
         /// <summary>
