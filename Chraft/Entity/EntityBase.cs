@@ -27,7 +27,7 @@ namespace Chraft.Entity
 
         short _health;
         /// <summary>
-        /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts
+        /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
         /// </summary>
         public virtual short Health
         {

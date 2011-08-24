@@ -84,11 +84,7 @@ namespace Chraft.Entity.Mobs
                         {
                             if (this.Health < this.MaxHealth)
                             {
-                                this.Health += 3;
-
-                                if (this.Health > this.MaxHealth)
-                                    this.Health = this.MaxHealth;
-
+                                this.Health += 3; // Health is clamped, no need to check if exceeds MaxHealth
                                 SendMetadataUpdate();
                             }
                         }
