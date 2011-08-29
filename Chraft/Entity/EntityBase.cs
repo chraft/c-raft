@@ -19,11 +19,6 @@ namespace Chraft.Entity
     {
         public int EntityId { get; private set; }
         public WorldManager World { get; set; }
-        //public double X { get; set; }
-        //public double Y { get; set; }
-        //public double Z { get; set; }
-        public float Yaw { get; set; }
-        public float Pitch { get; set; }
 
         short _health;
         /// <summary>
@@ -38,11 +33,11 @@ namespace Chraft.Entity
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
         public virtual short MaxHealth { get { return 10; } }
-        public sbyte PackedYaw { get { return (sbyte)(Yaw / 360.0f * 256.0f % 256.0f); } }
-        public sbyte PackedPitch { get { return (sbyte)(Pitch / 360.0f * 256.0f % 256.0f); } }
+        public sbyte PackedPitch { get { return Position.PackedPitch; } }
+        public sbyte PackedYaw { get { return Position.PackedYaw; } }
         public Server Server { get; private set; }
         public int TimeInWorld;
-        public Vector3 Position;
+        public Location Position { get; set; }
 
         public EntityBase(Server server, int entityId)
         {
@@ -68,7 +63,7 @@ namespace Chraft.Entity
             Vector3 newPosition = new Vector3(x, y, z);
 
             //Event
-            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
@@ -77,7 +72,7 @@ namespace Chraft.Entity
             sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
             sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
-            Position = newPosition;
+            Position.Vector = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
             
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
@@ -113,8 +108,8 @@ namespace Chraft.Entity
         /// <param name="pitch">Target pitch, absolute.</param>
         public void RotateTo(float yaw, float pitch)
         {
-            Yaw = yaw;
-            Pitch = pitch;
+            Position.Yaw = yaw;
+            Position.Pitch = pitch;
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))
@@ -135,7 +130,7 @@ namespace Chraft.Entity
             Vector3 newPosition = new Vector3(x, y, z);
 
             //Event
-            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
@@ -144,9 +139,9 @@ namespace Chraft.Entity
             sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
             sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
-            Position = newPosition;
-            Yaw = yaw;
-            Pitch = pitch;
+            Position.Vector = newPosition;
+            Position.Yaw = yaw;
+            Position.Pitch = pitch;
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
                 if (!c.Equals(this))

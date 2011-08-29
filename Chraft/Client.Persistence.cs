@@ -23,8 +23,8 @@ namespace Chraft
             Position.X = client.X;
             Position.Y = client.Y + 1; // Players drop one block upon spawning
             Position.Z = client.Z;
-            Yaw = client.Yaw;
-            Pitch = client.Pitch;
+            Position.Yaw = client.Yaw;
+            Position.Pitch = client.Pitch;
             if (client.Inventory == null) return;
             Inventory = new Interfaces.Inventory();
             Inventory.Handle = 0;
@@ -62,8 +62,8 @@ namespace Chraft
                         X = Position.X,
                         Y = Position.Y,
                         Z = Position.Z,
-                        Yaw = Yaw,
-                        Pitch = Pitch
+                        Yaw = Position.Yaw,
+                        Pitch = Position.Pitch
                     });
                     tx.Flush();
                     tx.Close();

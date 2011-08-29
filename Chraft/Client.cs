@@ -83,7 +83,7 @@ namespace Chraft
         private void InitializePosition()
         {
             World = Server.GetDefaultWorld();
-            Position = new World.Vector3(
+            Position = new Location(
                 World.Spawn.X,
                 World.Spawn.Y + 1,
                 World.Spawn.Z);
@@ -362,7 +362,7 @@ namespace Chraft
         private string FacingDirection(byte points)
         {
 
-            byte rotation = (byte)(Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
+            byte rotation = (byte)(Position.Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
 
             if (points == 8)
             {

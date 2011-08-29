@@ -13,5 +13,18 @@ namespace Chraft.Utils
             else if (val.CompareTo(max) > 0) return max;
             else return val;
         }
+
+        private const double _180OverPi = 180.0 / Math.PI;
+        private const double _PiOver180 = Math.PI / 180.0;
+
+        public static double ToRadians(this double val)
+        {
+            return val * _PiOver180;
+        }
+
+        public static double ToDegrees(this double val)
+        {
+            return val * _180OverPi;
+        }
     }
 }

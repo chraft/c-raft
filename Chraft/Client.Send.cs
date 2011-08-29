@@ -103,8 +103,8 @@ namespace Chraft
                 X = Position.X,
                 Y = Position.Y + 1,
                 Z = Position.Z,
-                Yaw = Yaw,
-                Pitch = Pitch,
+                Yaw = (float)Position.Yaw,
+                Pitch = (float)Position.Pitch,
                 Stance = Stance,
                 OnGround = false
             });

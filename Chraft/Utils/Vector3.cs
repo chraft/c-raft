@@ -1,12 +1,22 @@
 ﻿using System;
 using Chraft.Utils;
 
-namespace Chraft.World 
+namespace Chraft.Utils 
 {
     /// <summary>
     /// Vector of doubles with three components (x,y,z)
     /// 
     /// Adapted from Richard Potter BSc(Hons) http://www.codeproject.com/KB/recipes/VectorType.aspx
+    /// 
+    /// IMPORTANT: This class is not suitable for use outside of Minecraft due to the Yaw and Pitch being flipped
+    /// for Minecraft in regards to the + axis of X and Y respectively. 
+    /// See: http://mc.kev009.com/Protocol#Player_Look_.280x0C.29
+    /// Also: http://mc.kev009.com/File:Minecraft-trig-yaw.png notice how North (X+) is facing DOWN not UP
+    /// 
+    /// The methods impacted are: 
+    ///     Vector3(double yaw, double pitch)
+    ///     Yaw(double yaw)
+    ///     SignedAngle(..) uses leftPerpendicular instead of rightPerpendicular
     /// </summary>
     public struct Vector3 : IComparable, IComparable<Vector3>, IEquatable<Vector3>, IFormattable
     {
@@ -42,15 +52,14 @@ namespace Chraft.World
         {
             get
             {
-                return
-                Math.Sqrt(SumComponentSqrs());
+                return Math.Sqrt(SumComponentSqrs());
             }
             set
             {
                 if (value < 0)
                 { throw new ArgumentOutOfRangeException("value", value, NEGATIVE_MAGNITUDE); }
 
-                if (this == new Vector3(0, 0, 0))
+                if (this == Vector3.Origin)
                 { throw new ArgumentException(ORIGIN_VECTOR_MAGNITUDE, "this"); }
 
                 var newV = (this * (value / Magnitude));
@@ -91,6 +100,28 @@ namespace Chraft.World
             X = v1.X;
             Y = v1.Y;
             Z = v1.Z;
+        }
+
+        /// <summary>
+        /// Constructs a unit vector for the provided yaw (y-axis rotation) and pitch (x-axis rotation). This is useful for generating a "facing" vector.
+        /// </summary>
+        /// <param name="yaw">The yaw in degrees, 0 points along the Z+ axis (east), positive rotates clockwise through south (90 or -270), west (180 or -180) and then north (270 or -90)</param>
+        /// <param name="pitch">The pitch in degrees between -90 (straight up)  and 90 (straight down)</param>
+        /// <remarks>
+        /// Note: this is modified to work with the non-classical trigonometry rules used in Minecraft (http://mc.kev009.com/Protocol#Player_Look_.280x0C.29)
+        /// </remarks>
+        public Vector3(double yaw, double pitch)
+        {
+            _x = 0;
+            _y = 0;
+            _z = 0;
+            
+            double yawRadians = yaw.ToRadians();
+            double cosPitch = Math.Cos(pitch.ToRadians());
+            
+            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch, we negate because 0 points east, so a yaw of -90 or 270 (north) should be +1 not -1
+            Y = -Math.Sin(pitch.ToRadians());       // Y based  on the angle of pitch. We negate because -90 points up and should be +1 not -1
+            Z = cosPitch * Math.Cos(yawRadians);    // Shorten Z down from 1 based on the angle of pitch
         }
 
         #region Operators
@@ -499,6 +530,31 @@ namespace Chraft.World
         }
 
         /// <summary>
+        /// Determine the dot product of two Vectors on the X,Z plane
+        /// </summary>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static double DotProductXZ(Vector3 v1, Vector3 v2)
+        {
+            return 
+            (
+                v1.X * v2.X +
+                v1.Z * v2.Z
+            );
+        }
+
+        /// <summary>
+        /// Determine the dot product of this Vector3 and another on the X,Z plane
+        /// </summary>
+        /// <param name="other">The vector to multiply by</param>
+        /// <returns>Scalar representing the dot product of the two vectors on the X,Z</returns>
+        public double DotProductXZ(Vector3 other)
+        {
+            return DotProductXZ(this, other);
+        }
+
+        /// <summary>
         /// Determine the dot product of two Vectors
         /// </summary>
         /// <param name="v1">The vector to multiply</param>
@@ -795,8 +851,11 @@ namespace Chraft.World
         /// </summary>
         /// <param name="source">The source vector</param>
         /// <param name="dest">The destination vector</param>
-        /// <param name="destsRight">A vector perpendicular to the right of <paramref name="dest"/></param>
+        /// <param name="destsRight">A vector perpendicular to the left of <paramref name="dest"/></param>
         /// <returns></returns>
+        /// <remarks>
+        /// Note: this is modified to work with the non-classical trigonometry rules used in Minecraft (http://mc.kev009.com/Protocol#Player_Look_.280x0C.29)
+        /// </remarks>
         public static double SignedAngle(Vector3 source, Vector3 dest, Vector3 destsRight)
         {
             // We make sure all of our vectors are unit length (but not modifying originals)
@@ -812,7 +871,7 @@ namespace Chraft.World
 
             double angleBetween = Math.Acos(forwardDot);
 
-            if (rightDot < 0.0)
+            if (rightDot > 0.0) // Without minecraft modification this would be 'rightDot < 0.0'
                 angleBetween *= -1.0;
 
             return angleBetween;
@@ -890,13 +949,18 @@ namespace Chraft.World
         /// Change the yaw of a Vector3
         /// </summary>
         /// <param name="v1">The Vector3 to be rotated</param>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the Y axis</returns>
-        public static Vector3 Yaw(Vector3 v1, double degree)
+        /// <remarks>
+        /// Note: this is modified to work with the non-classical trigonometry rules used in Minecraft (http://mc.kev009.com/Protocol#Player_Look_.280x0C.29)
+        /// </remarks>
+        public static Vector3 Yaw(Vector3 v1, double angle)
         {
-            double x = (v1.Z * Math.Sin(degree)) + (v1.X * Math.Cos(degree));
+            // Negate Sine as X+ is south in trigonometry rules and we need it to be north, Z+ is east, angle+ is clockwise (as per remark above)
+            double x = (v1.Z * -Math.Sin(angle)) + (v1.X * Math.Cos(angle));
             double y = v1.Y;
-            double z = (v1.Z * Math.Cos(degree)) - (v1.X * Math.Sin(degree));
+            // Negate Sine as X+ is south in trigonometry rules and we need it to be north, Z+ is east, angle+ is clockwise (as per remark above)
+            double z = (v1.Z * Math.Cos(angle)) - (v1.X * -Math.Sin(angle));
             return new Vector3(x, y, z);
         }
 
@@ -904,15 +968,15 @@ namespace Chraft.World
         /// Rotates the Vector3 around the Y axis
         /// Change the yaw of the Vector3
         /// </summary>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the Y axis</returns>
         /// <implementation>
         /// <see cref="Yaw(Vector3, Double)"/>
         /// Uses function Yaw(Vector3, double) to avoid code duplication
         /// </implementation>
-        public Vector3 Yaw(double degree)
+        public Vector3 Yaw(double angle)
         {
-            return Yaw(this, degree);
+            return Yaw(this, angle);
         }
 
         /// <summary>
@@ -920,13 +984,13 @@ namespace Chraft.World
         /// Change the pitch of a Vector3
         /// </summary>
         /// <param name="v1">The Vector3 to be rotated</param>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the X axis</returns>
-        public static Vector3 Pitch(Vector3 v1, double degree)
+        public static Vector3 Pitch(Vector3 v1, double angle)
         {
             double x = v1.X;
-            double y = (v1.Y * Math.Cos(degree)) - (v1.Z * Math.Sin(degree));
-            double z = (v1.Y * Math.Sin(degree)) + (v1.Z * Math.Cos(degree));
+            double y = (v1.Y * Math.Cos(angle)) - (v1.Z * Math.Sin(angle));
+            double z = (v1.Y * Math.Sin(angle)) + (v1.Z * Math.Cos(angle));
             return new Vector3(x, y, z);
         }
 
@@ -934,15 +998,15 @@ namespace Chraft.World
         /// Rotates a Vector3 around the X axis
         /// Change the pitch of a Vector3
         /// </summary>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the X axis</returns>
         /// <see cref="Pitch(Vector3, Double)"/>
         /// <implementation>
         /// Uses function Pitch(Vector3, double) to avoid code duplication
         /// </implementation>
-        public Vector3 Pitch(double degree)
+        public Vector3 Pitch(double angle)
         {
-            return Pitch(this, degree);
+            return Pitch(this, angle);
         }
 
         /// <summary>
@@ -950,12 +1014,12 @@ namespace Chraft.World
         /// Change the roll of a Vector3
         /// </summary>
         /// <param name="v1">The Vector3 to be rotated</param>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the Z axis</returns>
-        public static Vector3 Roll(Vector3 v1, double degree)
+        public static Vector3 Roll(Vector3 v1, double angle)
         {
-            double x = (v1.X * Math.Cos(degree)) - (v1.Y * Math.Sin(degree));
-            double y = (v1.X * Math.Sin(degree)) + (v1.Y * Math.Cos(degree));
+            double x = (v1.X * Math.Cos(angle)) - (v1.Y * Math.Sin(angle));
+            double y = (v1.X * Math.Sin(angle)) + (v1.Y * Math.Cos(angle));
             double z = v1.Z;
             return new Vector3(x, y, z);
         }
@@ -964,15 +1028,15 @@ namespace Chraft.World
         /// Rotates a Vector3 around the Z axis
         /// Change the roll of a Vector3
         /// </summary>
-        /// <param name="degree">The angle to rotate the Vector3 around in degrees</param>
+        /// <param name="angle">The angle to rotate the Vector3 around in degrees</param>
         /// <returns>Vector3 representing the rotation around the Z axis</returns>
         /// <implementation>
         /// <see cref="Roll(Vector3, Double)"/>
         /// Uses function Roll(Vector3, double) to avoid code duplication
         /// </implementation>
-        public Vector3 Roll(double degree)
+        public Vector3 Roll(double angle)
         {
-            return Roll(this, degree);
+            return Roll(this, angle);
         }
 
         /// <summary>
@@ -1367,25 +1431,25 @@ namespace Chraft.World
         /// Vector3 representing the Cartesian origin
         /// </summary>
         /// <Acknowledgement>This code is adapted from Exocortex - Ben Houston </Acknowledgement>
-        public static readonly Vector3 origin = new Vector3(0, 0, 0);
+        public static readonly Vector3 Origin = new Vector3(0, 0, 0);
 
         /// <summary>
         /// Vector3 representing the Cartesian XAxis
         /// </summary>
         /// <Acknowledgement>This code is adapted from Exocortex - Ben Houston </Acknowledgement>
-        public static readonly Vector3 xAxis = new Vector3(1, 0, 0);
+        public static readonly Vector3 XAxis = new Vector3(1, 0, 0);
 
         /// <summary>
         /// Vector3 representing the Cartesian YAxis
         /// </summary>
         /// <Acknowledgement>This code is adapted from Exocortex - Ben Houston </Acknowledgement>
-        public static readonly Vector3 yAxis = new Vector3(0, 1, 0);
+        public static readonly Vector3 YAxis = new Vector3(0, 1, 0);
 
         /// <summary>
         /// Vector3 representing the Cartesian ZAxis
         /// </summary>
         /// <Acknowledgement>This code is adapted from Exocortex - Ben Houston </Acknowledgement>
-        public static readonly Vector3 zAxis = new Vector3(0, 0, 1);
+        public static readonly Vector3 ZAxis = new Vector3(0, 0, 1);
 
         #endregion
 

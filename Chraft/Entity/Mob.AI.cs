@@ -1,6 +1,7 @@
 ﻿using System;
 using Chraft.Net.Packets;
-using Chraft.World;
+using Chraft.Utils;
+
 
 namespace Chraft.Entity {
     partial class Mob {

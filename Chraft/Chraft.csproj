@@ -129,12 +129,14 @@
     <Compile Include="Commands\CommandHandler.cs" />
     <Compile Include="Commands\CommandNotFoundExcption.cs" />
     <Compile Include="Commands\CommandType.cs" />
+    <Compile Include="Commands\Debug\DbgPos.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\ServerCommand.cs" />
     <Compile Include="Commands\ServerCommandHandler.cs" />
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />
     <Compile Include="Entity\MobFactory.cs" />
@@ -218,7 +220,6 @@
     <Compile Include="Utils\Hash.cs" />
     <Compile Include="Utils\Http.cs" />
     <Compile Include="Utils\IPermissions.cs" />
-    <Compile Include="Utils\Location.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Net\BigEndianStream.cs" />
     <Compile Include="Net\MetaData.cs" />
@@ -261,7 +262,7 @@
     <Compile Include="World\NBT\TagNodeList.cs" />
     <Compile Include="World\NBT\TagNodeListNamed.cs" />
     <Compile Include="World\NBT\TagNodeType.cs" />
-    <Compile Include="World\Vector3.cs" />
+    <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\PointI.cs" />
     <Compile Include="Mojang\World\WorldChunkManager.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />

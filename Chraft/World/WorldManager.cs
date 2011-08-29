@@ -7,6 +7,8 @@ using System.IO;
 using Chraft.Entity;
 using Chraft.World.Weather;
 using Chraft.Plugins.Events.Args;
+using System.Threading.Tasks;
+using Chraft.Utils;
 
 namespace Chraft.World
 {
@@ -303,7 +305,7 @@ namespace Chraft.World
 
         private void MovProc()
         {
-            foreach (EntityBase e in Server.GetEntities().Where((entity) => entity.World == this))
+            Parallel.ForEach(Server.GetEntities().Where((entity) => entity.World == this), (e) =>
             {
                 e.TimeInWorld++;
 
@@ -353,7 +355,7 @@ namespace Chraft.World
 
                     // TOOD: Water flow movement.
                 }
-            }
+            });
         }
 
         public void SpawnAnimal(int X, int Y, int Z)
@@ -369,17 +371,17 @@ namespace Chraft.World
 
             Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
 
-            mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
+            mob.Position = new Location(new Vector3(X + 0.5, Y, Z + 0.5));
             mob.World = this;
 
             mob.Hunter = true;
             mob.Hunting = false;
 
             //Event
-            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
+            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position.Vector);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
             if (e.EventCanceled) return;
-            mob.Position = e.Location;
+            mob.Position.Vector = e.Location;
             //End Event
             
             //mob.Data // Set accessor is inaccebile?
@@ -401,17 +403,17 @@ namespace Chraft.World
 
             Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
 
-            mob.Position = new World.Vector3(X + 0.5, Y, Z + 0.5);
+            mob.Position = new Location(new Vector3(X + 0.5, Y, Z + 0.5));
             mob.World = this;
 
             mob.Hunter = true;
             mob.Hunting = false;
 
             //Event
-            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
+            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position.Vector);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
             if (e.EventCanceled) return;
-            mob.Position = e.Location;
+            mob.Position.Vector = e.Location;
             //End Event
             
             //mob.Data // Set accessor is inaccebile?

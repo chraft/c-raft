@@ -131,6 +131,7 @@ namespace Chraft.Commands
             RegisterCommand(new CmdTp());
             RegisterCommand(new CmdSetHealth());
             RegisterCommand(new CmdSay());
+            RegisterCommand(new Debug.DbgPos());
         }
     }
 }
