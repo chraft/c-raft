@@ -118,9 +118,9 @@ namespace Chraft.Utils
             
             double yawRadians = yaw.ToRadians();
             double cosPitch = Math.Cos(pitch.ToRadians());
-            
-            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch, we negate because 0 points east, so a yaw of -90 or 270 (north) should be +1 not -1
-            Y = -Math.Sin(pitch.ToRadians());       // Y based  on the angle of pitch. We negate because -90 points up and should be +1 not -1
+
+            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch. We negate because a yaw of -90 or 270 (north) should be +1 not -1 (+yaw is clockwise whereas radians are normally counter-clockwise)
+            Y = -Math.Sin(pitch.ToRadians());       // Y based on the angle of pitch. We negate because -90 points up and should be +1 not -1
             Z = cosPitch * Math.Cos(yawRadians);    // Shorten Z down from 1 based on the angle of pitch
         }
 
