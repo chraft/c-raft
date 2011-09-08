@@ -59,6 +59,8 @@ namespace Chraft
         /// </summary>
         public Logger Logger { get { return Server.Logger; } }
 
+        public const double EyeGroundOffset = 1.6200000047683716;
+
         /// <summary>
         /// Instantiates a new Client object.
         /// </summary>

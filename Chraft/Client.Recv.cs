@@ -123,7 +123,6 @@ namespace Chraft
                                     {
                                         // Make sure that we don't think we have fallen onto the respawn
                                         _lastGroundY = -1;
-                                        _beginInAirY = -1;
                                     }
                                 }
                             }
@@ -134,6 +133,8 @@ namespace Chraft
 #endif
                             }
                         }
+
+                        _beginInAirY = -1;
                     }
                 }
             }
@@ -980,7 +981,7 @@ namespace Chraft
 
         private void PacketHandler_PlayerPositionRotation(object sender, PacketEventArgs<PlayerPositionRotationPacket> e)
         {
-            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
+            this.MoveTo(e.Packet.X, e.Packet.Y - EyeGroundOffset, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
         }
