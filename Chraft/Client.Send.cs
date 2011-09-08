@@ -101,7 +101,7 @@ namespace Chraft
             PacketHandler.SendPacket(new PlayerPositionRotationPacket
             {
                 X = Position.X,
-                Y = Position.Y + 1,
+                Y = Position.Y + EyeGroundOffset,
                 Z = Position.Z,
                 Yaw = (float)Position.Yaw,
                 Pitch = (float)Position.Pitch,
