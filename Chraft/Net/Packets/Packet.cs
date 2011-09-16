@@ -227,16 +227,29 @@ namespace Chraft.Net.Packets
 
     public class RespawnPacket : Packet
     {
-        public byte World { get; set; }
+        public sbyte World { get; set; }
+        public sbyte Unknown { get; set; }
+        public sbyte CreativeMode { get; set; } // 0 for survival, 1 for creative.
+        public short WorldHeight { get; set; } // Default 128
+        public long MapSeed { get; set; }
+
 
         public override void Read(BigEndianStream stream)
         {
-            World = stream.ReadByte();
+            World = stream.ReadSByte();
+            Unknown = stream.ReadSByte();
+            CreativeMode = stream.ReadSByte();
+            WorldHeight = stream.ReadShort();
+            MapSeed = stream.ReadLong();
         }
 
         public override void Write(BigEndianStream stream)
         {
             stream.Write(World);
+            stream.Write(Unknown);
+            stream.Write(CreativeMode);
+            stream.Write(WorldHeight);
+            stream.Write(MapSeed);
         }
     }
 
