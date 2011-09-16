@@ -30,6 +30,11 @@ namespace Chraft.Net.Packets
         {
             try
             {
+                if (!PacketMap.Map.ContainsKey(type))
+                {
+                    Console.WriteLine("ERROR Unknown packet type: {0}", type);
+                    return null;
+                }
                 Type ptype = PacketMap.Map[type];
                 Packet packet = (Packet)ptype.GetConstructor(new Type[0]).Invoke(new object[0]);
                 packet.Read(stream);
@@ -37,7 +42,7 @@ namespace Chraft.Net.Packets
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error processing packet of type {0}: {1}", type, ex);
+                Console.WriteLine("Error processing packet of type {0}: {1}", type.ToString(), ex);
                 return null;
             }
         }
@@ -59,14 +64,22 @@ namespace Chraft.Net.Packets
         public int ProtocolOrEntityId { get; set; }
         public string Username { get; set; }
         public long MapSeed { get; set; }
+        public int ServerMode { get; set; }
         public sbyte Dimension { get; set; }
+        public sbyte Unknown { get; set; }
+        public byte WorldHeight { get; set; }
+        public byte MaxPlayers { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             ProtocolOrEntityId = stream.ReadInt();
             Username = stream.ReadString16(16);
             MapSeed = stream.ReadLong();
+            ServerMode = stream.ReadInt();
             Dimension = stream.ReadSByte();
+            Unknown = stream.ReadSByte();
+            WorldHeight = stream.ReadByte();
+            MaxPlayers = stream.ReadByte();
         }
 
         public override void Write(BigEndianStream stream)
@@ -74,7 +87,11 @@ namespace Chraft.Net.Packets
             stream.Write(ProtocolOrEntityId);
             stream.Write(Username);
             stream.Write(MapSeed);
+            stream.Write(ServerMode);
             stream.Write(Dimension);
+            stream.Write(Unknown);
+            stream.Write(WorldHeight);
+            stream.Write(MaxPlayers);
         }
     }
 
