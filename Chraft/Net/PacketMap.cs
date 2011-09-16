@@ -53,6 +53,7 @@ namespace Chraft.Net
             { PacketType.PlayerRotation, typeof(PlayerRotationPacket) },
             { PacketType.PreChunk, typeof(PreChunkPacket) },
             { PacketType.Respawn, typeof(RespawnPacket) },
+            { PacketType.ServerListPing, typeof(ServerListPingPacket) },
             { PacketType.SetSlot, typeof(SetSlotPacket) },
             { PacketType.SoundEffect, typeof(SoundEffectPacket) },
             { PacketType.SpawnPosition, typeof(SpawnPositionPacket) },

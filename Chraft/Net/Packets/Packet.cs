@@ -1438,6 +1438,21 @@ namespace Chraft.Net.Packets
         }
     }
 
+    /// <summary>
+    /// To load server info in the multiplayer menu, the notchian client connects to each known server and sends an 0xFE.
+    /// In return, the server sends a kick (0xFF), with its string containing data (server description, number of users, number of slots), delimited by a §
+    /// </summary>
+    public class ServerListPingPacket : Packet
+    {
+        public override void Read(BigEndianStream stream)
+        {
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+        }
+    }
+
     public class DisconnectPacket : Packet
     {
         public string Reason { get; set; }

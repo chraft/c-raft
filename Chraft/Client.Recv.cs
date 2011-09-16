@@ -167,6 +167,7 @@ namespace Chraft
             PacketHandler.LoginRequest += PacketHandler_LoginRequest;
             PacketHandler.Handshake += PacketHandler_Handshake;
             PacketHandler.Disconnect += PacketHandler_Disconnect;
+            PacketHandler.ServerListPing += PacketHandler_ServerListPing;
         }
 
         private void InitializeRecvPlayer()
@@ -997,6 +998,13 @@ namespace Chraft
 
 
         #region Login
+
+        void PacketHandler_ServerListPing(object sender, PacketEventArgs<ServerListPingPacket> e)
+        {
+            // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
+            var clientCount = this.Server.Clients.Count;
+            this.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", this.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers - clientCount) });
+        }
 
         private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
         {

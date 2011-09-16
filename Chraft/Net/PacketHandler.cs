@@ -57,6 +57,7 @@ namespace Chraft.Net
         public event PacketEventHandler<PlayerRotationPacket> PlayerRotation;
         public event PacketEventHandler<PreChunkPacket> PreChunk;
         public event PacketEventHandler<RespawnPacket> Respawn;
+        public event PacketEventHandler<ServerListPingPacket> ServerListPing;
         public event PacketEventHandler<SetSlotPacket> SetSlot;
         public event PacketEventHandler<SoundEffectPacket> SoundEffect;
         public event PacketEventHandler<SpawnPositionPacket> SpawnPosition;
@@ -186,6 +187,7 @@ namespace Chraft.Net
                 case PacketType.PlayerRotation: OnPlayerRotation((PlayerRotationPacket)p); break;
                 case PacketType.PreChunk: OnPreChunk((PreChunkPacket)p); break;
                 case PacketType.Respawn: OnRespawn((RespawnPacket)p); break;
+                case PacketType.ServerListPing: OnServerListPing((ServerListPingPacket)p); break;
                 case PacketType.SetSlot: OnSetSlot((SetSlotPacket)p); break;
                 case PacketType.SoundEffect: OnSoundEffect((SoundEffectPacket)p); break;
                 case PacketType.SpawnPosition: OnSpawnPosition((SpawnPositionPacket)p); break;
@@ -247,6 +249,7 @@ namespace Chraft.Net
         private void OnPlayerRotation(PlayerRotationPacket p) { if (PlayerRotation != null) PlayerRotation.Invoke(this, new PacketEventArgs<PlayerRotationPacket>(p)); }
         private void OnPreChunk(PreChunkPacket p) { if (PreChunk != null) PreChunk.Invoke(this, new PacketEventArgs<PreChunkPacket>(p)); }
         private void OnRespawn(RespawnPacket p) { if (Respawn != null) Respawn.Invoke(this, new PacketEventArgs<RespawnPacket>(p)); }
+        private void OnServerListPing(ServerListPingPacket p) { if (ServerListPing != null) ServerListPing.Invoke(this, new PacketEventArgs<ServerListPingPacket>(p)); }
         private void OnSetSlot(SetSlotPacket p) { if (SetSlot != null) SetSlot.Invoke(this, new PacketEventArgs<SetSlotPacket>(p)); }
         private void OnSoundEffect(SoundEffectPacket p) { if (SoundEffect != null) SoundEffect.Invoke(this, new PacketEventArgs<SoundEffectPacket>(p)); }
         private void OnSpawnPosition(SpawnPositionPacket p) { if (SpawnPosition != null) SpawnPosition.Invoke(this, new PacketEventArgs<SpawnPositionPacket>(p)); }

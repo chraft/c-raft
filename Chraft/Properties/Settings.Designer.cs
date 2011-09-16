@@ -363,9 +363,9 @@ namespace Chraft.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("100")]
-        public string MaxPlayers {
+        public int MaxPlayers {
             get {
-                return ((string)(this["MaxPlayers"]));
+                return ((int)(this["MaxPlayers"]));
             }
             set {
                 this["MaxPlayers"] = value;
