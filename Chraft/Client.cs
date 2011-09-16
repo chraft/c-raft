@@ -136,10 +136,14 @@ namespace Chraft
             });
         }
 
-        private void KeepAliverTimer_Callback(object sender)
+        private int _lastKeepAliveId;
+        private void KeepAliveTimer_Callback(object sender)
         {
             if (Running)
-                PacketHandler.SendPacket(new KeepAlivePacket());
+            {
+                _lastKeepAliveId = Server.Rand.Next();
+                PacketHandler.SendPacket(new KeepAlivePacket() { KeepAliveID = this._lastKeepAliveId });
+            }
         }
 
         /// <summary>
@@ -557,7 +561,7 @@ namespace Chraft
 
         private void StartKeepAliveTimer()
         {
-            KeepAliveTimer = new Timer(KeepAliverTimer_Callback, null, 10000, 10000);
+            KeepAliveTimer = new Timer(KeepAliveTimer_Callback, null, 10000, 10000);
         }
 
         private bool CheckUsername(string username)

@@ -50,12 +50,16 @@ namespace Chraft.Net.Packets
 
     public class KeepAlivePacket : Packet
     {
+        public int KeepAliveID { get; set; }
+
         public override void Read(BigEndianStream stream)
         {
+            KeepAliveID = stream.ReadInt();
         }
 
         public override void Write(BigEndianStream stream)
         {
+            stream.Write(KeepAliveID);
         }
     }
 
