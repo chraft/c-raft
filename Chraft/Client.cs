@@ -108,6 +108,9 @@ namespace Chraft
             Inventory.UpdateClient();
         }
 
+        public float FoodSaturation { get; set; }
+        public short Food { get; set; }
+
         private void InitializeHealth()
         {
             if (Health <= 0)
@@ -115,9 +118,17 @@ namespace Chraft
                 Health = 20;
             }
 
+            if (Food <= 0)
+            {
+                Food = 20;
+            }
+            FoodSaturation = 5.0f;
+
             PacketHandler.SendPacket(new UpdateHealthPacket
             {
-                Health = this.Health
+                Health = this.Health,
+                Food = this.Food,
+                FoodSaturation = this.FoodSaturation,
             });
         }
 
@@ -255,7 +266,9 @@ namespace Chraft
 
             PacketHandler.SendPacket(new UpdateHealthPacket
             {
-                Health = this.Health
+                Health = this.Health,
+                Food = this.Food,
+                FoodSaturation = this.FoodSaturation,
             });
 
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
@@ -592,7 +605,11 @@ namespace Chraft
             {
                 health = 20;
             }
-            PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
+            this.Health = health;
+            PacketHandler.SendPacket(new UpdateHealthPacket { Health = this.Health,
+                                                              Food = this.Food,
+                                                              FoodSaturation = this.FoodSaturation,
+            });
         }
 
 
@@ -620,6 +637,7 @@ namespace Chraft
             return PermHandler.GetPlayerSuffix(this);
         }
         #endregion
+
     }
     //Cheat enum since enums can't be strings.
     public static class ChatColor

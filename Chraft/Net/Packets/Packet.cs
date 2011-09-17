@@ -213,15 +213,21 @@ namespace Chraft.Net.Packets
     public class UpdateHealthPacket : Packet
     {
         public short Health { get; set; }
+        public short Food { get; set; }
+        public float FoodSaturation { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             Health = stream.ReadShort();
+            Food = stream.ReadShort();
+            FoodSaturation = stream.ReadFloat();
         }
 
         public override void Write(BigEndianStream stream)
         {
             stream.Write(Health);
+            stream.Write(Food);
+            stream.Write(FoodSaturation);
         }
     }
 
