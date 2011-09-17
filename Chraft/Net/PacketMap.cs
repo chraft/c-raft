@@ -48,6 +48,7 @@ namespace Chraft.Net
             { PacketType.Player, typeof(PlayerPacket) },
             { PacketType.PlayerBlockPlacement, typeof(PlayerBlockPlacementPacket) },
             { PacketType.PlayerDigging, typeof(PlayerDiggingPacket) },
+            { PacketType.PlayerListItem, typeof(PlayerListItemPacket) },
             { PacketType.PlayerPosition, typeof(PlayerPositionPacket) },
             { PacketType.PlayerPositionRotation, typeof(PlayerPositionRotationPacket) },
             { PacketType.PlayerRotation, typeof(PlayerRotationPacket) },

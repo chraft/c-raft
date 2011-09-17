@@ -52,6 +52,7 @@ namespace Chraft.Net
         public event PacketEventHandler<PlayerPacket> Player;
         public event PacketEventHandler<PlayerBlockPlacementPacket> PlayerBlockPlacement;
         public event PacketEventHandler<PlayerDiggingPacket> PlayerDigging;
+        public event PacketEventHandler<PlayerListItemPacket> PlayerListItem;
         public event PacketEventHandler<PlayerPositionPacket> PlayerPosition;
         public event PacketEventHandler<PlayerPositionRotationPacket> PlayerPositionRotation;
         public event PacketEventHandler<PlayerRotationPacket> PlayerRotation;
@@ -182,6 +183,7 @@ namespace Chraft.Net
                 case PacketType.Player: OnPlayer((PlayerPacket)p); break;
                 case PacketType.PlayerBlockPlacement: OnPlayerBlockPlacement((PlayerBlockPlacementPacket)p); break;
                 case PacketType.PlayerDigging: OnPlayerDigging((PlayerDiggingPacket)p); break;
+                case PacketType.PlayerListItem: OnPlayerListItem((PlayerListItemPacket)p); break;
                 case PacketType.PlayerPosition: OnPlayerPosition((PlayerPositionPacket)p); break;
                 case PacketType.PlayerPositionRotation: OnPlayerPositionRotation((PlayerPositionRotationPacket)p); break;
                 case PacketType.PlayerRotation: OnPlayerRotation((PlayerRotationPacket)p); break;
@@ -244,6 +246,7 @@ namespace Chraft.Net
         private void OnPlayer(PlayerPacket p) { if (Player != null) Player.Invoke(this, new PacketEventArgs<PlayerPacket>(p)); }
         private void OnPlayerBlockPlacement(PlayerBlockPlacementPacket p) { if (PlayerBlockPlacement != null) PlayerBlockPlacement.Invoke(this, new PacketEventArgs<PlayerBlockPlacementPacket>(p)); }
         private void OnPlayerDigging(PlayerDiggingPacket p) { if (PlayerDigging != null) PlayerDigging.Invoke(this, new PacketEventArgs<PlayerDiggingPacket>(p)); }
+        private void OnPlayerListItem(PlayerListItemPacket p) { if (PlayerListItem != null) PlayerListItem.Invoke(this, new PacketEventArgs<PlayerListItemPacket>(p)); }
         private void OnPlayerPosition(PlayerPositionPacket p) { if (PlayerPosition != null) PlayerPosition.Invoke(this, new PacketEventArgs<PlayerPositionPacket>(p)); }
         private void OnPlayerPositionRotation(PlayerPositionRotationPacket p) { if (PlayerPositionRotation != null) PlayerPositionRotation.Invoke(this, new PacketEventArgs<PlayerPositionRotationPacket>(p)); }
         private void OnPlayerRotation(PlayerRotationPacket p) { if (PlayerRotation != null) PlayerRotation.Invoke(this, new PacketEventArgs<PlayerRotationPacket>(p)); }

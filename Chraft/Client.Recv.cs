@@ -168,6 +168,18 @@ namespace Chraft
             PacketHandler.Handshake += PacketHandler_Handshake;
             PacketHandler.Disconnect += PacketHandler_Disconnect;
             PacketHandler.ServerListPing += PacketHandler_ServerListPing;
+            PacketHandler.KeepAlive += new PacketEventHandler<KeepAlivePacket>(PacketHandler_KeepAlive);
+
+        }
+
+        void PacketHandler_KeepAlive(object sender, PacketEventArgs<KeepAlivePacket> e)
+        {
+            _lastClientResponse = DateTime.Now;
+            if (_lastKeepAliveId > 0 && e.Packet.KeepAliveID == _lastKeepAliveId)
+            {
+                this.Ping = (int)Math.Round((DateTime.Now - _keepAliveStart).TotalMilliseconds, MidpointRounding.AwayFromZero);
+            }
+
         }
 
         private void InitializeRecvPlayer()
@@ -969,6 +981,7 @@ namespace Chraft
 
         private void PacketHandler_Player(object sender, PacketEventArgs<PlayerPacket> e)
         {
+            this.Ready = true;
             this.OnGround = e.Packet.OnGround;
             this.UpdateEntities();
         }
@@ -989,13 +1002,13 @@ namespace Chraft
 
         private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
         {
+            this.Ready = true;
             this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
         }
 
         #endregion
-
 
         #region Login
 

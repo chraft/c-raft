@@ -201,8 +201,26 @@ namespace Chraft
 
             PluginManager.LoadDefaultAssemblies();
 
+            // Player list update thread
+            Thread t = new Thread(PlayerListProc);
+            t.IsBackground = true;
+            t.Start();
+
             while (Running)
                 RunProc();
+        }
+
+        private void PlayerListProc()
+        {
+            while (Running)
+            {
+                foreach (var client in this.GetAuthenticatedClients())
+                {
+                    this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Username, Online = client.Ready, Ping = (short)client.Ping });
+                    Thread.Sleep(50);
+                }
+                Thread.Sleep(1000);
+            }
         }
 
         /// <summary>
@@ -231,6 +249,7 @@ namespace Chraft
         {
             Logger.Log(Logger.LogLevel.Info, "Using IP Addresss {0}.", Settings.Default.IPAddress);
             Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
+            
             RunListener();
 
             if (Running)
@@ -396,12 +415,29 @@ namespace Chraft
         }
 
         /// <summary>
+        /// Broadcasts a packet to all authenticated clients
+        /// </summary>
+        /// <param name="packet"></param>
+        public void BroadcastToAuthenticated(Packet packet)
+        {
+            System.Threading.Tasks.Parallel.ForEach(this.GetAuthenticatedClients(), (client) =>
+            {
+                client.SendPacket(packet);
+            });
+        }
+
+        /// <summary>
         /// Gets a thread-safe array of connected clients.
         /// </summary>
         /// <returns>A thread-safe array of connected clients.</returns>
         public Client[] GetClients()
         {
             return Clients.Values.ToArray();
+        }
+
+        public IEnumerable<Client> GetAuthenticatedClients()
+        {
+            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Username) && client.Ready);
         }
 
         public IEnumerable<Client> GetClients(string name)
@@ -467,7 +503,7 @@ namespace Chraft
         public IEnumerable<Client> GetNearbyPlayers(WorldManager world, double x, double y, double z)
         {
             int radius = Settings.Default.SightRadius << 4;
-            foreach (Client c in GetClients())
+            foreach (Client c in GetAuthenticatedClients())
             {
                 if (c.World == world && Math.Abs(x - c.Position.X) <= radius && Math.Abs(y - c.Position.Y) <= radius && Math.Abs(z - c.Position.Z) <= radius)
                     yield return c;

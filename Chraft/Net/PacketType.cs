@@ -63,6 +63,7 @@ namespace Chraft.Net
         UpdateSign = 0x82,                  //   <->
         MapData = 0x83,                     //   -->
         IncrementStatistic = 0xC8,          //   ???
+        PlayerListItem = 0xC9,              //   <--
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->
 	}

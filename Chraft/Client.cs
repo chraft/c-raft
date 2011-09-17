@@ -61,6 +61,8 @@ namespace Chraft
 
         public const double EyeGroundOffset = 1.6200000047683716;
 
+        public bool Ready { get; set; }
+
         /// <summary>
         /// Instantiates a new Client object.
         /// </summary>
@@ -147,12 +149,22 @@ namespace Chraft
             });
         }
 
+        public int Ping { get; set; }
         private int _lastKeepAliveId;
+        private DateTime _keepAliveStart;
+        private DateTime _lastClientResponse = DateTime.Now;
         private void KeepAliveTimer_Callback(object sender)
         {
             if (Running)
             {
+                if ((DateTime.Now - _lastClientResponse).TotalSeconds > 60)
+                {
+                    // Client hasn't sent or responded to a keepalive within 60secs
+                    this.Stop();
+                    return;
+                }
                 _lastKeepAliveId = Server.Rand.Next();
+                _keepAliveStart = DateTime.Now;
                 PacketHandler.SendPacket(new KeepAlivePacket() { KeepAliveID = this._lastKeepAliveId });
             }
         }
@@ -483,6 +495,7 @@ namespace Chraft
         /// </summary>
         public void Stop()
         {
+            this.Ready = false;
             Running = false;
             if (KeepAliveTimer != null)
             {
