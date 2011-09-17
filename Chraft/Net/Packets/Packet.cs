@@ -274,6 +274,30 @@ namespace Chraft.Net.Packets
         }
     }
 
+    /// <summary>
+    /// Sent by the notchian server to update the user list (<tab> in the client). The server sends one packet per user per tick, amounting to 20 packets/s for 1 online user, 40 for 2, and so forth.
+    /// </summary>
+    public class PlayerListItemPacket : Packet
+    {
+        public string PlayerName { get; set; }
+        public bool Online { get; set; }
+        public short Ping { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            PlayerName = stream.ReadString16(16);
+            Online = stream.ReadBool();
+            Ping = stream.ReadShort();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(PlayerName);
+            stream.Write(Online);
+            stream.Write(Ping);
+        }
+    }
+
     public class PlayerPositionPacket : Packet
     {
         public double X { get; set; }
