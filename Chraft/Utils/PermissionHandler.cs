@@ -11,7 +11,7 @@ namespace Chraft.Utils
     {
         private static Configuration _permissionConfig;
         private static XDocument _permissionXml;
-        private const string Permfile = "resources/Permissions.xml";
+        private const string Permfile = "Resources/Permissions.xml";
         private static Server _server;
 
         public PermissionHandler(Server server)
