@@ -42,6 +42,7 @@ namespace Chraft.Net
         EntityLookAndRelativeMove = 0x21,   //   <--
         EntityTeleport = 0x22,              //   <--
         EntityStatus = 0x26,                //   <--
+		ExperienceOrb = 0x1A,              //   <--
         AttachEntity = 0x27,                //   <--
         EntityMetadata = 0x28,              //   <--
         PreChunk = 0x32,                    //   <--
@@ -64,6 +65,7 @@ namespace Chraft.Net
         MapData = 0x83,                     //   -->
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
+		
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->
 	}

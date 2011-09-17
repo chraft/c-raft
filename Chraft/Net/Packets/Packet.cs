@@ -1630,4 +1630,33 @@ namespace Chraft.Net.Packets
             stream.Write(Z);
         }
     }
+	
+	    public class ExperienceOrbPacket : Packet
+    {
+
+        public int EntityId { get; set; }
+        public short Count { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            EntityId = stream.ReadInt();
+            X = stream.ReadInt();
+            Y = stream.ReadInt();
+            Z = stream.ReadInt();
+			Count = stream.ReadShort();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(EntityId);
+            stream.Write(X);
+            stream.Write(Y);
+            stream.Write(Z);
+			stream.Write(Count);
+        }
+    }
+
 }
