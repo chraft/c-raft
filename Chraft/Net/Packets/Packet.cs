@@ -478,19 +478,28 @@ namespace Chraft.Net.Packets
 
     public class EntityActionPacket : Packet
     {
+        public enum ActionType : sbyte
+        {
+            Crouch = 1,
+            Uncrouch = 2,
+            LeaveBed = 3,
+            StartSprinting = 4,
+            StopSprinting = 5,
+        }
+
         public int PlayerId { get; set; }
-        public sbyte Action { get; set; }
+        public ActionType Action { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             PlayerId = stream.ReadInt();
-            Action = stream.ReadSByte();
+            Action = (ActionType)stream.ReadSByte();
         }
 
         public override void Write(BigEndianStream stream)
         {
             stream.Write(PlayerId);
-            stream.Write(Action);
+            stream.Write((sbyte)Action);
         }
     }
 
