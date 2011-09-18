@@ -167,6 +167,7 @@ namespace Chraft.Net
                 case PacketType.EntityStatus: OnEntityStatus((EntityStatusPacket)p); break;
                 case PacketType.EntityTeleport: OnEntityTeleport((EntityTeleportPacket)p); break;
                 case PacketType.EntityVelocity: OnEntityVelocity((EntityVelocityPacket)p); break;
+				case PacketType.ExperienceOrb: OnExperienceOrb((ExperienceOrbPacket)p); break;
                 case PacketType.Explosion: OnExplosion((ExplosionPacket)p); break;
                 case PacketType.Handshake: OnHandshake((HandshakePacket)p); break;
                 case PacketType.HoldingChange: OnHoldingChange((HoldingChangePacket)p); break;
