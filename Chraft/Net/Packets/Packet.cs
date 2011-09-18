@@ -1295,7 +1295,7 @@ namespace Chraft.Net.Packets
         {
             WindowId = stream.ReadSByte();
             InventoryType = (InterfaceType)stream.ReadSByte();
-            WindowTitle = stream.ReadString8(100);
+            WindowTitle = stream.ReadString16(100);
             SlotCount = stream.ReadSByte();
         }
 
@@ -1303,7 +1303,7 @@ namespace Chraft.Net.Packets
         {
             stream.Write(WindowId);
             stream.Write((sbyte)InventoryType);
-            stream.Write8(WindowTitle);
+            stream.Write16(WindowTitle);
             stream.Write(SlotCount);
         }
     }
