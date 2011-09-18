@@ -1295,7 +1295,6 @@ namespace Chraft.Net.Packets
         {
             WindowId = stream.ReadSByte(); 
             InventoryType = (InterfaceType)stream.ReadSByte();
-			
             WindowTitle = stream.ReadString16(100);
             SlotCount = stream.ReadSByte();
         }
