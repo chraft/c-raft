@@ -419,13 +419,13 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public BlockFace Face { get; set; }
         public ItemStack Item { get; set; }
-        
+
         public override void Read(BigEndianStream stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadSByte();
             Z = stream.ReadInt();
-            Face = (BlockFace)stream.ReadSByte(); 
+            Face = (BlockFace)stream.ReadSByte();
             Item = ItemStack.Read(stream);
             //amount in hand and durability are handled int ItemStack.Read
         }
@@ -666,7 +666,7 @@ namespace Chraft.Net.Packets
             Boat = 1,
             Minecart = 10,
             StorageCart = 11,
-	        PoweredCart = 12,
+            PoweredCart = 12,
             ActivatedTNT = 50,
             Arrow = 60,
             ThrownSnowball = 61,
@@ -1119,31 +1119,31 @@ namespace Chraft.Net.Packets
         }
         public enum Pitch : sbyte
         {
-            Octave1_00_Fsharp   = 0,
-            Octave1_01_G        = 1,
-            Octave1_02_Gsharp   = 2,
-            Octave1_03_A        = 3,
-            Octave1_04_Asharp   = 4,
-            Octave1_05_B        = 5,
-            Octave1_06_C        = 6,
-            Octave1_07_Csharp   = 7,
-            Octave1_08_D        = 8,
-            Octave1_09_Dsharp   = 9,
-            Octave1_10_E        = 10,
-            Octave1_11_F        = 11,
-            Octave2_00_Fsharp   = 12,
-            Octave2_01_G        = 13,
-            Octave2_02_Gsharp   = 14,
-            Octave2_03_A        = 15,
-            Octave2_04_Asharp   = 16,
-            Octave2_05_B        = 17,
-            Octave2_06_Bsharp   = 18,
-            Octave2_07_C        = 19,
-            Octave2_08_Csharp   = 20,
-            Octave2_09_D        = 21,
-            Octave2_10_Dsharp   = 22,
-            Octave2_11_E        = 23,
-            Octave2_12_F        = 24,
+            Octave1_00_Fsharp = 0,
+            Octave1_01_G = 1,
+            Octave1_02_Gsharp = 2,
+            Octave1_03_A = 3,
+            Octave1_04_Asharp = 4,
+            Octave1_05_B = 5,
+            Octave1_06_C = 6,
+            Octave1_07_Csharp = 7,
+            Octave1_08_D = 8,
+            Octave1_09_Dsharp = 9,
+            Octave1_10_E = 10,
+            Octave1_11_F = 11,
+            Octave2_00_Fsharp = 12,
+            Octave2_01_G = 13,
+            Octave2_02_Gsharp = 14,
+            Octave2_03_A = 15,
+            Octave2_04_Asharp = 16,
+            Octave2_05_B = 17,
+            Octave2_06_Bsharp = 18,
+            Octave2_07_C = 19,
+            Octave2_08_Csharp = 20,
+            Octave2_09_D = 21,
+            Octave2_10_Dsharp = 22,
+            Octave2_11_E = 23,
+            Octave2_12_F = 24,
         }
         #endregion
 
@@ -1537,22 +1537,32 @@ namespace Chraft.Net.Packets
     public class NewInvalidStatePacket : Packet
     {
         public NewInvalidReason Reason { get; set; }
+        public byte GameMode { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
             Reason = (NewInvalidReason)stream.ReadByte();
+            if (Reason == NewInvalidReason.ChangeGameMode)
+            {
+                GameMode = stream.ReadByte();
+            }
         }
 
         public override void Write(BigEndianStream stream)
         {
             stream.Write((byte)Reason);
+            if (Reason == NewInvalidReason.ChangeGameMode)
+            {
+                stream.Write(GameMode);
+            }
         }
 
         public enum NewInvalidReason : byte
         {
             InvalidBed = 0,
             BeginRaining = 1,
-            EndRaining = 2
+            EndRaining = 2,
+            ChangeGameMode = 3
         }
     }
 
@@ -1630,8 +1640,8 @@ namespace Chraft.Net.Packets
             stream.Write(Z);
         }
     }
-	
-	    public class ExperienceOrbPacket : Packet
+
+    public class ExperienceOrbPacket : Packet
     {
 
         public int EntityId { get; set; }
@@ -1646,7 +1656,7 @@ namespace Chraft.Net.Packets
             X = stream.ReadInt();
             Y = stream.ReadInt();
             Z = stream.ReadInt();
-			Count = stream.ReadShort();
+            Count = stream.ReadShort();
         }
 
         public override void Write(BigEndianStream stream)
@@ -1655,7 +1665,7 @@ namespace Chraft.Net.Packets
             stream.Write(X);
             stream.Write(Y);
             stream.Write(Z);
-			stream.Write(Count);
+            stream.Write(Count);
         }
     }
 
