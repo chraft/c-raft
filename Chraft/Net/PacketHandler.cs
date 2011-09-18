@@ -35,6 +35,7 @@ namespace Chraft.Net
         public event PacketEventHandler<EntityStatusPacket> EntityStatus;
         public event PacketEventHandler<EntityTeleportPacket> EntityTeleport;
         public event PacketEventHandler<EntityVelocityPacket> EntityVelocity;
+		public event PacketEventHandler<ExperienceOrbPacket> ExperienceOrb;
         public event PacketEventHandler<ExplosionPacket> Explosion;
         public event PacketEventHandler<HandshakePacket> Handshake;
         public event PacketEventHandler<HoldingChangePacket> HoldingChange;
