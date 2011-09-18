@@ -20,7 +20,7 @@ namespace Chraft
 {
     public partial class Client
     {
-        internal const int ProtocolVersion = 9;
+        internal const int ProtocolVersion = 17;
         private volatile TcpClient Tcp;
         private Thread RxThread;
         private volatile bool Running = true;

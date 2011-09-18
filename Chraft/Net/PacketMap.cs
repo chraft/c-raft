@@ -31,7 +31,7 @@ namespace Chraft.Net
             { PacketType.EntityStatus, typeof(EntityStatusPacket) },
             { PacketType.EntityTeleport, typeof(EntityTeleportPacket) },
             { PacketType.EntityVelocity, typeof(EntityVelocityPacket) },
-			{ PacketType.ExperienceOrb, typeof(ExperienceOrbPacket) },
+            { PacketType.ExperienceOrb, typeof(ExperienceOrbPacket) },
             { PacketType.Explosion, typeof(ExplosionPacket) },
             { PacketType.Handshake, typeof(HandshakePacket) },
             { PacketType.HoldingChange, typeof(HoldingChangePacket) },
