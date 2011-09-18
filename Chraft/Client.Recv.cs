@@ -1016,7 +1016,7 @@ namespace Chraft
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
             var clientCount = this.Server.GetAuthenticatedClients().Count();
-            this.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", this.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers - clientCount) });
+            this.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", this.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers) });
         }
 
         private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
