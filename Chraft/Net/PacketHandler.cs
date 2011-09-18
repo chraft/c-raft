@@ -26,6 +26,7 @@ namespace Chraft.Net
         public event PacketEventHandler<DisconnectPacket> Disconnect;
         public event PacketEventHandler<CreateEntityPacket> Entity;
         public event PacketEventHandler<EntityActionPacket> EntityAction;
+        public event PacketEventHandler<EntityEffectPacket> EntityEffect;
         public event PacketEventHandler<EntityEquipmentPacket> EntityEquipment;
         public event PacketEventHandler<EntityLookPacket> EntityLook;
         public event PacketEventHandler<EntityLookAndRelativeMovePacket> EntityLookAndRelativeMove;
@@ -35,12 +36,12 @@ namespace Chraft.Net
         public event PacketEventHandler<EntityStatusPacket> EntityStatus;
         public event PacketEventHandler<EntityTeleportPacket> EntityTeleport;
         public event PacketEventHandler<EntityVelocityPacket> EntityVelocity;
-		public event PacketEventHandler<ExperienceOrbPacket> ExperienceOrb;
+        public event PacketEventHandler<ExperienceOrbPacket> ExperienceOrb;
         public event PacketEventHandler<ExplosionPacket> Explosion;
         public event PacketEventHandler<HandshakePacket> Handshake;
         public event PacketEventHandler<HoldingChangePacket> HoldingChange;
         public event PacketEventHandler<KeepAlivePacket> KeepAlive;
-        public event PacketEventHandler<IncrementStatisticPacket> IncrementStatistic; 
+        public event PacketEventHandler<IncrementStatisticPacket> IncrementStatistic;
         public event PacketEventHandler<LoginRequestPacket> LoginRequest;
         public event PacketEventHandler<MapChunkPacket> MapChunk;
         public event PacketEventHandler<MapDataPacket> MapData;
@@ -58,6 +59,7 @@ namespace Chraft.Net
         public event PacketEventHandler<PlayerPositionRotationPacket> PlayerPositionRotation;
         public event PacketEventHandler<PlayerRotationPacket> PlayerRotation;
         public event PacketEventHandler<PreChunkPacket> PreChunk;
+        public event PacketEventHandler<RemoveEntityEffectPacket> RemoveEntityEffect;
         public event PacketEventHandler<RespawnPacket> Respawn;
         public event PacketEventHandler<ServerListPingPacket> ServerListPing;
         public event PacketEventHandler<SetSlotPacket> SetSlot;
@@ -158,6 +160,7 @@ namespace Chraft.Net
                 case PacketType.Disconnect: OnDisconnect((DisconnectPacket)p); break;
                 case PacketType.Entity: OnEntity((CreateEntityPacket)p); break;
                 case PacketType.EntityAction: OnEntityAction((EntityActionPacket)p); break;
+                case PacketType.EntityEffect: OnEntityEffect((EntityEffectPacket)p); break;
                 case PacketType.EntityEquipment: OnEntityEquipment((EntityEquipmentPacket)p); break;
                 case PacketType.EntityLook: OnEntityLook((EntityLookPacket)p); break;
                 case PacketType.EntityLookAndRelativeMove: OnEntityLookAndRelativeMove((EntityLookAndRelativeMovePacket)p); break;
@@ -167,7 +170,7 @@ namespace Chraft.Net
                 case PacketType.EntityStatus: OnEntityStatus((EntityStatusPacket)p); break;
                 case PacketType.EntityTeleport: OnEntityTeleport((EntityTeleportPacket)p); break;
                 case PacketType.EntityVelocity: OnEntityVelocity((EntityVelocityPacket)p); break;
-				case PacketType.ExperienceOrb: OnExperienceOrb((ExperienceOrbPacket)p); break;
+                case PacketType.ExperienceOrb: OnExperienceOrb((ExperienceOrbPacket)p); break;
                 case PacketType.Explosion: OnExplosion((ExplosionPacket)p); break;
                 case PacketType.Handshake: OnHandshake((HandshakePacket)p); break;
                 case PacketType.HoldingChange: OnHoldingChange((HoldingChangePacket)p); break;
@@ -190,6 +193,7 @@ namespace Chraft.Net
                 case PacketType.PlayerPositionRotation: OnPlayerPositionRotation((PlayerPositionRotationPacket)p); break;
                 case PacketType.PlayerRotation: OnPlayerRotation((PlayerRotationPacket)p); break;
                 case PacketType.PreChunk: OnPreChunk((PreChunkPacket)p); break;
+                case PacketType.RemoveEntityEffect: OnRemoveEntityEffect((RemoveEntityEffectPacket)p); break;
                 case PacketType.Respawn: OnRespawn((RespawnPacket)p); break;
                 case PacketType.ServerListPing: OnServerListPing((ServerListPingPacket)p); break;
                 case PacketType.SetSlot: OnSetSlot((SetSlotPacket)p); break;
@@ -222,6 +226,7 @@ namespace Chraft.Net
         private void OnDisconnect(DisconnectPacket p) { if (Disconnect != null) Disconnect.Invoke(this, new PacketEventArgs<DisconnectPacket>(p)); }
         private void OnEntity(CreateEntityPacket p) { if (Entity != null) Entity.Invoke(this, new PacketEventArgs<CreateEntityPacket>(p)); }
         private void OnEntityAction(EntityActionPacket p) { if (EntityAction != null) EntityAction.Invoke(this, new PacketEventArgs<EntityActionPacket>(p)); }
+        private void OnEntityEffect(EntityEffectPacket p) { if (EntityEffect != null) EntityEffect.Invoke(this, new PacketEventArgs<EntityEffectPacket>(p)); }
         private void OnEntityEquipment(EntityEquipmentPacket p) { if (EntityEquipment != null) EntityEquipment.Invoke(this, new PacketEventArgs<EntityEquipmentPacket>(p)); }
         private void OnEntityLook(EntityLookPacket p) { if (EntityLook != null) EntityLook.Invoke(this, new PacketEventArgs<EntityLookPacket>(p)); }
         private void OnEntityLookAndRelativeMove(EntityLookAndRelativeMovePacket p) { if (EntityLookAndRelativeMove != null) EntityLookAndRelativeMove.Invoke(this, new PacketEventArgs<EntityLookAndRelativeMovePacket>(p)); }
@@ -231,7 +236,7 @@ namespace Chraft.Net
         private void OnEntityStatus(EntityStatusPacket p) { if (EntityStatus != null) EntityStatus.Invoke(this, new PacketEventArgs<EntityStatusPacket>(p)); }
         private void OnEntityTeleport(EntityTeleportPacket p) { if (EntityTeleport != null) EntityTeleport.Invoke(this, new PacketEventArgs<EntityTeleportPacket>(p)); }
         private void OnEntityVelocity(EntityVelocityPacket p) { if (EntityVelocity != null) EntityVelocity.Invoke(this, new PacketEventArgs<EntityVelocityPacket>(p)); }
-		private void OnExperienceOrb(ExperienceOrbPacket p) { if (ExperienceOrb != null) ExperienceOrb.Invoke(this, new PacketEventArgs<ExperienceOrbPacket>(p)); }
+        private void OnExperienceOrb(ExperienceOrbPacket p) { if (ExperienceOrb != null) ExperienceOrb.Invoke(this, new PacketEventArgs<ExperienceOrbPacket>(p)); }
         private void OnExplosion(ExplosionPacket p) { if (Explosion != null) Explosion.Invoke(this, new PacketEventArgs<ExplosionPacket>(p)); }
         private void OnHandshake(HandshakePacket p) { if (Handshake != null) Handshake.Invoke(this, new PacketEventArgs<HandshakePacket>(p)); }
         private void OnHoldingChange(HoldingChangePacket p) { if (HoldingChange != null) HoldingChange.Invoke(this, new PacketEventArgs<HoldingChangePacket>(p)); }
@@ -254,6 +259,7 @@ namespace Chraft.Net
         private void OnPlayerPositionRotation(PlayerPositionRotationPacket p) { if (PlayerPositionRotation != null) PlayerPositionRotation.Invoke(this, new PacketEventArgs<PlayerPositionRotationPacket>(p)); }
         private void OnPlayerRotation(PlayerRotationPacket p) { if (PlayerRotation != null) PlayerRotation.Invoke(this, new PacketEventArgs<PlayerRotationPacket>(p)); }
         private void OnPreChunk(PreChunkPacket p) { if (PreChunk != null) PreChunk.Invoke(this, new PacketEventArgs<PreChunkPacket>(p)); }
+        private void OnRemoveEntityEffect(RemoveEntityEffectPacket p) { if (RemoveEntityEffect != null) RemoveEntityEffect.Invoke(this, new PacketEventArgs<RemoveEntityEffectPacket>(p)); }
         private void OnRespawn(RespawnPacket p) { if (Respawn != null) Respawn.Invoke(this, new PacketEventArgs<RespawnPacket>(p)); }
         private void OnServerListPing(ServerListPingPacket p) { if (ServerListPing != null) ServerListPing.Invoke(this, new PacketEventArgs<ServerListPingPacket>(p)); }
         private void OnSetSlot(SetSlotPacket p) { if (SetSlot != null) SetSlot.Invoke(this, new PacketEventArgs<SetSlotPacket>(p)); }

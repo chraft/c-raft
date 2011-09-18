@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Chraft.Net
 {
-	public enum PacketType : byte
-	{
+    public enum PacketType : byte
+    {
         KeepAlive = 0x00,                   // c <-> s
         LoginRequest = 0x01,                //   <->
         Handshake = 0x02,                   //   <->
@@ -42,9 +42,11 @@ namespace Chraft.Net
         EntityLookAndRelativeMove = 0x21,   //   <--
         EntityTeleport = 0x22,              //   <--
         EntityStatus = 0x26,                //   <--
-		ExperienceOrb = 0x1A,              //   <--
+        ExperienceOrb = 0x1A,               //   <--
         AttachEntity = 0x27,                //   <--
         EntityMetadata = 0x28,              //   <--
+        EntityEffect = 0x29,                //   <->
+        RemoveEntityEffect = 0x2a,          //   <->
         PreChunk = 0x32,                    //   <--
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
@@ -67,5 +69,5 @@ namespace Chraft.Net
         PlayerListItem = 0xC9,              //   <--
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->
-	}
+    }
 }

@@ -1568,18 +1568,18 @@ namespace Chraft.Net.Packets
 
     public class IncrementStatisticPacket : Packet
     {
-        public int Statistic { get; set; }
+        public Statistics Statistic { get; set; }
         public byte Amount { get; set; }
 
         public override void Read(BigEndianStream stream)
         {
-            Statistic = stream.ReadInt();
+            Statistic = (Statistics)stream.ReadInt();
             Amount = stream.ReadByte();
         }
 
         public override void Write(BigEndianStream stream)
         {
-            stream.Write(Statistic);
+            stream.Write((int)Statistic);
             stream.Write(Amount);
         }
 
@@ -1669,4 +1669,67 @@ namespace Chraft.Net.Packets
         }
     }
 
+    public class EntityEffectPacket : Packet
+    {
+        public int EntityId { get; set; }
+        public EntityEffects Effect { get; set; }
+        public byte Amplifier { get; set; }
+        public short Duration { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            EntityId = stream.ReadInt();
+            Effect = (EntityEffects)stream.ReadByte();
+            Amplifier = stream.ReadByte();
+            Duration = stream.ReadShort();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(EntityId);
+            stream.Write((byte)Effect);
+            stream.Write(Amplifier);
+            stream.Write(Duration);
+        }
+    }
+
+    public class RemoveEntityEffectPacket : Packet
+    {
+        public int EntityId { get; set; }
+        public EntityEffects Effect { get; set; }
+        public override void Read(BigEndianStream stream)
+        {
+            EntityId = stream.ReadInt();
+            Effect = (EntityEffects)stream.ReadByte();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(EntityId);
+            stream.Write((byte)Effect);
+        }
+    }
+
+    public enum EntityEffects
+    {
+        MoveSpeed = 1, // Increases player speed and FOV.
+        MoveSlowDown = 2, // Decreases player speed and FOV.
+        DigSpeed = 3, // Increases player dig speed
+        DigSlowDown = 4, // Decreases player dig speed
+        DamageBoost = 5,
+        Heal = 6,
+        Harm = 7,
+        Jump = 8,
+        Confusion = 9, //Portal-like effect
+        Regeneration = 10, //Hearts pulse one-by-one - Caused by golden apple. Health regenerates over 600-tick (30s) period.
+        Resistance = 11,
+        FireResistance = 12,
+        WaterResistance = 13,
+        Invisibility = 14,
+        Blindness = 15,
+        NightVision = 16,
+        Hunger = 17, //Food bar turns green - Caused by poisoning from Rotten Flesh or Raw Chicken
+        Weakness = 18,
+        Poison = 19 //Hearts turn yellow - Caused by poisoning from cave (blue) spider
+    }
 }
