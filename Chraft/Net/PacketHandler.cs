@@ -22,6 +22,7 @@ namespace Chraft.Net
         public event PacketEventHandler<ChatMessagePacket> ChatMessage;
         public event PacketEventHandler<CloseWindowPacket> CloseWindow;
         public event PacketEventHandler<CollectItemPacket> CollectItem;
+		public event PacketEventHandler<CreativeInventoryActionPacket> CreativeInventoryAction;
         public event PacketEventHandler<DestroyEntityPacket> DestroyEntity;
         public event PacketEventHandler<DisconnectPacket> Disconnect;
         public event PacketEventHandler<CreateEntityPacket> Entity;
@@ -154,6 +155,7 @@ namespace Chraft.Net
                 case PacketType.ChatMessage: OnChatMessage((ChatMessagePacket)p); break;
                 case PacketType.CloseWindow: OnCloseWindow((CloseWindowPacket)p); break;
                 case PacketType.CollectItem: OnCollectItem((CollectItemPacket)p); break;
+				case PacketType.CreativeInventoryAction: OnCreativeInventoryAction((CreativeInventoryActionPacket)p); break;
                 case PacketType.DestroyEntity: OnDestroyEntity((DestroyEntityPacket)p); break;
                 case PacketType.Disconnect: OnDisconnect((DisconnectPacket)p); break;
                 case PacketType.Entity: OnEntity((CreateEntityPacket)p); break;
@@ -218,6 +220,7 @@ namespace Chraft.Net
         private void OnChatMessage(ChatMessagePacket p) { if (ChatMessage != null) ChatMessage.Invoke(this, new PacketEventArgs<ChatMessagePacket>(p)); }
         private void OnCloseWindow(CloseWindowPacket p) { if (CloseWindow != null) CloseWindow.Invoke(this, new PacketEventArgs<CloseWindowPacket>(p)); }
         private void OnCollectItem(CollectItemPacket p) { if (CollectItem != null) CollectItem.Invoke(this, new PacketEventArgs<CollectItemPacket>(p)); }
+		private void OnCreativeInventoryAction(CreativeInventoryActionPacket p) { if (CreativeInventoryAction != null) CreativeInventoryAction.Invoke(this, new PacketEventArgs<CreativeInventoryActionPacket>(p)); }
         private void OnDestroyEntity(DestroyEntityPacket p) { if (DestroyEntity != null) DestroyEntity.Invoke(this, new PacketEventArgs<DestroyEntityPacket>(p)); }
         private void OnDisconnect(DisconnectPacket p) { if (Disconnect != null) Disconnect.Invoke(this, new PacketEventArgs<DisconnectPacket>(p)); }
         private void OnEntity(CreateEntityPacket p) { if (Entity != null) Entity.Invoke(this, new PacketEventArgs<CreateEntityPacket>(p)); }

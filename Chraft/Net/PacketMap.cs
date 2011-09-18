@@ -18,6 +18,7 @@ namespace Chraft.Net
             { PacketType.ChatMessage, typeof(ChatMessagePacket) },
             { PacketType.CloseWindow, typeof(CloseWindowPacket) },
             { PacketType.CollectItem, typeof(CollectItemPacket) },
+			{ PacketType.CreativeInventoryAction, typeof(CreativeInventoryActionPacket) },
             { PacketType.DestroyEntity, typeof(DestroyEntityPacket) },
             { PacketType.Disconnect, typeof(DisconnectPacket) },
             { PacketType.Entity, typeof(CreateEntityPacket) },

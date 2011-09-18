@@ -1307,6 +1307,30 @@ namespace Chraft.Net.Packets
             stream.Write(SlotCount);
         }
     }
+	
+	   public class CreativeInventoryActionPacket : Packet
+    {
+        public short Slot { get; set; }
+        public short ItemID { get; set; }
+		public short Quantity { get; set; }
+		public short Damage { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            Slot = stream.ReadShort(); 
+            ItemID = stream.ReadShort();
+            Quantity = stream.ReadShort();
+            Damage = stream.ReadShort();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(Slot);
+			stream.Write(ItemID);
+			stream.Write(Quantity);
+			stream.Write(Damage);
+        }
+    }
 
     public class CloseWindowPacket : Packet
     {
