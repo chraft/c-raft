@@ -230,6 +230,7 @@ namespace Chraft.Net
         private void OnEntityStatus(EntityStatusPacket p) { if (EntityStatus != null) EntityStatus.Invoke(this, new PacketEventArgs<EntityStatusPacket>(p)); }
         private void OnEntityTeleport(EntityTeleportPacket p) { if (EntityTeleport != null) EntityTeleport.Invoke(this, new PacketEventArgs<EntityTeleportPacket>(p)); }
         private void OnEntityVelocity(EntityVelocityPacket p) { if (EntityVelocity != null) EntityVelocity.Invoke(this, new PacketEventArgs<EntityVelocityPacket>(p)); }
+		private void OnExperienceOrb(ExperienceOrbPacket p) { if (ExperienceOrb != null) ExperienceOrb.Invoke(this, new PacketEventArgs<ExperienceOrbPacket>(p)); }
         private void OnExplosion(ExplosionPacket p) { if (Explosion != null) Explosion.Invoke(this, new PacketEventArgs<ExplosionPacket>(p)); }
         private void OnHandshake(HandshakePacket p) { if (Handshake != null) Handshake.Invoke(this, new PacketEventArgs<HandshakePacket>(p)); }
         private void OnHoldingChange(HoldingChangePacket p) { if (HoldingChange != null) HoldingChange.Invoke(this, new PacketEventArgs<HoldingChangePacket>(p)); }
@@ -258,7 +259,6 @@ namespace Chraft.Net
         private void OnSoundEffect(SoundEffectPacket p) { if (SoundEffect != null) SoundEffect.Invoke(this, new PacketEventArgs<SoundEffectPacket>(p)); }
         private void OnSpawnPosition(SpawnPositionPacket p) { if (SpawnPosition != null) SpawnPosition.Invoke(this, new PacketEventArgs<SpawnPositionPacket>(p)); }
         private void OnThunderBolt(ThunderBoltPacket p) { if (ThunderBolt != null) ThunderBolt.Invoke(this, new PacketEventArgs<ThunderBoltPacket>(p)); }
-		private void OnExperienceOrb(ExperienceOrbPacket p) { if (ExperienceOrb != null) ExperienceOrb.Invoke(this, new PacketEventArgs<ExperienceOrbPacket>(p)); }
         private void OnTimeUpdate(TimeUpdatePacket p) { if (TimeUpdate != null) TimeUpdate.Invoke(this, new PacketEventArgs<TimeUpdatePacket>(p)); }
         private void OnTransaction(TransactionPacket p) { if (Transaction != null) Transaction.Invoke(this, new PacketEventArgs<TransactionPacket>(p)); }
         private void OnUnknownA(UnknownAPacket p) { if (UnknownA != null) UnknownA.Invoke(this, new PacketEventArgs<UnknownAPacket>(p)); }
