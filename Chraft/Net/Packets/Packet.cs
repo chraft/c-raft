@@ -1293,7 +1293,7 @@ namespace Chraft.Net.Packets
 
         public override void Read(BigEndianStream stream)
         {
-            WindowId = stream.ReadSByte();
+            WindowId = stream.ReadSByte(); 
             InventoryType = (InterfaceType)stream.ReadSByte();
             WindowTitle = stream.ReadString16(100);
             SlotCount = stream.ReadSByte();
