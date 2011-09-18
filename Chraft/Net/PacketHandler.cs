@@ -230,6 +230,7 @@ namespace Chraft.Net
         private void OnEntityStatus(EntityStatusPacket p) { if (EntityStatus != null) EntityStatus.Invoke(this, new PacketEventArgs<EntityStatusPacket>(p)); }
         private void OnEntityTeleport(EntityTeleportPacket p) { if (EntityTeleport != null) EntityTeleport.Invoke(this, new PacketEventArgs<EntityTeleportPacket>(p)); }
         private void OnEntityVelocity(EntityVelocityPacket p) { if (EntityVelocity != null) EntityVelocity.Invoke(this, new PacketEventArgs<EntityVelocityPacket>(p)); }
+		private void OnExperienceOrb(ExperienceOrbPacket p) { if (ExperienceOrb != null) ExperienceOrb.Invoke(this, new PacketEventArgs<ExperienceOrbPacket>(p)); }
         private void OnExplosion(ExplosionPacket p) { if (Explosion != null) Explosion.Invoke(this, new PacketEventArgs<ExplosionPacket>(p)); }
         private void OnHandshake(HandshakePacket p) { if (Handshake != null) Handshake.Invoke(this, new PacketEventArgs<HandshakePacket>(p)); }
         private void OnHoldingChange(HoldingChangePacket p) { if (HoldingChange != null) HoldingChange.Invoke(this, new PacketEventArgs<HoldingChangePacket>(p)); }
