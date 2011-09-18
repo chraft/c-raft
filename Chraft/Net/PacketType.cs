@@ -46,7 +46,7 @@ namespace Chraft.Net
         AttachEntity = 0x27,                //   <--
         EntityMetadata = 0x28,              //   <--
         EntityEffect = 0x29,                //   <->
-        RemoveEntityEffect = 0x2a,          //   <->
+        RemoveEntityEffect = 0x2A,          //   <->
         PreChunk = 0x32,                    //   <--
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
