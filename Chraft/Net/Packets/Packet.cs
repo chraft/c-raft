@@ -1295,7 +1295,7 @@ namespace Chraft.Net.Packets
         {
             WindowId = stream.ReadSByte();
             InventoryType = (InterfaceType)stream.ReadSByte();
-            WindowTitle = stream.ReadString8(100);
+            WindowTitle = stream.ReadString16(100);
             SlotCount = stream.ReadSByte();
         }
 
@@ -1303,8 +1303,32 @@ namespace Chraft.Net.Packets
         {
             stream.Write(WindowId);
             stream.Write((sbyte)InventoryType);
-            stream.Write8(WindowTitle);
+            stream.Write(WindowTitle);
             stream.Write(SlotCount);
+        }
+    }
+
+    public class CreativeInventoryActionPacket : Packet
+    {
+        public short Slot { get; set; }
+        public short ItemID { get; set; }
+        public short Quantity { get; set; }
+        public short Damage { get; set; }
+
+        public override void Read(BigEndianStream stream)
+        {
+            Slot = stream.ReadShort();
+            ItemID = stream.ReadShort();
+            Quantity = stream.ReadShort();
+            Damage = stream.ReadShort();
+        }
+
+        public override void Write(BigEndianStream stream)
+        {
+            stream.Write(Slot);
+            stream.Write(ItemID);
+            stream.Write(Quantity);
+            stream.Write(Damage);
         }
     }
 
