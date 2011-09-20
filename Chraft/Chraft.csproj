@@ -92,6 +92,10 @@
     <Reference Include="Ionic.Zlib">
       <HintPath>.\Ionic.Zlib.dll</HintPath>
     </Reference>
+    <Reference Include="LibNoise, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Lib\LibNoise.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -136,6 +140,11 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="FastRandom.cs" />
+    <Compile Include="MathHelper.cs" />
+    <Compile Include="NibbleArray.cs" />
+    <Compile Include="Noises.cs" />
+    <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />
@@ -292,6 +301,10 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

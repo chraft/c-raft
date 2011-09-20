@@ -48,6 +48,9 @@ namespace Chraft
                 {
                     _onGround = value;
 
+                    // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
+
                     if (!_onGround)
                     {
                         _beginInAirY = this.Position.Y;
@@ -61,20 +64,6 @@ namespace Chraft
 #if DEBUG
                         this.SendMessage("On ground");
 #endif
-                        // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                        BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
-                        
-                        if (_inAirStartTime != null)
-                        {
-                            // Check how long in the air for (e.g. flying) - don't count if we are in water
-                            if (currentBlock != BlockData.Blocks.Water && AirTime.TotalSeconds > 5)
-                            {
-                                // TODO: make the number of seconds configurable
-                                Kick("Flying!!");
-                            }
-
-                            _inAirStartTime = null;
-                        }
 
                         double blockCount = 0;
 
@@ -135,6 +124,18 @@ namespace Chraft
                         }
 
                         _beginInAirY = -1;
+                    }
+
+                    if (_inAirStartTime != null)
+                    {
+                        // Check how long in the air for (e.g. flying) - don't count if we are in water
+                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Stationary_Water && AirTime.TotalSeconds > 5)
+                        {
+                            // TODO: make the number of seconds configurable
+                            Kick("Flying!!");
+                        }
+
+                        _inAirStartTime = null;
                     }
                 }
             }
@@ -792,6 +793,10 @@ namespace Chraft
             switch (e.Packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
+                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y + 2, z)));
+                    this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
+                    this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x,y,z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
@@ -964,7 +969,7 @@ namespace Chraft
                     }
 
                     World.SetBlockAndData(x, y, z, 0, 0);
-                    World.Update(x, y, z);
+                    World.Update(x, y, z, false);
 
                     Inventory.DamageItem(Inventory.ActiveSlot);
 

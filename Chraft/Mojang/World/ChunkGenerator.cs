@@ -1,4 +1,6 @@
 using java.util;
+using System;
+using System.Diagnostics;
 
 
 namespace Chraft.World
@@ -17,7 +19,7 @@ namespace Chraft.World
                 field_707_i[i] = new int[32];
             }
             World = world;
-            Rand = new Random(seed);
+            Rand = new java.util.Random(seed);
             Noise1 = new NoiseGeneratorOctaves(Rand, 16);
             Noise2 = new NoiseGeneratorOctaves(Rand, 16);
             Noise3 = new NoiseGeneratorOctaves(Rand, 8);
@@ -196,65 +198,392 @@ namespace Chraft.World
             }
         }
 
-        public Chunk ProvideChunk(int x, int z)
-        {
-            Rand.setSeed((long)x * 0x4f9939f508L + (long)z * 0x1ef1565bd5L);
-            Chunk chunk = new Chunk(World, x << 4, z << 4);
-            BiomesForGeneration = World.GetWorldChunkManager().GetBlockGeneratorData(BiomesForGeneration, x << 4, z << 4, 16, 16);
-            double[] ad = World.GetWorldChunkManager().Temperatures;
-            byte[] data = new byte[32768];
-            GenerateTerrain(x, z, data, BiomesForGeneration, ad);
-            ReplaceBlocksForBiome(x, z, data, BiomesForGeneration);
-            CaveGen.GenerateA(this, World, x, z, data);
+        public static TimeSpan minTime = TimeSpan.MaxValue;
+        public static TimeSpan maxTime = TimeSpan.MinValue;
 
-            for (int bx = 0; bx < 16; bx++)
+        public static bool GenInit = false;
+
+        private static PerlinNoise _pGen1;
+        private static PerlinNoise _pGen2;
+        private static PerlinNoise _pGen3;
+        private static PerlinNoise _pGen4;
+        private static PerlinNoise _pGen5;
+        private static FastRandom fastRandom;
+
+        public enum BIOME_TYPE
+        {
+            MOUNTAINS, SNOW, DESERT, PLAINS
+        }
+
+        public void InitGen()
+        {
+            if (GenInit)
+                return;
+
+            GenInit = true;
+
+            _pGen1 = new PerlinNoise(123457);
+            _pGen2 = new PerlinNoise(123458);
+            _pGen3 = new PerlinNoise(123459);
+            _pGen4 = new PerlinNoise(123460);
+            _pGen5 = new PerlinNoise(123461);
+            /*fractal = new RidgedMultifractal();
+            fractal.OctaveCount = 5;
+            fractal.NoiseQuality = NoiseQuality.High;
+            fractal.Frequency = 0.01;
+            fractal.Seed = 123457;
+            fractal.Lacunarity = 2.5;
+
+            lowlandPerlin = new Perlin();
+            lowlandPerlin.OctaveCount = 2;
+            lowlandPerlin.Frequency = 0.0008;
+            lowlandPerlin.Seed = 123457;
+            lowlandPerlin.Lacunarity = 1;
+            lowlandPerlin.Persistence = 0.1;
+            lowlandPerlin.NoiseQuality = NoiseQuality.High;
+
+            midlandPerlin = new Perlin();
+            midlandPerlin.OctaveCount = 4;
+            midlandPerlin.Frequency = 0.006;
+            midlandPerlin.Seed = 123458;
+            midlandPerlin.Lacunarity = 2.1;
+            midlandPerlin.Persistence = 0.4;
+            midlandPerlin.NoiseQuality = NoiseQuality.High;
+
+            highlandPerlin = new Perlin();
+            highlandPerlin.OctaveCount = 7;
+            highlandPerlin.Frequency = 0.006;
+            highlandPerlin.Seed = 123459;
+            highlandPerlin.Lacunarity = 1.30;
+            highlandPerlin.Persistence = 1.3;
+            highlandPerlin.NoiseQuality = NoiseQuality.High;
+
+            elevation = new Perlin();
+            elevation.OctaveCount = 1;
+            elevation.Frequency = 0.008;
+            elevation.Seed = 123457;
+            elevation.Lacunarity = 1;
+            elevation.NoiseQuality = NoiseQuality.High;
+
+            scaleBiasLowland = new ScaleBiasOutput(lowlandPerlin);
+            scaleBiasLowland.Bias = 0.0;
+            scaleBiasLowland.Scale = 1.0;
+
+            scaleBiasMidland = new ScaleBiasOutput(midlandPerlin);
+            scaleBiasMidland.Bias = 0.0;
+            scaleBiasMidland.Scale = 1.0;
+
+            scaleBiasHighland = new ScaleBiasOutput(highlandPerlin);
+            scaleBiasHighland.Bias = 0.0;
+            scaleBiasHighland.Scale = 1.0;
+
+            scaleBiasFractal = new ScaleBiasOutput(fractal);
+            scaleBiasFractal.Bias = 0;
+            scaleBiasFractal.Scale = 0.5;
+
+            scaleBiasElevation = new ScaleBiasOutput(elevation);
+            scaleBiasElevation.Bias = 0;
+            scaleBiasElevation.Scale = 0.5;
+
+            //ScaleInput scaleFractal = new ScaleInput(fractal, 0.5, 0.0, 0.5);
+            scaleLowLand = new ScaleInput(scaleBiasLowland, 1.0, 0.6, 1.0);
+            scaleMidLand = new ScaleInput(scaleBiasMidland, 1.0, 0.6, 1.0);
+            scaleHighLand = new ScaleInput(scaleBiasHighland, 1.0, 0.6, 1.0);
+            scaleElevation = new ScaleInput(scaleBiasElevation, 1.0, 1.0, 1.0);*/
+        }
+
+        private double FilterNoise(double value)
+        {
+            return (1.0 + value) * 0.5;
+        }
+
+        public double CalcDensity(double x, double y, double z, BIOME_TYPE type)
+        {
+            double height = CalcBaseTerrain(x, z);
+            double density = CalcMountainDensity(x, y, z);
+            double divHeight = (y - 55)*1.5;
+
+            if (y > 100)
+                divHeight *= 2.0;
+
+            if (type == BIOME_TYPE.DESERT)
             {
-                for (int by = 0; by < 128; by++)
+                divHeight *= 2.5;
+            }
+            else if (type == BIOME_TYPE.PLAINS)
+            {
+                divHeight *= 1.6;
+            }
+            else if (type == BIOME_TYPE.MOUNTAINS)
+            {
+                divHeight *= 1.1;
+            }
+            else if (type == BIOME_TYPE.SNOW)
+            {
+                divHeight *= 1.2;
+            }
+
+            return (height + density) / divHeight;
+        }
+
+        double CalcBaseTerrain(double x, double z)
+        {
+            double result = 0.0;
+            result += _pGen2.fBm(0.0009 * x, 0, 0.0009 * z, 3, 2.2341, 0.94321) + 0.4;
+            return result;
+        }
+
+        double CalcMountainDensity(double x, double y, double z)
+        {
+           double result = 0.0;
+
+           double x1, y1, z1;
+
+           x1 = x * 0.0006;
+           y1 = y * 0.0008;
+           z1 = z * 0.0006;
+
+           double[] freq = { 1.232, 8.4281, 16.371, 32, 64 };
+           double[] amp = { 1.0, 1.4, 1.6, 1.8, 2.0 };
+
+           double ampSum = 0.0;
+           for (int i = 0; i < freq.Length; i++)
+           {
+               result += _pGen5.noise(x1 * freq[i], y1 * freq[i], z1 * freq[i]) * amp[i];
+               ampSum += amp[i];
+           }
+
+            return result / ampSum;
+        }
+
+        double CalcTemperature(double x, double z)
+        {
+            double result = 0.0;
+            result += _pGen4.fBm(x * 0.0008, 0, 0.0008 * z, 7, 2.1836171, 0.7631);
+
+            result = 32.0 + (result) * 64.0;
+
+            return result;
+        }
+
+        private BIOME_TYPE CalcBiomeType(int x, int z)
+        {
+            double temp = CalcTemperature(x, z);
+
+            if (temp >= 60)
+            {
+                return BIOME_TYPE.DESERT;
+            }
+            else if (temp >= 32)
+            {
+                return BIOME_TYPE.MOUNTAINS;
+            }
+            else if (temp < 12)
+            {
+                return BIOME_TYPE.SNOW;
+            }
+
+            return BIOME_TYPE.PLAINS;
+        }
+
+        public Chunk ProvideChunk(int x, int z, Chunk chunk)
+        {
+            /*Stopwatch watch = new Stopwatch();
+            
+            watch.Start();*/
+            InitGen();
+            byte[] data = new byte[32768];
+
+            double[, ,] density = new double[17, 129, 17];
+
+            for (int bx = 0; bx <= 16; bx += 4)
+            {
+                int worldX = bx + (x * 16);
+                for (int bz = 0; bz <= 16; bz += 4)
                 {
-                    for (int bz = 0; bz < 16; bz++)
+                    BIOME_TYPE type = CalcBiomeType((int)x, (int)z);
+                    int worldZ = bz + (z * 16);
+                    for (int by = 0; by <= 128; by += 8)
                     {
-                        if (data[bx << 11 | bz << 7 | by] == 1)
-                        {
-                            if (Rand.nextInt(100 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Diamond_Ore;
-                            else if (Rand.nextInt(100 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Lapis_Lazuli_Ore;
-                            else if (Rand.nextInt(40 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Gold_Ore;
-                            else if (Rand.nextInt(10 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Redstone_Ore_Glowing;
-                            else if (Rand.nextInt(4 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Iron_Ore;
-                            else if (Rand.nextInt(2 * by) == 0) data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Coal_Ore;
-                        }
-                        chunk.SetAllBlocks(data);
+                        density[bx, by, bz] = CalcDensity(worldX, by, worldZ, type);
                     }
                 }
             }
 
-            World.Chunks.Add(chunk);
+            triLerpDensityMap(density);
 
             for (int bx = 0; bx < 16; bx++)
             {
-                for (int by = 0; by < 128; by++)
+                int worldX = bx + (x * 16);
+                for (int bz = 0; bz < 16; bz++)
                 {
-                    for (int bz = 0; bz < 16; bz++)
+                    int worldZ = bz + (z * 16);
+                    int firstBlockHeight = -1;
+                    BIOME_TYPE type = CalcBiomeType(worldX, worldZ);
+                    for (int by = 127; by >= 0; --by)
                     {
-                        // TODO: Consider temperature/biome for trees & cacti.
-                        if (by > 0 && chunk.GetType(bx, by - 1, bz) == BlockData.Blocks.Grass && Rand.nextInt(140) == 0)
+                        if (by <= 55)
+                            data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Stone;
+                        else
                         {
-                            switch (Rand.nextInt(3))
+                            if (by > 55 && by < 64)
                             {
-                                case 0: chunk.GrowTree(bx, by, bz); break;
-                                case 1: chunk.GrowTree(bx, by, bz, 2); break;
-                                case 2: chunk.GrowTree(bx, by, bz, 1); break;
+                                data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Still_Water;
+                                if (by == 63 && type == BIOME_TYPE.SNOW)
+                                {
+                                    data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Ice;
+                                }
+                            }
+
+                            double dens = density[bx, by, bz];
+
+                            if (dens >= 0.009 && dens <= 0.02)
+                            {
+                                // Some block was set...
+                                if (firstBlockHeight == -1)
+                                    firstBlockHeight = by;
+
+                                GenerateOuterLayer(bx, by, bz, firstBlockHeight, type, data);
+                            }
+                            else if (dens > 0.02)
+                            {
+                                // Some block was set...
+                                if (firstBlockHeight == -1)
+                                    firstBlockHeight = by;
+                                GenerateInnerLayer(bx, by, bz, type, data);
                             }
                         }
-
-                        //if (by > 63 && chunk.GetType(bx, by - 1, bz) == BlockData.Blocks.Sand && Rand.nextInt(80) == 0)
-                        //chunk.PlaceCactus(bx, by, bz);
                     }
                 }
             }
 
-            chunk.Recalculate();
-            chunk.Save();
+            //watch.Stop();
+
+            //Console.WriteLine(watch.ElapsedMilliseconds);
+ 
+			chunk.SetAllBlocks(data);
+
             return chunk;
+        }
+
+        private void GenerateOuterLayer(int x, int y, int z, int firstBlockHeight, BIOME_TYPE type, byte[] data)
+        {
+            double heightPercentage = (firstBlockHeight - y) / 128.0;
+
+            switch (type)
+            {
+                case BIOME_TYPE.PLAINS:
+                case BIOME_TYPE.MOUNTAINS:
+                    // Beach
+                    if (y >= 60 && y <= 66)
+                    {
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Sand;
+                        break;
+                    }
+
+                    if (heightPercentage == 0.0 && y > 66)
+                    {
+                        // Grass on top
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Grass;
+                    }
+                    else if (heightPercentage > 0.2)
+                    {
+                        // Stone
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+                    }
+                    else
+                    {
+                        // Dirt
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Dirt;
+                    }
+
+                    //generateRiver(c, x, y, z, heightPercentage, type);
+                    break;
+
+                case BIOME_TYPE.SNOW:
+
+                    if (heightPercentage == 0.0 && y > 65)
+                    {
+                        // Snow on top
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Snow;
+                    }
+                    
+                    else if (heightPercentage > 0.2)
+                    {
+                        // Stone
+                        //data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+                    }
+                    else if (data[x << 11 | z << 7 | (y+1)] == (byte)BlockData.Blocks.Air)
+                    {
+                        // Grass under the snow
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Grass;
+                        data[x << 11 | z << 7 | (y + 1)] = (byte)BlockData.Blocks.Snow;
+                    }
+                    else
+                    {
+                        // Dirt
+                       data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Dirt;
+                    }
+
+                    //generateRiver(c, x, y, z, heightPercentage, type);
+                    break;
+
+                case BIOME_TYPE.DESERT:
+                    /*if (heightPercentage > 0.6 && y < 75)
+                    {
+                        // Stone
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+                    }
+                    else*/ if(y < 80)
+                    {
+                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Sand;
+                    }
+
+                    break;
+
+            }
+        }
+
+        private void GenerateInnerLayer(int x, int y, int z, BIOME_TYPE type, byte[] data)
+        {
+            data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+           
+        }
+
+        private static double lerp(double x, double x1, double x2, double q00, double q01)
+        {
+            return ((x2 - x) / (x2 - x1)) * q00 + ((x - x1) / (x2 - x1)) * q01;
+        }
+
+        public static double triLerp(double x, double y, double z, double q000, double q001, double q010, double q011, double q100, double q101, double q110, double q111, double x1, double x2, double y1, double y2, double z1, double z2)
+        {
+            double x00 = lerp(x, x1, x2, q000, q100);
+            double x10 = lerp(x, x1, x2, q010, q110);
+            double x01 = lerp(x, x1, x2, q001, q101);
+            double x11 = lerp(x, x1, x2, q011, q111);
+            double r0 = lerp(y, y1, y2, x00, x01);
+            double r1 = lerp(y, y1, y2, x10, x11);
+            return lerp(z, z1, z2, r0, r1);
+        }
+
+        private void triLerpDensityMap(double[, ,] densityMap)
+        {
+            for (int x = 0; x < 16; x++)
+            {
+                for (int y = 0; y < 128; y++)
+                {
+                    for (int z = 0; z < 16; z++)
+                    {
+                        if (!(x % 4 == 0 && y % 8 == 0 && z % 4 == 0))
+                        {
+                            int offsetX = (x / 4) * 4;
+                            int offsetY = (y / 8) * 8;
+                            int offsetZ = (z / 4) * 4;
+                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
+                        }
+                    }
+                }
+            }
         }
 
         private double[] GenerateNoise(double[] ad, int i, int j, int k, int l, int i1, int j1)
@@ -364,7 +693,7 @@ namespace Chraft.World
             return ad;
         }
 
-        private Random Rand;
+        private java.util.Random Rand;
         private NoiseGeneratorOctaves Noise1;
         private NoiseGeneratorOctaves Noise2;
         private NoiseGeneratorOctaves Noise3;

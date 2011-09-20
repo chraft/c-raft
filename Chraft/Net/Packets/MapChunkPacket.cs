@@ -5,9 +5,9 @@ namespace Chraft.Net.Packets
 {
 	public class MapChunkPacket : Packet
 	{
-		public int X { get { return Chunk.X; } }
+		public int X { get { return (Chunk.X << 4); } }
 		public short Y { get { return 0; } }
-		public int Z { get { return Chunk.Z; } }
+		public int Z { get { return (Chunk.Z << 4); } }
 		public byte SizeX { get { return 15; } }
 		public byte SizeY { get { return 127; } }
 		public byte SizeZ { get { return 15; } }
@@ -23,7 +23,7 @@ namespace Chraft.Net.Packets
 			byte sizeZ = (byte)(stream.ReadByte() + 1);
 
 			int o = sizeX * sizeY * sizeZ;
-			Chunk = new Chunk(null, posX, posZ);
+			Chunk = new Chunk(null, posX << 4, posZ << 4);
 
 			int len = stream.ReadInt();
 			byte[] comp = new byte[len];
@@ -44,7 +44,7 @@ namespace Chraft.Net.Packets
 			byte[] data = new byte[o * 5 / 2];
 
 			int i = 0;
-			for (int x = 0; x < 16; x++)
+			/*for (int x = 0; x < 16; x++)
 			{
 				for (int z = 0; z < 16; z++)
 				{
@@ -62,7 +62,16 @@ namespace Chraft.Net.Packets
 						i++;
 					}
 				}
-			}
+			}*/
+
+            Chunk.Types.CopyTo(data, i);
+            i += Chunk.Types.Length;
+
+            Chunk.Light.Data.CopyTo(data, i);
+            i += Chunk.Types.Length;
+
+            Chunk.SkyLight.Data.CopyTo(data, i);
+            //i += Chunk.Types.Length;
 
 			byte[] comp = new byte[o * 5];
 			int len;

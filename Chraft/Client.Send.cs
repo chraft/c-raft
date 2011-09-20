@@ -149,10 +149,10 @@ namespace Chraft
             //UpdateChunks(Settings.Default.SightRadius);
             SendMessage("§cLoading complete.");
 
-            Thread thread = new Thread(UpdateChunksThread);
+            /*Thread thread = new Thread(UpdateChunksThread);
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Highest;
-            thread.Start();
+            thread.Start();*/
         }
 
         #endregion
@@ -362,7 +362,8 @@ namespace Chraft
 
         public void SendWeather(WeatherState weather, int i, int i1)
         {
-            throw new NotImplementedException();
+
+            //throw new NotImplementedException();
         }
     }
 }
