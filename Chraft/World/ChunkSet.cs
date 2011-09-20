@@ -2,57 +2,53 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Chraft.World
 {
 	public class ChunkSet
 	{
 		private readonly object _ChunksWriteLock = new object();
-		private readonly Dictionary<PointI, Chunk> Chunks = new Dictionary<PointI, Chunk>();
+        private readonly ConcurrentDictionary<PointI, Chunk> Chunks = new ConcurrentDictionary<PointI, Chunk>();
 
-		public PointI[] Keys { get { lock (_ChunksWriteLock) return Chunks.Keys.ToArray(); } }
-		public Chunk[] Values { get { lock (_ChunksWriteLock) return Chunks.Values.ToArray(); } }
+        public ICollection<PointI> Keys { get { return Chunks.Keys; } }
+		public ICollection<Chunk> Values { get { return Chunks.Values; } }
 		public int Count { get { return Chunks.Count; } }
 		public bool IsReadOnly { get { return false; } }
+        public int Changes;
 
 		public Chunk this[int x, int z]
 		{
 			get
 			{
-				lock (_ChunksWriteLock)
-				{
-					if (Chunks.ContainsKey(new PointI(x, z)))
-						return Chunks[new PointI(x, z)];
-					return null;
-				}
+                Chunk chunk;
+                Chunks.TryGetValue(new PointI(x, z), out chunk);
+				return chunk;
 			}
 			private set
 			{
-				Chunks[new PointI(x, z)] = value;
+                Chunks.AddOrUpdate(new PointI(x, z), value, (key, oldValue) => value);
 			}
 		}
 
 		public void Add(Chunk value)
 		{
-			lock (_ChunksWriteLock)
-				this[value.X >> 4, value.Z >> 4] = value;
-		}
-
-		public bool ContainsKey(PointI key)
-		{
-			return Chunks.ContainsKey(key);
+			this[value.X, value.Z] = value;
+            Interlocked.Increment(ref Changes);
 		}
 
 		public bool Remove(int x, int z)
 		{
-			lock (_ChunksWriteLock)
-				return Chunks.Remove(new PointI(x, z));
+            Chunk chunk;
+            Interlocked.Increment(ref Changes);
+            return Chunks.TryRemove(new PointI(x, z), out chunk);
 		}
 
 		internal bool Remove(Chunk c)
 		{
-			return Remove(c.X >> 4, c.Z >> 4);
+            c.Deleted = true;
+			return Remove(c.X, c.Z);
 		}
 	}
 }

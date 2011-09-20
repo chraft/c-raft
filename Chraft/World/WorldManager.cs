@@ -9,6 +9,7 @@ using Chraft.World.Weather;
 using Chraft.Plugins.Events.Args;
 using System.Threading.Tasks;
 using Chraft.Utils;
+using System.Collections.Generic;
 
 namespace Chraft.World
 {
@@ -16,7 +17,7 @@ namespace Chraft.World
     {
         private Timer GlobalTick;
         private ChunkGenerator Generator;
-        private object ChunkGenLock = new object();
+        public object ChunkGenLock = new object();
         private WorldChunkManager ChunkManager;
 
         public sbyte Dimension { get { return 0; } }
@@ -30,25 +31,45 @@ namespace Chraft.World
         public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;
-        public ChunkSet Chunks { get { return _Chunks; } }
+        private ChunkSet Chunks { get { return _Chunks; } }
 
-        private volatile int _Time;
-        private readonly object _TimeWriteLock = new object();
+        private Queue<ChunkLightUpdate> CurrentChunkToRecalculate;
+        private Queue<ChunkLightUpdate> ChunkRecalculating;
+
+        private readonly object ChunkLightUpdateLock = new object();
+        private bool AlreadyRecalculatingLight;
+
+        private Task _UpdateClientChunksTask;
+        private Task _RecalculateSkylightTask;
+        private Task _GrowStuffTask;
+
+        private int _Time;
+        private readonly ReaderWriterLockSlim _TimeWriteLock = new ReaderWriterLockSlim();
+        private Chunk[] _ChunksCache;
         /// <summary>
         /// In units of 0.05 seconds (between 0 and 23999)
         /// </summary>
         public int Time
         {
-            get { return _Time; }
-            set { lock (_TimeWriteLock) _Time = value; }
+            get {
+                _TimeWriteLock.EnterReadLock();
+                int time = _Time;
+                //Console.WriteLine("Reading: {0}", _Time);
+                _TimeWriteLock.ExitReadLock();
+                return time; }
+            set {
+                _TimeWriteLock.EnterWriteLock();
+                _Time = value;
+                _TimeWriteLock.ExitWriteLock();
+                }
         }
 
-        private volatile uint _worldTicks = 0;
+        private int _worldTicks = 0;
         
         /// <summary>
         /// The current World Tick independant of the world's current Time (1 tick = 0.05 secs with a max value of 4,294,967,295 gives approx. 6.9 years of ticks)
         /// </summary>
-        public uint WorldTicks
+        public int WorldTicks
         {
             get
             {
@@ -60,8 +81,13 @@ namespace Chraft.World
         {
             get
             {
-                if (Chunks.ContainsKey(new PointI(x, z)))
-                    return Chunks[x, z];
+                Chunk chunk;
+                if ((chunk = Chunks[x, z]) != null)
+                {
+                    //Server.Logger.Log(Logger.LogLevel.Debug, "Getting {0}, {1}", x, z);
+                    return chunk;
+                }
+                //Server.Logger.Log(Logger.LogLevel.Debug, "Creating {0}, {1}", x, z);
                 return LoadChunk(x, z);
             }
         }
@@ -70,6 +96,8 @@ namespace Chraft.World
         {          
             _Chunks = new ChunkSet();
             Server = server;
+            CurrentChunkToRecalculate = new Queue<ChunkLightUpdate>(20);
+            ChunkRecalculating = new Queue<ChunkLightUpdate>(20);
             Load();
         }
 
@@ -99,22 +127,31 @@ namespace Chraft.World
 
         public int GetHeight(int x, int z)
         {
-            if (Chunks.ContainsKey(new PointI(x, z).Chunk))
-                return this[x >> 4, z >> 4].HeightMap[x & 0xf, z & 0xf];
-            return 0;
+            return this[x >> 4, z >> 4].HeightMap[x & 0xf, z & 0xf];
         }
 
         private Chunk LoadChunk(int x, int z)
         {
             lock (ChunkGenLock)
             {
-                Chunk chunk = new Chunk(this, x << 4, z << 4);
+                Chunk chunk = new Chunk(this, x, z);
                 if (chunk.Load())
                     Chunks.Add(chunk);
                 else
-                    chunk = Generator.ProvideChunk(x, z);
+                {
+                    chunk = Generator.ProvideChunk(x, z, chunk);
+                    chunk.Recalculate();
+                    chunk.Save();
+                    Chunks.Add(chunk);
+                }
                 return chunk;
             }
+        }
+
+        public void ScheduleSkyLightUpdate(ChunkLightUpdate chunkUpdate)
+        {
+            lock(ChunkLightUpdateLock)
+                CurrentChunkToRecalculate.Enqueue(chunkUpdate);
         }
 
         private void InitializeThreads()
@@ -122,8 +159,8 @@ namespace Chraft.World
             this.Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
             SaveStart();
-            GrowStart();
-            CollectStart();
+            //GrowStart();
+            //CollectStart();
             EntityMoverStart();
         }
 
@@ -142,7 +179,7 @@ namespace Chraft.World
 
         private void CollectStart()
         {
-            Thread trd = new Thread(SaveRun);
+            Thread trd = new Thread(CollectRun);
             trd.IsBackground = false;
             trd.Start();
         }
@@ -200,29 +237,116 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
+        public static int ligthUpdateCounter = 0;
+
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
-            _worldTicks++;
+            Interlocked.Increment(ref _worldTicks);
 
             int time;
-            lock (_TimeWriteLock)
-            {	// Lock Time so that others cannot write to it
-                time = ++_Time;
-                if (time == 24000)
-                {	// A day has passed.
-                    // MUST interface directly with _Time to bypass the write lock, which we hold.
-                    _Time = time = 0;
+            // Lock Time so that others cannot write to it
+            _TimeWriteLock.EnterWriteLock();
+            //Console.WriteLine("Writing Time");
+            time = ++_Time;
+            //Console.WriteLine("Time: {0}", _Time);
+            if (time == 24000)
+            {	// A day has passed.
+                // MUST interface directly with _Time to bypass the write lock, which we hold.
+                _Time = time = 0;
+            }
+            _TimeWriteLock.ExitWriteLock();
+            
+
+            // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
+            if (this.WorldTicks % 20 == 0)
+            {
+                // Triggered once every ten seconds
+                Task pulse = new Task(Server.DoPulse);
+                pulse.Start();
+                /*Thread thread = new Thread(Server.DoPulse);
+                thread.IsBackground = true;
+                thread.Start();*/
+            }
+           
+            // Every 100ms
+            if (this.WorldTicks % 2 == 0 && (_RecalculateSkylightTask == null || _RecalculateSkylightTask.IsCompleted))
+            {
+                if (CurrentChunkToRecalculate.Count > 0 && !AlreadyRecalculatingLight)
+                {
+                    AlreadyRecalculatingLight = true;
+                    _RecalculateSkylightTask = new Task(RecalculateChunkSkylight, TaskCreationOptions.LongRunning);
+                    _RecalculateSkylightTask.Start();
                 }
             }
 
-            // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
-            if (this.WorldTicks % 200 == 0)
-            {	// Triggered once every ten seconds
-                Thread thread = new Thread(Server.DoPulse);
-                thread.IsBackground = true;
-                thread.Start();
+            // Every 250ms
+            if (this.WorldTicks % 5 == 0 && (_UpdateClientChunksTask == null || _UpdateClientChunksTask.IsCompleted))
+            {
+                //Parallel.ForEach<Client>(Server.GetClients(), c => { if(c.LoggedIn)c.UpdateChunks(Settings.Default.SightRadius); });
+                _UpdateClientChunksTask = new Task(UpdateClientChunks);
+                _UpdateClientChunksTask.Start();
             }
+
+            // Every second
+            if(this.WorldTicks % 100 == 0)
+            {
+                if (_GrowStuffTask == null || _GrowStuffTask.IsCompleted)
+                {
+                    _GrowStuffTask = new Task(GrowProc);
+                    _GrowStuffTask.Start();
+                }
+
+                Task collect = new Task(CollectProc);
+                collect.Start();
+            }
+        }
+
+        private void UpdateClientChunks()
+        {
+            foreach (Client c in Server.GetClients())
+            {
+                if (c.LoggedIn)
+                    c.UpdateChunks(Settings.Default.SightRadius);
+            }
+        }
+
+        public static int LightUpdatesCounter;
+
+        private void RecalculateChunkSkylight()
+        {
+            lock(ChunkLightUpdateLock)
+            {
+                Queue<ChunkLightUpdate> temp = ChunkRecalculating;
+                ChunkRecalculating = CurrentChunkToRecalculate;
+                CurrentChunkToRecalculate = temp;
+            }
+
+            while (ChunkRecalculating.Count > 0)
+            {
+                ChunkLightUpdate chunkUpdate = ChunkRecalculating.Dequeue();
+                
+                if (chunkUpdate.Chunk == null && !chunkUpdate.Chunk.Deleted)
+                {
+                    chunkUpdate.Chunk.StackSize = 0;
+                    if (chunkUpdate.X == -1)
+                        chunkUpdate.Chunk.SpreadSkyLight();
+                    else
+                        chunkUpdate.Chunk.SpreadSkyLightFromBlock((byte)chunkUpdate.X, (byte)chunkUpdate.Y, (byte)chunkUpdate.Z);
+                }
+                
+
+                //chunkUpdate.Chunk.IsRecalculating = false;
+                /*++LightUpdatesCounter;
+
+                if(LightUpdatesCounter > 50)
+                {
+                    LightUpdatesCounter = 0;
+                    Thread.Sleep(500);
+                }*/
+            }
+
+            AlreadyRecalculatingLight = false;
         }
 
         public Chunk GetChunkFromPosition(int x, int z)
@@ -257,7 +381,11 @@ namespace Chraft.World
 
         public Chunk[] GetChunks()
         {
-            return Chunks.Values.ToArray();
+            int changes = Interlocked.Exchange(ref Chunks.Changes, 0);
+            if(_ChunksCache == null && changes > 0)
+                _ChunksCache = Chunks.Values.ToArray();
+
+            return _ChunksCache;
         }
 
         private void GrowStart()
@@ -281,7 +409,6 @@ namespace Chraft.World
         {
             foreach (Chunk c in GetChunks())
             {
-                Thread.Sleep(20);
                 c.Grow();
             }
         }
@@ -500,7 +627,12 @@ namespace Chraft.World
 
         public bool ChunkExists(int x, int z)
         {
-            return Chunks.ContainsKey(new PointI(x, z));
+            return (Chunks[x,z] != null);
+        }
+
+        public void RemoveChunk(Chunk c)
+        {
+            Chunks.Remove(c);
         }
 
         internal void Update(int x, int y, int z, bool updateClients = true)

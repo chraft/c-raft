@@ -15,9 +15,15 @@ namespace Chraft.World
 		protected List<Client> Clients = new List<Client>();
 		protected List<EntityBase> Entities = new List<EntityBase>();
 		protected List<TileEntity> TileEntities = new List<TileEntity>();
-		protected unsafe byte[] Types = new byte[SIZE];
-		protected unsafe byte[] Light = new byte[SIZE];
-		protected unsafe byte[] Data = new byte[SIZE];
+		public byte[] Types = new byte[SIZE];
+		/*protected unsafe byte[] Light = new byte[SIZE];
+		protected unsafe byte[] Data = new byte[SIZE];*/
+
+        public NibbleArray Light = new NibbleArray(SIZE);
+        public NibbleArray Data = new NibbleArray(SIZE);
+        public NibbleArray SkyLight = new NibbleArray(SIZE);
+
+        public int NumBlocksToUpdate;
 
 		public WorldManager World { get; private set; }
 		public int X { get; set; }
@@ -79,7 +85,47 @@ namespace Chraft.World
 			return x << 11 | z << 7 | y;
 		}
 
-		public unsafe byte GetBlockLight(int x, int y, int z)
+        public byte GetBlockLight(int x, int y, int z)
+        {
+            return (byte)Light.getNibble(x, y, z);
+        }
+
+        public byte GetSkyLight(int x, int y, int z)
+        {
+            return (byte)SkyLight.getNibble(x, y, z);
+        }
+
+        public byte GetData(int x, int y, int z)
+        {
+            return (byte)Data.getNibble(x, y, z);
+        }
+
+        public byte GetDualLight(int x, int y, int z)
+        {
+            return (byte)(Light.getNibble(x, y, z) << 4 | SkyLight.getNibble(x, y, z));
+        }
+
+        public void SetData(int x, int y, int z, byte value)
+        {
+            Data.setNibble(x, y, z, value);
+        }
+
+        public void SetDualLight(int x, int y, int z, byte value)
+        {
+            byte low = (byte)(value & 0x0F);
+            byte high = (byte)((value & 0x0F) >> 4);
+
+            SkyLight.setNibble(x, y, z, low);
+            Light.setNibble(x, y, z, high);
+        }
+
+        public void SetSkyLight(int x, int y, int z, byte value)
+        {
+            SkyLight.setNibble(x, y, z, value);
+            ++NumBlocksToUpdate;
+        }
+
+		/*public unsafe byte GetBlockLight(int x, int y, int z)
 		{
 			fixed (byte* light = Light)
 				return unchecked((byte)(light[Translate(x, y, z)] >> 4 & 0xf));
@@ -114,7 +160,7 @@ namespace Chraft.World
 		{
 			int i = Translate(x, y, z);
 			fixed (byte* light = Light)
-				light[i] = unchecked((byte)(light[i] & 0xf0 | value));
+				light[i] = unchecked((byte)(light[i] & 0xf | value));
 		}
 
 		public unsafe void SetDualLight(int x, int y, int z, byte value)
@@ -127,16 +173,17 @@ namespace Chraft.World
 		{
 			fixed (byte* data = Data)
 				data[Translate(x, y, z)] = value;
-		}
+		}*/
 
-		public byte GetLuminence(int x, int y, int z)
+		public byte GetLuminance(int x, int y, int z)
 		{
-			return BlockData.Luminence[this[x, y, z]];
+			return BlockData.Luminance[this[x, y, z]];
 		}
 
 		public byte GetOpacity(int x, int y, int z)
 		{
-			return BlockData.Opacity[this[x, y, z]];
+            int index = this[x, y, z];
+            return BlockData.Opacity[index];
 		}
 
 		public void SetAllBlocks(byte[] data)
@@ -164,7 +211,7 @@ namespace Chraft.World
 		{
 			for (int x = 0; x < 16; x++)
 				for (int z = 0; z < 16; z++)
-					for (int y = 0; y < 128; y++)
+					for (int y = 127; y >=0; --y)
 						predicate(x, y, z);
 		}
 
