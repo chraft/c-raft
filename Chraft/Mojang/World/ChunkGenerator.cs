@@ -1,6 +1,4 @@
 using java.util;
-using LibNoise;
-using LibNoise.Modifiers;
 using System;
 using System.Diagnostics;
 
@@ -204,24 +202,6 @@ namespace Chraft.World
         public static TimeSpan maxTime = TimeSpan.MinValue;
 
         public static bool GenInit = false;
-
-        public static Perlin lowlandPerlin;
-        public static Perlin midlandPerlin;
-        public static Perlin highlandPerlin;
-        public static Perlin elevation;
-
-        public static RidgedMultifractal fractal;
-
-        public static ScaleBiasOutput scaleBiasLowland;
-        public static ScaleBiasOutput scaleBiasMidland;
-        public static ScaleBiasOutput scaleBiasHighland;
-        public static ScaleBiasOutput scaleBiasElevation;
-        public static ScaleBiasOutput scaleBiasFractal;
-
-        public static ScaleInput scaleLowLand;
-        public static ScaleInput scaleMidLand;
-        public static ScaleInput scaleHighLand;
-        public static ScaleInput scaleElevation;
 
         private static PerlinNoise _pGen1;
         private static PerlinNoise _pGen2;
