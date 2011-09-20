@@ -48,9 +48,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Chraft\ChraftApi.csproj">
+    <ProjectReference Include="..\Chraft\Chraft.csproj">
       <Project>{024D469C-C147-4BCF-8E17-1833AA8B34DC}</Project>
-      <Name>ChraftApi</Name>
+      <Name>Chraft</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
