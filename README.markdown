@@ -7,6 +7,9 @@ https://github.com/chraft/c-raft
 IRC Channel:  
 irc.esper.net:6667 #c#raft
 
+Website:
+http://www.c-raft.com
+
 Contributing
 =============================
 
