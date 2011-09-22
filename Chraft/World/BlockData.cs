@@ -782,6 +782,7 @@ namespace Chraft.World
             {Items.Leather_Chestplate, 60},
             {Items.Leather_Helmet, 60},
             {Items.Leather_Pants, 60},
+            {Items.Shears, 238},
             {Items.Stone_Axe, 132},
             {Items.Stone_Hoe, 132},
             {Items.Stone_Pick, 132},
