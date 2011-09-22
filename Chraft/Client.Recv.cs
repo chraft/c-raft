@@ -781,6 +781,11 @@ namespace Chraft
                             break;
                     }
                     break;
+                case BlockData.Blocks.Sapling:
+                    // We can place a sapling only on the top of the dirt or soil block
+                    if (e.Packet.Face != BlockFace.Up || type != BlockData.Blocks.Dirt || type != BlockData.Blocks.Soil)
+                        return;
+                    break;
             }
 
             World.SetBlockAndData(bx, by, bz, bType, bMetaData);
