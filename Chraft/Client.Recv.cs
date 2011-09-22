@@ -501,6 +501,15 @@ namespace Chraft
                         World.Update(px, py + 1, pz);
                     }
                     break;
+                case BlockData.Items.Shears:
+                    if (adjacentBlockType == BlockData.Blocks.Leaves)
+                    {
+                        // TODO: Set correct leaves type (durability?): 0 basic leaves, 1 pine, 2 birch
+                        Server.DropItem(World, x, y, z, new ItemStack((short)BlockData.Blocks.Leaves, 1, 0));
+                        World.SetBlockAndData(x, y, z, 0, 0);
+                        World.Update(x, y, z);
+                    }
+                    break;
             }
 
             if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
