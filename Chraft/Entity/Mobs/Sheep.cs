@@ -31,45 +31,45 @@ namespace Chraft.Entity.Mobs
             this.Data.WoolColor = _woolColor.ChooseByRandom();
         }
 
-        //protected Chraft.Net.MetaData.Dyes WoolColorToDyeColor()
-        //{
-        //    switch (this.Data.WoolColor)
-        //    {
-        //        case WoolColor.Black:
-        //            return Chraft.Net.MetaData.Dyes.InkSack;
-        //        case WoolColor.Blue:
-        //            return Chraft.Net.MetaData.Dyes.LapisLazuli;
-        //        case WoolColor.Brown:
-        //            return Chraft.Net.MetaData.Dyes.CocoBeans;
-        //        case WoolColor.Green:
-        //            return Chraft.Net.MetaData.Dyes.CactusGreen;
-        //        case WoolColor.Cyan:
-        //            return Chraft.Net.MetaData.Dyes.Cyan;
-        //        case WoolColor.Gray:
-        //            return Chraft.Net.MetaData.Dyes.Gray;
-        //        case WoolColor.LightBlue:
-        //            return Chraft.Net.MetaData.Dyes.LightBlue;
-        //        case WoolColor.Lime:
-        //            return Chraft.Net.MetaData.Dyes.Lime;
-        //        case WoolColor.Magenta:
-        //            return Chraft.Net.MetaData.Dyes.Magenta;
-        //        case WoolColor.Orange:
-        //            return Chraft.Net.MetaData.Dyes.Orange;
-        //        case WoolColor.Pink:
-        //            return Chraft.Net.MetaData.Dyes.Pink;
-        //        case WoolColor.Purple:
-        //            return Chraft.Net.MetaData.Dyes.Purple;
-        //        case WoolColor.Red:
-        //            return Chraft.Net.MetaData.Dyes.RoseRed;
-        //        case WoolColor.Silver:
-        //            return Chraft.Net.MetaData.Dyes.LightGray;
-        //        case WoolColor.White:
-        //            return Chraft.Net.MetaData.Dyes.BoneMeal;
-        //        case WoolColor.Yellow:
-        //            return Chraft.Net.MetaData.Dyes.DandelionYellow;
-        //    }
-        //    return Chraft.Net.MetaData.Dyes.BoneMeal;
-        //}
+        protected WoolColor DyeColorToWoolColor(MetaData.Dyes dyeColor)
+        {
+            switch (dyeColor)
+            {
+                case MetaData.Dyes.InkSack:
+                    return WoolColor.Black;
+                case MetaData.Dyes.LapisLazuli:
+                    return WoolColor.Blue;
+                case MetaData.Dyes.CocoBeans:
+                    return WoolColor.Brown;
+                case MetaData.Dyes.CactusGreen:
+                    return WoolColor.Green;
+                case MetaData.Dyes.Cyan:
+                    return WoolColor.Cyan;
+                case MetaData.Dyes.Gray:
+                    return WoolColor.Gray;
+                case MetaData.Dyes.LightBlue:
+                    return WoolColor.LightBlue;
+                case MetaData.Dyes.Lime:
+                    return WoolColor.Lime;
+                case MetaData.Dyes.Magenta:
+                    return WoolColor.Magenta;
+                case MetaData.Dyes.Orange:
+                    return WoolColor.Orange;
+                case MetaData.Dyes.Pink:
+                    return WoolColor.Pink;
+                case MetaData.Dyes.Purple:
+                    return WoolColor.Purple;
+                case MetaData.Dyes.RoseRed:
+                    return WoolColor.Red;
+                case MetaData.Dyes.LightGray:
+                    return WoolColor.Silver;
+                case MetaData.Dyes.BoneMeal:
+                    return WoolColor.White;
+                case MetaData.Dyes.DandelionYellow:
+                    return WoolColor.Yellow;
+            }
+            return WoolColor.White;
+        }
 
         protected override void DoInteraction(Client client, Interfaces.ItemStack item)
         {
@@ -90,7 +90,13 @@ namespace Chraft.Entity.Mobs
                 else if (item.Type == (short)Chraft.World.BlockData.Items.Ink_Sack)
                 {
                     // Set the wool colour of this Sheep based on the item.Durability
-                    // TODO: (Chraft.Net.MetaData.Dyes)item.Durability
+                    // Safety check. Values of 16 and higher (color do not exist) may crash the client v1.8.1 and below
+                    if (item.Durability >= 0 && item.Durability <= 15)
+                    {
+                        //this.Data.WoolColor = (WoolColor)Enum.ToObject(typeof(WoolColor), (15 - item.Durability));
+                        this.Data.WoolColor = DyeColorToWoolColor((MetaData.Dyes)Enum.ToObject(typeof(MetaData.Dyes), item.Durability));
+                        this.SendMetadataUpdate();
+                    }
                 }
             }
         }
