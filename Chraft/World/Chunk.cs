@@ -143,12 +143,12 @@ namespace Chraft.World
 
         public void SpreadSkyLightFromBlock(byte x, byte y, byte z)
         {
-            /*if (StackSize > 200)
+            if (StackSize > 200)
             {
-                World.ScheduleSkyLightUpdate(new ChunkLightUpdate(this, x, y, z));
+                World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(this, x, y, z));
                 Console.WriteLine("Rescheduling chunk");
                 return;
-            }*/
+            }
             BitArray directionChunkExist = new BitArray(4);
             directionChunkExist.SetAll(false);
 
