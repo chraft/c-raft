@@ -793,7 +793,7 @@ namespace Chraft
             }
 
             World.SetBlockAndData(bx, by, bz, bType, bMetaData);
-            World.Update(bx, by, bz);
+            World.Update(bx, by, bz, false);
 
             Inventory.RemoveItem(Inventory.ActiveSlot);
         }
@@ -810,9 +810,10 @@ namespace Chraft
             switch (e.Packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
-                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y + 1, z)));
+                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y, z)));
                     this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
                     this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x,y,z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    this.SendMessage(String.Format("Height: {0}", World.GetHeight(x,z)));
                     this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
                     //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
@@ -987,7 +988,10 @@ namespace Chraft
                     }
 
                     World.SetBlockAndData(x, y, z, 0, 0);
-                    World[x >> 4, z >> 4, false, false].SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
+                    Chunk c = World[x >> 4, z >> 4, false, false];
+                    c.RecalculateHeight(x & 0xf, z & 0xf);
+                    c.RecalculateSky(x & 0xf, z & 0xf);
+                    c.SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
                     World.Update(x, y, z, false);
 
                     Inventory.DamageItem(Inventory.ActiveSlot);

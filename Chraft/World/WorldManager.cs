@@ -198,6 +198,8 @@ namespace Chraft.World
                     continue;
                 if (c.GetClients().Length > 0 || (DateTime.Now - c.CreationDate) < TimeSpan.FromSeconds(10.0))
                     continue;
+
+                c.Save();
                 Chunks.Remove(c);
             }
         }
@@ -482,9 +484,11 @@ namespace Chraft.World
 
         public Chunk GetBlockChunk(int x, int y, int z)
         {
-            if (!ChunkExists(x >> 4, z >> 4))
+            /*if (!ChunkExists(x >> 4, z >> 4))
                 return null;
-            return Chunks[x >> 4, z >> 4];
+            return Chunks[x >> 4, z >> 4];*/
+
+            return this[x >> 4, z >> 4, false, true];
         }
 
         public byte GetBlockId(int x, int y, int z)
