@@ -19,7 +19,7 @@ namespace Chraft.Commands
                 return;
             }
 
-            ItemStack item = client.Server.Items[tokens[1]];
+            ItemStack item = client.Server.Items[tokens[2]];
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
@@ -30,7 +30,7 @@ namespace Chraft.Commands
             if (tokens.Length > 3)
                 sbyte.TryParse(tokens[3], out count);
 
-            foreach (Client c in client.Server.GetClients(tokens[2]))
+            foreach (Client c in client.Server.GetClients(tokens[1]))
                 c.Inventory.AddItem(item.Type, count < 0 ? item.Count : count, item.Durability);
             client.SendMessage("§7Item given.");
         }

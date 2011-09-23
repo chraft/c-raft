@@ -166,9 +166,17 @@ namespace Chraft.WorldGen
                             else
                                 firstBlockHeight = -1;
                         }
+
+                        if (data[index] == (byte)BlockData.Blocks.Stone)
+                            GenerateResource(bx, by, bz, data);
                     }
                 }
             }
+        }
+
+        private void GenerateResource(int x, int y, int z, byte[] data)
+        {
+            // TODO: Find formula similar to original one
         }
 
         private void GenerateFlora(Chunk c, byte[] data, int x, int z)
