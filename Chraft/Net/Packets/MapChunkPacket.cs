@@ -74,12 +74,11 @@ namespace Chraft.Net.Packets
             i += Chunk.Light.Data.Length;
 
             Chunk.SkyLight.Data.CopyTo(data, i);
-            //i += Chunk.Types.Length;
 
-			byte[] comp = new byte[o * 5];
+			byte[] comp = new byte[o * 5 / 2];
 			int len;
 
-			Deflater deflater = new Deflater(0);
+			Deflater deflater = new Deflater(-1);
 			try
 			{
 				deflater.setInput(data);
