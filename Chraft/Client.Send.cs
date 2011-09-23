@@ -6,6 +6,7 @@ using Chraft.World;
 using Chraft.Properties;
 using System.Threading;
 using Chraft.World.Weather;
+using System.Threading.Tasks;
 
 namespace Chraft
 {
@@ -151,11 +152,8 @@ namespace Chraft
             OnJoined();
             SendMotd();
             SendMessage("§cLoading complete.");
-            UpdateChunks(Settings.Default.SightRadius);
-            /*Thread thread = new Thread(UpdateChunksThread);
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.Highest;
-            thread.Start();*/
+            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+            _UpdateChunks.Start();
         }
 
         #endregion
