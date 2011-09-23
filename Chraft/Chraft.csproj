@@ -108,7 +108,6 @@
     <Compile Include="ChatEventArgs.cs" />
     <Compile Include="Client.Actions.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="Client.Permissions.cs" />
     <Compile Include="Client.Persistence.cs" />
     <Compile Include="Client.Recv.cs" />
     <Compile Include="Client.Send.cs" />
@@ -140,10 +139,14 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
-    <Compile Include="FastRandom.cs" />
-    <Compile Include="MathHelper.cs" />
     <Compile Include="NibbleArray.cs" />
-    <Compile Include="Noises.cs" />
+    <Compile Include="Permissions.cs" />
+    <Compile Include="WorldGen\ChunkProvider.cs" />
+    <Compile Include="WorldGen\CustomGenerator.cs" />
+    <Compile Include="WorldGen\FastRandom.cs" />
+    <Compile Include="WorldGen\IChunkGenerator.cs" />
+    <Compile Include="WorldGen\MathHelper.cs" />
+    <Compile Include="WorldGen\Noises.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />

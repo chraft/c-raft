@@ -67,8 +67,11 @@ namespace Chraft.Net.Packets
             Chunk.Types.CopyTo(data, i);
             i += Chunk.Types.Length;
 
+            Chunk.Data.Data.CopyTo(data, i);
+            i += Chunk.Data.Data.Length;
+
             Chunk.Light.Data.CopyTo(data, i);
-            i += Chunk.Types.Length;
+            i += Chunk.Light.Data.Length;
 
             Chunk.SkyLight.Data.CopyTo(data, i);
             //i += Chunk.Types.Length;

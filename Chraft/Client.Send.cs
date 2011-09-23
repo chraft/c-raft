@@ -84,7 +84,10 @@ namespace Chraft
                 ProtocolOrEntityId = SessionID,
                 Dimension = World.Dimension,
                 Username = "",
-                MapSeed = World.Seed
+                MapSeed = World.Seed,
+                WorldHeight = 128,
+                MaxPlayers = 50,
+                Unknown = 2
             });
         }
 
@@ -139,16 +142,16 @@ namespace Chraft
             StartKeepAliveTimer();
             SendLoginRequest();
             SendSpawnPosition();
-            UpdateChunks(2);
             SendInitialTime();
+            UpdateChunks(2);
             SendInitialPosition();
+            SendInitialTime();
             InitializeInventory();
             InitializeHealth();
             OnJoined();
             SendMotd();
-            //UpdateChunks(Settings.Default.SightRadius);
             SendMessage("§cLoading complete.");
-
+            UpdateChunks(Settings.Default.SightRadius);
             /*Thread thread = new Thread(UpdateChunksThread);
             thread.IsBackground = true;
             thread.Priority = ThreadPriority.Highest;

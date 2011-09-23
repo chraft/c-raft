@@ -10,15 +10,18 @@ using Chraft.Plugins.Events.Args;
 using System.Threading.Tasks;
 using Chraft.Utils;
 using System.Collections.Generic;
+using Chraft.WorldGen;
+using System.Collections.Concurrent;
 
 namespace Chraft.World
 {
     public partial class WorldManager : IDisposable
     {
         private Timer GlobalTick;
-        private ChunkGenerator Generator;
+        private IChunkGenerator Generator;
         public object ChunkGenLock = new object();
         private WorldChunkManager ChunkManager;
+        private ChunkProvider _ChunkProvider;
 
         public sbyte Dimension { get { return 0; } }
         public long Seed { get; private set; }
@@ -33,15 +36,11 @@ namespace Chraft.World
         private readonly ChunkSet _Chunks;
         private ChunkSet Chunks { get { return _Chunks; } }
 
-        private Queue<ChunkLightUpdate> CurrentChunkToRecalculate;
-        private Queue<ChunkLightUpdate> ChunkRecalculating;
+        public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
 
         private readonly object ChunkLightUpdateLock = new object();
-        private bool AlreadyRecalculatingLight;
-
-        private Task _UpdateClientChunksTask;
-        private Task _RecalculateSkylightTask;
         private Task _GrowStuffTask;
+        private Task _CollectTask;
 
         private int _Time;
         private readonly ReaderWriterLockSlim _TimeWriteLock = new ReaderWriterLockSlim();
@@ -77,7 +76,7 @@ namespace Chraft.World
             }
         }
 
-        public Chunk this[int x, int z]
+        public Chunk this[int x, int z, bool create, bool load, bool recalculate = true]
         {
             get
             {
@@ -87,8 +86,12 @@ namespace Chraft.World
                     //Server.Logger.Log(Logger.LogLevel.Debug, "Getting {0}, {1}", x, z);
                     return chunk;
                 }
+                else if (load)
+                    return LoadChunk(x, z, create, recalculate);
+                else
+                    return null;
                 //Server.Logger.Log(Logger.LogLevel.Debug, "Creating {0}, {1}", x, z);
-                return LoadChunk(x, z);
+                
             }
         }
 
@@ -96,8 +99,7 @@ namespace Chraft.World
         {          
             _Chunks = new ChunkSet();
             Server = server;
-            CurrentChunkToRecalculate = new Queue<ChunkLightUpdate>(20);
-            ChunkRecalculating = new Queue<ChunkLightUpdate>(20);
+            ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             Load();
         }
 
@@ -111,7 +113,8 @@ namespace Chraft.World
             if (e.EventCanceled) return false;
             //End Event
 
-            Generator = new ChunkGenerator(this, GetSeed());
+            _ChunkProvider = new ChunkProvider(this);
+            Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
             ChunkManager = new WorldChunkManager(this);
 
             InitializeSpawn();
@@ -127,31 +130,29 @@ namespace Chraft.World
 
         public int GetHeight(int x, int z)
         {
-            return this[x >> 4, z >> 4].HeightMap[x & 0xf, z & 0xf];
+            return this[x >> 4, z >> 4, false, true].HeightMap[x & 0xf, z & 0xf];
         }
 
-        private Chunk LoadChunk(int x, int z)
+        public void AddChunk(Chunk c)
+        {
+            c.CreationDate = DateTime.Now;
+            Chunks.Add(c);
+        }
+
+        private Chunk LoadChunk(int x, int z, bool create, bool recalculate)
         {
             lock (ChunkGenLock)
             {
                 Chunk chunk = new Chunk(this, x, z);
                 if (chunk.Load())
-                    Chunks.Add(chunk);
+                    AddChunk(chunk);
+                else if (create)
+                    chunk = Generator.ProvideChunk(x, z, chunk, recalculate);
                 else
-                {
-                    chunk = Generator.ProvideChunk(x, z, chunk);
-                    chunk.Recalculate();
-                    chunk.Save();
-                    Chunks.Add(chunk);
-                }
+                    chunk = null;
+
                 return chunk;
             }
-        }
-
-        public void ScheduleSkyLightUpdate(ChunkLightUpdate chunkUpdate)
-        {
-            lock(ChunkLightUpdateLock)
-                CurrentChunkToRecalculate.Enqueue(chunkUpdate);
         }
 
         private void InitializeThreads()
@@ -159,8 +160,6 @@ namespace Chraft.World
             this.Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
             SaveStart();
-            //GrowStart();
-            //CollectStart();
             EntityMoverStart();
         }
 
@@ -197,7 +196,7 @@ namespace Chraft.World
             {
                 if (c.Persistent)
                     continue;
-                if (c.GetClients().Length > 0)
+                if (c.GetClients().Length > 0 || (DateTime.Now - c.CreationDate) < TimeSpan.FromSeconds(10.0))
                     continue;
                 Chunks.Remove(c);
             }
@@ -225,7 +224,7 @@ namespace Chraft.World
             {
                 chunks[i].Save();
                 if (passive)
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
             }
         }
 
@@ -264,30 +263,8 @@ namespace Chraft.World
                 // Triggered once every ten seconds
                 Task pulse = new Task(Server.DoPulse);
                 pulse.Start();
-                /*Thread thread = new Thread(Server.DoPulse);
-                thread.IsBackground = true;
-                thread.Start();*/
             }
            
-            // Every 100ms
-            if (this.WorldTicks % 2 == 0 && (_RecalculateSkylightTask == null || _RecalculateSkylightTask.IsCompleted))
-            {
-                if (CurrentChunkToRecalculate.Count > 0 && !AlreadyRecalculatingLight)
-                {
-                    AlreadyRecalculatingLight = true;
-                    _RecalculateSkylightTask = new Task(RecalculateChunkSkylight, TaskCreationOptions.LongRunning);
-                    _RecalculateSkylightTask.Start();
-                }
-            }
-
-            // Every 250ms
-            if (this.WorldTicks % 5 == 0 && (_UpdateClientChunksTask == null || _UpdateClientChunksTask.IsCompleted))
-            {
-                //Parallel.ForEach<Client>(Server.GetClients(), c => { if(c.LoggedIn)c.UpdateChunks(Settings.Default.SightRadius); });
-                _UpdateClientChunksTask = new Task(UpdateClientChunks);
-                _UpdateClientChunksTask.Start();
-            }
-
             // Every second
             if(this.WorldTicks % 100 == 0)
             {
@@ -297,56 +274,12 @@ namespace Chraft.World
                     _GrowStuffTask.Start();
                 }
 
-                Task collect = new Task(CollectProc);
-                collect.Start();
-            }
-        }
-
-        private void UpdateClientChunks()
-        {
-            foreach (Client c in Server.GetClients())
-            {
-                if (c.LoggedIn)
-                    c.UpdateChunks(Settings.Default.SightRadius);
-            }
-        }
-
-        public static int LightUpdatesCounter;
-
-        private void RecalculateChunkSkylight()
-        {
-            lock(ChunkLightUpdateLock)
-            {
-                Queue<ChunkLightUpdate> temp = ChunkRecalculating;
-                ChunkRecalculating = CurrentChunkToRecalculate;
-                CurrentChunkToRecalculate = temp;
-            }
-
-            while (ChunkRecalculating.Count > 0)
-            {
-                ChunkLightUpdate chunkUpdate = ChunkRecalculating.Dequeue();
-                
-                if (chunkUpdate.Chunk == null && !chunkUpdate.Chunk.Deleted)
+                if(_CollectTask == null || _CollectTask.IsCompleted)
                 {
-                    chunkUpdate.Chunk.StackSize = 0;
-                    if (chunkUpdate.X == -1)
-                        chunkUpdate.Chunk.SpreadSkyLight();
-                    else
-                        chunkUpdate.Chunk.SpreadSkyLightFromBlock((byte)chunkUpdate.X, (byte)chunkUpdate.Y, (byte)chunkUpdate.Z);
+                    _CollectTask = new Task(CollectProc);
+                    _CollectTask.Start();
                 }
-                
-
-                //chunkUpdate.Chunk.IsRecalculating = false;
-                /*++LightUpdatesCounter;
-
-                if(LightUpdatesCounter > 50)
-                {
-                    LightUpdatesCounter = 0;
-                    Thread.Sleep(500);
-                }*/
             }
-
-            AlreadyRecalculatingLight = false;
         }
 
         public Chunk GetChunkFromPosition(int x, int z)
@@ -376,7 +309,7 @@ namespace Chraft.World
 
         public byte GetBlockOrLoad(int x, int y, int z)
         {
-            return this[x >> 4, z >> 4][x & 0xf, y, z & 0xf];
+            return this[x >> 4, z >> 4, true, true][x & 0xf, y, z & 0xf];
         }
 
         public Chunk[] GetChunks()
@@ -606,18 +539,16 @@ namespace Chraft.World
 
         public void SetBlockAndData(int x, int y, int z, byte type, byte data)
         {
-            Chunk chunk = this[x >> 4, z >> 4];
+            Chunk chunk = this[x >> 4, z >> 4, false, true];
             int bx = x & 0xf;
             int bz = z & 0xf;
             chunk[bx, y, bz] = type;
-            chunk.SetData(bx, y, bz, data);
-            UpdateClients(x, y, z);
+            chunk.SetData(bx, y, bz, data, true);
         }
 
         public void SetBlockData(int x, int y, int z, byte data)
         {
-            this[x >> 4, z >> 4].SetData(x & 0xf, y, z & 0xf, data);
-            UpdateClients(x, y, z);
+            this[x >> 4, z >> 4, false, true].SetData(x & 0xf, y, z & 0xf, data, true);
         }
 
         internal WorldChunkManager GetWorldChunkManager()
@@ -638,9 +569,10 @@ namespace Chraft.World
         internal void Update(int x, int y, int z, bool updateClients = true)
         {
             if (updateClients)
-                UpdateClients(x, y, z);
+                this[x >> 4, z >> 4, false, true].BlockNeedsUpdate(x, y, z);
+
             UpdatePhysics(x, y, z);
-            this[x >> 4, z >> 4].ForAdjacent(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+            this[x >> 4, z >> 4, false, true].ForAdjacent(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
             {
                 UpdatePhysics(bx, by, bz);
             });
@@ -669,7 +601,7 @@ namespace Chraft.World
             if (type == BlockData.Blocks.Water)
             {
                 byte water = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Water)
                         water = 0;
@@ -704,7 +636,7 @@ namespace Chraft.World
                 }
 
                 byte water = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Water)
                         water = 0;
@@ -719,7 +651,7 @@ namespace Chraft.World
                 }
 
                 byte lava = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Lava)
                         lava = 0;
@@ -771,7 +703,7 @@ namespace Chraft.World
             // TODO: Fixing this, NSEW isn't working as it's supposed to.
             for (int by = y; by < y + 3; by++)
             {
-                if (!this[x >> 4, z >> 4].IsNSEWTo(x & 0xf, by, z & 0xf, (byte)BlockData.Blocks.Air))
+                if (!this[x >> 4, z >> 4, false, true].IsNSEWTo(x & 0xf, by, z & 0xf, (byte)BlockData.Blocks.Air))
                     return;
             }
 

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Chraft
-{
-    /*
+﻿/*
  * Copyright 2011 Benjamin Glatzel <benjamin.glatzel@me.com>.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +13,16 @@ namespace Chraft
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Chraft
+{ 
 
 /**
  * Random number generator based on the Xorshift generator by George Marsaglia.

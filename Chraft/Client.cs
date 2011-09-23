@@ -15,6 +15,7 @@ using Chraft.Utils;
 using Chraft.Properties;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
+using System.Collections.Concurrent;
 
 namespace Chraft
 {
@@ -26,7 +27,7 @@ namespace Chraft
         private volatile bool Running = true;
         public PacketHandler PacketHandler { get; private set; }
         private Timer KeepAliveTimer;
-        private List<PointI> LoadedChunks = new List<PointI>();
+        public ConcurrentDictionary<PointI, Chunk> LoadedChunks = new ConcurrentDictionary<PointI, Chunk>();
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         public volatile bool LoggedIn = false;
         private Interface CurrentInterface = null;
@@ -447,57 +448,36 @@ namespace Chraft
             int chunkX = (int)Position.X >> 4;
             int chunkZ = (int)Position.Z >> 4;
 
-            int x1, x2, minX;
-            int z1, z2, minZ;
-
-            minX = chunkX - radius;
-            minZ = chunkZ - radius;
-
-            // Update from near to far
-            for (x1 = chunkX, x2 = chunkX; x1 >= minX; --x1, ++x2)
+            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
             {
-                for (z1 = chunkZ, z2 = chunkZ; z1 >= minZ; --z1, ++z2)
+                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
                 {
-                    nearbyChunks.Add(new PointI(x1, z1));
-                    nearbyChunks.Add(new PointI(x2, z2));
-
-                    if (LoadedChunks.Contains(new PointI(x1, z1)))
+                    nearbyChunks.Add(new PointI(x, z));
+                  
+                    if (!LoadedChunks.ContainsKey(new PointI(x, z)))
                     {
-                        if (World[x1, z1].NumBlocksToUpdate > 0)
-                            toUpdate.Add(new PointI(x1, z1));
-                    }
-                    else
-                    {
-                        toUpdate.Add(new PointI(x1, z1));
-                        SendPreChunk(x1, z1, true);
-                    }
-
-                    if (LoadedChunks.Contains(new PointI(x2, z2)))
-                    {
-                        if (World[x2, z2].NumBlocksToUpdate > 0)
-                            toUpdate.Add(new PointI(x2, z2));
-                    }
-                    else
-                    {
-                        toUpdate.Add(new PointI(x2, z2));
-                        SendPreChunk(x2, z2, true);
+                        toUpdate.Add(new PointI(x, z));
+                        SendPreChunk(x, z, true);
                     }
                 }
             }
 
             foreach (PointI c in toUpdate)
             {
-                World[c.X, c.Z].AddClient(this);
-                SendChunk(World[c.X, c.Z]);
+                Chunk chunk = World[c.X, c.Z, true, true];
+                chunk.AddClient(this);
+                LoadedChunks.TryAdd(c, chunk);
+                SendChunk(chunk);
             }
 
-            foreach (PointI c in LoadedChunks.Where(c => !nearbyChunks.Contains(c)))
+            foreach (PointI c in LoadedChunks.Keys.Where<PointI>(c => !nearbyChunks.Contains(c)))
             {
                 SendPreChunk(c.X, c.Z, false);
-                World[c.X, c.Z].RemoveClient(this);
+                Chunk chunk;
+                LoadedChunks.TryRemove(c, out chunk);
+                chunk.RemoveClient(this);
             }
 
-            LoadedChunks = nearbyChunks;
         }
 
         /// <summary>
@@ -584,8 +564,12 @@ namespace Chraft
 
             Server.Clients.Remove(this.SessionID);
             Server.RemoveEntity(this);
-            foreach (PointI c in LoadedChunks)
-                World[c.X, c.Z].RemoveClient(this);
+            foreach (PointI c in LoadedChunks.Keys)
+            {
+                Chunk chunk = World[c.X, c.Z, false, false];
+                if (chunk != null)
+                    chunk.RemoveClient(this);
+            }
 
             if (Tcp.Connected)
                 Tcp.Close();

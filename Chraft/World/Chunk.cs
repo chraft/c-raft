@@ -10,6 +10,8 @@ using Ionic.Zlib;
 using Chraft.World.Weather;
 using System.Collections;
 using System.Diagnostics;
+using System.Collections.Concurrent;
+using Chraft.Net.Packets;
 
 namespace Chraft.World
 {
@@ -17,8 +19,6 @@ namespace Chraft.World
     {
         private static object _SavingLock = new object();
         private static volatile bool Saving = false;
-        private object FullRecalculateLock = new object();
-        private bool FullRecalculateScheduled;
 
         public bool IsRecalculating {get; set;}
         public volatile bool Deleted;
@@ -28,12 +28,17 @@ namespace Chraft.World
         public byte[,] HeightMap { get; private set; }
         public string DataFile { get { return World.Folder + "/x" + X + "_z" + Z + ".gz"; } }
         public bool Persistent { get; set; }
+        public DateTime CreationDate;
+
+        
+        private short[] BlocksUpdating = new short[20];
+        
 
         internal Chunk(WorldManager world, int x, int z)
             : base(world, x, z)
         {
             
-                using(StreamWriter sw  = new StreamWriter("chunkStack.log", true))
+                /*using(StreamWriter sw  = new StreamWriter("chunkStack.log", true))
                 {
                     sw.WriteLine("Instance: {0}, {1}, Thread: {2}", X, Z, Thread.CurrentThread.ManagedThreadId);
 
@@ -46,26 +51,43 @@ namespace Chraft.World
                         sw.WriteLine(stackFrame.GetMethod().ReflectedType.FullName + "." + stackFrame.GetMethod().Name + " line: {0}", stackFrame.GetFileLineNumber());   // write method name
                     }
                     sw.WriteLine("\r\n");
-                }
+                }*/
             
         }
 
         public void Recalculate()
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             IsRecalculating = true;
             //Console.WriteLine("Recalculating for: {0}, {1}, Thread: {2}", X, Z, Thread.CurrentThread.ManagedThreadId);
             RecalculateHeight();
             RecalculateSky();
-            World.ScheduleSkyLightUpdate(new ChunkLightUpdate(this));
+            SpreadSkyLight();
+
+            while (World.ChunksToRecalculate.Count > 0)
+            {
+                ChunkLightUpdate chunkUpdate;
+                World.ChunksToRecalculate.TryDequeue(out chunkUpdate);
+                if (chunkUpdate != null && chunkUpdate.Chunk != null && !chunkUpdate.Chunk.Deleted)
+                {
+                    chunkUpdate.Chunk.StackSize = 0;
+                    if (chunkUpdate.X == -1)
+                        chunkUpdate.Chunk.SpreadSkyLight();
+                    else
+                        chunkUpdate.Chunk.SpreadSkyLightFromBlock((byte)chunkUpdate.X, (byte)chunkUpdate.Y, (byte)chunkUpdate.Z);
+                } 
+            }
+
+            sw.Stop();
+
+            Console.WriteLine("Chunk ({0},{1}): {2}", X, Z, sw.ElapsedMilliseconds);
             //Console.WriteLine("Scheduled: {0}, {1}, Thread: {2}", X, Z, Thread.CurrentThread.ManagedThreadId);
         }
 
         public void SpreadSkyLight()
         {
-            AlreadyRecalculated.SetAll(false);
-            FullRecalculateScheduled = false;
-            /*Stopwatch sw = new Stopwatch();
-            sw.Start();*/
+            
             for (int x = 0; x < 16; ++x)
             {
                 for (int z = 0; z < 16; ++z)
@@ -75,23 +97,12 @@ namespace Chraft.World
                     SpreadSkyLightFromBlock((byte)x, y, (byte)z);
                 }
             }
-            //sw.Stop();
-
-            //Console.WriteLine("Chunk ({0},{1}): {2}", X, Z, sw.ElapsedMilliseconds);
+            
         }
 
         public void RecalculateLight()
         {
             
-        }
-
-        public bool FullRecalculatedScheduled()
-        {
-            bool result = false;
-            lock (FullRecalculateLock)
-                result = FullRecalculateScheduled;
-
-            return result;
         }
 
         private void RecalculateHeight()
@@ -116,8 +127,6 @@ namespace Chraft.World
             }
         }
 
-
-        public BitArray AlreadyRecalculated = new BitArray(16*16*128);
         private void RecalculateSky(int x, int z)
         {
             byte sky = 15;
@@ -129,19 +138,6 @@ namespace Chraft.World
             }
             while (--y > 0 && sky > 0);
         }
-
-        /*public byte CheckNeighborSkyLight(byte x, byte y, byte z, byte currentSkylight)
-        {
-            byte toSubtract = (byte)(1 + BlockData.Opacity[Types[x << 11 | z << 7 | y]]);
-
-            if (toSubtract > currentSkylight)
-                return 0;
-            else
-            {
-                currentSkylight = (byte)(Light[x << 11 | z << 7 | y] - toSubtract);
-                return currentSkylight;
-            }
-        }*/
 
         public int StackSize;
 
@@ -167,7 +163,7 @@ namespace Chraft.World
                 skylights[1] = (byte)SkyLight.getNibble((x - 1), y, z);
             else if (World.ChunkExists(X - 1, Z))
             {
-                skylights[1] = (byte)World[X - 1, Z].SkyLight.getNibble((x - 1) & 0xf, y, z);
+                skylights[1] = (byte)World[X - 1, Z, false, true].SkyLight.getNibble((x - 1) & 0xf, y, z);
                 directionChunkExist[0] = true;
             }
 
@@ -175,7 +171,7 @@ namespace Chraft.World
                 skylights[2] = (byte)SkyLight.getNibble(x + 1, y, z);
             else if (World.ChunkExists(X + 1, Z))
             {
-                skylights[2] = (byte)World[X + 1, Z].SkyLight.getNibble((x + 1) & 0xf, y, z);
+                skylights[2] = (byte)World[X + 1, Z, false, true].SkyLight.getNibble((x + 1) & 0xf, y, z);
                 directionChunkExist[1] = true;
             }
 
@@ -183,7 +179,7 @@ namespace Chraft.World
                 skylights[3] = (byte)SkyLight.getNibble(x, y, z - 1);
             else if (World.ChunkExists(X, Z - 1))
             {
-                skylights[3] = (byte)World[X, Z - 1].SkyLight.getNibble(x, y, (z - 1) & 0xf);
+                skylights[3] = (byte)World[X, Z - 1, false, true].SkyLight.getNibble(x, y, (z - 1) & 0xf);
                 directionChunkExist[2] = true;
             }
 
@@ -191,7 +187,7 @@ namespace Chraft.World
                 skylights[4] = (byte)SkyLight.getNibble(x, y, z + 1);
             else if (World.ChunkExists(X, Z + 1))
             {
-                skylights[4] = (byte)World[X, Z + 1].SkyLight.getNibble(x, y, (z + 1) & 0xf);
+                skylights[4] = (byte)World[X, Z + 1, false, true].SkyLight.getNibble(x, y, (z + 1) & 0xf);
                 directionChunkExist[3] = true;
             }
 
@@ -258,7 +254,7 @@ namespace Chraft.World
             if (x > 0)
             {
                 // Reread Skylight value since it can be changed in the meanwhile
-                skylights[0] = (byte)SkyLight.getNibble((x - 1), y, z);
+                skylights[0] = (byte)SkyLight.getNibble(neighborCoord, y, z);
 
                 if (skylights[0] < newSkylight)
                 {
@@ -270,10 +266,10 @@ namespace Chraft.World
             else if (directionChunkExist[0])
             {
                 // Reread Skylight value since it can be changed in the meanwhile
-                skylights[0] = (byte)World[X - 1, Z].SkyLight.getNibble((x - 1) & 0xf, y, z);
+                skylights[0] = (byte)World[X - 1, Z, false, true].SkyLight.getNibble(neighborCoord & 0xf, y, z);
 
                 if (skylights[0] < newSkylight)
-                    World.ScheduleSkyLightUpdate(new ChunkLightUpdate(World[X - 1, Z], neighborCoord & 0xf, y, z));
+                    World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(World[X - 1, Z, false, true], neighborCoord & 0xf, y, z));
             }
 
             neighborCoord = (byte)(x + 1);
@@ -282,7 +278,7 @@ namespace Chraft.World
             {
 
                 // Reread Skylight value since it can be changed in the meanwhile
-                skylights[0] = (byte)SkyLight.getNibble((x + 1), y, z);
+                skylights[0] = (byte)SkyLight.getNibble(neighborCoord, y, z);
 
                 if (skylights[0] < newSkylight)
                 {
@@ -294,17 +290,20 @@ namespace Chraft.World
             else if (directionChunkExist[1])
             {
                 // Reread Skylight value since it can be changed in the meanwhile
-                skylights[0] = (byte)World[X + 1, Z].SkyLight.getNibble((x + 1) & 0xf, y, z);
+                skylights[0] = (byte)World[X + 1, Z, false, true].SkyLight.getNibble(neighborCoord & 0xf, y, z);
 
                 if (skylights[0] < newSkylight)
-                    World.ScheduleSkyLightUpdate(new ChunkLightUpdate(World[X + 1, Z], neighborCoord & 0xf, y, z));
+                    World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(World[X + 1, Z, false, true], neighborCoord & 0xf, y, z));
             }
 
             neighborCoord = (byte)(z - 1);
 
             if (z > 0)
             {
-                if (skylights[3] < newSkylight)
+                // Reread Skylight value since it can be changed in the meanwhile
+                skylights[0] = (byte)SkyLight.getNibble(x, y, neighborCoord);
+
+                if (skylights[0] < newSkylight)
                 {
                     ++StackSize;
                     SpreadSkyLightFromBlock(x, y, neighborCoord);
@@ -313,18 +312,20 @@ namespace Chraft.World
             }
             else if (directionChunkExist[2])
             {
-                //for (newY = (byte)(y - 1); newY >= 0 && Types[x << 11 | neighborCoord << 7 | newY] == (byte)BlockData.Blocks.Air; --newY);
-
-                if (skylights[3] < newSkylight)
-                    World.ScheduleSkyLightUpdate(new ChunkLightUpdate(World[X, Z - 1], x, y, neighborCoord & 0xf));
+                // Reread Skylight value since it can be changed in the meanwhile
+                skylights[0] = (byte)World[X, Z - 1, false, true].SkyLight.getNibble(x, y, neighborCoord & 0xf);
+                if (skylights[0] < newSkylight)
+                    World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(World[X, Z - 1, false, true], x, y, neighborCoord & 0xf));
             }
 
             neighborCoord = (byte)(z + 1);
 
             if (z < 15)
             {
-                //for (newY = (byte)(y - 1); newY >= 0 && Types[x << 11 | neighborCoord << 7 | newY] == (byte)BlockData.Blocks.Air; --newY);
-                if (skylights[4] < newSkylight)
+                // Reread Skylight value since it can be changed in the meanwhile
+                skylights[0] = (byte)SkyLight.getNibble(x, y, neighborCoord);
+
+                if (skylights[0] < newSkylight)
                 {
                     ++StackSize;
                     SpreadSkyLightFromBlock(x, y, neighborCoord);
@@ -333,17 +334,24 @@ namespace Chraft.World
             }
             else if (directionChunkExist[3])
             {
-                //for (newY = (byte)(y - 1); newY >= 0 && Types[x << 11 | neighborCoord << 7 | newY] == (byte)BlockData.Blocks.Air; --newY) ;
-
-                if (skylights[4] < newSkylight)
-                    World.ScheduleSkyLightUpdate(new ChunkLightUpdate(World[X, Z + 1], x, y, neighborCoord & 0xf));
+                // Reread Skylight value since it can be changed in the meanwhile
+                skylights[0] = (byte)World[X, Z + 1, false, true].SkyLight.getNibble(x, y, neighborCoord & 0xf);
+                if (skylights[0] < newSkylight)
+                    World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(World[X, Z + 1, false, true], x, y, neighborCoord & 0xf));
             }
 
-            if (y < HeightMap[x, z] && skylights[5] < newSkylight)
+            
+
+            if (y < HeightMap[x, z])
             {
-                ++StackSize;
-                SpreadSkyLightFromBlock(x, (byte)(y + 1), z);
-                --StackSize;
+                // Reread Skylight value since it can be changed in the meanwhile
+                skylights[0] = (byte)SkyLight.getNibble(x, y + 1, z);
+                if(skylights[0] < newSkylight)
+                {
+                    ++StackSize;
+                    SpreadSkyLightFromBlock(x, (byte)(y + 1), z);
+                    --StackSize;
+                }
             }
 
             
@@ -373,6 +381,14 @@ namespace Chraft.World
             try
             {
                 zip = new DeflateStream(File.Open(DataFile, FileMode.Open), CompressionMode.Decompress);
+                for (int x = 0; x < 16; ++x)
+                {
+                    for (int z = 0; z < 16; ++z)
+                    {
+                        HeightMap = new byte[16,16];
+                        HeightMap[x, z] = (byte)zip.ReadByte();
+                    }
+                }
                 LoadAllBlocks(zip);
                 return true;
             }
@@ -407,7 +423,7 @@ namespace Chraft.World
             byte data = (byte)strm.ReadByte();
             byte ls = (byte)strm.ReadByte();
             this[x, y, z] = type;
-            SetData(x, y, z, data);
+            SetData(x, y, z, data, false);
             SetDualLight(x, y, z, ls);
         }
 
@@ -453,6 +469,13 @@ namespace Chraft.World
             Stream zip = new DeflateStream(File.Create(DataFile + ".tmp"), CompressionMode.Compress);
             try
             {
+                for (int x = 0; x < 16; ++x)
+                {
+                    for (int z = 0; z < 16; ++z)
+                    {
+                        zip.WriteByte(HeightMap[x, z]);
+                    }
+                }
                 WriteAllBlocks(zip);
                 zip.Flush();
             }
@@ -556,7 +579,7 @@ namespace Chraft.World
         private void GrowSapling(int x, int y, int z)
         {
             GrowTree(x, y, z);
-            foreach (Client c in World.Server.GetNearbyPlayers(World, X + x, y, Z + z))
+            foreach (Client c in World.Server.GetNearbyPlayers(World, (X << 4) + x, y, (Z << 4) + z))
                 c.SendBlockRegion((X << 4) + x - 3, y, (Z << 4) + z - 3, 7, 7, 7);
         }
 
@@ -628,7 +651,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(60) == 0)
             {
                 SetType(x, y, z, BlockData.Blocks.Cactus);
-                UpdateClients(x, y, z);
             }
         }
 
@@ -641,8 +663,7 @@ namespace Chraft.World
 
             if (World.Server.Rand.Next(10) == 0) // Was 200
             {
-                SetData(x, y, z, ++data);
-                UpdateClients(x, y, z);
+                SetData(x, y, z, ++data, true);
             }
         }
 
@@ -654,7 +675,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(60) == 0)
             {
                 SetType(x, y, z, BlockData.Blocks.Mossy_Cobblestone);
-                UpdateClients(x, y, z);
             }
         }
 
@@ -674,7 +694,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(30) == 0)
             {
                 SetType(x, y, z, BlockData.Blocks.Grass);
-                UpdateClients(x, y, z);
             }
         }
 
@@ -686,7 +705,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(30) != 0)
             {
                 SetType(x, y, z, BlockData.Blocks.Dirt);
-                UpdateClients(x, y, z);
             }
         }
 
@@ -701,7 +719,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(60) == 0)
             {
                 SetType(x, y, z, BlockData.Blocks.Reed);
-                UpdateClients(x, y, z);
             }
         }
 
@@ -726,6 +743,75 @@ namespace Chraft.World
             {
                 c.SendWeather(weather, (X << 4), (Z << 4));
             }
+        }
+
+        protected override void UpdateBlocksToNearbyPlayers(object state)
+        {
+            BlocksUpdateLock.EnterWriteLock();
+            int num = Interlocked.Exchange(ref NumBlocksToUpdate, 0);
+            short[] temp = BlocksToBeUpdated;
+            BlocksToBeUpdated = BlocksUpdating;
+            BlocksUpdateLock.ExitWriteLock();
+
+            BlocksUpdating = temp;
+
+            if (num == 1)
+            {
+                int index = BlocksUpdating[0];
+                int worldX = (X << 4) + (index >> 12 & 0xf);
+                int worldY = (index & 0xff);
+                int worldZ = (Z << 4) + (index >> 8 & 0xf);
+                byte blockId = World.GetBlockId(worldX, worldY, worldZ);
+                byte data = World.GetBlockData(worldX, worldY, worldZ);
+
+                SendPacketToAllNearbyPlayers(new BlockChangePacket { X = worldX, Y = (sbyte)worldY, Z = worldZ, Data = data, Type = blockId });
+            }
+            else if (num < 20)
+            {
+                sbyte[] data = new sbyte[num];
+                sbyte[] types = new sbyte[num];
+
+                for (int i = 0; i < num; ++i)
+                {
+                    int index = BlocksUpdating[i];
+                    int worldX = (X << 4) + (index >> 12 & 0xf);
+                    int worldY = (index & 0xff);
+                    int worldZ = (Z << 4) + (index >> 8 & 0xf);
+
+                    
+                }
+                SendPacketToAllNearbyPlayers(new MultiBlockChangePacket { Coords = BlocksUpdating, Metadata = data, Types = types, X = this.X, Z = this.Z});
+            }
+            else
+            {
+                SendPacketToAllNearbyPlayers(new MapChunkPacket { Chunk = this });
+            }
+            base.UpdateBlocksToNearbyPlayers(state);
+        }
+
+        private void SendPacketToAllNearbyPlayers(Packet packet)
+        {
+            Dictionary<int, Client> nearbyClients = new Dictionary<int, Client>();
+            int radius = Settings.Default.SightRadius;
+            for (int x = X - radius; x <= X + radius; ++x)
+            {
+                for (int z = Z - radius; z <= Z + radius; ++z)
+                {
+                    Chunk c = World[x, z, false, false];
+
+                    if (c != null)
+                    {
+                        foreach (Client client in c.GetClients())
+                        {
+                            if (!nearbyClients.ContainsKey(client.SessionID))
+                                nearbyClients.Add(client.SessionID, client);
+                        }
+                    }
+                }
+            }
+
+            foreach (Client c in nearbyClients.Values)
+                c.PacketHandler.SendPacket(packet);
         }
     }
 }

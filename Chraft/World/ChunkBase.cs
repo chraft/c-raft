@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity;
+using System.Threading;
+using System.Collections.Concurrent;
+using Chraft.Net;
+using Chraft.Properties;
+using Chraft.Net.Packets;
 
 namespace Chraft.World
 {
@@ -15,15 +20,17 @@ namespace Chraft.World
 		protected List<Client> Clients = new List<Client>();
 		protected List<EntityBase> Entities = new List<EntityBase>();
 		protected List<TileEntity> TileEntities = new List<TileEntity>();
-		public byte[] Types = new byte[SIZE];
-		/*protected unsafe byte[] Light = new byte[SIZE];
-		protected unsafe byte[] Data = new byte[SIZE];*/
+        public byte[] Types = new byte[SIZE];
 
         public NibbleArray Light = new NibbleArray(SIZE);
         public NibbleArray Data = new NibbleArray(SIZE);
         public NibbleArray SkyLight = new NibbleArray(SIZE);
 
-        public int NumBlocksToUpdate;
+        protected int NumBlocksToUpdate;
+        protected int _TimerStarted;
+        protected Timer _UpdateTimer;
+        protected short[] BlocksToBeUpdated = new short[20];
+        protected ReaderWriterLockSlim BlocksUpdateLock = new ReaderWriterLockSlim();
 
 		public WorldManager World { get; private set; }
 		public int X { get; set; }
@@ -34,6 +41,7 @@ namespace Chraft.World
 			World = world;
 			X = x;
 			Z = z;
+            _UpdateTimer = new Timer(UpdateBlocksToNearbyPlayers, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		/// <summary>
@@ -105,9 +113,12 @@ namespace Chraft.World
             return (byte)(Light.getNibble(x, y, z) << 4 | SkyLight.getNibble(x, y, z));
         }
 
-        public void SetData(int x, int y, int z, byte value)
+        public void SetData(int x, int y, int z, byte value, bool needsUpdate)
         {
             Data.setNibble(x, y, z, value);
+
+            if(needsUpdate)
+                BlockNeedsUpdate(x, y, z);
         }
 
         public void SetDualLight(int x, int y, int z, byte value)
@@ -122,7 +133,6 @@ namespace Chraft.World
         public void SetSkyLight(int x, int y, int z, byte value)
         {
             SkyLight.setNibble(x, y, z, value);
-            ++NumBlocksToUpdate;
         }
 
 		/*public unsafe byte GetBlockLight(int x, int y, int z)
@@ -223,11 +233,34 @@ namespace Chraft.World
 		public void SetType(int x, int y, int z, BlockData.Blocks value)
 		{
 			this[x, y, z] = (byte)value;
+            BlockNeedsUpdate(x, y, z);
 		}
 
 		public bool IsAir(int x, int y, int z)
 		{
 			return BlockData.Air.Contains(GetType(x, y, z));
 		}
+
+        public void BlockNeedsUpdate(int x, int y, int z)
+        {
+            int num = Interlocked.Increment(ref NumBlocksToUpdate);
+
+            BlocksUpdateLock.EnterReadLock();
+            if (num <= 20)
+                BlocksToBeUpdated[num - 1] = (short)(x << 12 | z << 8 | y);
+            BlocksUpdateLock.ExitReadLock();
+
+            int started = Interlocked.CompareExchange(ref _TimerStarted, 1, 0);
+
+            if (started == 0)
+            {
+                _UpdateTimer.Change(100, Timeout.Infinite);
+            }
+        }
+
+        protected virtual void UpdateBlocksToNearbyPlayers(object state)
+        {
+            Interlocked.Exchange(ref _TimerStarted, 0);
+        }
 	}
 }

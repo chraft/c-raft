@@ -103,10 +103,9 @@ namespace Chraft.Net
         public void SendPacket(Packet packet)
         {
             lock (QueueLock)
-            {
                 CurrentPacketQueue.Enqueue(packet);
-                ToSend.Set();
-            }
+                
+            ToSend.Set();
         }
 
         private void QueueProc()

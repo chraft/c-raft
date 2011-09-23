@@ -9,6 +9,9 @@ using Chraft.Entity;
 using System.Text.RegularExpressions;
 using Chraft.Utils;
 using Chraft.Interfaces;
+using System.Threading;
+using System.Threading.Tasks;
+using Chraft.Properties;
 
 namespace Chraft
 {
@@ -793,9 +796,10 @@ namespace Chraft
             switch (e.Packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
-                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y + 2, z)));
+                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y + 1, z)));
                     this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
                     this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x,y,z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
                     //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -969,6 +973,7 @@ namespace Chraft
                     }
 
                     World.SetBlockAndData(x, y, z, 0, 0);
+                    World[x >> 4, z >> 4, false, false].SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
                     World.Update(x, y, z, false);
 
                     Inventory.DamageItem(Inventory.ActiveSlot);
@@ -1003,7 +1008,14 @@ namespace Chraft
             this.MoveTo(e.Packet.X, e.Packet.Y - EyeGroundOffset, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
+
+            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
         }
+
+        private double _LastX;
+        private double _LastZ;
+        private int _MovementsArrived;
+        private Task _UpdateChunks;
 
         private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
         {
@@ -1011,8 +1023,27 @@ namespace Chraft
             this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
+
+            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
         }
 
+        private void CheckAndUpdateChunks(double packetX, double packetZ)
+        {
+            ++_MovementsArrived;
+
+            if (_MovementsArrived % 8 == 0)
+            {
+                double distance = Math.Pow(Math.Abs(packetX - _LastX), 2.0) + Math.Pow(Math.Abs(packetZ - _LastZ), 2.0);
+                _MovementsArrived = 0;
+                if (distance > 16 && (_UpdateChunks == null || _UpdateChunks.IsCompleted))
+                {
+                    _LastX = packetX;
+                    _LastZ = packetZ;
+                    _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+                    _UpdateChunks.Start();
+                }
+            }
+        }
         #endregion
 
         #region Login
