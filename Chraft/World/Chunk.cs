@@ -804,14 +804,14 @@ namespace Chraft.World
                         foreach (Client client in c.GetClients())
                         {
                             if (!nearbyClients.ContainsKey(client.SessionID))
+                            {
                                 nearbyClients.Add(client.SessionID, client);
+                                client.PacketHandler.SendPacket(packet);
+                            }
                         }
                     }
                 }
             }
-
-            foreach (Client c in nearbyClients.Values)
-                c.PacketHandler.SendPacket(packet);
         }
     }
 }
