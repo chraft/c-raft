@@ -85,7 +85,7 @@ namespace Chraft.World
 
 		public byte GetLuminence(int x, int y, int z)
 		{
-			return BlockData.Luminence[this[x, y, z]];
+			return BlockData.Luminance[this[x, y, z]];
 		}
 
 		public byte GetOpacity(int x, int y, int z)

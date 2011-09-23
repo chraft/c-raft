@@ -1,9 +1,10 @@
 using java.util;
+using Chraft.WorldGen;
 
 
 namespace Chraft.World
 {
-    public class ChunkGenerator
+    public class ChunkGenerator : IChunkGenerator
     {
         public ChunkGenerator(WorldManager world, long seed)
         {
@@ -196,10 +197,9 @@ namespace Chraft.World
             }
         }
 
-        public Chunk ProvideChunk(int x, int z)
+        public Chunk ProvideChunk(int x, int z, Chunk chunk, bool recalculate)
         {
             Rand.setSeed((long)x * 0x4f9939f508L + (long)z * 0x1ef1565bd5L);
-            Chunk chunk = new Chunk(World, x << 4, z << 4);
             BiomesForGeneration = World.GetWorldChunkManager().GetBlockGeneratorData(BiomesForGeneration, x << 4, z << 4, 16, 16);
             double[] ad = World.GetWorldChunkManager().Temperatures;
             byte[] data = new byte[32768];
@@ -226,8 +226,8 @@ namespace Chraft.World
                     }
                 }
             }
-
-            World.Chunks.Add(chunk);
+            
+            World.AddChunk(chunk);
 
             for (int bx = 0; bx < 16; bx++)
             {
@@ -251,7 +251,7 @@ namespace Chraft.World
                     }
                 }
             }
-
+            if(recalculate)
             chunk.Recalculate();
             chunk.Save();
             return chunk;

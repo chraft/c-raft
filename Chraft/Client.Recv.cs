@@ -9,6 +9,9 @@ using Chraft.Entity;
 using System.Text.RegularExpressions;
 using Chraft.Utils;
 using Chraft.Interfaces;
+using System.Threading;
+using System.Threading.Tasks;
+using Chraft.Properties;
 
 namespace Chraft
 {
@@ -48,6 +51,9 @@ namespace Chraft
                 {
                     _onGround = value;
 
+                    // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
+
                     if (!_onGround)
                     {
                         _beginInAirY = this.Position.Y;
@@ -61,20 +67,6 @@ namespace Chraft
 #if DEBUG
                         this.SendMessage("On ground");
 #endif
-                        // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                        BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
-                        
-                        if (_inAirStartTime != null)
-                        {
-                            // Check how long in the air for (e.g. flying) - don't count if we are in water
-                            if (currentBlock != BlockData.Blocks.Water && AirTime.TotalSeconds > 5)
-                            {
-                                // TODO: make the number of seconds configurable
-                                Kick("Flying!!");
-                            }
-
-                            _inAirStartTime = null;
-                        }
 
                         double blockCount = 0;
 
@@ -135,6 +127,18 @@ namespace Chraft
                         }
 
                         _beginInAirY = -1;
+                    }
+
+                    if (_inAirStartTime != null)
+                    {
+                        // Check how long in the air for (e.g. flying) - don't count if we are in water
+                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Stationary_Water && AirTime.TotalSeconds > 5)
+                        {
+                            // TODO: make the number of seconds configurable
+                            Kick("Flying!!");
+                        }
+
+                        _inAirStartTime = null;
                     }
                 }
             }
@@ -806,6 +810,11 @@ namespace Chraft
             switch (e.Packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
+                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y + 1, z)));
+                    this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
+                    this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x,y,z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
+                    //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
@@ -978,7 +987,8 @@ namespace Chraft
                     }
 
                     World.SetBlockAndData(x, y, z, 0, 0);
-                    World.Update(x, y, z);
+                    World[x >> 4, z >> 4, false, false].SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
+                    World.Update(x, y, z, false);
 
                     Inventory.DamageItem(Inventory.ActiveSlot);
 
@@ -1012,7 +1022,14 @@ namespace Chraft
             this.MoveTo(e.Packet.X, e.Packet.Y - EyeGroundOffset, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
+
+            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
         }
+
+        private double _LastX;
+        private double _LastZ;
+        private int _MovementsArrived;
+        private Task _UpdateChunks;
 
         private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
         {
@@ -1020,8 +1037,27 @@ namespace Chraft
             this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
             this.OnGround = e.Packet.OnGround;
             this.Stance = e.Packet.Stance;
+
+            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
         }
 
+        private void CheckAndUpdateChunks(double packetX, double packetZ)
+        {
+            ++_MovementsArrived;
+
+            if (_MovementsArrived % 8 == 0)
+            {
+                double distance = Math.Pow(Math.Abs(packetX - _LastX), 2.0) + Math.Pow(Math.Abs(packetZ - _LastZ), 2.0);
+                _MovementsArrived = 0;
+                if (distance > 16 && (_UpdateChunks == null || _UpdateChunks.IsCompleted))
+                {
+                    _LastX = packetX;
+                    _LastZ = packetZ;
+                    _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+                    _UpdateChunks.Start();
+                }
+            }
+        }
         #endregion
 
         #region Login

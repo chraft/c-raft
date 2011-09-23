@@ -279,8 +279,8 @@ namespace Chraft.Interfaces
             }
         }
 
-        private volatile uint _burnerStartTick;
-        private volatile short _burnForTicks;
+        private int _burnerStartTick;
+        private short _burnForTicks;
         private void StartBurner()
         {
             lock (_furnaceInstance)

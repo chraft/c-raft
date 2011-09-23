@@ -78,9 +78,12 @@ namespace Chraft.Net
         public event PacketEventHandler<WindowClickPacket> WindowClick;
         public event PacketEventHandler<WindowItemsPacket> WindowItems;
 
-        private readonly Queue<Packet> PacketQueue = new Queue<Packet>();
+        private Queue<Packet> CurrentPacketQueue = new Queue<Packet>();
+        private Queue<Packet> WorkingPacketQueue = new Queue<Packet>();
+        private static object QueueLock = new object();
         private readonly Thread QueueThread;
         private volatile bool Running = true;
+        private readonly AutoResetEvent ToSend = new AutoResetEvent(true);
 
         public PacketHandler(Server server, BigEndianStream stream)
         {
@@ -99,19 +102,27 @@ namespace Chraft.Net
 
         public void SendPacket(Packet packet)
         {
-            lock (PacketQueue)
-                PacketQueue.Enqueue(packet);
+            lock (QueueLock)
+                CurrentPacketQueue.Enqueue(packet);
+                
+            ToSend.Set();
         }
 
         private void QueueProc()
         {
-            while (Running)
+            while (Running && ToSend.WaitOne())
             {
-                while (PacketQueue.Count > 0 && Running)
+                lock (QueueLock)
+                {
+                    Queue<Packet> temp = CurrentPacketQueue;
+                    CurrentPacketQueue = WorkingPacketQueue;
+                    WorkingPacketQueue = temp;
+                }
+                while (WorkingPacketQueue.Count > 0 && Running)
                 {
                     Packet packet;
-                    lock (PacketQueue)
-                        packet = PacketQueue.Dequeue();
+
+                    packet = WorkingPacketQueue.Dequeue();
                     try
                     {
                         Net.WritePacket(packet);
@@ -123,7 +134,7 @@ namespace Chraft.Net
                         return;
                     }
                 }
-                Thread.Sleep(10);
+                //Thread.Sleep(10);
             }
         }
 
@@ -137,7 +148,7 @@ namespace Chraft.Net
             Packet p;
             try
             {
-                p = Net.ReadPacket();
+                p = Net.ReadPacket();       
             }
             catch (Exception ex)
             {
@@ -145,6 +156,10 @@ namespace Chraft.Net
                 Logger.Log(Logger.LogLevel.Info, "Disconnecting client: " + ex.Message);
                 return false;
             }
+
+            if (p == null)
+                return true; // Should we disconnect the client if he sends a wrong packet?
+
             PacketType type = p.GetPacketType();
 
             switch (type)

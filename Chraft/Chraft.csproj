@@ -92,6 +92,10 @@
     <Reference Include="Ionic.Zlib">
       <HintPath>.\Ionic.Zlib.dll</HintPath>
     </Reference>
+    <Reference Include="LibNoise, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Lib\LibNoise.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -104,7 +108,6 @@
     <Compile Include="ChatEventArgs.cs" />
     <Compile Include="Client.Actions.cs" />
     <Compile Include="Client.cs" />
-    <Compile Include="Client.Permissions.cs" />
     <Compile Include="Client.Persistence.cs" />
     <Compile Include="Client.Recv.cs" />
     <Compile Include="Client.Send.cs" />
@@ -136,6 +139,15 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="NibbleArray.cs" />
+    <Compile Include="Permissions.cs" />
+    <Compile Include="WorldGen\ChunkProvider.cs" />
+    <Compile Include="WorldGen\CustomGenerator.cs" />
+    <Compile Include="WorldGen\FastRandom.cs" />
+    <Compile Include="WorldGen\IChunkGenerator.cs" />
+    <Compile Include="WorldGen\MathHelper.cs" />
+    <Compile Include="WorldGen\Noises.cs" />
+    <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />
@@ -292,6 +304,10 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

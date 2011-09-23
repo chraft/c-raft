@@ -9,15 +9,19 @@ using Chraft.World.Weather;
 using Chraft.Plugins.Events.Args;
 using System.Threading.Tasks;
 using Chraft.Utils;
+using System.Collections.Generic;
+using Chraft.WorldGen;
+using System.Collections.Concurrent;
 
 namespace Chraft.World
 {
     public partial class WorldManager : IDisposable
     {
         private Timer GlobalTick;
-        private ChunkGenerator Generator;
-        private object ChunkGenLock = new object();
+        private IChunkGenerator Generator;
+        public object ChunkGenLock = new object();
         private WorldChunkManager ChunkManager;
+        private ChunkProvider _ChunkProvider;
 
         public sbyte Dimension { get { return 0; } }
         public long Seed { get; private set; }
@@ -30,25 +34,41 @@ namespace Chraft.World
         public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;
-        public ChunkSet Chunks { get { return _Chunks; } }
+        private ChunkSet Chunks { get { return _Chunks; } }
 
-        private volatile int _Time;
-        private readonly object _TimeWriteLock = new object();
+        public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
+
+        private readonly object ChunkLightUpdateLock = new object();
+        private Task _GrowStuffTask;
+        private Task _CollectTask;
+
+        private int _Time;
+        private readonly ReaderWriterLockSlim _TimeWriteLock = new ReaderWriterLockSlim();
+        private Chunk[] _ChunksCache;
         /// <summary>
         /// In units of 0.05 seconds (between 0 and 23999)
         /// </summary>
         public int Time
         {
-            get { return _Time; }
-            set { lock (_TimeWriteLock) _Time = value; }
+            get {
+                _TimeWriteLock.EnterReadLock();
+                int time = _Time;
+                //Console.WriteLine("Reading: {0}", _Time);
+                _TimeWriteLock.ExitReadLock();
+                return time; }
+            set {
+                _TimeWriteLock.EnterWriteLock();
+                _Time = value;
+                _TimeWriteLock.ExitWriteLock();
+                }
         }
 
-        private volatile uint _worldTicks = 0;
+        private int _worldTicks = 0;
         
         /// <summary>
         /// The current World Tick independant of the world's current Time (1 tick = 0.05 secs with a max value of 4,294,967,295 gives approx. 6.9 years of ticks)
         /// </summary>
-        public uint WorldTicks
+        public int WorldTicks
         {
             get
             {
@@ -56,13 +76,22 @@ namespace Chraft.World
             }
         }
 
-        public Chunk this[int x, int z]
+        public Chunk this[int x, int z, bool create, bool load, bool recalculate = true]
         {
             get
             {
-                if (Chunks.ContainsKey(new PointI(x, z)))
-                    return Chunks[x, z];
-                return LoadChunk(x, z);
+                Chunk chunk;
+                if ((chunk = Chunks[x, z]) != null)
+                {
+                    //Server.Logger.Log(Logger.LogLevel.Debug, "Getting {0}, {1}", x, z);
+                    return chunk;
+                }
+                else if (load)
+                    return LoadChunk(x, z, create, recalculate);
+                else
+                    return null;
+                //Server.Logger.Log(Logger.LogLevel.Debug, "Creating {0}, {1}", x, z);
+                
             }
         }
 
@@ -70,6 +99,7 @@ namespace Chraft.World
         {          
             _Chunks = new ChunkSet();
             Server = server;
+            ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             Load();
         }
 
@@ -83,7 +113,8 @@ namespace Chraft.World
             if (e.EventCanceled) return false;
             //End Event
 
-            Generator = new ChunkGenerator(this, GetSeed());
+            _ChunkProvider = new ChunkProvider(this);
+            Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
             ChunkManager = new WorldChunkManager(this);
 
             InitializeSpawn();
@@ -99,20 +130,27 @@ namespace Chraft.World
 
         public int GetHeight(int x, int z)
         {
-            if (Chunks.ContainsKey(new PointI(x, z).Chunk))
-                return this[x >> 4, z >> 4].HeightMap[x & 0xf, z & 0xf];
-            return 0;
+            return this[x >> 4, z >> 4, false, true].HeightMap[x & 0xf, z & 0xf];
         }
 
-        private Chunk LoadChunk(int x, int z)
+        public void AddChunk(Chunk c)
+        {
+            c.CreationDate = DateTime.Now;
+            Chunks.Add(c);
+        }
+
+        private Chunk LoadChunk(int x, int z, bool create, bool recalculate)
         {
             lock (ChunkGenLock)
             {
-                Chunk chunk = new Chunk(this, x << 4, z << 4);
+                Chunk chunk = new Chunk(this, x, z);
                 if (chunk.Load())
-                    Chunks.Add(chunk);
+                    AddChunk(chunk);
+                else if (create)
+                    chunk = Generator.ProvideChunk(x, z, chunk, recalculate);
                 else
-                    chunk = Generator.ProvideChunk(x, z);
+                    chunk = null;
+
                 return chunk;
             }
         }
@@ -122,8 +160,6 @@ namespace Chraft.World
             this.Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
             SaveStart();
-            GrowStart();
-            CollectStart();
             EntityMoverStart();
         }
 
@@ -142,7 +178,7 @@ namespace Chraft.World
 
         private void CollectStart()
         {
-            Thread trd = new Thread(SaveRun);
+            Thread trd = new Thread(CollectRun);
             trd.IsBackground = false;
             trd.Start();
         }
@@ -160,7 +196,7 @@ namespace Chraft.World
             {
                 if (c.Persistent)
                     continue;
-                if (c.GetClients().Length > 0)
+                if (c.GetClients().Length > 0 || (DateTime.Now - c.CreationDate) < TimeSpan.FromSeconds(10.0))
                     continue;
                 Chunks.Remove(c);
             }
@@ -188,7 +224,7 @@ namespace Chraft.World
             {
                 chunks[i].Save();
                 if (passive)
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
             }
         }
 
@@ -200,28 +236,49 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
+        public static int ligthUpdateCounter = 0;
+
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
-            _worldTicks++;
+            Interlocked.Increment(ref _worldTicks);
 
             int time;
-            lock (_TimeWriteLock)
-            {	// Lock Time so that others cannot write to it
-                time = ++_Time;
-                if (time == 24000)
-                {	// A day has passed.
-                    // MUST interface directly with _Time to bypass the write lock, which we hold.
-                    _Time = time = 0;
-                }
+            // Lock Time so that others cannot write to it
+            _TimeWriteLock.EnterWriteLock();
+            //Console.WriteLine("Writing Time");
+            time = ++_Time;
+            //Console.WriteLine("Time: {0}", _Time);
+            if (time == 24000)
+            {	// A day has passed.
+                // MUST interface directly with _Time to bypass the write lock, which we hold.
+                _Time = time = 0;
             }
+            _TimeWriteLock.ExitWriteLock();
+            
 
             // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
-            if (this.WorldTicks % 200 == 0)
-            {	// Triggered once every ten seconds
-                Thread thread = new Thread(Server.DoPulse);
-                thread.IsBackground = true;
-                thread.Start();
+            if (this.WorldTicks % 20 == 0)
+            {
+                // Triggered once every ten seconds
+                Task pulse = new Task(Server.DoPulse);
+                pulse.Start();
+            }
+           
+            // Every second
+            if(this.WorldTicks % 100 == 0)
+            {
+                if (_GrowStuffTask == null || _GrowStuffTask.IsCompleted)
+                {
+                    _GrowStuffTask = new Task(GrowProc);
+                    _GrowStuffTask.Start();
+                }
+
+                if(_CollectTask == null || _CollectTask.IsCompleted)
+                {
+                    _CollectTask = new Task(CollectProc);
+                    _CollectTask.Start();
+                }
             }
         }
 
@@ -252,12 +309,16 @@ namespace Chraft.World
 
         public byte GetBlockOrLoad(int x, int y, int z)
         {
-            return this[x >> 4, z >> 4][x & 0xf, y, z & 0xf];
+            return this[x >> 4, z >> 4, true, true][x & 0xf, y, z & 0xf];
         }
 
         public Chunk[] GetChunks()
         {
-            return Chunks.Values.ToArray();
+            int changes = Interlocked.Exchange(ref Chunks.Changes, 0);
+            if(_ChunksCache == null && changes > 0)
+                _ChunksCache = Chunks.Values.ToArray();
+
+            return _ChunksCache;
         }
 
         private void GrowStart()
@@ -281,7 +342,6 @@ namespace Chraft.World
         {
             foreach (Chunk c in GetChunks())
             {
-                Thread.Sleep(20);
                 c.Grow();
             }
         }
@@ -479,18 +539,16 @@ namespace Chraft.World
 
         public void SetBlockAndData(int x, int y, int z, byte type, byte data)
         {
-            Chunk chunk = this[x >> 4, z >> 4];
+            Chunk chunk = this[x >> 4, z >> 4, false, true];
             int bx = x & 0xf;
             int bz = z & 0xf;
             chunk[bx, y, bz] = type;
-            chunk.SetData(bx, y, bz, data);
-            UpdateClients(x, y, z);
+            chunk.SetData(bx, y, bz, data, true);
         }
 
         public void SetBlockData(int x, int y, int z, byte data)
         {
-            this[x >> 4, z >> 4].SetData(x & 0xf, y, z & 0xf, data);
-            UpdateClients(x, y, z);
+            this[x >> 4, z >> 4, false, true].SetData(x & 0xf, y, z & 0xf, data, true);
         }
 
         internal WorldChunkManager GetWorldChunkManager()
@@ -500,15 +558,21 @@ namespace Chraft.World
 
         public bool ChunkExists(int x, int z)
         {
-            return Chunks.ContainsKey(new PointI(x, z));
+            return (Chunks[x,z] != null);
+        }
+
+        public void RemoveChunk(Chunk c)
+        {
+            Chunks.Remove(c);
         }
 
         internal void Update(int x, int y, int z, bool updateClients = true)
         {
             if (updateClients)
-                UpdateClients(x, y, z);
+                this[x >> 4, z >> 4, false, true].BlockNeedsUpdate(x, y, z);
+
             UpdatePhysics(x, y, z);
-            this[x >> 4, z >> 4].ForAdjacent(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+            this[x >> 4, z >> 4, false, true].ForAdjacent(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
             {
                 UpdatePhysics(bx, by, bz);
             });
@@ -537,7 +601,7 @@ namespace Chraft.World
             if (type == BlockData.Blocks.Water)
             {
                 byte water = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Water)
                         water = 0;
@@ -572,7 +636,7 @@ namespace Chraft.World
                 }
 
                 byte water = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Water)
                         water = 0;
@@ -587,7 +651,7 @@ namespace Chraft.World
                 }
 
                 byte lava = 8;
-                this[x >> 4, z >> 4].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
+                this[x >> 4, z >> 4, false, true].ForNSEW(x & 0xf, y, z & 0xf, delegate(int bx, int by, int bz)
                 {
                     if (GetBlockId(bx, by, bz) == (byte)BlockData.Blocks.Still_Lava)
                         lava = 0;
@@ -639,7 +703,7 @@ namespace Chraft.World
             // TODO: Fixing this, NSEW isn't working as it's supposed to.
             for (int by = y; by < y + 3; by++)
             {
-                if (!this[x >> 4, z >> 4].IsNSEWTo(x & 0xf, by, z & 0xf, (byte)BlockData.Blocks.Air))
+                if (!this[x >> 4, z >> 4, false, true].IsNSEWTo(x & 0xf, by, z & 0xf, (byte)BlockData.Blocks.Air))
                     return;
             }
 

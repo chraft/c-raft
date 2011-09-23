@@ -30,15 +30,18 @@ namespace Chraft.Net.Packets
         {
             try
             {
-                if (!PacketMap.Map.ContainsKey(type))
+                Type ptype;
+                if(PacketMap.Map.TryGetValue(type, out ptype))
                 {
-                    Console.WriteLine("ERROR Unknown packet type: {0}", type);
+                    Packet packet = (Packet)ptype.GetConstructor(new Type[0]).Invoke(new object[0]);
+                    packet.Read(stream);
+                    return packet;
+                }
+                else
+                {
+                    Console.WriteLine("Error processing packet of type {0}", type);
                     return null;
                 }
-                Type ptype = PacketMap.Map[type];
-                Packet packet = (Packet)ptype.GetConstructor(new Type[0]).Invoke(new object[0]);
-                packet.Read(stream);
-                return packet;
             }
             catch (Exception ex)
             {

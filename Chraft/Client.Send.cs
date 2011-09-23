@@ -6,6 +6,7 @@ using Chraft.World;
 using Chraft.Properties;
 using System.Threading;
 using Chraft.World.Weather;
+using System.Threading.Tasks;
 
 namespace Chraft
 {
@@ -84,7 +85,10 @@ namespace Chraft
                 ProtocolOrEntityId = SessionID,
                 Dimension = World.Dimension,
                 Username = "",
-                MapSeed = World.Seed
+                MapSeed = World.Seed,
+                WorldHeight = 128,
+                MaxPlayers = 50,
+                Unknown = 2
             });
         }
 
@@ -139,20 +143,17 @@ namespace Chraft
             StartKeepAliveTimer();
             SendLoginRequest();
             SendSpawnPosition();
-            UpdateChunks(2);
             SendInitialTime();
+            UpdateChunks(2);
             SendInitialPosition();
+            SendInitialTime();
             InitializeInventory();
             InitializeHealth();
             OnJoined();
             SendMotd();
-            //UpdateChunks(Settings.Default.SightRadius);
             SendMessage("§cLoading complete.");
-
-            Thread thread = new Thread(UpdateChunksThread);
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.Highest;
-            thread.Start();
+            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+            _UpdateChunks.Start();
         }
 
         #endregion
@@ -362,7 +363,8 @@ namespace Chraft
 
         public void SendWeather(WeatherState weather, int i, int i1)
         {
-            throw new NotImplementedException();
+
+            //throw new NotImplementedException();
         }
     }
 }
