@@ -121,7 +121,11 @@ namespace Chraft
             if (e.EventCanceled) return;
             command = e.Command;
             //End Event
-			string baseCommand = command.Substring(0, command.IndexOf(" "));
+
+            int argsPos = command.IndexOf(" ");
+            string baseCommand = command;
+            if (argsPos != -1)
+                baseCommand = command.Substring(0, command.IndexOf(" "));
 			if (!CanUseCommand(baseCommand))
             {
                 SendMessage("You do not have permission to use that command");
