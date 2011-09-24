@@ -30,7 +30,7 @@ namespace Chraft.World
         public Server Server { get; private set; }
         public Logger Logger { get { return Server.Logger; } }
         public string Name { get { return Settings.Default.DefaultWorldName; } }
-        public string Folder { get { return Settings.Default.WorldsFolder + "/" + Name; } }
+        public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
         public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;

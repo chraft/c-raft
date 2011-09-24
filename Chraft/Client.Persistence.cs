@@ -10,7 +10,7 @@ namespace Chraft
     {
         private static XmlSerializer Xml = new XmlSerializer(typeof(ClientSurrogate));
         internal string Folder { get { return Settings.Default.PlayersFolder; } }
-        internal string DataFile { get { return Folder + "/" + Username + ".xml"; } }
+        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + Username + ".xml"; } }
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()
         {
