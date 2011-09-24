@@ -12,7 +12,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 1)
+            if (tokens.Length < 2)
             {
                 SetHealth(client, 20);
                 return;
@@ -39,7 +39,7 @@ namespace Chraft.Commands
 
         public string Shortcut
         {
-            get { return ""; }
+            get { return "heal"; }
         }
 
         public CommandType Type
