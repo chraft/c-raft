@@ -97,7 +97,7 @@ namespace Chraft
                                 // If we are in water, count how many blocks above are also water
                                 BlockData.Blocks block = currentBlock;
                                 int waterCount = 0;
-                                while (block == BlockData.Blocks.Water)
+                                while (BlockData.IsLiquid(block))
                                 {
                                     waterCount++;
                                     block = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y + waterCount, (int)this.Position.Z);
