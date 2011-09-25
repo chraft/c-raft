@@ -144,7 +144,7 @@ namespace Chraft
             SendLoginRequest();
             SendSpawnPosition();
             SendInitialTime();
-            UpdateChunks(2);
+            UpdateChunks(2, CancellationToken.None);
             SendInitialPosition();
             SendInitialTime();
             InitializeInventory();
@@ -152,7 +152,7 @@ namespace Chraft
             OnJoined();
             SendMotd();
             SendMessage("§cLoading complete.");
-            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius, CancellationToken.None); });
             _UpdateChunks.Start();
         }
 
