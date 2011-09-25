@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Linq;
-using Chraft.Net;
 using Chraft.Entity;
-using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
 using Chraft.World;
 using Chraft.Utils;
-using Chraft.Interfaces;
 using Chraft.Commands;
 using Chraft.Plugins.Events.Args;
 
@@ -76,7 +72,7 @@ namespace Chraft
             if (e1.EventCanceled) return;
             clean = e1.Message;
             //End Event
-            
+
             if (IsMuted)
             {
                 SendMessage("You have been muted");
@@ -91,7 +87,7 @@ namespace Chraft
                 if (e2.EventCanceled) return;
                 clean = e2.Message;
                 //End Event
-                
+
                 Server.Broadcast(Chat.Format(DisplayName, clean));
                 Logger.Log(Logger.LogLevel.Info, "{0}: {1}", DisplayName, clean);
             }
@@ -126,7 +122,7 @@ namespace Chraft
             string baseCommand = command;
             if (argsPos != -1)
                 baseCommand = command.Substring(0, command.IndexOf(" "));
-			if (!CanUseCommand(baseCommand))
+            if (!CanUseCommand(baseCommand))
             {
                 SendMessage("You do not have permission to use that command");
                 return;
@@ -156,10 +152,10 @@ namespace Chraft
                 if (e.EventCanceled) return;
                 tokens = e.Tokens;
                 //End Event
-                
+
                 cmd.Use(this, tokens);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 SendMessage("There was an error while executing the command.");
                 Server.Logger.Log(e);

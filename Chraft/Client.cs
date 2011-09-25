@@ -64,6 +64,8 @@ namespace Chraft
 
         public bool Ready { get; set; }
 
+        public byte GameMode { get; set; }
+
         /// <summary>
         /// Instantiates a new Client object.
         /// </summary>
@@ -82,7 +84,7 @@ namespace Chraft
             InitializePosition();
             InitializeRecv();
             PermHandler = new PermissionHandler(server);
-            
+
         }
 
         private void InitializePosition()
@@ -133,6 +135,10 @@ namespace Chraft
                 Food = this.Food,
                 FoodSaturation = this.FoodSaturation,
             });
+        }
+        private void SetGameMode()
+        {
+            PacketHandler.SendPacket(new NewInvalidStatePacket { GameMode = GameMode, Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode });
         }
 
         internal void AssociateInterface(Interface iface)
@@ -232,6 +238,7 @@ namespace Chraft
             //event start
             EntityDamageEventArgs entevent = new EntityDamageEventArgs(this, Convert.ToInt16(args[0]), null, cause);
             Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
+            if (GameMode == 1){entevent.EventCanceled = true;}
             if (entevent.EventCanceled) return;
             //event end
 
@@ -246,7 +253,7 @@ namespace Chraft
                 case DamageCause.EntityAttack:
                     if (hitBy != null)
                     {
-                       
+
                     }
                     break;
                 case DamageCause.EntityExplosion:
@@ -453,7 +460,7 @@ namespace Chraft
                 for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
                 {
                     nearbyChunks.Add(new PointI(x, z));
-                  
+
                     if (!LoadedChunks.ContainsKey(new PointI(x, z)))
                     {
                         toUpdate.Add(new PointI(x, z));
@@ -614,7 +621,7 @@ namespace Chraft
             //End Event
             Server.Broadcast(DisplayMessage);
         }
-        
+
 
         private void SetHealth(short health)
         {
@@ -623,9 +630,11 @@ namespace Chraft
                 health = 20;
             }
             this.Health = health;
-            PacketHandler.SendPacket(new UpdateHealthPacket { Health = this.Health,
-                                                              Food = this.Food,
-                                                              FoodSaturation = this.FoodSaturation,
+            PacketHandler.SendPacket(new UpdateHealthPacket
+            {
+                Health = this.Health,
+                Food = this.Food,
+                FoodSaturation = this.FoodSaturation,
             });
         }
 

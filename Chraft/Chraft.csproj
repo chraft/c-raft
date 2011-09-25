@@ -132,6 +132,7 @@
     <Compile Include="Commands\CommandHandler.cs" />
     <Compile Include="Commands\CommandNotFoundExcption.cs" />
     <Compile Include="Commands\CommandType.cs" />
+    <Compile Include="Commands\CmdGameMode.cs" />
     <Compile Include="Commands\Debug\DbgPos.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\ServerCommand.cs" />

@@ -102,7 +102,7 @@ namespace Chraft
                                     waterCount++;
                                     block = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y + waterCount, (int)this.Position.Z);
                                 }
-                                
+
                                 fallDamage -= waterCount * 16;
                                 #endregion
 
@@ -347,7 +347,7 @@ namespace Chraft
             // if(!Permissions.CanPlayerBuild(Username)) return;
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 255)
                 return;
-            
+
             int x = e.Packet.X;
             int y = e.Packet.Y;
             int z = e.Packet.Z;
@@ -812,8 +812,8 @@ namespace Chraft
                 case PlayerDiggingPacket.DigAction.StartDigging:
                     this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y, z)));
                     this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
-                    this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x,y,z).GetOpacity(x & 0xf, y, z & 0xf)));
-                    this.SendMessage(String.Format("Height: {0}", World.GetHeight(x,z)));
+                    this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x, y, z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    this.SendMessage(String.Format("Height: {0}", World.GetHeight(x, z)));
                     this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
                     //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))

@@ -26,12 +26,11 @@ namespace Chraft
             Position.Yaw = client.Yaw;
             Position.Pitch = client.Pitch;
             if (client.Inventory == null) return;
-            Inventory = new Interfaces.Inventory();
-            Inventory.Handle = 0;
+            Inventory = new Inventory {Handle = 0};
             ItemStack[] slots = new ItemStack[client.Inventory.SlotCount];
             for (short i = 0; i < client.Inventory.SlotCount; i++)
             {
-                slots[i] = Chraft.Interfaces.ItemStack.Void;
+                slots[i] = ItemStack.Void;
                 if (!ItemStack.IsVoid(client.Inventory.Slots[i]))
                 {
                     slots[i].Type = client.Inventory.Slots[i].Type;
@@ -43,6 +42,7 @@ namespace Chraft
                 this.Inventory[i] = slots[i];
             }
             Inventory.Associate(this);
+            GameMode = client.GameMode;
         }
 
         private void Save()
@@ -63,7 +63,8 @@ namespace Chraft
                         Y = Position.Y,
                         Z = Position.Z,
                         Yaw = Position.Yaw,
-                        Pitch = Position.Pitch
+                        Pitch = Position.Pitch,
+                        GameMode = GameMode 
                     });
                     tx.Flush();
                     tx.Close();

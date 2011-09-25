@@ -23,7 +23,7 @@ namespace Chraft
 {
     public class Server
     {
-       
+
         private volatile int NextEntityId = 0;
         private bool Running = true;
         private TcpListener Tcp = null;
@@ -135,8 +135,9 @@ namespace Chraft
                 InitializeIrc();
         }
 
-        public static Recipe[] GetRecipes() {
-            lock(Recipes)
+        public static Recipe[] GetRecipes()
+        {
+            lock (Recipes)
                 return Recipes;
         }
 
@@ -160,9 +161,9 @@ namespace Chraft
 
             switch (e.Command)
             {
-            case "PRIVMSG": OnIrcPrivMsg(sender, e); break;
-            case "NOTICE": OnIrcNotice(sender, e); break;
-            case "001": OnIrcWelcome(sender, e); break;
+                case "PRIVMSG": OnIrcPrivMsg(sender, e); break;
+                case "NOTICE": OnIrcNotice(sender, e); break;
+                case "001": OnIrcWelcome(sender, e); break;
             }
         }
 
@@ -194,7 +195,7 @@ namespace Chraft
         internal void Run()
         {
             Logger.Log(Logger.LogLevel.Info, "Starting C#raft...");
-        
+
 
             Worlds = new List<WorldManager>();
             Worlds.Add(new WorldManager(this));
@@ -230,7 +231,7 @@ namespace Chraft
         /// <returns>The newly created world.</returns>
         public WorldManager CreateWorld(string name)
         {
-            
+
             WorldManager world = new WorldManager(this);
 
             //Event
@@ -249,7 +250,7 @@ namespace Chraft
         {
             Logger.Log(Logger.LogLevel.Info, "Using IP Addresss {0}.", Settings.Default.IPAddress);
             Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
-            
+
             RunListener();
 
             if (Running)
@@ -289,7 +290,7 @@ namespace Chraft
 
                 lock (Clients)
                     Clients.Add(c.EntityId, c);
-                    AddEntity(c);
+                AddEntity(c);
                 c.Start();
                 OnJoined(c);
             }
@@ -453,7 +454,8 @@ namespace Chraft
         /// <returns>A thread-safe array of all active entities.</returns>
         public EntityBase[] GetEntities()
         {
-            lock (_Entities) {
+            lock (_Entities)
+            {
                 return _Entities.ToArray();
             }
         }
@@ -461,8 +463,10 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of removing server entities
         /// </summary>
-        public void RemoveEntity(EntityBase e) {
-            lock (_Entities) {
+        public void RemoveEntity(EntityBase e)
+        {
+            lock (_Entities)
+            {
                 _Entities.Remove(e);
             }
         }
@@ -470,8 +474,10 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of adding server entities
         /// </summary>
-        public void AddEntity(EntityBase e) {
-            lock (_Entities) {
+        public void AddEntity(EntityBase e)
+        {
+            lock (_Entities)
+            {
                 _Entities.Add(e);
             }
         }

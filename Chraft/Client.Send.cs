@@ -147,12 +147,13 @@ namespace Chraft
             UpdateChunks(2);
             SendInitialPosition();
             SendInitialTime();
+            SetGameMode();
             InitializeInventory();
             InitializeHealth();
             OnJoined();
             SendMotd();
             SendMessage("§cLoading complete.");
-            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
+            _UpdateChunks = new Task(() => UpdateChunks(Settings.Default.SightRadius));
             _UpdateChunks.Start();
         }
 
