@@ -138,7 +138,6 @@ namespace Chraft
         private void SendLoginSequence()
         {
             Permissions = PermHandler.LoadClientPermission(this);
-            SendMessage("§cLoading, please wait...");
             Load();
             StartKeepAliveTimer();
             SendLoginRequest();
@@ -152,7 +151,6 @@ namespace Chraft
             InitializeHealth();
             OnJoined();
             SendMotd();
-            SendMessage("§cLoading complete.");
             _UpdateChunks = new Task(() => UpdateChunks(Settings.Default.SightRadius));
             _UpdateChunks.Start();
         }
