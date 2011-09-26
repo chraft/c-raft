@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using Chraft.Commands;
-using Chraft.Properties;
-
-namespace Chraft.ServerApp
+﻿
+namespace ChraftServer
 {
 	static class Program
 	{

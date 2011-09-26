@@ -1,4 +1,4 @@
-﻿namespace Chraft.ServerApp
+﻿namespace ChraftServer
 {
 	partial class ProjectInstaller
 	{

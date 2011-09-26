@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration.Install;
-using System.Linq;
+﻿using System.ComponentModel;
 
 
-namespace Chraft.ServerApp
+namespace ChraftServer
 {
 	[RunInstaller(true)]
 	public partial class ProjectInstaller : System.Configuration.Install.Installer

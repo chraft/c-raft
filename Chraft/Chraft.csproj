@@ -93,10 +93,6 @@
     <Reference Include="Ionic.Zlib">
       <HintPath>.\Ionic.Zlib.dll</HintPath>
     </Reference>
-    <Reference Include="LibNoise, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Lib\LibNoise.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -143,6 +139,11 @@
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="NibbleArray.cs" />
     <Compile Include="Permissions.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+    </Compile>
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="WorldGen\CustomGenerator.cs" />
     <Compile Include="WorldGen\FastRandom.cs" />
@@ -242,11 +243,6 @@
     <Compile Include="Net\PacketType.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
     <Compile Include="Utils\ProportionValue.cs" />
     <Compile Include="World\BlockData.cs">
       <SubType>Code</SubType>

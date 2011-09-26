@@ -8,8 +8,8 @@
     <ProjectGuid>{B4D5F30B-91D3-482A-8C4A-F5CEB4FE9AAB}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Chraft.ServerApp</RootNamespace>
-    <AssemblyName>ChraftServerApp</AssemblyName>
+    <RootNamespace>ChraftServer</RootNamespace>
+    <AssemblyName>ChraftServer</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
@@ -65,9 +65,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Chraft\Chraft.csproj">
       <Project>{024D469C-C147-4BCF-8E17-1833AA8B34DC}</Project>
       <Name>Chraft</Name>
@@ -77,6 +74,9 @@
     <EmbeddedResource Include="ProjectInstaller.resx">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
