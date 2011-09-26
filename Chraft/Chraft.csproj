@@ -225,7 +225,6 @@
     <Compile Include="Plugins\PluginAttribute.cs" />
     <Compile Include="Plugins\PluginEventArgs.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Resources\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
     <Compile Include="Utils\Configuration.cs" />

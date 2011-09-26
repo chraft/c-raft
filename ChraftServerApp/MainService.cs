@@ -14,6 +14,8 @@ namespace Chraft.ServerApp
 	public partial class MainService : ServiceBase
 	{
 		private Server Server { get; set; }
+		private Task ServerRunTask { get; set; }
+		private bool IsStopping { get; set; }
 
 		public MainService()
 		{
@@ -34,19 +36,25 @@ namespace Chraft.ServerApp
 						break;
 				}
 			}
-			Task.Factory.StartNew(RunServer);
+			ServerRunTask = Task.Factory.StartNew(RunServer);
 		}
 
 		private void RunServer()
 		{
-			(Server = new Server()).Run();
+			IsStopping = false;
+			while (!IsStopping)
+			{
+				(Server = new Server()).Run();
+			}
 		}
 
 
 		protected override void OnStop()
 		{
+			IsStopping = true;
 			if (Server != null)
 				Server.Stop();
+			ServerRunTask.Wait(10000);
 		}
 
 		private void UnhandledException_Handler(object sender, UnhandledExceptionEventArgs e)
