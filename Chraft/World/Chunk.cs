@@ -156,7 +156,7 @@ namespace Chraft.World
 
         public void SpreadSkyLightFromBlock(byte x, byte y, byte z)
         {
-            if (StackSize > 800)
+            if (StackSize > 200)
             {
                 World.ChunksToRecalculate.Enqueue(new ChunkLightUpdate(this, x, y, z));
                 Console.WriteLine("Rescheduling chunk");
