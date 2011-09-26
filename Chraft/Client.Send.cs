@@ -1,6 +1,4 @@
-﻿using System;
-using Chraft.Entity;
-using Chraft.Net;
+﻿using Chraft.Entity;
 using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Properties;
@@ -151,7 +149,7 @@ namespace Chraft
             InitializeHealth();
             OnJoined();
             SendMotd();
-            _UpdateChunks = new Task(() => UpdateChunks(Settings.Default.SightRadius));
+            _UpdateChunks = new Task(() => UpdateChunks(Settings.Default.SightRadius, CancellationToken.None));
             _UpdateChunks.Start();
         }
 
