@@ -253,7 +253,7 @@ namespace Chraft
                     if (e.Packet.LeftClick)
                     {
                         if (c.Health > 0)
-                            c.DamageClient(DamageCause.EntityAttack, this);
+                            c.DamageClient(DamageCause.EntityAttack, this, 0);
                     }
                     else
                     {
@@ -1034,6 +1034,7 @@ namespace Chraft
         private double _LastZ;
         private int _MovementsArrived;
         private Task _UpdateChunks;
+        private CancellationTokenSource _UpdateChunksToken = new CancellationTokenSource();
 
         private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
         {
@@ -1043,6 +1044,19 @@ namespace Chraft
             this.Stance = e.Packet.Stance;
 
             CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
+        }
+
+        public void StopUpdateChunks()
+        {
+            _UpdateChunksToken.Cancel();
+        }
+
+        public void ScheduleUpdateChunks()
+        {
+            _UpdateChunksToken = new CancellationTokenSource();
+            var token = _UpdateChunksToken.Token;
+            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius, token); }, token);
+            _UpdateChunks.Start();
         }
 
         private void CheckAndUpdateChunks(double packetX, double packetZ)
@@ -1057,8 +1071,7 @@ namespace Chraft
                 {
                     _LastX = packetX;
                     _LastZ = packetZ;
-                    _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius); });
-                    _UpdateChunks.Start();
+                    ScheduleUpdateChunks();
                 }
             }
         }

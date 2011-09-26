@@ -144,7 +144,7 @@ namespace Chraft
             SendLoginRequest();
             SendSpawnPosition();
             SendInitialTime();
-            UpdateChunks(2);
+            UpdateChunks(2, CancellationToken.None);
             SendInitialPosition();
             SendInitialTime();
             SetGameMode();

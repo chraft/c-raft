@@ -369,13 +369,18 @@ namespace Chraft
             Position.Y = World.Spawn.Y;
             Position.Z = World.Spawn.Z;
 
-            UpdateEntities();
-            SendSpawnPosition();
-            SendInitialPosition();
-            InitializeInventory();
-            InitializeHealth();
-
+            StopUpdateChunks();
+            UpdateChunks(1, CancellationToken.None, false);
             PacketHandler.SendPacket(new RespawnPacket { });
+            UpdateEntities();
+            //SendSpawnPosition();
+            SendInitialPosition();
+            SendInitialTime();
+            InitializeInventory();
+            InitializeHealth();          
+            ScheduleUpdateChunks();
+            
+
             Server.AddEntity(this);
         }
 
@@ -448,7 +453,7 @@ namespace Chraft
             }
         }
 
-        public void UpdateChunks(int radius)
+        public void UpdateChunks(int radius, CancellationToken token, bool remove = true)
         {
             List<PointI> nearbyChunks = new List<PointI>();
             List<PointI> toUpdate = new List<PointI>();
@@ -459,6 +464,9 @@ namespace Chraft
             {
                 for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
                 {
+                    if (token.IsCancellationRequested)
+                        return;
+
                     nearbyChunks.Add(new PointI(x, z));
 
                     if (!LoadedChunks.ContainsKey(new PointI(x, z)))
@@ -471,18 +479,27 @@ namespace Chraft
 
             foreach (PointI c in toUpdate)
             {
+                if (token.IsCancellationRequested)
+                    return;
+
                 Chunk chunk = World[c.X, c.Z, true, true];
                 chunk.AddClient(this);
                 LoadedChunks.TryAdd(c, chunk);
                 SendChunk(chunk);
             }
 
-            foreach (PointI c in LoadedChunks.Keys.Where<PointI>(c => !nearbyChunks.Contains(c)))
+            if(remove)
             {
-                SendPreChunk(c.X, c.Z, false);
-                Chunk chunk;
-                LoadedChunks.TryRemove(c, out chunk);
-                chunk.RemoveClient(this);
+                foreach (PointI c in LoadedChunks.Keys.Where<PointI>(c => !nearbyChunks.Contains(c)))
+                {
+                    if (token.IsCancellationRequested)
+                        return;
+
+                    SendPreChunk(c.X, c.Z, false);
+                    Chunk chunk;
+                    LoadedChunks.TryRemove(c, out chunk);
+                    chunk.RemoveClient(this);
+                }
             }
 
         }
@@ -555,7 +572,7 @@ namespace Chraft
         public void Dispose()
         {
             string disconnectMsg = ChatColor.Yellow + DisplayName + " has left the game.";
-
+            StopUpdateChunks();
             //Event
             ClientLeftEventArgs e = new ClientLeftEventArgs(this);
             Server.PluginManager.CallEvent(Plugins.Events.Event.PLAYER_LEFT, e);
