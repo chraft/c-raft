@@ -118,7 +118,7 @@ namespace Chraft
         /// </summary>
         public bool UseOfficalAuthentication { get; private set; }
 
-        internal Server()
+        public Server()
         {
             ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
@@ -192,7 +192,7 @@ namespace Chraft
             Irc.Join(Settings.Default.IrcChannel);
         }
 
-        internal void Run()
+        public void Run()
         {
             Logger.Log(Logger.LogLevel.Info, "Starting C#raft...");
 

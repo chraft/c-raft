@@ -35,7 +35,7 @@ namespace Chraft.Commands
             server.Broadcast("The server is shutting down.");
             server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
             Thread.Sleep(5000);
-            Program.Exit();
+            server.Stop();
             Thread.Sleep(10);
             Console.WriteLine("Press Enter to exit.");
         }
@@ -49,7 +49,7 @@ namespace Chraft.Commands
             client.Server.Broadcast("The server is shutting down.");
             client.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
             Thread.Sleep(5000);
-            Program.Exit();
+            client.Server.Stop();
             Thread.Sleep(10);
             Console.WriteLine("Press Enter to exit.");
         }
