@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Chraft.Commands
 {
@@ -116,23 +117,12 @@ namespace Chraft.Commands
         }
         private void Init()
         {
-            RegisterCommand(new CmdHelp());
-            RegisterCommand(new CmdStop());
-            RegisterCommand(new CmdSet());
-            RegisterCommand(new CmdPos1());
-            RegisterCommand(new CmdPos2());
-            RegisterCommand(new CmdPlayers());
-            RegisterCommand(new CmdSpawn());
-            RegisterCommand(new CmdSpawnMob());
-            RegisterCommand(new CmdGive());
-            RegisterCommand(new CmdSummon());
-            RegisterCommand(new CmdMute());
-            RegisterCommand(new CmdTime());
-            RegisterCommand(new CmdTp());
-            RegisterCommand(new CmdSetHealth());
-            RegisterCommand(new CmdSay());
-            RegisterCommand(new CmdGameMode());
-            RegisterCommand(new Debug.DbgPos());
+            foreach (Type t in from t in Assembly.GetExecutingAssembly().GetTypes()
+                               where t.GetInterfaces().Contains(typeof(ClientCommand)) && !t.IsAbstract
+                               select t)
+            {
+                RegisterCommand((ClientCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
+            }
         }
     }
 }

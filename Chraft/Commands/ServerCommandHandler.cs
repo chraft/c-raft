@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Chraft.Commands
 {
@@ -116,9 +117,12 @@ namespace Chraft.Commands
         }
         private void Init()
         {
-            RegisterCommand(new CmdHelp());
-            RegisterCommand(new CmdStop());
-            RegisterCommand(new CmdSay());
+            foreach (Type t in from t in Assembly.GetExecutingAssembly().GetTypes()
+                               where t.GetInterfaces().Contains(typeof(ServerCommand)) && !t.IsAbstract
+                               select t)
+            {
+                RegisterCommand((ServerCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
+            }
         }
     }
 }
