@@ -13,31 +13,69 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 3)
+            ItemStack item;
+            uint amount = 0;
+            List<Client> who = new List<Client>();
+
+            if (tokens.Length < 2)
             {
-                client.SendMessage("§cPlease specify an item and target.");
+                client.SendMessage("§cPlease specify an item and target or just an item to give it to yourself.");
                 return;
             }
+            item = client.Server.Items[tokens[1]];
 
-            ItemStack item = client.Server.Items[tokens[2]];
+            if (tokens.Length == 2)
+            {
+                // Trying to give something to yourself
+                who.Add(client);
+            }
+            else if (tokens.Length == 3)
+            {
+                // Trying to give yourself an item with amount specified
+                if (uint.TryParse(tokens[2], out amount))
+                {
+                    who.Add(client);
+                }
+                else
+                {
+                    // OR trying to give something to a player(s)
+                    who.AddRange(client.Server.GetClients(tokens[2]));
+                }  
+            }
+            else
+            {
+                // Trying to give item to other player with amount specified
+                if (uint.TryParse(tokens[3], out amount))
+                {
+                    who.AddRange(client.Server.GetClients(tokens[2]));
+                }
+
+            }
+            
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
                 return;
             }
 
-            sbyte count = -1;
-            if (tokens.Length > 3)
-                sbyte.TryParse(tokens[3], out count);
+            if (who.Count < 1)
+            {
+                client.SendMessage("§cUnknown player.");
+                return;
+            }
 
-            foreach (Client c in client.Server.GetClients(tokens[1]))
-                c.Inventory.AddItem(item.Type, count < 0 ? item.Count : count, item.Durability);
-            client.SendMessage("§7Item given.");
+            if (amount > 0)
+                item.Count = (sbyte)amount;
+            
+            foreach (Client c in who)
+                c.Inventory.AddItem(item.Type, item.Count, item.Durability);
+            client.SendMessage("§7Item given to " + who.Count + " player" + (who.Count > 1 ? "s":""));
         }
 
         public void Help(Client client)
         {
             client.SendMessage("/give <Item OR Block> <Player> [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
+            client.SendMessage("/give <Item OR Block> [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
         public string Name
