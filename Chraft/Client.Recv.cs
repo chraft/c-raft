@@ -197,6 +197,15 @@ namespace Chraft
             PacketHandler.PlayerBlockPlacement += PacketHandler_PlayerBlockPlacement;
             PacketHandler.HoldingChange += PacketHandler_HoldingChange;
             PacketHandler.Respawn += PacketHander_Respawn; // Does this need a new handler?
+            PacketHandler.CreativeInventoryAction += PacketHandler_CreativeInventoryAction;
+        }
+
+        void PacketHandler_CreativeInventoryAction(object sender, PacketEventArgs<CreativeInventoryActionPacket> e)
+        {
+            if (GameMode == 1)
+                Inventory[e.Packet.Slot] = new ItemStack(e.Packet.ItemID, (sbyte)e.Packet.Quantity, e.Packet.Damage);
+            else
+                Kick("Invalid action: CreativeInventoryAction");
         }
 
         private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
@@ -515,9 +524,11 @@ namespace Chraft
                     }
                     break;
             }
-
-            if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
-                Inventory.RemoveItem(Inventory.ActiveSlot);
+            if (GameMode == 0)
+            {
+                if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
+                    Inventory.RemoveItem(Inventory.ActiveSlot);
+            }
 
             World.Update(px, py, pz);
         }
@@ -795,7 +806,8 @@ namespace Chraft
             World.SetBlockAndData(bx, by, bz, bType, bMetaData);
             World.Update(bx, by, bz, false);
 
-            Inventory.RemoveItem(Inventory.ActiveSlot);
+            if(GameMode == 0)
+                Inventory.RemoveItem(Inventory.ActiveSlot);
         }
 
         private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
@@ -818,6 +830,8 @@ namespace Chraft
                     //this.SendMessage()
                     if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
+                    if (GameMode == 1)
+                        goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
@@ -828,6 +842,7 @@ namespace Chraft
                     switch ((BlockData.Blocks)type)
                     {
                         case BlockData.Blocks.Adminium:
+                            if (GameMode == 1) break;
                             return;
 
                         case BlockData.Blocks.Air:
@@ -986,7 +1001,17 @@ namespace Chraft
                         case BlockData.Blocks.Water:
                             return;
                     }
-
+                    foreach (Client cl in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+                    {
+                        cl.PacketHandler.SendPacket(new SoundEffectPacket
+                        {
+                            EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
+                            X = e.Packet.X,
+                            Y = (byte)e.Packet.Y,
+                            Z = e.Packet.Z,
+                            SoundData = World.GetBlockId(x, y, z)
+                        });
+                    }
                     World.SetBlockAndData(x, y, z, 0, 0);
                     Chunk c = World[x >> 4, z >> 4, false, false];
                     c.RecalculateHeight(x & 0xf, z & 0xf);
@@ -994,10 +1019,13 @@ namespace Chraft
                     c.SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
                     World.Update(x, y, z, false);
 
-                    Inventory.DamageItem(Inventory.ActiveSlot);
+                    if (GameMode == 0)
+                    {
+                        Inventory.DamageItem(Inventory.ActiveSlot);
 
-                    if (give > 0)
-                        Server.DropItem(World, x, y, z, new ItemStack(give, count, durability));
+                        if (give > 0)
+                            Server.DropItem(World, x, y, z, new ItemStack(give, count, durability));
+                    }
                     break;
             }
         }
