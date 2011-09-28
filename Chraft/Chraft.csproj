@@ -137,6 +137,7 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="Net\StreamRole.cs" />
     <Compile Include="NibbleArray.cs" />
     <Compile Include="Permissions.cs" />
     <Compile Include="Properties\Settings.Designer.cs">

@@ -13,6 +13,7 @@ namespace Chraft.Net
     public class BigEndianStream : Stream
     {
         public Stream Net { get; private set; }
+        public StreamRole Role { get; private set; }
 
         public override bool CanRead { get { return Net.CanRead; } }
         public override bool CanSeek { get { return Net.CanSeek; } }
@@ -20,9 +21,10 @@ namespace Chraft.Net
         public override long Length { get { return Net.Length; } }
         public override long Position { get { return Net.Position; } set { Net.Position = value; } }
 
-        public BigEndianStream(Stream stream)
+        public BigEndianStream(Stream stream, StreamRole role)
         {
             Net = stream;
+            Role = role;
         }
 
         public Packet ReadPacket()
