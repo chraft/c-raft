@@ -96,7 +96,7 @@ namespace Chraft.Net
         }
 
         public PacketHandler(Server server, TcpClient tcp)
-            : this(server, new BigEndianStream(tcp.GetStream()))
+            : this(server, new BigEndianStream(tcp.GetStream(), StreamRole.Server))
         {
         }
 
