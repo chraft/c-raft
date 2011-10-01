@@ -10,7 +10,7 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockChest : BlockBase
+    class BlockChest : BlockBase, IBlockInteractive
     {
         public BlockChest()
         {
@@ -51,6 +51,76 @@ namespace Chraft.World.Blocks
                 }
             }
             base.Place(entity, block, targetBlock, face);
+        }
+
+        protected override void DropItems(EntityBase entity, StructBlock block)
+        {
+            Client client = entity as Client;
+            if (client != null)
+            {
+                SmallChestInterface sci = new SmallChestInterface(block.World, block.X, block.Y, block.Z);
+                sci.Associate(client);
+                sci.DropAll(block.X, block.Y, block.Z);
+                sci.Save();
+            }
+            base.DropItems(entity, block);
+        }
+
+        public void Interact(EntityBase entity, StructBlock block)
+        {
+            Client client = entity as Client;
+            if (client == null)
+                return;
+            if (client.CurrentInterface != null)
+                return;
+
+            if (!block.World.BlockHelper.Instance(block.World.GetBlockId(block.X, block.Y, block.Z)).IsAir)
+            {
+                // Cannot open a chest if no space is above it
+                return;
+            }
+
+            Chunk chunk = client.World.GetBlockChunk(block.X, block.Y, block.Z);
+
+            // Double chest?
+            // TODO: simplify chunk API so that no bit shifting is required
+            if (chunk.IsNSEWTo(block.X & 0xf, block.Y, block.Z & 0xf, block.Type))
+            {
+                // Is this chest the "North or East", or the "South or West"
+                BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
+                PointI[] nsewBlockPositions = new PointI[4];
+                int nsewCount = 0;
+                chunk.ForNSEW(block.X & 0xf, block.Y, block.Z & 0xf, (x1, y1, z1) =>
+                {
+                    nsewBlocks[nsewCount] = (BlockData.Blocks)block.World.GetBlockId(x1, y1, z1);
+                    nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
+                    nsewCount++;
+                });
+
+                if ((byte)nsewBlocks[0] == block.Type) // North
+                {
+                    client.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[0], new PointI(block.X, block.Y, block.Z));
+                }
+                else if ((byte)nsewBlocks[2] == block.Type) // East
+                {
+                    client.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[2], new PointI(block.X, block.Y, block.Z));
+                }
+                else if ((byte)nsewBlocks[1] == block.Type) // South
+                {
+                    client.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[1]);
+                }
+                else if ((byte)nsewBlocks[3] == block.Type) // West
+                {
+                    client.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[3]);
+                }
+            }
+            else
+            {
+                client.CurrentInterface = new SmallChestInterface(block.World, block.X, block.Y, block.Z);
+            }
+
+            client.CurrentInterface.Associate(client);
+            client.CurrentInterface.Open();
         }
 
     }

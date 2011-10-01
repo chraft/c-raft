@@ -30,7 +30,7 @@ namespace Chraft
         public ConcurrentDictionary<PointI, Chunk> LoadedChunks = new ConcurrentDictionary<PointI, Chunk>();
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         public volatile bool LoggedIn = false;
-        private Interface CurrentInterface = null;
+        public Interface CurrentInterface = null;
         private PermissionHandler PermHandler;
         public ClientPermission Permissions;
         internal int SessionID { get; private set; }

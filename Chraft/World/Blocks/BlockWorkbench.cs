@@ -6,10 +6,11 @@ using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
+using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockWorkbench : BlockBase
+    class BlockWorkbench : BlockBase, IBlockInteractive
     {
         public BlockWorkbench()
         {
@@ -63,6 +64,18 @@ namespace Chraft.World.Blocks
                     break;
             }
             base.Place(entity, block, targetBlock, face);
+        }
+
+        public void Interact(EntityBase entity, StructBlock block)
+        {
+            Client client = entity as Client;
+            if (client == null)
+                return;
+            if (client.CurrentInterface != null)
+                return;
+            client.CurrentInterface = new WorkbenchInterface();
+            client.CurrentInterface.Associate(client);
+            ((WorkbenchInterface)client.CurrentInterface).Open(block.X, block.Y, block.Z);
         }
     }
 }
