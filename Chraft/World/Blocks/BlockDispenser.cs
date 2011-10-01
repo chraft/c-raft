@@ -64,5 +64,18 @@ namespace Chraft.World.Blocks
             }
             base.Place(entity, block, targetBlock, face);
         }
+
+        protected override void DropItems(EntityBase entity, StructBlock block)
+        {
+            Client client = entity as Client;
+            if (client != null)
+            {
+                DispenserInterface di = new DispenserInterface(block.World, block.X, block.Y, block.Z);
+                di.Associate(client);
+                di.DropAll(block.Y, block.Y, block.Z);
+                di.Save();
+            }
+            base.DropItems(entity, block);
+        }
     }
 }

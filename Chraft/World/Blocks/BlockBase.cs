@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Net.Packets;
 using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
@@ -153,6 +154,8 @@ namespace Chraft.World.Blocks
             if (!RaiseDestroyEvent(entity, block))
                 return;
 
+            PlaySoundOnDestroy(block);
+
             UpdateOnDestroy(block);
 
             DropItems(entity, block);
@@ -211,13 +214,31 @@ namespace Chraft.World.Blocks
             return !e.EventCanceled;
         }
 
+        protected virtual void PlaySoundOnDestroy(StructBlock block)
+        {
+            foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
+            {
+                cl.PacketHandler.SendPacket(new SoundEffectPacket
+                {
+                    EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
+                    X = block.X,
+                    Y = (byte)block.Y,
+                    Z = block.Z,
+                    SoundData = block.Type
+                });
+            }
+        }
+
         /// <summary>
         /// Updates world data upon block destruction
         /// </summary>
         protected virtual void UpdateOnDestroy(StructBlock block)
         {
             block.World.SetBlockAndData(block.X, block.Y, block.Z, (byte)BlockData.Blocks.Air, 0);
-            block.World.Update(block.X, block.Y, block.Z);
+            block.Chunk.RecalculateHeight(block.X & 0xf, block.Z & 0xf);
+            block.Chunk.RecalculateSky(block.X & 0xf, block.Z & 0xf);
+            block.Chunk.SpreadSkyLightFromBlock((byte)(block.X & 0xf), (byte)block.Y, (byte)(block.Z & 0xf));
+            block.World.Update(block.X, block.Y, block.Z, false);
         }
 
         /// <summary>
