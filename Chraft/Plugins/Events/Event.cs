@@ -49,6 +49,7 @@ namespace Chraft.Plugins.Events
         Plugin,
         IRC,
         Entity,
+        Block,
         Other
     }
     public enum Event
@@ -86,7 +87,10 @@ namespace Chraft.Plugins.Events
         SERVER_CHAT,
         SERVER_BROADCAST,
         SERVER_ACCEPT,
-        LOGGER_LOG
+        LOGGER_LOG,
+        BLOCK_PLACE,
+        BLOCK_DESTROY,
+        BLOCK_TOUCH
     }
     public struct EventListener
     {

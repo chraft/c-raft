@@ -403,7 +403,7 @@ namespace Chraft
         }
 
 
-        private string FacingDirection(byte points)
+        public string FacingDirection(byte points)
         {
 
             byte rotation = (byte)(Position.Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
