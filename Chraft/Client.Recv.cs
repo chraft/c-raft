@@ -12,6 +12,7 @@ using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Properties;
+using Chraft.World.Blocks;
 
 namespace Chraft
 {
@@ -552,6 +553,8 @@ namespace Chraft
             int z = e.Packet.Z;
 
             BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
+            byte metadata = World.GetBlockData(x, y, z);
+            StructBlock facingBlock = new StructBlock(x, y, z, (byte)type, metadata, World);
 
             int bx, by, bz;
             World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
@@ -641,173 +644,9 @@ namespace Chraft
             byte bType = (byte)Inventory.Slots[Inventory.ActiveSlot].Type;
             byte bMetaData = (byte)Inventory.Slots[Inventory.ActiveSlot].Durability;
 
-            switch (type) // Can't build against these blocks.
-            {
-                case BlockData.Blocks.Air:
-                case BlockData.Blocks.Water:
-                case BlockData.Blocks.Lava:
-                case BlockData.Blocks.Still_Water:
-                case BlockData.Blocks.Still_Lava:
-                    return;
-            }
+            StructBlock bBlock = new StructBlock(bx, by, bz, bType, bMetaData, World);
 
-            switch ((BlockData.Blocks)bType)
-            {
-
-                case BlockData.Blocks.Cactus:
-                    {
-                        BlockData.Blocks uType = (BlockData.Blocks)World.GetBlockId(bx, by - 1, bz);
-                        if (uType != BlockData.Blocks.Sand && uType != BlockData.Blocks.Cactus)
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Crops:
-                    {
-                        BlockData.Blocks uType = (BlockData.Blocks)World.GetBlockId(bx, by - 1, bz);
-                        if (uType != BlockData.Blocks.Soil)
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Chest:
-                    // Load the blocks surrounding the position (NSEW) not diagonals
-                    Chunk chunk = World.GetBlockChunk(x, y, z);
-                    BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
-                    PointI[] nsewBlockPositions = new PointI[4];
-                    int nsewCount = 0;
-                    chunk.ForNSEW(bx & 0xf, by, bz & 0xf, (x1, y1, z1) =>
-                    {
-                        nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
-                        nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
-                        nsewCount++;
-                    });
-
-                    // Count chests in list
-                    if (nsewBlocks.Where((b) => b == BlockData.Blocks.Chest).Count() > 1)
-                    {
-                        // Cannot place next to two chests
-                        return;
-                    }
-
-                    // A chest cannot be surrounded by two blocks on the same axis when placed
-                    //if (BlockData.IsSolid(nsewBlocks[0]) && BlockData.IsSolid(nsewBlocks[1]))
-                    //{
-                    //    return;
-                    //}
-                    //if (BlockData.IsSolid(nsewBlocks[2]) && BlockData.IsSolid(nsewBlocks[3]))
-                    //{
-                    //    return;
-                    //}
-
-                    for (int i = 0; i < 4; i++)
-                    {
-                        PointI p = nsewBlockPositions[i];
-                        if (nsewBlocks[i] == BlockData.Blocks.Chest && chunk.IsNSEWTo(p.X & 0xf, p.Y, p.Z & 0xf, (byte)BlockData.Blocks.Chest))
-                        {
-                            // Cannot place next to a double chest
-                            return;
-                        }
-                    }
-
-                    break;
-                case BlockData.Blocks.Furnace:
-                case BlockData.Blocks.Dispenser:
-                    switch (e.Packet.Face) //Bugged, as the client has a mind of its own for facing
-                    {
-                        case BlockFace.East: bMetaData = (byte)MetaData.Furnace.East;
-                            break;
-                        case BlockFace.West: bMetaData = (byte)MetaData.Furnace.West;
-                            break;
-                        case BlockFace.North: bMetaData = (byte)MetaData.Furnace.North;
-                            break;
-                        case BlockFace.South: bMetaData = (byte)MetaData.Furnace.South;
-                            break;
-                        default:
-                            switch (FacingDirection(4)) // Built on floor, set by facing dir
-                            {
-                                case "N":
-                                    bMetaData = (byte)MetaData.Furnace.North;
-                                    break;
-                                case "W":
-                                    bMetaData = (byte)MetaData.Furnace.West;
-                                    break;
-                                case "S":
-                                    bMetaData = (byte)MetaData.Furnace.South;
-                                    break;
-                                case "E":
-                                    bMetaData = (byte)MetaData.Furnace.East;
-                                    break;
-                                default:
-                                    return;
-
-                            }
-                            break;
-                    }
-                    break;
-
-                case BlockData.Blocks.Rails:
-                    // TODO: Rail Logic                    
-                    break;
-
-                case BlockData.Blocks.Reed:
-                    // TODO: Check there is water nearby before placing.
-                    break;
-
-                case BlockData.Blocks.Stair:
-                    // TODO : If (Block  Y - 1 = Stair && Block Y = Air) Then DoubleStair
-                    // Else if (Buildblock = Stair) Then DoubleStair
-                    break;
-
-                case BlockData.Blocks.Wooden_Stairs:
-                case BlockData.Blocks.Cobblestone_Stairs:
-                    switch (FacingDirection(4))
-                    {
-                        case "N":
-                            bMetaData = (byte)MetaData.Stairs.South;
-                            break;
-                        case "E":
-                            bMetaData = (byte)MetaData.Stairs.West;
-                            break;
-                        case "S":
-                            bMetaData = (byte)MetaData.Stairs.North;
-                            break;
-                        case "W":
-                            bMetaData = (byte)MetaData.Stairs.East;
-                            break;
-                        default:
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Torch:
-                    switch (e.Packet.Face)
-                    {
-                        case BlockFace.Down: return;
-                        case BlockFace.Up: bMetaData = (byte)MetaData.Torch.Standing;
-                            break;
-                        case BlockFace.West: bMetaData = (byte)MetaData.Torch.West;
-                            break;
-                        case BlockFace.East: bMetaData = (byte)MetaData.Torch.East;
-                            break;
-                        case BlockFace.North: bMetaData = (byte)MetaData.Torch.North;
-                            break;
-                        case BlockFace.South: bMetaData = (byte)MetaData.Torch.South;
-                            break;
-                    }
-                    break;
-                case BlockData.Blocks.Sapling:
-                    // We can place a sapling only on the top of the dirt or soil block
-                    if (e.Packet.Face != BlockFace.Up || type != BlockData.Blocks.Dirt || type != BlockData.Blocks.Soil)
-                        return;
-                    break;
-            }
-
-            World.SetBlockAndData(bx, by, bz, bType, bMetaData);
-            World.Update(bx, by, bz, false);
-
-            if(GameMode == 0)
-                Inventory.RemoveItem(Inventory.ActiveSlot);
+            World.BlockHelper.Instance(bType).Place(this, bBlock, facingBlock, e.Packet.Face);
         }
 
         private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
