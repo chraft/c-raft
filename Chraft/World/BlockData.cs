@@ -523,6 +523,7 @@ namespace Chraft.World
             Bookcase = 47,
             Bookshelf = 47,
             Mossy_Cobblestone = 48,
+            Moss_Stone = 48,
             Obsidian = 49,
             Torch = 50,
             Fire = 51,

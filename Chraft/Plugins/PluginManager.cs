@@ -49,6 +49,7 @@ namespace Chraft.Plugins
             PluginHooks.Add(new ServerEvent());
             PluginHooks.Add(new WorldEvent());
             PluginHooks.Add(new EntityEvent());
+            PluginHooks.Add(new BlockEvent());
         }
 
         /// <summary>
