@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Dirt;
             IsSolid = true;
             IsFertile = true;
-            DropBlock = BlockData.Blocks.Dirt;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

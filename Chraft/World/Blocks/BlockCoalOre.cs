@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "CoalOre";
             Type = BlockData.Blocks.Coal_Ore;
             IsSolid = true;
-            DropItem = BlockData.Items.Coal;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Coal, 1));
         }
     }
 }

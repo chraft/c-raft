@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "IronOre";
             Type = BlockData.Blocks.Iron_Ore;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Iron_Ore;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Redstone_Repeater;
             Opacity = 0x0;
             IsSolid = true;
-            DropItem = BlockData.Items.Redstone_Repeater;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone_Repeater, 1));
         }
     }
 }

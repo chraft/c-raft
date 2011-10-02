@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Name = "Dispenser";
             Type = BlockData.Blocks.Dispenser;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Dispenser;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)

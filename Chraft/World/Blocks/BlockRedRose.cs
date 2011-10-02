@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "RedRose";
             Type = BlockData.Blocks.Red_Rose;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Red_Rose;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

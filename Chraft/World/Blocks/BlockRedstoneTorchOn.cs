@@ -18,8 +18,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             IsSingleHit = true;
             Luminance = 0x7;
-            DropBlock = BlockData.Blocks.Redstone_Torch;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Redstone_Torch, 1));
             Opacity = 0x0;
         }
 

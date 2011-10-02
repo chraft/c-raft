@@ -18,8 +18,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             IsSingleHit = true;
             BurnEfficiency = 100;
-            DropBlock = BlockData.Blocks.Sapling;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
 

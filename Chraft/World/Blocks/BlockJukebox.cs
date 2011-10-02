@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Jukebox";
             Type = BlockData.Blocks.Jukebox;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Jukebox;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             BurnEfficiency = 300;
         }
     }

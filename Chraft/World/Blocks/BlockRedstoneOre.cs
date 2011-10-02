@@ -15,13 +15,13 @@ namespace Chraft.World.Blocks
             Name = "RedstoneOre";
             Type = BlockData.Blocks.Redstone_Ore;
             IsSolid = true;
-            DropItem = BlockData.Items.Redstone;
             Luminance = 0x9;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            DropItemAmount = (sbyte)(2 + block.World.Server.Rand.Next(4));
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone, (sbyte)(2 + block.World.Server.Rand.Next(4))));
             base.DropItems(entity, block);
         }
     }

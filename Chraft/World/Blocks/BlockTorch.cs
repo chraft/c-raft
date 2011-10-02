@@ -19,8 +19,7 @@ namespace Chraft.World.Blocks
             IsSingleHit = true;
             Luminance = 0xe;
             BurnEfficiency = 300;
-            DropBlock = BlockData.Blocks.Torch;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
 

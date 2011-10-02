@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Obsidian";
             Type = BlockData.Blocks.Obsidian;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Obsidian;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

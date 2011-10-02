@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "GoldBlock";
             Type = BlockData.Blocks.Gold_Block;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Gold_Block;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

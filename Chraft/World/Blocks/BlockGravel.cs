@@ -15,8 +15,6 @@ namespace Chraft.World.Blocks
             Name = "Gravel";
             Type = BlockData.Blocks.Gravel;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Gravel;
-            DropItem = BlockData.Items.Flint;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
@@ -24,20 +22,19 @@ namespace Chraft.World.Blocks
             Client client = entity as Client;
             if (client != null)
             {
-                if (client.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
+                LootTable = new List<ItemStack>();
+                if ((client.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
                     client.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Spade ||
                     client.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Spade ||
                     client.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
-                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
-                if (block.World.Server.Rand.Next(10) == 0)
+                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade) &&
+                    block.World.Server.Rand.Next(10) == 0)
                 {
-                    DropItemAmount = 1;
-                    DropBlockAmount = 0;
+                    LootTable.Add(new ItemStack((short)BlockData.Items.Flint, 1));
                 }
                 else
                 {
-                    DropItemAmount = 0;
-                    DropBlockAmount = 1;
+                    LootTable.Add(new ItemStack((short)Type, 1));
                 }
             }
             base.DropItems(entity, block);

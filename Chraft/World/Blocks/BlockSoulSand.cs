@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "SoulSand";
             Type = BlockData.Blocks.Soul_Sand;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Soul_Sand;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

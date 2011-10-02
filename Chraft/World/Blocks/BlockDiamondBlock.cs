@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "DiamondBlock";
             Type = BlockData.Blocks.Diamond_Block;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Diamond_Block;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

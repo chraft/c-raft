@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
         {
             Name = "Chest";
             Type = BlockData.Blocks.Chest;
-            DropBlock = BlockData.Blocks.Chest;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             BurnEfficiency = 300;
         }
 

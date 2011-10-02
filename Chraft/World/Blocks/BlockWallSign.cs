@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Wall_Sign;
             IsAir = true;
             IsSingleHit = true;
-            DropItem = BlockData.Items.Sign;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }
 

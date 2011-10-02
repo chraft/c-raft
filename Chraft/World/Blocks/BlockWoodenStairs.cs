@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Name = "WoodenStairs";
             Type = BlockData.Blocks.Wooden_Stairs;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Wood;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Wood, 1));
             BurnEfficiency = 300;
         }
 

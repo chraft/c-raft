@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Cactus;
             IsSolid = true;
             Opacity = 0x0;
-            DropBlock = BlockData.Blocks.Cactus;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)

@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "YellowFlower";
             Type = BlockData.Blocks.Yellow_Flower;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Yellow_Flower;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

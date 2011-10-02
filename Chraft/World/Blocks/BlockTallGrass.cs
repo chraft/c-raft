@@ -14,11 +14,17 @@ namespace Chraft.World.Blocks
         {
             Name = "TallGrass";
             Type = BlockData.Blocks.TallGrass;
+            IsSingleHit = true;
             IsAir = true;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.TallGrass;
-            DropBlockAmount = 1;
             Opacity = 0x0;
+        }
+
+        protected override void DropItems(EntityBase entity, StructBlock block)
+        {
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)Type, 1, block.MetaData));
+            base.DropItems(entity, block);
         }
 
     }

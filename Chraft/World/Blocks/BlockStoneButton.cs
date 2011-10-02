@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Name = "StoneButton";
             Type = BlockData.Blocks.Stone_Button;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Stone_Button;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
 

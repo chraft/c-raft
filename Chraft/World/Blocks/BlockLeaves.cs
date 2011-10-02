@@ -17,12 +17,13 @@ namespace Chraft.World.Blocks
             Opacity = 0x1;
             IsSolid = true;
             BurnEfficiency = 300;
-            DropBlock = BlockData.Blocks.Sapling;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            DropBlockAmount = (sbyte)(block.World.Server.Rand.Next(5) == 0 ? 1 : 0);
+            LootTable = new List<ItemStack>();
+            if (block.World.Server.Rand.Next(5) == 0)
+                LootTable.Add(new ItemStack((short)BlockData.Blocks.Sapling, 1));
             base.DropItems(entity, block);
         }
 

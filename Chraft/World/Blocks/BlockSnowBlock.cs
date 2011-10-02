@@ -15,14 +15,14 @@ namespace Chraft.World.Blocks
             Name = "SnowBlock";
             Type = BlockData.Blocks.Snow_Block;
             IsSolid = true;
-            DropItem = BlockData.Items.Snowball;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
             // SnowBlock requires 9 snowballs to craft and drops 4-6 snowballs upon destruction.
             // No tools required.
-            DropItemAmount = (sbyte)(4 + block.World.Server.Rand.Next(2));
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)BlockData.Items.Snowball, (sbyte)(4 + block.World.Server.Rand.Next(2))));
             base.DropItems(entity, block);
         }
     }

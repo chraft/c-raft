@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Sandstone";
             Type = BlockData.Blocks.Sandstone;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Sandstone;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

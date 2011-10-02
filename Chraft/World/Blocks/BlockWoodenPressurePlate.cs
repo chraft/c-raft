@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "WoodenPressurePlate";
             Type = BlockData.Blocks.Wooden_Pressure_Plate;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Wooden_Pressure_Plate;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

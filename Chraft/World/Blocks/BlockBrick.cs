@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Brick";
             Type = BlockData.Blocks.Brick;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Brick;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

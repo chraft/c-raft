@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
@@ -87,34 +85,8 @@ namespace Chraft.World.Blocks
         /// </summary>
         public byte Luminance { get; protected set; }
 
-        /// <summary>
-        /// Block that is being dropped on destruction
-        /// </summary>
-        public BlockData.Blocks DropBlock { get; protected set; }
-        /// <summary>
-        /// Amount of blocks that are dropped on destruction
-        /// </summary>
-        public sbyte DropBlockAmount { get; protected set; }
 
-        /// <summary>
-        /// Metadata of the block that is being dropped on destruction
-        /// </summary>
-        public short DropBlockMeta { get; protected set; }
-
-        /// <summary>
-        /// Item that is being dropped on destruction
-        /// </summary>
-        public BlockData.Items DropItem { get; protected set; }
-
-        /// <summary>
-        /// Amount of items that are dropped on destruction
-        /// </summary>
-        public sbyte DropItemAmount { get; protected set; }
-
-        /// <summary>
-        /// Metadata of the item that is being dropped on destruction
-        /// </summary>
-        public short DropItemMeta { get; protected set; }
+        public List<ItemStack> LootTable { get; protected set; }
 
         /// <summary>
         /// Base contructor
@@ -131,12 +103,7 @@ namespace Chraft.World.Blocks
             IsFertile = false;
             IsPlowed = false;
             BurnEfficiency = 0;
-            DropBlock = BlockData.Blocks.Air;
-            DropBlockAmount = 0;
-            DropBlockMeta = 0;
-            DropItem = BlockData.Items.Pork;
-            DropItemAmount = 0;
-            DropItemMeta = 0;
+            LootTable = new List<ItemStack>();
             Luminance = 0;
         }
 
@@ -151,7 +118,8 @@ namespace Chraft.World.Blocks
         /// </summary>
         public virtual void Destroy(EntityBase entity, StructBlock block)
         {
-            if (!RaiseDestroyEvent(entity, block))
+            BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
+            if (eventArgs.EventCanceled)
                 return;
 
             PlaySoundOnDestroy(block);
@@ -191,12 +159,11 @@ namespace Chraft.World.Blocks
         /// The BLOCK_DESTROY event invoker
         /// </summary>
         /// <returns>true if the block will be destroyed</returns>
-        protected virtual bool RaiseDestroyEvent(EntityBase entity, StructBlock block)
+        protected virtual BlockDestroyEventArgs RaiseDestroyEvent(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs e = new BlockDestroyEventArgs(this, entity);
             block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BLOCK_DESTROY, e);
-            if (entity != null && e.EventCanceled) return false;
-            return true;
+            return e;
         }
 
         /// <summary>
@@ -259,17 +226,15 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Invoked to drop the loot after block destruction
         /// </summary>
-        /// <param name="entity">the entity who destroyed the block</param>
         protected virtual void DropItems(EntityBase entity, StructBlock block)
         {
-            if (DropBlock != BlockData.Blocks.Air && DropBlockAmount > 0)
+            if (LootTable != null && LootTable.Count > 0)
             {
-                
-                block.World.Server.DropItem(block.World, block.X, block.Y, block.Z, new ItemStack((short)DropBlock, DropBlockAmount, DropBlockMeta));
-            }
-            if (DropItemAmount > 0)
-            {
-                block.World.Server.DropItem(block.World, block.X, block.Y, block.Z, new ItemStack((short)DropItem, DropItemAmount, DropItemMeta));
+                foreach (var lootEntry in LootTable)
+                {
+                    if (lootEntry.Count > 0)
+                        block.World.Server.DropItem(block.World, block.X, block.Y, block.Z, lootEntry);
+                }              
             }
         }
 
