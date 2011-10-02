@@ -549,6 +549,12 @@ namespace Chraft
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
 
+            if (e.Packet.X == -1 && e.Packet.Y == -1 && e.Packet.Z == -1 && e.Packet.Face == BlockFace.Held)
+            {
+                // TODO: Implement item usage - food etc
+                return;
+            }
+
             int x = e.Packet.X;
             int y = e.Packet.Y;
             int z = e.Packet.Z;
