@@ -503,6 +503,7 @@ namespace Chraft.World
             Note_Block = 25,
             Bed = 26,
             TallGrass = 31,
+            DeadBush = 32,
             // TODO: add pistons, 29 and 33
             Cloth = 35,
             Wool = 35,
