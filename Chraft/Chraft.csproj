@@ -242,6 +242,7 @@
     <Compile Include="World\Blocks\Interfaces\IBlockBase.cs" />
     <Compile Include="World\Blocks\Interfaces\IBlockGrowable.cs" />
     <Compile Include="World\Blocks\Interfaces\IBlockInteractive.cs" />
+    <Compile Include="World\Blocks\BlockDeadBush.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
