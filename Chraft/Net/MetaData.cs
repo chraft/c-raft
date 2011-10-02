@@ -178,7 +178,7 @@ namespace Chraft.Net
         }
         public enum Torch : byte
         {
-            South = 0x1, North, East, West, Standing
+            South = 0x1, North, West, East, Standing
         }
         public enum Bed : byte
         {
@@ -252,6 +252,16 @@ namespace Chraft.Net
         {
             East, South, West, North,
             Tick1, Tick2, Tick3, Tick4
+        }
+
+        public enum Cake : byte
+        {
+            Full = 0x0,
+            FiveLeft,
+            FourLeft,
+            ThreeLeft,
+            TwoLeft,
+            OneLeft
         }
     }
 }

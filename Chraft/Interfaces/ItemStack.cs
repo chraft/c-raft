@@ -90,6 +90,8 @@ namespace Chraft.Interfaces
             Durability = 0;
         }
 
+        public ItemStack(short type, sbyte count) : this(type, count, 0) {}
+
         public ItemStack(short type, sbyte count, short durability)
         {
             Type = type;

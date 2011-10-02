@@ -1,15 +1,80 @@
 ﻿
+using System;
+using System.Collections;
+using System.Configuration.Install;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+
 namespace ChraftServer
 {
-	static class Program
-	{
-		/// <summary>
-		/// The main entry point for the application.
-		/// </summary>
-		static void Main(string[] args)
-		{
-			var svc = new MainService();
-			svc.Run(args);
-		}
-	}
+    internal static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        private static void Main(string[] args)
+        {
+            Environment.CurrentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+
+            //Install command-line argument
+            if (args.Any(a => a.Equals("-install", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                InstallService(args);
+            }
+            else if (args.Any(a => a.Equals("-uninstall", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                UninstallService(args);
+            }
+            else if (args.Any(a => new[] { "/?", "-?", "/help" }.Any(helpArg => helpArg.Equals(a, StringComparison.InvariantCultureIgnoreCase))))
+            {
+                ShowUsage();
+            }
+            else
+            {
+                var svc = new MainService();
+                svc.Run(args);
+            }
+        }
+
+        private static void InstallService(string[] args)
+        {
+            using (var ti = new TransactedInstaller())
+            {
+                using (var pi = new ProjectInstaller())
+                {
+                    ti.Installers.Add(pi);
+                    ti.Context = new InstallContext("", null);
+                    string path = Assembly.GetExecutingAssembly().Location;
+                    ti.Context.Parameters["assemblypath"] = path;
+                    ti.Install(new Hashtable());
+                }
+            }
+        }
+
+        private static void UninstallService(string[] args)
+        {
+            using (var ti = new TransactedInstaller())
+            {
+                using (var pi = new ProjectInstaller())
+                {
+                    ti.Installers.Add(pi);
+                    ti.Context = new InstallContext("", null);
+                    string path = Assembly.GetExecutingAssembly().Location;
+                    ti.Context.Parameters["assemblypath"] = path;
+                    ti.Uninstall(null);
+                }
+            }
+        }
+
+        private static void ShowUsage()
+        {
+            Console.WriteLine("\r\nChraftServer Usage:\r\n");
+            Console.WriteLine("\tChraftServer -help\r\n\t\tDisplay this help");
+            Console.WriteLine("\tChraftServer -install\r\n\t\tInstall Chraft as a Windows Service");
+            Console.WriteLine("\tChraftServer -uninstall\r\n\t\tUninstall Chraft Windows Service");
+            Console.WriteLine("\tChraftServer\r\n\t\tRun Chraft from the console");
+        }
+    }
+
 }

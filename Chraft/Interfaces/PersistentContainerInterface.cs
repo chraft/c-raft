@@ -64,7 +64,7 @@ namespace Chraft.Interfaces
             {
                 using (FileStream containerStream = File.Open(file, FileMode.Open, FileAccess.Read))
                 {
-                    using (Net.BigEndianStream bigEndian = new Net.BigEndianStream(containerStream))
+                    using (Net.BigEndianStream bigEndian = new Net.BigEndianStream(containerStream, StreamRole.Server))
                     {
                         for (int i = 0; i < itemStack.Length; i++)
                         {
@@ -127,7 +127,7 @@ namespace Chraft.Interfaces
                 {
                     using (FileStream fileStream = File.Create(file + ".tmp"))
                     {
-                        using (BigEndianStream bigEndian = new BigEndianStream(fileStream))
+                        using (BigEndianStream bigEndian = new BigEndianStream(fileStream, StreamRole.Server))
                         {
                             foreach (ItemStack stack in itemStack)
                             {
