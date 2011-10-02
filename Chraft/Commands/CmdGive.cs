@@ -19,7 +19,7 @@ namespace Chraft.Commands
 
             if (tokens.Length < 2)
             {
-                client.SendMessage("§cPlease specify an item and target or just an item to give it to yourself.");
+                client.SendMessage("§cPlease specify a target and an item or just an item to give it to yourself.");
                 return;
             }
             item = client.Server.Items[tokens[1]];
@@ -34,12 +34,20 @@ namespace Chraft.Commands
                 // Trying to give yourself an item with amount specified
                 if (uint.TryParse(tokens[2], out amount))
                 {
-                    who.Add(client);
+                    if (!ItemStack.IsVoid(item))
+                        who.Add(client);
+                    else
+                    {
+                        item = client.Server.Items[tokens[2]];
+                        who.AddRange(client.Server.GetClients(tokens[1]));
+                    }
+
                 }
                 else
                 {
                     // OR trying to give something to a player(s)
-                    who.AddRange(client.Server.GetClients(tokens[2]));
+                    who.AddRange(client.Server.GetClients(tokens[1]));
+                    item = client.Server.Items[tokens[2]];
                 }  
             }
             else
@@ -47,7 +55,8 @@ namespace Chraft.Commands
                 // Trying to give item to other player with amount specified
                 if (uint.TryParse(tokens[3], out amount))
                 {
-                    who.AddRange(client.Server.GetClients(tokens[2]));
+                    who.AddRange(client.Server.GetClients(tokens[1]));
+                    item = client.Server.Items[tokens[2]];
                 }
 
             }
@@ -74,7 +83,7 @@ namespace Chraft.Commands
 
         public void Help(Client client)
         {
-            client.SendMessage("/give <Item OR Block> <Player> [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
+            client.SendMessage("/give <Player> <Item OR Block> [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
             client.SendMessage("/give <Item OR Block> [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
