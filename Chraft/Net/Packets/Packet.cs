@@ -361,9 +361,19 @@ namespace Chraft.Net.Packets
 
         public override void Read(BigEndianStream stream)
         {
-            X = stream.ReadDouble();
-            Stance = stream.ReadDouble();
-            Y = stream.ReadDouble();
+            //X,Y,Stance are in different order for Client->Server vs. Server->Client
+            if (stream.Role == StreamRole.Server)
+            {
+                X = stream.ReadDouble();
+                Stance = stream.ReadDouble();
+                Y = stream.ReadDouble();
+            }
+            else
+            {
+                X = stream.ReadDouble();
+                Y = stream.ReadDouble();
+                Stance = stream.ReadDouble();
+            }
             Z = stream.ReadDouble();
             Yaw = stream.ReadFloat();
             Pitch = stream.ReadFloat();
@@ -372,9 +382,19 @@ namespace Chraft.Net.Packets
 
         public override void Write(BigEndianStream stream)
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Stance);
+            //X,Y,Stance are in different order for Client->Server vs. Server->Client
+            if (stream.Role == StreamRole.Server)
+            {
+                stream.Write(X);
+                stream.Write(Y);
+                stream.Write(Stance);
+            }
+            else
+            {
+                stream.Write(X);
+                stream.Write(Stance);
+                stream.Write(Y);
+            }
             stream.Write(Z);
             stream.Write(Yaw);
             stream.Write(Pitch);

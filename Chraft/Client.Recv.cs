@@ -12,6 +12,8 @@ using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Properties;
+using Chraft.World.Blocks;
+using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft
 {
@@ -197,6 +199,15 @@ namespace Chraft
             PacketHandler.PlayerBlockPlacement += PacketHandler_PlayerBlockPlacement;
             PacketHandler.HoldingChange += PacketHandler_HoldingChange;
             PacketHandler.Respawn += PacketHander_Respawn; // Does this need a new handler?
+            PacketHandler.CreativeInventoryAction += PacketHandler_CreativeInventoryAction;
+        }
+
+        void PacketHandler_CreativeInventoryAction(object sender, PacketEventArgs<CreativeInventoryActionPacket> e)
+        {
+            if (GameMode == 1)
+                Inventory[e.Packet.Slot] = new ItemStack(e.Packet.ItemID, (sbyte)e.Packet.Quantity, e.Packet.Damage);
+            else
+                Kick("Invalid action: CreativeInventoryAction");
         }
 
         private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
@@ -515,9 +526,11 @@ namespace Chraft
                     }
                     break;
             }
-
-            if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
-                Inventory.RemoveItem(Inventory.ActiveSlot);
+            if (GameMode == 0)
+            {
+                if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
+                    Inventory.RemoveItem(Inventory.ActiveSlot);
+            }
 
             World.Update(px, py, pz);
         }
@@ -541,79 +554,17 @@ namespace Chraft
             int z = e.Packet.Z;
 
             BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
+            byte metadata = World.GetBlockData(x, y, z);
+            StructBlock facingBlock = new StructBlock(x, y, z, (byte)type, metadata, World);
 
             int bx, by, bz;
             World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
 
-            if (type == BlockData.Blocks.Chest)
+            if (World.BlockHelper.Instance((byte)type) is IBlockInteractive)
             {
-                if (!BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(bx, by, bz)))
-                {
-                    // Cannot open a chest if no space is above it
-                    return;
-                }
-
-                Chunk chunk = World.GetBlockChunk(x, y, z);
-
-                // Double chest?
-                // TODO: simplify chunk API so that no bit shifting is required
-                if (chunk.IsNSEWTo(x & 0xf, y, z & 0xf, (byte)type))
-                {
-                    // Is this chest the "North or East", or the "South or West"
-                    BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
-                    PointI[] nsewBlockPositions = new PointI[4];
-                    int nsewCount = 0;
-                    chunk.ForNSEW(x & 0xf, y, z & 0xf, (x1, y1, z1) =>
-                    {
-                        nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
-                        nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
-                        nsewCount++;
-                    });
-
-                    if (nsewBlocks[0] == type) // North
-                    {
-                        CurrentInterface = new LargeChestInterface(World, nsewBlockPositions[0], new PointI(x, y, z));
-                    }
-                    else if (nsewBlocks[2] == type) // East
-                    {
-                        CurrentInterface = new LargeChestInterface(World, nsewBlockPositions[2], new PointI(x, y, z));
-                    }
-                    else if (nsewBlocks[1] == type) // South
-                    {
-                        CurrentInterface = new LargeChestInterface(World, new PointI(x, y, z), nsewBlockPositions[1]);
-                    }
-                    else if (nsewBlocks[3] == type) // West
-                    {
-                        CurrentInterface = new LargeChestInterface(World, new PointI(x, y, z), nsewBlockPositions[3]);
-                    }
-                }
-                else
-                {
-                    CurrentInterface = new SmallChestInterface(World, x, y, z);
-                }
-
-                if (CurrentInterface != null)
-                {
-                    CurrentInterface.Associate(this);
-                    CurrentInterface.Open();
-                }
+                (World.BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(this, facingBlock);
                 return;
             }
-            else if (type == BlockData.Blocks.Workbench)
-            {
-                CurrentInterface = new WorkbenchInterface();
-                CurrentInterface.Associate(this);
-                ((WorkbenchInterface)CurrentInterface).Open(bx, by, bz);
-                return;
-            }
-            else if (type == BlockData.Blocks.Furnace || type == BlockData.Blocks.Burning_Furnace)
-            {
-                CurrentInterface = new FurnaceInterface(World, x, y, z);
-                CurrentInterface.Associate(this);
-                CurrentInterface.Open();
-                return;
-            }
-
 
             if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)
                 return;
@@ -630,172 +581,9 @@ namespace Chraft
             byte bType = (byte)Inventory.Slots[Inventory.ActiveSlot].Type;
             byte bMetaData = (byte)Inventory.Slots[Inventory.ActiveSlot].Durability;
 
-            switch (type) // Can't build against these blocks.
-            {
-                case BlockData.Blocks.Air:
-                case BlockData.Blocks.Water:
-                case BlockData.Blocks.Lava:
-                case BlockData.Blocks.Still_Water:
-                case BlockData.Blocks.Still_Lava:
-                    return;
-            }
+            StructBlock bBlock = new StructBlock(bx, by, bz, bType, bMetaData, World);
 
-            switch ((BlockData.Blocks)bType)
-            {
-
-                case BlockData.Blocks.Cactus:
-                    {
-                        BlockData.Blocks uType = (BlockData.Blocks)World.GetBlockId(bx, by - 1, bz);
-                        if (uType != BlockData.Blocks.Sand && uType != BlockData.Blocks.Cactus)
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Crops:
-                    {
-                        BlockData.Blocks uType = (BlockData.Blocks)World.GetBlockId(bx, by - 1, bz);
-                        if (uType != BlockData.Blocks.Soil)
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Chest:
-                    // Load the blocks surrounding the position (NSEW) not diagonals
-                    Chunk chunk = World.GetBlockChunk(x, y, z);
-                    BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
-                    PointI[] nsewBlockPositions = new PointI[4];
-                    int nsewCount = 0;
-                    chunk.ForNSEW(bx & 0xf, by, bz & 0xf, (x1, y1, z1) =>
-                    {
-                        nsewBlocks[nsewCount] = (BlockData.Blocks)World.GetBlockId(x1, y1, z1);
-                        nsewBlockPositions[nsewCount] = new PointI(x1, y1, z1);
-                        nsewCount++;
-                    });
-
-                    // Count chests in list
-                    if (nsewBlocks.Where((b) => b == BlockData.Blocks.Chest).Count() > 1)
-                    {
-                        // Cannot place next to two chests
-                        return;
-                    }
-
-                    // A chest cannot be surrounded by two blocks on the same axis when placed
-                    //if (BlockData.IsSolid(nsewBlocks[0]) && BlockData.IsSolid(nsewBlocks[1]))
-                    //{
-                    //    return;
-                    //}
-                    //if (BlockData.IsSolid(nsewBlocks[2]) && BlockData.IsSolid(nsewBlocks[3]))
-                    //{
-                    //    return;
-                    //}
-
-                    for (int i = 0; i < 4; i++)
-                    {
-                        PointI p = nsewBlockPositions[i];
-                        if (nsewBlocks[i] == BlockData.Blocks.Chest && chunk.IsNSEWTo(p.X & 0xf, p.Y, p.Z & 0xf, (byte)BlockData.Blocks.Chest))
-                        {
-                            // Cannot place next to a double chest
-                            return;
-                        }
-                    }
-
-                    break;
-                case BlockData.Blocks.Furnace:
-                case BlockData.Blocks.Dispenser:
-                    switch (e.Packet.Face) //Bugged, as the client has a mind of its own for facing
-                    {
-                        case BlockFace.East: bMetaData = (byte)MetaData.Furnace.East;
-                            break;
-                        case BlockFace.West: bMetaData = (byte)MetaData.Furnace.West;
-                            break;
-                        case BlockFace.North: bMetaData = (byte)MetaData.Furnace.North;
-                            break;
-                        case BlockFace.South: bMetaData = (byte)MetaData.Furnace.South;
-                            break;
-                        default:
-                            switch (FacingDirection(4)) // Built on floor, set by facing dir
-                            {
-                                case "N":
-                                    bMetaData = (byte)MetaData.Furnace.North;
-                                    break;
-                                case "W":
-                                    bMetaData = (byte)MetaData.Furnace.West;
-                                    break;
-                                case "S":
-                                    bMetaData = (byte)MetaData.Furnace.South;
-                                    break;
-                                case "E":
-                                    bMetaData = (byte)MetaData.Furnace.East;
-                                    break;
-                                default:
-                                    return;
-
-                            }
-                            break;
-                    }
-                    break;
-
-                case BlockData.Blocks.Rails:
-                    // TODO: Rail Logic                    
-                    break;
-
-                case BlockData.Blocks.Reed:
-                    // TODO: Check there is water nearby before placing.
-                    break;
-
-                case BlockData.Blocks.Stair:
-                    // TODO : If (Block  Y - 1 = Stair && Block Y = Air) Then DoubleStair
-                    // Else if (Buildblock = Stair) Then DoubleStair
-                    break;
-
-                case BlockData.Blocks.Wooden_Stairs:
-                case BlockData.Blocks.Cobblestone_Stairs:
-                    switch (FacingDirection(4))
-                    {
-                        case "N":
-                            bMetaData = (byte)MetaData.Stairs.South;
-                            break;
-                        case "E":
-                            bMetaData = (byte)MetaData.Stairs.West;
-                            break;
-                        case "S":
-                            bMetaData = (byte)MetaData.Stairs.North;
-                            break;
-                        case "W":
-                            bMetaData = (byte)MetaData.Stairs.East;
-                            break;
-                        default:
-                            return;
-                    }
-                    break;
-
-                case BlockData.Blocks.Torch:
-                    switch (e.Packet.Face)
-                    {
-                        case BlockFace.Down: return;
-                        case BlockFace.Up: bMetaData = (byte)MetaData.Torch.Standing;
-                            break;
-                        case BlockFace.West: bMetaData = (byte)MetaData.Torch.West;
-                            break;
-                        case BlockFace.East: bMetaData = (byte)MetaData.Torch.East;
-                            break;
-                        case BlockFace.North: bMetaData = (byte)MetaData.Torch.North;
-                            break;
-                        case BlockFace.South: bMetaData = (byte)MetaData.Torch.South;
-                            break;
-                    }
-                    break;
-                case BlockData.Blocks.Sapling:
-                    // We can place a sapling only on the top of the dirt or soil block
-                    if (e.Packet.Face != BlockFace.Up || type != BlockData.Blocks.Dirt || type != BlockData.Blocks.Soil)
-                        return;
-                    break;
-            }
-
-            World.SetBlockAndData(bx, by, bz, bType, bMetaData);
-            World.Update(bx, by, bz, false);
-
-            Inventory.RemoveItem(Inventory.ActiveSlot);
+            World.BlockHelper.Instance(bType).Place(this, bBlock, facingBlock, e.Packet.Face);
         }
 
         private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
@@ -816,188 +604,15 @@ namespace Chraft
                     this.SendMessage(String.Format("Height: {0}", World.GetHeight(x, z)));
                     this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
                     //this.SendMessage()
-                    if (BlockData.SingleHit.Contains((BlockData.Blocks)type))
+                    if (World.BlockHelper.Instance(type).IsSingleHit)
+                        goto case PlayerDiggingPacket.DigAction.FinishDigging;
+                    if (GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
-                    short give = type;
-                    sbyte count = 1;
-                    short durability = data;
-
-                    switch ((BlockData.Blocks)type)
-                    {
-                        case BlockData.Blocks.Adminium:
-                            return;
-
-                        case BlockData.Blocks.Air:
-                            return;
-
-                        case BlockData.Blocks.Bed:
-                            give = (short)BlockData.Items.Bed;
-                            break;
-
-                        case BlockData.Blocks.Burning_Furnace:
-                        case BlockData.Blocks.Furnace:
-                            give = (short)BlockData.Blocks.Furnace;
-                            FurnaceInterface fi = new FurnaceInterface(this.World, x, y, z);
-                            fi.Associate(this);
-                            fi.DropAll(x, y, z);
-                            fi.Save();
-                            break;
-
-                        case BlockData.Blocks.Cake:
-                            give = (short)BlockData.Items.Cake;
-                            break;
-
-                        case BlockData.Blocks.Chest:
-                            // Need to drop the chest contents
-                            SmallChestInterface sci = new SmallChestInterface(this.World, x, y, z);
-                            sci.Associate(this);
-                            sci.DropAll(x, y, z);
-                            sci.Save();
-                            break;
-
-                        case BlockData.Blocks.Clay:
-                            give = (short)BlockData.Items.Clay_Balls;
-                            count = 4;
-                            break;
-
-                        case BlockData.Blocks.Coal_Ore:
-                            give = (short)BlockData.Items.Coal;
-                            //count = (sbyte)(1 + Server.Rand.Next(3));
-                            break;
-                        case BlockData.Blocks.Crops:
-                            // TODO: Check crops are mature enough before giving items.
-                            give = (short)BlockData.Items.Seeds;
-                            count = 2;
-                            break;
-
-                        case BlockData.Blocks.Diamond_Ore:
-                            give = (short)BlockData.Items.Diamond;
-                            break;
-
-                        case BlockData.Blocks.Dispenser:
-                            // Drop the contents of the dispenser
-                            DispenserInterface di = new DispenserInterface(this.World, x, y, z);
-                            di.Associate(this);
-                            di.DropAll(x, y, z);
-                            di.Save();
-                            break;
-
-                        case BlockData.Blocks.Double_Stone_Slab:
-                            give = (short)BlockData.Blocks.Stair;
-                            break;
-
-                        case BlockData.Blocks.Fire:
-                            return;
-
-                        case BlockData.Blocks.Glass:
-                            give = -1;
-                            break;
-
-                        case BlockData.Blocks.Glowstone:
-                            give = (short)BlockData.Items.Lightstone_Dust;
-                            break;
-
-                        case BlockData.Blocks.Grass:
-                        case BlockData.Blocks.Soil:
-                            give = (short)BlockData.Blocks.Dirt;
-                            break;
-
-                        case BlockData.Blocks.Gravel:
-                            if (Server.Rand.Next(10) == 0)
-                                Server.DropItem(World, x, y, z, new ItemStack((short)BlockData.Items.Flint));
-                            break;
-
-                        case BlockData.Blocks.Ice:
-                            if (BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(x, y - 1, z)))
-                            {
-                                World.SetBlockAndData(x, y, z, 0, 0);
-                                return;
-                            }
-                            World.SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Still_Water, 0);
-                            return;
-
-                        case BlockData.Blocks.Lapis_Lazuli_Ore:
-                            give = (short)BlockData.Items.Ink_Sack;
-                            durability = 4;
-                            count = (sbyte)(3 + Server.Rand.Next(17));
-                            break;
-
-                        case BlockData.Blocks.Lava:
-                            return;
-
-                        case BlockData.Blocks.Leaves:
-                            give = Server.Rand.Next(5) == 0 ? (short)BlockData.Blocks.Sapling : (short)-1;
-                            break;
-
-                        case BlockData.Blocks.Portal:
-                        case BlockData.Blocks.Mob_Spawner:
-                            give = -1;
-                            break;
-
-                        case BlockData.Blocks.Redstone_Ore_Glowing:
-                        case BlockData.Blocks.Redstone_Ore:
-                            give = (short)BlockData.Items.Redstone;
-                            count = (sbyte)(2 + Server.Rand.Next(4));
-                            break;
-
-                        case BlockData.Blocks.Redstone_Repeater:
-                        case BlockData.Blocks.Redstone_Repeater_On:
-                            give = (short)BlockData.Items.Redstone_Repeater;
-                            break;
-
-                        case BlockData.Blocks.Redstone_Torch_On:
-                            give = (short)BlockData.Blocks.Redstone_Torch;
-                            break;
-
-                        case BlockData.Blocks.Redstone_Wire:
-                            give = (short)BlockData.Items.Redstone;
-                            break;
-
-                        case BlockData.Blocks.Sign_Post:
-                            give = (short)BlockData.Items.Sign;
-                            break;
-                        case BlockData.Blocks.Snow:
-                            give = (short)BlockData.Items.Snowball;
-                            break;
-
-                        case BlockData.Blocks.Snow_Block:
-                            give = (short)BlockData.Items.Snowball;
-                            count = 3;
-                            break;
-
-                        case BlockData.Blocks.Stationary_Lava:
-                        case BlockData.Blocks.Stationary_Water:
-                            return;
-
-                        case BlockData.Blocks.Stone:
-                            give = (short)BlockData.Blocks.Cobblestone;
-                            break;
-                        case BlockData.Blocks.TNT:
-                            // TODO: Spawn TNT Object and start explosion timer.
-                            return;
-
-                        case BlockData.Blocks.Wall_Sign:
-                            give = (short)BlockData.Items.Sign;
-                            break;
-
-                        case BlockData.Blocks.Water:
-                            return;
-                    }
-
-                    World.SetBlockAndData(x, y, z, 0, 0);
-                    Chunk c = World[x >> 4, z >> 4, false, false];
-                    c.RecalculateHeight(x & 0xf, z & 0xf);
-                    c.RecalculateSky(x & 0xf, z & 0xf);
-                    c.SpreadSkyLightFromBlock((byte)(x & 0xf), (byte)y, (byte)(z & 0xf));
-                    World.Update(x, y, z, false);
-
-                    Inventory.DamageItem(Inventory.ActiveSlot);
-
-                    if (give > 0)
-                        Server.DropItem(World, x, y, z, new ItemStack(give, count, durability));
+                    StructBlock block = new StructBlock(x, y, z, type, data, World);
+                    World.BlockHelper.Instance(type).Destroy(this, block);
                     break;
             }
         }
