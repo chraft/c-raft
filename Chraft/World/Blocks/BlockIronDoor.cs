@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Iron_Door;
             Opacity = 0x0;
             IsSolid = true;
-            DropItem = BlockData.Items.Iron_Door;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

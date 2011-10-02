@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Grass;
             IsSolid = true;
             IsFertile = true;
-            DropBlock = BlockData.Blocks.Dirt;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
         }
 
     }

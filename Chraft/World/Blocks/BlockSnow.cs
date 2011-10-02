@@ -21,6 +21,7 @@ namespace Chraft.World.Blocks
 
         protected override void  DropItems(EntityBase entity, StructBlock block)
         {
+            LootTable = new List<ItemStack>();
             Client client = entity as Client;
             if (client != null)
             {
@@ -30,8 +31,7 @@ namespace Chraft.World.Blocks
                     client.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
                     client.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
                 {
-                    DropItem = BlockData.Items.Snowball;
-                    DropItemAmount = 1;
+                    LootTable.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
                 }
             }
             base.DropItems(entity, block);

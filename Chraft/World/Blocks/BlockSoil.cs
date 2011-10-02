@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             IsFertile = true;
             IsPlowed = true;
-            DropBlock = BlockData.Blocks.Dirt;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
         }
 
     }

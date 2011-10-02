@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Tracks";
             Type = BlockData.Blocks.Tracks;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Tracks;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

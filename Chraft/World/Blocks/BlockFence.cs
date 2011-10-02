@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Fence";
             Type = BlockData.Blocks.Fence;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Fence;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             BurnEfficiency = 300;
             Opacity = 0x0;
         }

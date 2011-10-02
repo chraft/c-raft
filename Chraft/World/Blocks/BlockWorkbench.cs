@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Name = "Workbench";
             Type = BlockData.Blocks.Workbench;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Workbench;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             BurnEfficiency = 300;
         }
 

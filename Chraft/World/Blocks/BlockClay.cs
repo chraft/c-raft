@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Clay";
             Type = BlockData.Blocks.Clay;
             IsSolid = true;
-            DropItem = BlockData.Items.Clay_Balls;
-            DropItemAmount = 4;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Clay_Balls, 4));
         }
     }
 }

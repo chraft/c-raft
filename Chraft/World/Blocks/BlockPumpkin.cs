@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Pumpkin";
             Type = BlockData.Blocks.Pumpkin;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Pumpkin;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

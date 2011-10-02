@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "MossStone";
             Type = BlockData.Blocks.Moss_Stone;
             IsSolid = true;
-            DropBlock =  BlockData.Blocks.Moss_Stone;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

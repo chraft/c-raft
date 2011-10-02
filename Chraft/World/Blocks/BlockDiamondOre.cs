@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "DiamondOre";
             Type = BlockData.Blocks.Diamond_Ore;
             IsSolid = true;
-            DropItem = BlockData.Items.Diamond;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Diamond, 1));
         }
     }
 }

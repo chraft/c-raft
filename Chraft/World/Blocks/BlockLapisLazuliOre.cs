@@ -15,13 +15,12 @@ namespace Chraft.World.Blocks
             Name = "LapisLazuliOre";
             Type = BlockData.Blocks.Lapis_Lazuli_Ore;
             IsSolid = true;
-            DropItem = BlockData.Items.Ink_Sack;
-            DropItemMeta = 4;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            DropItemAmount = (sbyte)(3 + block.World.Server.Rand.Next(17));
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)BlockData.Items.Ink_Sack, (sbyte)(3 + block.World.Server.Rand.Next(17)), 4));
             base.DropItems(entity, block);
         }
     }

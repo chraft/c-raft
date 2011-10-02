@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Ladder";
             Type = BlockData.Blocks.Ladder;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Ladder;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

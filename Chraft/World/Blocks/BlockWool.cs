@@ -15,13 +15,12 @@ namespace Chraft.World.Blocks
             Name = "Wool";
             Type = BlockData.Blocks.Wool;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Wool;
-            DropBlockAmount = 1;
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            DropBlockMeta = block.MetaData;
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Wool, 1, block.MetaData));
             base.DropItems(entity, block);
         }
     }

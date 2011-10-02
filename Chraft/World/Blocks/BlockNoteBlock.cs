@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "NoteBlock";
             Type = BlockData.Blocks.Note_Block;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Note_Block;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             BurnEfficiency = 300;
         }
     }

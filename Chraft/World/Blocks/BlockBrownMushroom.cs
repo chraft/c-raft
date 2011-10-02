@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Brown_Mushroom;
             IsAir = true;
             IsSingleHit = true;
-            DropBlock = BlockData.Blocks.Brown_Mushroom;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

@@ -18,18 +18,26 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Crops;
             IsAir = true;
             IsSingleHit = true;
-            DropItem = BlockData.Items.Seeds;
-            DropItemAmount = 0;
             Opacity = 0x0;
         }
 
         protected override void DropItems(EntityBase who, StructBlock block)
         {
+            LootTable = new List<ItemStack>();
             // TODO: Fully grown drops 1 Wheat & 0-3 Seeds. 0 seeds - very rarely
-            if (block.MetaData < 5)
-                DropItemAmount = 0;
-            else
-                DropItemAmount = (sbyte)(1 + block.World.Server.Rand.Next(2));
+            if (block.MetaData == 7)
+            {
+                LootTable.Add(new ItemStack((short)BlockData.Items.Wheat, 1));
+                sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
+                if (seeds > 0)
+                    LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+            }
+            else if (block.MetaData >= 5)
+            {
+                sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
+                if (seeds > 0)
+                    LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+            }
             base.DropItems(who, block);
         }
 

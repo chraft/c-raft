@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Wooden_Door;
             Opacity = 0x0;
             IsSolid = true;
-            DropItem = BlockData.Items.Wooden_Door;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Wooden_Door, 1));
         }
     }
 }

@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
             IsSolid = true;
             IsSingleHit = true;
-            DropBlock = BlockData.Blocks.Reed;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)

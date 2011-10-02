@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Name = "CobblestoneStairs";
             Type = BlockData.Blocks.Cobblestone_Stairs;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Cobblestone_Stairs;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide)

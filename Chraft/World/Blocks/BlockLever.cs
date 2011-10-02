@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Name = "Lever";
             Type = BlockData.Blocks.Lever;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Lever;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
 

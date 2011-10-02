@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Interfaces;
 using Chraft.World;
 using Chraft.World.Blocks;
 using Chraft.Entity;
@@ -32,23 +33,12 @@ namespace Chraft.Plugins.Events.Args
     public class BlockDestroyEventArgs : BlockEventArgs
     {
         public EntityBase DestroyedBy{ get; set; }
-        public BlockData.Blocks DropBlock { get; set; }
-        public sbyte DropBlockAmount { get; set; }
-        public short DropBlockMeta { get; set; }
-
-        public BlockData.Items DropItem { get; set; }
-        public sbyte DropItemAmount { get; set; }
-        public short DropItemMeta { get; set; }
+        public List<ItemStack> LootTable { get; set; }
 
         public BlockDestroyEventArgs(BlockBase block, EntityBase destroyedBy)
             : base(block)
         {
-            DropBlock = block.DropBlock;
-            DropBlockAmount = block.DropBlockAmount;
-            DropBlockMeta = block.DropBlockMeta;
-            DropItem = block.DropItem;
-            DropItemAmount = block.DropItemAmount;
-            DropItemMeta = block.DropItemMeta;
+            LootTable = block.LootTable;
             DestroyedBy = destroyedBy;
         }
     }

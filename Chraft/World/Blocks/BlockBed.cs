@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Name = "Bed";
             Type = BlockData.Blocks.Bed;
             BurnEfficiency = 300;
-            DropItem = BlockData.Items.Bed;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Bed, 1));
         }
     }
 }

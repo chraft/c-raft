@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "RedMushroom";
             Type = BlockData.Blocks.Red_Mushroom;
             IsAir = true;
-            DropBlock = BlockData.Blocks.Red_Mushroom;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
     }

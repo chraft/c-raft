@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "LapisLazuliBlock";
             Type = BlockData.Blocks.Lapis_Lazuli_Block;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Lapis_Lazuli_Block;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

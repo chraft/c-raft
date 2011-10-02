@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Slab";
             Type = BlockData.Blocks.Slab;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Slab;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)

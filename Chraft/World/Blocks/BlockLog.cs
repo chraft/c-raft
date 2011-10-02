@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Log;
             IsSolid = true;
             BurnEfficiency = 300;
-            DropBlock = BlockData.Blocks.Log;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

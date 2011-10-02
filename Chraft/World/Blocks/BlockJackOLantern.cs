@@ -14,8 +14,7 @@ namespace Chraft.World.Blocks
         {
             Name = "JackOLantern";
             Type = BlockData.Blocks.Jack_O_Lantern;
-            DropBlock = BlockData.Blocks.Jack_O_Lantern;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
             Luminance = 0xf;
         }
     }

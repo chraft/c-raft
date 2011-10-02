@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Stone";
             Type = BlockData.Blocks.Stone;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Cobblestone;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Cobblestone, 1));
         }
     }
 }

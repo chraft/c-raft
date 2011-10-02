@@ -16,8 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Redstone_Wire;
             IsAir = true;
             IsSingleHit = true;
-            DropItem = BlockData.Items.Redstone;
-            DropItemAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone, 1));
             Opacity = 0x0;
         }
     }

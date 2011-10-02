@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "DoubleStoneSlab";
             Type = BlockData.Blocks.Double_Stone_Slab;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Slab;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)BlockData.Blocks.Slab, 1));
         }
     }
 }

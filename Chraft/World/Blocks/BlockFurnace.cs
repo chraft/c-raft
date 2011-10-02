@@ -17,8 +17,7 @@ namespace Chraft.World.Blocks
             Name = "Furnace";
             Type = BlockData.Blocks.Furnace;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Furnace;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide)

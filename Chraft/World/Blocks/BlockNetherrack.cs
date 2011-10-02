@@ -15,8 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Netherrack";
             Type = BlockData.Blocks.Netherrack;
             IsSolid = true;
-            DropBlock = BlockData.Blocks.Netherrack;
-            DropBlockAmount = 1;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }
