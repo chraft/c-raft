@@ -149,7 +149,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Utils\Recipe.cs" />
+    <Compile Include="Utils\RecipeObject.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="WorldGen\CustomGenerator.cs" />
     <Compile Include="WorldGen\FastRandom.cs" />

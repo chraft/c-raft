@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chraft.Utils
 {
-    class Recipe
+    class RecipeObject
     {
         public int Id { get; set; }
         public int Amount { get; set; }
