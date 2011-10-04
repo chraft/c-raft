@@ -79,18 +79,16 @@ namespace Chraft
                 return;
             }
 
-            if ((clean = OnChat(clean)) != null)
-            {
-                //Event
-                ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
-                Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
-                if (e2.EventCanceled) return;
-                clean = e2.Message;
-                //End Event
+            if ((clean = OnChat(clean)) == null) return;
+            //Event
+            ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
+            Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
+            if (e2.EventCanceled) return;
+            clean = e2.Message;
+            //End Event
 
-                Server.Broadcast(Chat.Format(DisplayName, clean));
-                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", DisplayName, clean);
-            }
+            Server.Broadcast(Chat.Format(DisplayName, clean));
+            Logger.Log(Logger.LogLevel.Info, "{0}: {1}", DisplayName, clean);
         }
 
         private string OnChat(string message)

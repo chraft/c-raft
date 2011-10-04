@@ -13,7 +13,6 @@ using Chraft.World;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Plugins;
-using Chraft.Resources;
 using Chraft.Irc;
 using Chraft.Commands;
 using Chraft.Plugins.Events.Args;

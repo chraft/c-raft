@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using Chraft.Interfaces;
 using Chraft.Properties;
 
-namespace Chraft.Resources
+namespace Chraft.Utils
 {
     public class ItemDb
     {

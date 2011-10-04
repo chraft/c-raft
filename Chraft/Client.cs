@@ -204,22 +204,18 @@ namespace Chraft
 
         private void UpdateEntities()
         {
-            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z);
+            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z).ToList();
 
-            foreach (EntityBase e in nearbyEntities)
+            foreach (var e in nearbyEntities.Where(e => !e.Equals(this)))
             {
-                if (e.Equals(this))
-                    continue;
                 if (!LoadedEntities.Contains(e))
                     SendCreateEntity(e);
                 if (this.Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
                     PickupItem((ItemEntity)e);
             }
 
-            foreach (EntityBase e in LoadedEntities)
+            foreach (EntityBase e in LoadedEntities.Where(e => !nearbyEntities.Contains(e)))
             {
-                if (nearbyEntities.Contains(e))
-                    continue;
                 SendDestroyEntity(e);
             }
 
@@ -236,7 +232,7 @@ namespace Chraft
         {
 
             //event start
-            EntityDamageEventArgs entevent = new EntityDamageEventArgs(this, Convert.ToInt16(args[0]), null, cause);
+            var entevent = new EntityDamageEventArgs(this, Convert.ToInt16(args[0]), null, cause);
             Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
             if (GameMode == 1){entevent.EventCanceled = true;}
             if (entevent.EventCanceled) return;
@@ -316,7 +312,8 @@ namespace Chraft
         /// <summary>
         /// Handles the death of the Client.
         /// </summary>
-        /// <param name="hitBy">Who killed the current Client.</param>
+        /// <param name="hitBy">Who hit the current Client.</param>
+        /// <param name="deathBy">what killed</param>
         private void HandleDeath(EntityBase hitBy = null, string deathBy = "")
         {
             // TODO: Add config option for none/global/local death messages
@@ -329,12 +326,12 @@ namespace Chraft
             }
             else if (hitBy is Client)
             {
-                Client c = (Client)hitBy;
-                deathBy = "by " + c.DisplayName.ToString() + " using" + Server.Items.ItemName(c.Inventory.Slots[c.Inventory.ActiveSlot].Type);
+                var c = (Client)hitBy;
+                deathBy = "by " + c.DisplayName + " using" + Server.Items.ItemName(c.Inventory.Slots[c.Inventory.ActiveSlot].Type);
             }
             else if (hitBy is Mob)
             {
-                Mob m = (Mob)hitBy;
+                var m = (Mob)hitBy;
                 deathBy = "by " + m.Type;
             }
 
@@ -663,7 +660,6 @@ namespace Chraft
             return PermHandler.HasPermission(this, command);
         }
 
-        //
         public bool CanUseCommand(string command)
         {
             return PermHandler.HasPermission(Username, command);

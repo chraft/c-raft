@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("C#raft Team")]
 [assembly: AssemblyProduct("C#raft")]
-[assembly: AssemblyCopyright("Copyright © Zenexer, ementalo, and PhonicUK 2011")]
+[assembly: AssemblyCopyright("Copyright © C#raft Team 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -35,4 +35,3 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Chrash")]

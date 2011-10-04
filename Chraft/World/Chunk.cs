@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Threading;
-using ICSharpCode.SharpZipLib.GZip;
 using Chraft.Properties;
 using Ionic.Zlib;
 using Chraft.World.Weather;
 using System.Collections;
 using System.Diagnostics;
-using System.Collections.Concurrent;
 using Chraft.Net.Packets;
 
 namespace Chraft.World
