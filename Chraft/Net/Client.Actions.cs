@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Chraft.Entity;
 using Chraft.Plugins.Events;
 using Chraft.World;

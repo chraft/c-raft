@@ -18,7 +18,7 @@ namespace Chraft.Commands
             if(tokens.Length > 2)amount = parseint(tokens[2]);
             try
             {
-                type = (MobType) Enum.Parse(typeof(MobType), tokens[1].ToString(), true);
+                type = (MobType) Enum.Parse(typeof(MobType), tokens[1], true);
             }
             catch (Exception e) { client.Logger.Log(e); type = MobType.Sheep; }
             for (int i = 0; i < amount; i++)
@@ -38,7 +38,7 @@ namespace Chraft.Commands
         }
         public void Help(Client client)
         {
-            client.SendMessage("/spawnmob <Mob> [Amount] - Spawns a pig at your position.");
+            client.SendMessage("/spawnmob <Mob> [Amount] - Spawns a mob at your position.");
         }
 
         public string Name

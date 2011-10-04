@@ -89,10 +89,7 @@ namespace Chraft.World
                     //Server.Logger.Log(Logger.LogLevel.Debug, "Getting {0}, {1}", x, z);
                     return chunk;
                 }
-                else if (load)
-                    return LoadChunk(x, z, create, recalculate);
-                else
-                    return null;
+                return load ? LoadChunk(x, z, create, recalculate) : null;
                 //Server.Logger.Log(Logger.LogLevel.Debug, "Creating {0}, {1}", x, z);
                 
             }

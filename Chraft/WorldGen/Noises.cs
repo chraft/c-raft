@@ -18,7 +18,7 @@
 
 using System;
 
-namespace Chraft
+namespace Chraft.WorldGen
 {
 
 /**

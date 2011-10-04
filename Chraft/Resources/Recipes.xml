@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" ?>
+<Recipies>
+  <Recipie id="67" match="Any/Exact">
+    <Amount>4</Amount>
+    <Rows>
+      <Row>4,0,0</Row>
+      <Row>4,4,0</Row>
+      <Row>4,4,4</Row>
+    </Rows>
+  </Recipie>
+</Recipies>
+
