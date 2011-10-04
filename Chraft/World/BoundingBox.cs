@@ -36,6 +36,8 @@ namespace Chraft.World
         
         }
         
+        #region Operators
+        
         /// <summary>
         /// Adds a <see cref="Vector3"/> to a <see cref="BoundingBox"/>, yielding a new <see cref="BoundingBox"/>.
         /// </summary>
@@ -77,6 +79,44 @@ namespace Chraft.World
         }
         
         /// <summary>
+        /// Determines whether a specified instance of <see cref="BoundingBox"/> is equal to another specified <see cref="BoundingBox"/>.
+        /// </summary>
+        /// <param name='boundingBox1'>
+        /// The first <see cref="BoundingBox"/> to compare.
+        /// </param>
+        /// <param name='boundingBox2'>
+        /// The second <see cref="BoundingBox"/> to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <c>boundingBox1</c> and <c>boundingBox2</c> are equal; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool operator ==(BoundingBox boundingBox1, BoundingBox boundingBox2)
+        {
+            return boundingBox1.Minimum == boundingBox1.Minimum && boundingBox1.Maximum == boundingBox2.Maximum;
+        }
+        
+        /// <summary>
+        /// Determines whether a specified instance of <see cref="BoundingBox"/> is not equal to another specified <see cref="BoundingBox"/>.
+        /// </summary>
+        /// <param name='boundingBox1'>
+        /// The first <see cref="BoundingBox"/> to compare.
+        /// </param>
+        /// <param name='boundingBox2'>
+        /// The second <see cref="BoundingBox"/> to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <c>boundingBox1</c> and <c>boundingBox2</c> are not equal; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool operator !=(BoundingBox boundingBox1, BoundingBox boundingBox2)
+        {
+            return !(boundingBox1 == boundingBox2);
+        }
+        
+        #endregion
+        
+        #region Resizing
+        
+        /// <summary>
         /// Expand this instance's Minimum and Maximum vectors by the specified expandMinAndMaxBy vector.
         /// </summary>
         /// <param name='expandMinAndMaxBy'>
@@ -105,6 +145,10 @@ namespace Chraft.World
                 this.Maximum - contractMinAndMaxBy
             );
         }
+        
+        #endregion
+        
+        #region Movement
         
         /// <summary>
         /// Offset this instance by the specified offsetVector. See also the +/- operators
@@ -206,6 +250,10 @@ namespace Chraft.World
             return offsetBB;
         }
         
+        #endregion
+        
+        #region Intersection
+        
         /// <summary>
         /// Determines whether this instance hsa the specified vector within its bounds.
         /// </summary>
@@ -279,6 +327,8 @@ namespace Chraft.World
                    boundingBox.Maximum.Y > Minimum.Y && boundingBox.Minimum.Y < Maximum.Y &&
                    boundingBox.Maximum.Z > Minimum.Z && boundingBox.Minimum.Z < Maximum.Z;
         }
+        
+        #endregion
         
         public override string ToString()
         {
