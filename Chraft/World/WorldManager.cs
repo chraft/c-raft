@@ -94,6 +94,55 @@ namespace Chraft.World
                 
             }
         }
+        
+        public IEnumerable<EntityBase> GetEntitiesWithinBoundingBoxExcludingEntity(EntityBase entity, BoundingBox boundingBox)
+        {
+            return (from e in Server.GetEntitiesWithinBoundingBox(boundingBox)
+                   where e != entity
+                   select e);
+        }
+        
+        public BoundingBox[] GetCollidingBoundingBoxes(EntityBase entity, BoundingBox boundingBox)
+        {
+            List<BoundingBox > collidingBoundingBoxes = new List<BoundingBox>();
+            
+            PointI minimumBlockXYZ = new PointI((int)Math.Floor(boundingBox.Minimum.X), (int)Math.Floor(boundingBox.Minimum.Y), (int)Math.Floor(boundingBox.Minimum.Z));
+            PointI maximumBlockXYZ = new PointI((int)Math.Floor(boundingBox.Maximum.X + 1.0D), (int)Math.Floor(boundingBox.Maximum.Y + 1.0D), (int)Math.Floor(boundingBox.Maximum.Z + 1.0D));
+
+            for (int x = minimumBlockXYZ.X; x < maximumBlockXYZ.X; x++)
+            {
+                for (int z = minimumBlockXYZ.Z; z < maximumBlockXYZ.Z; z++)
+                {
+                    for (int y = minimumBlockXYZ.Y - 1; y < maximumBlockXYZ.Y; y++)
+                    {
+                        byte block = this.GetBlockId(x, y, z);
+                        // TODO: this needs to move into block logic
+                        BoundingBox blockBox = new BoundingBox(
+                            new Vector3(x, y, z),
+                            new Vector3(x + 1, y + 1, z + 1)
+                        );
+                        if (blockBox.IntersectsWith(boundingBox))
+                        {
+                            collidingBoundingBoxes.Add(blockBox);
+                        }
+                    }
+                }
+            }
+   
+            foreach (var e in GetEntitiesWithinBoundingBoxExcludingEntity(entity, boundingBox.Expand(new Vector3(0.25, 0.25, 0.25))))
+            {
+                collidingBoundingBoxes.Add(e.BoundingBox);
+                
+                // TODO: determine if overridable collision boxes between two entities is necessary
+                BoundingBox? collisionBox = entity.GetCollisionBox(e);
+                if (collisionBox != null && collisionBox.Value != e.BoundingBox && collisionBox.Value.IntersectsWith(boundingBox))
+                {
+                    collidingBoundingBoxes.Add(collisionBox.Value);
+                }
+            }
+            
+            return collidingBoundingBoxes.ToArray();
+        }
 
         public WorldManager(Server server)
         {          

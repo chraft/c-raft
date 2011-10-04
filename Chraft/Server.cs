@@ -533,6 +533,22 @@ namespace Chraft
                     yield return e;
             }
         }
+        
+        /// <summary>
+        /// Yields an enumerable of entities where their BoundingBox intersects with <paramref name="boundingBox"/>
+        /// </summary>
+        /// <returns>
+        /// The entities within bounding box.
+        /// </returns>
+        /// <param name='boundingBox'>
+        /// Bounding box.
+        /// </param>
+        public IEnumerable<EntityBase> GetEntitiesWithinBoundingBox(BoundingBox boundingBox)
+        {
+            return from e in GetEntities()
+                   where e.BoundingBox.IntersectsWith(boundingBox)
+                   select e;
+        }
 
         /// <summary>
         /// Drops an item based on the given player's position and rotation.

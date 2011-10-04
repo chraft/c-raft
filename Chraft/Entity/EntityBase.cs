@@ -19,7 +19,24 @@ namespace Chraft.Entity
     {
         public int EntityId { get; private set; }
         public WorldManager World { get; set; }
-
+  
+        public BoundingBox BoundingBox { get; set; }
+  
+        /// <summary>
+        /// Returns a Nullable <see cref="BoundingBox"/> that determines how, in addition to the BoundingBox, 
+        /// the <paramref name="entity"/> collides with this instance.
+        /// </summary>
+        /// <returns>
+        /// The collision box.
+        /// </returns>
+        /// <param name='entity'>
+        /// Entity to produce collision box based on.
+        /// </param>
+        public virtual BoundingBox? GetCollisionBox(EntityBase entity)
+        {
+            return null;
+        }
+        
         short _health;
         /// <summary>
         /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
