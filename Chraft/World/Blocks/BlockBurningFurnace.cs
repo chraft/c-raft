@@ -27,11 +27,11 @@ namespace Chraft.World.Blocks
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client != null)
+            Player player = entity as Player;
+            if (player != null)
             {
                 FurnaceInterface fi = new FurnaceInterface(block.World, block.X, block.Y, block.Z);
-                fi.Associate(client);
+                fi.Associate(player);
                 fi.DropAll(block.X, block.Y, block.Z);
                 fi.Save();
             }
@@ -40,14 +40,14 @@ namespace Chraft.World.Blocks
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client == null)
+            Player player = entity as Player;
+            if (player == null)
                 return;
-            if (client.CurrentInterface != null)
+            if (player.CurrentInterface != null)
                 return;
-            client.CurrentInterface = new FurnaceInterface(block.World, block.X, block.Y, block.Z);
-            client.CurrentInterface.Associate(client);
-            client.CurrentInterface.Open();
+            player.CurrentInterface = new FurnaceInterface(block.World, block.X, block.Y, block.Z);
+            player.CurrentInterface.Associate(player);
+            player.CurrentInterface.Open();
         }
 
     }

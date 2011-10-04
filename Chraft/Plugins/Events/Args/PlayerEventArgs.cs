@@ -1,6 +1,7 @@
 ﻿using System;
 using Chraft.Commands;
 using Chraft.Entity;
+using Chraft.Net;
 
 namespace Chraft.Plugins.Events.Args
 {
@@ -17,7 +18,7 @@ namespace Chraft.Plugins.Events.Args
 
         public override string ToString()
         {
-            return Client.DisplayName;
+            return Client.Owner.DisplayName;
         }
     }
     public class ClientPreCommandEventArgs : ClientEventArgs
@@ -73,7 +74,7 @@ namespace Chraft.Plugins.Events.Args
         public virtual string BrodcastMessage { get; set; }
         public ClientJoinedEventArgs(Client c) : base(c) 
         {
-            BrodcastMessage = ChatColor.Yellow + c.DisplayName + " has joined the game."; //Like the Notchian server.
+            BrodcastMessage = ChatColor.Yellow + c.Owner.DisplayName + " has joined the game."; //Like the Notchian server.
         }
     }
     public class ClientLeftEventArgs : ClientEventArgs
@@ -82,7 +83,7 @@ namespace Chraft.Plugins.Events.Args
         public ClientLeftEventArgs(Client c)
             : base(c)
         {
-            BrodcastMessage = ChatColor.Yellow + c.DisplayName + " has left the game"; //Like the Notchian server.
+            BrodcastMessage = ChatColor.Yellow + c.Owner.DisplayName + " has left the game"; //Like the Notchian server.
         }
     }
     public class ClientChatEventArgs : ClientMessageEventArgs

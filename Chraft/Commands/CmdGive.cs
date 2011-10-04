@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Interfaces;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -22,7 +23,7 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target and an item or just an item to give it to yourself.");
                 return;
             }
-            item = client.Server.Items[tokens[1]];
+            item = client.Owner.Server.Items[tokens[1]];
 
             if (tokens.Length == 2)
             {
@@ -38,16 +39,16 @@ namespace Chraft.Commands
                         who.Add(client);
                     else
                     {
-                        item = client.Server.Items[tokens[2]];
-                        who.AddRange(client.Server.GetClients(tokens[1]));
+                        item = client.Owner.Server.Items[tokens[2]];
+                        who.AddRange(client.Owner.Server.GetClients(tokens[1]));
                     }
 
                 }
                 else
                 {
                     // OR trying to give something to a player(s)
-                    who.AddRange(client.Server.GetClients(tokens[1]));
-                    item = client.Server.Items[tokens[2]];
+                    who.AddRange(client.Owner.Server.GetClients(tokens[1]));
+                    item = client.Owner.Server.Items[tokens[2]];
                 }  
             }
             else
@@ -55,8 +56,8 @@ namespace Chraft.Commands
                 // Trying to give item to other player with amount specified
                 if (uint.TryParse(tokens[3], out amount))
                 {
-                    who.AddRange(client.Server.GetClients(tokens[1]));
-                    item = client.Server.Items[tokens[2]];
+                    who.AddRange(client.Owner.Server.GetClients(tokens[1]));
+                    item = client.Owner.Server.Items[tokens[2]];
                 }
 
             }
@@ -77,7 +78,7 @@ namespace Chraft.Commands
                 item.Count = (sbyte)amount;
             
             foreach (Client c in who)
-                c.Inventory.AddItem(item.Type, item.Count, item.Durability);
+                c.Owner.Inventory.AddItem(item.Type, item.Count, item.Durability);
             client.SendMessage("§7Item given to " + who.Count + " player" + (who.Count > 1 ? "s":""));
         }
 

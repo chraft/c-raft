@@ -22,8 +22,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            Client client = (entity as Client);
-            if (client == null)
+            Player player = (entity as Player);
+            if (player == null)
                 return;
 
             switch (targetSide) //Bugged, as the client has a mind of its own for facing
@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks
                     block.MetaData = (byte)MetaData.Furnace.South;
                     break;
                 default:
-                    switch (client.FacingDirection(4)) // Built on floor, set by facing dir
+                    switch (player.Client.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
                             block.MetaData = (byte)MetaData.Furnace.North;
@@ -66,11 +66,11 @@ namespace Chraft.World.Blocks
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client != null)
+            Player player = entity as Player;
+            if (player != null)
             {
                 FurnaceInterface fi = new FurnaceInterface(block.World, block.X, block.Y, block.Z);
-                fi.Associate(client);
+                fi.Associate(player);
                 fi.DropAll(block.X, block.Y, block.Z);
                 fi.Save();
             }
@@ -79,14 +79,14 @@ namespace Chraft.World.Blocks
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client == null)
+            Player player = entity as Player;
+            if (player == null)
                 return;
-            if (client.CurrentInterface != null)
+            if (player.CurrentInterface != null)
                 return;
-            client.CurrentInterface= new FurnaceInterface(block.World, block.X, block.Y, block.Z);
-            client.CurrentInterface.Associate(client);
-            client.CurrentInterface.Open();
+            player.CurrentInterface= new FurnaceInterface(block.World, block.X, block.Y, block.Z);
+            player.CurrentInterface.Associate(player);
+            player.CurrentInterface.Open();
         }
 
     }

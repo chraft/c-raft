@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using Chraft;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.Utils;
 using Chraft.World;
-using Chraft.World.NBT;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Entity
@@ -73,10 +68,11 @@ namespace Chraft.Entity
             sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
             Position.Vector = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
+
             
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Equals(this))
+                if (!c.Owner.Equals(this))
                     c.SendMoveBy(this, dx, dy, dz);
             }
         }
@@ -92,11 +88,25 @@ namespace Chraft.Entity
             Position.X = x;
             Position.Y = y;
             Position.Z = z;
-            //TODO: Fix bug that sets the users Position.Y to .0 insted of .5
+            
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                //if (!c.Equals(this))
+                if (!c.Owner.Equals(this))
                     c.SendTeleportTo(this);
+                else
+                {
+                    c.SendPacket(new PlayerPositionRotationPacket
+                    {
+                        X = x,
+                        Y = y + Player.EyeGroundOffset,
+                        Z = z,
+                        Yaw = (float)c.Owner.Position.Yaw,
+                        Pitch = (float)c.Owner.Position.Pitch,
+                        Stance = c.Stance,
+                        OnGround = false
+                    }
+                    );
+                }
             }
             return true;
         }
@@ -112,7 +122,7 @@ namespace Chraft.Entity
             Position.Pitch = pitch;
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Equals(this))
+                if (!c.Owner.Equals(this))
                     c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
@@ -144,7 +154,7 @@ namespace Chraft.Entity
             Position.Pitch = pitch;
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Equals(this))
+                if (!c.Owner.Equals(this))
                     c.SendMoveRotateBy(this, dx, dy, dz, PackedYaw, PackedPitch);
             }
         }

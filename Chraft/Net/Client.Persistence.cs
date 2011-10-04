@@ -4,13 +4,13 @@ using System.Xml.Serialization;
 using Chraft.Persistence;
 using Chraft.Interfaces;
 
-namespace Chraft
+namespace Chraft.Net
 {
     public partial class Client
     {
         private static XmlSerializer Xml = new XmlSerializer(typeof(ClientSurrogate));
         internal string Folder { get { return Settings.Default.PlayersFolder; } }
-        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + Username + ".xml"; } }
+        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + _Player.Username + ".xml"; } }
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()
         {
@@ -20,14 +20,15 @@ namespace Chraft
             ClientSurrogate client;
             using (FileStream rx = File.OpenRead(DataFile))
                 client = (ClientSurrogate)Xml.Deserialize(rx);
-            Position.X = client.X;
-            Position.Y = client.Y + 1; // Players drop one block upon spawning
-            Position.Z = client.Z;
-            Position.Yaw = client.Yaw;
-            Position.Pitch = client.Pitch;
+            _Player.Position.X = client.X;
+            _Player.Position.Y = client.Y + 1; // Players drop one block upon spawning
+            _Player.Position.Z = client.Z;
+            _Player.Position.Yaw = client.Yaw;
+            _Player.Position.Pitch = client.Pitch;
             if (client.Inventory == null) return;
-            Inventory = new Inventory {Handle = 0};
+            _Player.Inventory = new Inventory {Handle = 0};
             ItemStack[] slots = new ItemStack[client.Inventory.SlotCount];
+            
             for (short i = 0; i < client.Inventory.SlotCount; i++)
             {
                 slots[i] = ItemStack.Void;
@@ -39,10 +40,10 @@ namespace Chraft
                     slots[i].Slot = i;
                 }
                 // Using the default indexer on Inventory ensures all event handlers are correctly hooked up
-                this.Inventory[i] = slots[i];
+                _Player.Inventory[i] = slots[i];
             }
-            Inventory.Associate(this);
-            GameMode = client.GameMode;
+            _Player.Inventory.Associate(_Player);
+            _Player.GameMode = client.GameMode;
         }
 
         private void Save()
@@ -58,13 +59,13 @@ namespace Chraft
                 {
                     Xml.Serialize(tx, new ClientSurrogate
                     {
-                        Inventory = Inventory,
-                        X = Position.X,
-                        Y = Position.Y,
-                        Z = Position.Z,
-                        Yaw = Position.Yaw,
-                        Pitch = Position.Pitch,
-                        GameMode = GameMode 
+                        Inventory = _Player.Inventory,
+                        X = _Player.Position.X,
+                        Y = _Player.Position.Y,
+                        Z = _Player.Position.Z,
+                        Yaw = _Player.Position.Yaw,
+                        Pitch = _Player.Position.Pitch,
+                        GameMode = _Player.GameMode 
                     });
                     tx.Flush();
                     tx.Close();

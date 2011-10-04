@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Net;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
@@ -34,18 +35,18 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
             LootTable = new List<ItemStack>();
-            Client client = entity as Client;
-            if (client != null)
+            Player player = entity as Player;
+            if (player != null)
             {
                 // If hit by a shear - drop the grass
-                if (client.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
+                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                 {
                     LootTable.Add(new ItemStack((short) Type, 1, block.MetaData));
                 }
                 else
                 {
                     // Chance of dropping seeds, 25% ?
-                    if (client.Server.Rand.Next(3) == 0)
+                    if (player.Server.Rand.Next(3) == 0)
                         LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, 1));
                 }
             }

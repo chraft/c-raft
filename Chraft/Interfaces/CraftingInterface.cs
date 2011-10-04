@@ -39,7 +39,7 @@ namespace Chraft.Interfaces
                 {
                     if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
                     {
-                        PacketHandler.SendPacket(new TransactionPacket
+                        Owner.Client.SendPacket(new TransactionPacket
                         {
                             Accepted = false,
                             Transaction = packet.Transaction,

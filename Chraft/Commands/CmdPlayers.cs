@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -11,9 +12,9 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.SendMessage("Online Players: " + client.Server.Clients.Count);
-            foreach (Client c in client.Server.Clients.Values)
-                client.SendMessage(c.EntityId + " : " + c.DisplayName);
+            client.SendMessage("Online Players: " + client.Owner.Server.Clients.Count);
+            foreach (Client c in client.Owner.Server.GetAuthenticatedClients())
+                client.SendMessage(c.Owner.EntityId + " : " + c.Owner.DisplayName);
         }
 
         public void Help(Client client)

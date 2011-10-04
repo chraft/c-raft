@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 using Chraft.Net.Packets;
 
 namespace Chraft.Commands
@@ -25,7 +26,7 @@ namespace Chraft.Commands
             {
                 health = 20;
             }
-            client.PacketHandler.SendPacket(new UpdateHealthPacket { Health = health });
+            client.SendPacket(new UpdateHealthPacket { Health = health });
         }
         public void Help(Client client)
         {

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Chraft.Interfaces;
 using Chraft.World;
 using Chraft.Entity;
@@ -13,56 +16,80 @@ namespace Chraft.Net.Packets
 
     public abstract class Packet
     {
-        public abstract void Read(BigEndianStream stream);
-        public abstract void Write(BigEndianStream stream);
-        public void WriteFlush(BigEndianStream stream)
-        {
-            Write(stream);
-            stream.Flush();
-        }
+        public abstract void Read(PacketReader reader);
+        public abstract void Write();
+
+        protected PacketWriter Writer;
+
+        private int _Length;
+        public bool Async = true;
+        protected virtual int Length { get { return _Length; } set { _Length = value; } }
 
         public PacketType GetPacketType()
         {
             return PacketMap.GetPacketType(GetType());
         }
 
-        public static Packet Read(PacketType type, BigEndianStream stream)
+        protected Packet()
         {
-            try
+            
+        }
+
+        public void SetCapacity()
+        {
+            Writer = PacketWriter.CreateInstance(Length, StreamRole.Server);
+            Writer.Write((byte)GetPacketType());
+        }
+
+        public void SetCapacity(int fixedLength)
+        {
+            _Length = fixedLength;
+            SetCapacity();
+        }
+
+        public void SetCapacity(int fixedLength, params string[] args)
+        {
+            byte[] bytes;
+
+            _Length = fixedLength;
+            Queue<byte[]> strings = new Queue<byte[]>();
+            for (int i = 0; i < args.Length; ++i)
             {
-                Type ptype;
-                if(PacketMap.Map.TryGetValue(type, out ptype))
-                {
-                    Packet packet = (Packet)ptype.GetConstructor(new Type[0]).Invoke(new object[0]);
-                    packet.Read(stream);
-                    return packet;
-                }
-                else
-                {
-                    Console.WriteLine("Error processing packet of type {0}", type);
-                    return null;
-                }
+                bytes = ASCIIEncoding.BigEndianUnicode.GetBytes(args[i]);
+                _Length += bytes.Length;
+                strings.Enqueue(bytes);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error processing packet of type {0}: {1}", type.ToString(), ex);
-                return null;
-            }
+
+            Writer = PacketWriter.CreateInstance(Length, StreamRole.Server, strings);
+            Writer.Write((byte)GetPacketType());
+        }
+
+        public byte[] GetBuffer()
+        {
+            byte[] buffer = new byte[Length];
+            Buffer.BlockCopy(Writer.UnderlyingStream.GetBuffer(), 0, buffer, 0, Length);
+            PacketWriter.ReleaseInstance(Writer);
+
+            /*if (Strings != null)
+                Strings.Clear();*/
+            return buffer;
         }
     }
 
     public class KeepAlivePacket : Packet
     {
         public int KeepAliveID { get; set; }
+        protected override int Length { get { return 5; } }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             KeepAliveID = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(KeepAliveID);
+            SetCapacity();
+            Writer.Write(KeepAliveID);
         }
     }
 
@@ -77,28 +104,29 @@ namespace Chraft.Net.Packets
         public byte WorldHeight { get; set; }
         public byte MaxPlayers { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader reader)
         {
-            ProtocolOrEntityId = stream.ReadInt();
-            Username = stream.ReadString16(16);
-            MapSeed = stream.ReadLong();
-            ServerMode = stream.ReadInt();
-            Dimension = stream.ReadSByte();
-            Unknown = stream.ReadSByte();
-            WorldHeight = stream.ReadByte();
-            MaxPlayers = stream.ReadByte();
+            ProtocolOrEntityId = reader.ReadInt();
+            Username = reader.ReadString16(16);
+            MapSeed = reader.ReadLong();
+            ServerMode = reader.ReadInt();
+            Dimension = reader.ReadSByte();
+            Unknown = reader.ReadSByte();
+            WorldHeight = reader.ReadByte();
+            MaxPlayers = reader.ReadByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(ProtocolOrEntityId);
-            stream.Write(Username);
-            stream.Write(MapSeed);
-            stream.Write(ServerMode);
-            stream.Write(Dimension);
-            stream.Write(Unknown);
-            stream.Write(WorldHeight);
-            stream.Write(MaxPlayers);
+            SetCapacity(23, Username);
+            Writer.Write(ProtocolOrEntityId);
+            Writer.Write(Username);
+            Writer.Write(MapSeed);
+            Writer.Write(ServerMode);
+            Writer.Write(Dimension);
+            Writer.Write(Unknown);
+            Writer.Write(WorldHeight);
+            Writer.Write(MaxPlayers);
         }
     }
 
@@ -106,14 +134,15 @@ namespace Chraft.Net.Packets
     {
         public string UsernameOrHash { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             UsernameOrHash = stream.ReadString16(16);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(UsernameOrHash);
+            SetCapacity(3, UsernameOrHash);
+            Writer.Write(UsernameOrHash);
         }
     }
 
@@ -121,29 +150,32 @@ namespace Chraft.Net.Packets
     {
         public string Message { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Message = stream.ReadString16(100);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Message);
+            SetCapacity(3, Message);
+            Writer.Write(Message);
         }
     }
 
     public class TimeUpdatePacket : Packet
     {
         public long Time { get; set; }
+        protected override int Length { get { return 9; } }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Time = stream.ReadLong();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Time);
+            SetCapacity();
+            Writer.Write(Time);
         }
     }
 
@@ -154,7 +186,9 @@ namespace Chraft.Net.Packets
         public short ItemId { get; set; }
         public short Durability { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 11; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Slot = stream.ReadShort();
@@ -162,12 +196,13 @@ namespace Chraft.Net.Packets
             Durability = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(Slot);
-            stream.Write(ItemId);
-            stream.Write(Durability);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(Slot);
+            Writer.Write(ItemId);
+            Writer.Write(Durability);
         }
     }
 
@@ -177,18 +212,21 @@ namespace Chraft.Net.Packets
         public int Y { get; set; }
         public int Z { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 13; } }
+
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadInt();
             Z = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
+            SetCapacity();
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
         }
     }
 
@@ -198,18 +236,18 @@ namespace Chraft.Net.Packets
         public int Target { get; set; }
         public bool LeftClick { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             User = stream.ReadInt();
             Target = stream.ReadInt();
             LeftClick = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(User);
-            stream.Write(Target);
-            stream.Write(LeftClick);
+            Writer.Write(User);
+            Writer.Write(Target);
+            Writer.Write(LeftClick);
         }
     }
 
@@ -219,18 +257,21 @@ namespace Chraft.Net.Packets
         public short Food { get; set; }
         public float FoodSaturation { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader stream)
         {
             Health = stream.ReadShort();
             Food = stream.ReadShort();
             FoodSaturation = stream.ReadFloat();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Health);
-            stream.Write(Food);
-            stream.Write(FoodSaturation);
+            SetCapacity();
+            Writer.Write(Health);
+            Writer.Write(Food);
+            Writer.Write(FoodSaturation);
         }
     }
 
@@ -242,8 +283,9 @@ namespace Chraft.Net.Packets
         public short WorldHeight { get; set; } // Default 128
         public long MapSeed { get; set; }
 
+        protected override int Length { get { return 14; } }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             World = stream.ReadSByte();
             Unknown = stream.ReadSByte();
@@ -252,13 +294,14 @@ namespace Chraft.Net.Packets
             MapSeed = stream.ReadLong();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(World);
-            stream.Write(Unknown);
-            stream.Write(CreativeMode);
-            stream.Write(WorldHeight);
-            stream.Write(MapSeed);
+            SetCapacity();
+            Writer.Write(World);
+            Writer.Write(Unknown);
+            Writer.Write(CreativeMode);
+            Writer.Write(WorldHeight);
+            Writer.Write(MapSeed);
         }
     }
 
@@ -266,14 +309,14 @@ namespace Chraft.Net.Packets
     {
         public bool OnGround { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             OnGround = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(OnGround);
+            Writer.Write(OnGround);
         }
     }
 
@@ -286,18 +329,19 @@ namespace Chraft.Net.Packets
         public bool Online { get; set; }
         public short Ping { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             PlayerName = stream.ReadString16(16);
             Online = stream.ReadBool();
             Ping = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(PlayerName);
-            stream.Write(Online);
-            stream.Write(Ping);
+            SetCapacity(6, PlayerName);
+            Writer.Write(PlayerName);
+            Writer.Write(Online);
+            Writer.Write(Ping);
         }
     }
 
@@ -309,7 +353,7 @@ namespace Chraft.Net.Packets
         public double Z { get; set; }
         public bool OnGround { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadDouble();
             Y = stream.ReadDouble();
@@ -318,13 +362,13 @@ namespace Chraft.Net.Packets
             OnGround = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Stance);
-            stream.Write(Z);
-            stream.Write(OnGround);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Stance);
+            Writer.Write(Z);
+            Writer.Write(OnGround);
         }
     }
 
@@ -334,18 +378,18 @@ namespace Chraft.Net.Packets
         public float Pitch { get; set; }
         public bool OnGround { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Yaw = stream.ReadFloat();
             Pitch = stream.ReadFloat();
             OnGround = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Yaw);
-            stream.Write(Pitch);
-            stream.Write(OnGround);
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
+            Writer.Write(OnGround);
         }
     }
 
@@ -359,7 +403,9 @@ namespace Chraft.Net.Packets
         public float Pitch { get; set; }
         public bool OnGround { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 42; } }
+
+        public override void Read(PacketReader stream)
         {
             //X,Y,Stance are in different order for Client->Server vs. Server->Client
             if (stream.Role == StreamRole.Server)
@@ -380,25 +426,26 @@ namespace Chraft.Net.Packets
             OnGround = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
+            SetCapacity();
             //X,Y,Stance are in different order for Client->Server vs. Server->Client
-            if (stream.Role == StreamRole.Server)
+            if (Writer.Role == StreamRole.Server)
             {
-                stream.Write(X);
-                stream.Write(Y);
-                stream.Write(Stance);
+                Writer.Write(X);
+                Writer.Write(Y);
+                Writer.Write(Stance);
             }
             else
             {
-                stream.Write(X);
-                stream.Write(Stance);
-                stream.Write(Y);
+                Writer.Write(X);
+                Writer.Write(Stance);
+                Writer.Write(Y);
             }
-            stream.Write(Z);
-            stream.Write(Yaw);
-            stream.Write(Pitch);
-            stream.Write(OnGround);
+            Writer.Write(Z);
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
+            Writer.Write(OnGround);
         }
     }
 
@@ -410,7 +457,7 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public sbyte Face { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Action = (DigAction)stream.ReadByte();
             X = stream.ReadInt();
@@ -419,13 +466,13 @@ namespace Chraft.Net.Packets
             Face = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write((byte)Action);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(Face);
+            Writer.Write((byte)Action);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(Face);
         }
         public enum DigAction : byte
         {
@@ -443,7 +490,7 @@ namespace Chraft.Net.Packets
         public BlockFace Face { get; set; }
         public ItemStack Item { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadSByte();
@@ -453,13 +500,13 @@ namespace Chraft.Net.Packets
             //amount in hand and durability are handled int ItemStack.Read
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write((sbyte)Face);
-            (Item ?? ItemStack.Void).Write(stream);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write((sbyte)Face);
+            (Item ?? ItemStack.Void).Write(Writer);
         }
     }
 
@@ -467,14 +514,14 @@ namespace Chraft.Net.Packets
     {
         public short Slot { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Slot = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Slot);
+            Writer.Write(Slot);
         }
     }
 
@@ -486,7 +533,9 @@ namespace Chraft.Net.Packets
         public sbyte Y { get; set; }
         public int Z { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 15; } }
+
+        public override void Read(PacketReader stream)
         {
             PlayerId = stream.ReadInt();
             InBed = stream.ReadSByte();
@@ -495,13 +544,14 @@ namespace Chraft.Net.Packets
             Z = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(PlayerId);
-            stream.Write(InBed);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
+            SetCapacity();
+            Writer.Write(PlayerId);
+            Writer.Write(InBed);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
         }
     }
 
@@ -510,16 +560,19 @@ namespace Chraft.Net.Packets
         public int PlayerId { get; set; }
         public sbyte Animation { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 6; } }
+
+        public override void Read(PacketReader stream)
         {
             PlayerId = stream.ReadInt();
             Animation = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(PlayerId);
-            stream.Write(Animation);
+            SetCapacity();
+            Writer.Write(PlayerId);
+            Writer.Write(Animation);
         }
     }
 
@@ -537,16 +590,16 @@ namespace Chraft.Net.Packets
         public int PlayerId { get; set; }
         public ActionType Action { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             PlayerId = stream.ReadInt();
             Action = (ActionType)stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(PlayerId);
-            stream.Write((sbyte)Action);
+            Writer.Write(PlayerId);
+            Writer.Write((sbyte)Action);
         }
     }
 
@@ -561,7 +614,7 @@ namespace Chraft.Net.Packets
         public sbyte Pitch { get; set; }
         public short CurrentItem { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             PlayerName = stream.ReadString16(16);
@@ -573,16 +626,17 @@ namespace Chraft.Net.Packets
             CurrentItem = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(PlayerName);
-            stream.Write((int)(X * 32));
-            stream.Write((int)(Y * 32));
-            stream.Write((int)(Z * 32));
-            stream.Write(Yaw);
-            stream.Write(Pitch);
-            stream.Write(CurrentItem);
+            SetCapacity(23, PlayerName);
+            Writer.Write(EntityId);
+            Writer.Write(PlayerName);
+            Writer.Write((int)(X * 32));
+            Writer.Write((int)(Y * 32));
+            Writer.Write((int)(Z * 32));
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
+            Writer.Write(CurrentItem);
         }
     }
 
@@ -599,7 +653,9 @@ namespace Chraft.Net.Packets
         public sbyte Pitch { get; set; }
         public sbyte Roll { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 25; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             ItemId = stream.ReadShort();
@@ -613,18 +669,19 @@ namespace Chraft.Net.Packets
             Roll = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(ItemId);
-            stream.Write(Count);
-            stream.Write(Durability);
-            stream.Write((int)(X * 32));
-            stream.Write((int)(Y * 32));
-            stream.Write((int)(Z * 32));
-            stream.Write(Yaw);
-            stream.Write(Pitch);
-            stream.Write(Roll);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(ItemId);
+            Writer.Write(Count);
+            Writer.Write(Durability);
+            Writer.Write((int)(X * 32));
+            Writer.Write((int)(Y * 32));
+            Writer.Write((int)(Z * 32));
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
+            Writer.Write(Roll);
         }
     }
 
@@ -633,16 +690,19 @@ namespace Chraft.Net.Packets
         public int EntityId { get; set; }
         public int PlayerId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             PlayerId = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(PlayerId);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(PlayerId);
         }
     }
 
@@ -658,7 +718,10 @@ namespace Chraft.Net.Packets
         public short UnknownB { get; set; }
         public short UnknownC { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        // TODO: length here isn't fixed, it can be 22 or 28, must understand what UnknownFlag is.
+        protected override int Length { get { return 28; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Type = (ObjectType)stream.ReadSByte();
@@ -671,17 +734,18 @@ namespace Chraft.Net.Packets
             UnknownC = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write((sbyte)Type);
-            stream.Write((int)(X * 32));
-            stream.Write((int)(Y * 32));
-            stream.Write((int)(Z * 32));
-            stream.Write(UnknownFlag);
-            stream.Write(UnknownA);
-            stream.Write(UnknownB);
-            stream.Write(UnknownC);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write((sbyte)Type);
+            Writer.Write((int)(X * 32));
+            Writer.Write((int)(Y * 32));
+            Writer.Write((int)(Z * 32));
+            Writer.Write(UnknownFlag);
+            Writer.Write(UnknownA);
+            Writer.Write(UnknownB);
+            Writer.Write(UnknownC);
         }
 
         public enum ObjectType : sbyte
@@ -711,7 +775,7 @@ namespace Chraft.Net.Packets
         public sbyte Pitch { get; set; }
         public MetaData Data { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Type = (MobType)stream.ReadByte();
@@ -723,16 +787,19 @@ namespace Chraft.Net.Packets
             Data = stream.ReadMetaData();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write((byte)Type);
-            stream.Write((int)(X * 32));
-            stream.Write((int)(Y * 32));
-            stream.Write((int)(Z * 32));
-            stream.Write(Yaw);
-            stream.Write(Pitch);
-            stream.Write(Data);
+            SetCapacity(20);
+            Writer.Write(EntityId);
+            Writer.Write((byte)Type);
+            Writer.Write((int)(X * 32));
+            Writer.Write((int)(Y * 32));
+            Writer.Write((int)(Z * 32));
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
+            Writer.Write(Data);
+            // This is because we don't know the dimension of Data in advance
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -745,7 +812,7 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public int GraphicId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Title = stream.ReadString16(13);
@@ -755,14 +822,15 @@ namespace Chraft.Net.Packets
             GraphicId = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(Title);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(GraphicId);
+            SetCapacity(23, Title);
+            Writer.Write(EntityId);
+            Writer.Write(Title);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(GraphicId);
         }
     }
 
@@ -775,7 +843,7 @@ namespace Chraft.Net.Packets
         public bool Sink5 { get; set; }
         public bool Sink6 { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Sink1 = stream.ReadFloat();
             Sink2 = stream.ReadFloat();
@@ -785,14 +853,14 @@ namespace Chraft.Net.Packets
             Sink6 = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Sink1);
-            stream.Write(Sink2);
-            stream.Write(Sink3);
-            stream.Write(Sink4);
-            stream.Write(Sink5);
-            stream.Write(Sink6);
+            Writer.Write(Sink1);
+            Writer.Write(Sink2);
+            Writer.Write(Sink3);
+            Writer.Write(Sink4);
+            Writer.Write(Sink5);
+            Writer.Write(Sink6);
         }
     }
 
@@ -803,7 +871,7 @@ namespace Chraft.Net.Packets
         public short VelocityY { get; set; }
         public short VelocityZ { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             VelocityX = stream.ReadShort();
@@ -811,12 +879,12 @@ namespace Chraft.Net.Packets
             VelocityZ = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(VelocityX);
-            stream.Write(VelocityY);
-            stream.Write(VelocityZ);
+            Writer.Write(EntityId);
+            Writer.Write(VelocityX);
+            Writer.Write(VelocityY);
+            Writer.Write(VelocityZ);
         }
     }
 
@@ -824,14 +892,17 @@ namespace Chraft.Net.Packets
     {
         public int EntityId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 5; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
+            SetCapacity();
+            Writer.Write(EntityId);
         }
     }
 
@@ -839,14 +910,17 @@ namespace Chraft.Net.Packets
     {
         public int EntityId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 5; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
+            SetCapacity();
+            Writer.Write(EntityId);
         }
     }
 
@@ -857,7 +931,9 @@ namespace Chraft.Net.Packets
         public sbyte DeltaY { get; set; }
         public sbyte DeltaZ { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 8; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             DeltaX = stream.ReadSByte();
@@ -865,12 +941,13 @@ namespace Chraft.Net.Packets
             DeltaZ = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(DeltaX);
-            stream.Write(DeltaY);
-            stream.Write(DeltaZ);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(DeltaX);
+            Writer.Write(DeltaY);
+            Writer.Write(DeltaZ);
         }
     }
 
@@ -880,18 +957,21 @@ namespace Chraft.Net.Packets
         public sbyte Yaw { get; set; }
         public sbyte Pitch { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 7; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Yaw = stream.ReadSByte();
             Pitch = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(Yaw);
-            stream.Write(Pitch);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
         }
     }
 
@@ -904,7 +984,9 @@ namespace Chraft.Net.Packets
         public sbyte Yaw { get; set; }
         public sbyte Pitch { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 10; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             DeltaX = stream.ReadSByte();
@@ -914,14 +996,15 @@ namespace Chraft.Net.Packets
             Pitch = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(DeltaX);
-            stream.Write(DeltaY);
-            stream.Write(DeltaZ);
-            stream.Write(Yaw);
-            stream.Write(Pitch);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(DeltaX);
+            Writer.Write(DeltaY);
+            Writer.Write(DeltaZ);
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
         }
     }
 
@@ -934,7 +1017,9 @@ namespace Chraft.Net.Packets
         public sbyte Yaw { get; set; }
         public sbyte Pitch { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 19; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             X = (double)stream.ReadInt() / 32.0d;
@@ -944,14 +1029,15 @@ namespace Chraft.Net.Packets
             Pitch = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write((int)(X * 32));
-            stream.Write((int)(Y * 32));
-            stream.Write((int)(Z * 32));
-            stream.Write(Yaw);
-            stream.Write(Pitch);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write((int)(X * 32));
+            Writer.Write((int)(Y * 32));
+            Writer.Write((int)(Z * 32));
+            Writer.Write(Yaw);
+            Writer.Write(Pitch);
         }
     }
 
@@ -960,16 +1046,19 @@ namespace Chraft.Net.Packets
         public int EntityId { get; set; }
         public sbyte EntityStatus { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 6; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             EntityStatus = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(EntityStatus);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(EntityStatus);
         }
     }
 
@@ -978,16 +1067,19 @@ namespace Chraft.Net.Packets
         public int EntityId { get; set; }
         public int VehicleId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             VehicleId = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(VehicleId);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(VehicleId);
         }
     }
 
@@ -996,16 +1088,19 @@ namespace Chraft.Net.Packets
         public int EntityId { get; set; }
         public MetaData Data { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Data = stream.ReadMetaData();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(Data);
+            SetCapacity(5);
+            Writer.Write(EntityId);
+            Writer.Write(Data);
+
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -1015,18 +1110,21 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public bool Load { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 10; } }
+
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Z = stream.ReadInt();
             Load = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Z);
-            stream.Write(Load);
+            SetCapacity();
+            Writer.Write(X);
+            Writer.Write(Z);
+            Writer.Write(Load);
         }
     }
 
@@ -1038,7 +1136,7 @@ namespace Chraft.Net.Packets
         public sbyte[] Types { get; set; }
         public sbyte[] Metadata { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Z = stream.ReadInt();
@@ -1055,17 +1153,18 @@ namespace Chraft.Net.Packets
 
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Z);
-            stream.Write((short)Coords.Length);
+            SetCapacity(11 + (Coords.Length * 2) + Types.Length + Metadata.Length);
+            Writer.Write(X);
+            Writer.Write(Z);
+            Writer.Write((short)Coords.Length);
             for (int i = 0; i < Coords.Length; i++)
-                stream.Write(Coords[i]);
+                Writer.Write(Coords[i]);
             for (int i = 0; i < Types.Length; i++)
-                stream.Write(Types[i]);
+                Writer.Write(Types[i]);
             for (int i = 0; i < Metadata.Length; i++)
-                stream.Write(Metadata[i]);
+                Writer.Write(Metadata[i]);
         }
     }
 
@@ -1077,7 +1176,9 @@ namespace Chraft.Net.Packets
         public byte Type { get; set; }
         public byte Data { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 12; } }
+
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadSByte();
@@ -1086,47 +1187,51 @@ namespace Chraft.Net.Packets
             Data = stream.ReadByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(Type);
-            stream.Write(Data);
+            SetCapacity();
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(Type);
+            Writer.Write(Data);
         }
     }
 
     public class BlockActionPacket : Packet
     {
         public int X { get; set; }
-        public int Y { get; set; }
+        public short Y { get; set; }
         public int Z { get; set; }
         public sbyte DataA { get; set; }
         public sbyte DataB { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 13; } }
+
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
-            Y = stream.ReadInt();
+            Y = stream.ReadShort();
             Z = stream.ReadInt();
             DataA = stream.ReadSByte();
             DataB = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(DataA);
-            stream.Write(DataB);
+            SetCapacity();
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(DataA);
+            Writer.Write(DataB);
         }
 
         #region Note Block Action
         public void SetNoteBlockAction(int x, int y, int z, Instrument instrument, Pitch pitch)
         {
             X = x;
-            Y = y;
+            Y = (short)y;
             Z = z;
             DataA = (sbyte)instrument;
             DataB = (sbyte)pitch;
@@ -1175,7 +1280,7 @@ namespace Chraft.Net.Packets
         public void SetPistonAction(int x, int y, int z, PistonState state, PistonDirection direction)
         {
             X = x;
-            Y = y;
+            Y = (short)y;
             Z = z;
             DataA = (sbyte)state;
             DataB = (sbyte)direction;
@@ -1208,7 +1313,7 @@ namespace Chraft.Net.Packets
         public float Radius { get; set; }
         public sbyte[,] Offsets { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadDouble();
             Y = stream.ReadDouble();
@@ -1224,18 +1329,18 @@ namespace Chraft.Net.Packets
 
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(Radius);
-            stream.Write((int)Offsets.GetLength(0));
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(Radius);
+            Writer.Write((int)Offsets.GetLength(0));
             for (int i = 0; i < Offsets.GetLength(0); i++)
             {
-                stream.Write(Offsets[i, 0]);
-                stream.Write(Offsets[i, 1]);
-                stream.Write(Offsets[i, 2]);
+                Writer.Write(Offsets[i, 0]);
+                Writer.Write(Offsets[i, 1]);
+                Writer.Write(Offsets[i, 2]);
             }
         }
     }
@@ -1263,7 +1368,9 @@ namespace Chraft.Net.Packets
         /// </summary>
         public int SoundData { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 18; } }
+
+        public override void Read(PacketReader stream)
         {
             EffectID = (SoundEffect)stream.ReadInt();
             X = stream.ReadInt();
@@ -1272,13 +1379,14 @@ namespace Chraft.Net.Packets
             SoundData = stream.ReadInt();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write((int)EffectID);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write((int)SoundData);
+            SetCapacity();
+            Writer.Write((int)EffectID);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(SoundData);
         }
 
         public enum SoundEffect : int
@@ -1314,7 +1422,7 @@ namespace Chraft.Net.Packets
         public string WindowTitle { get; set; }
         public sbyte SlotCount { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             InventoryType = (InterfaceType)stream.ReadSByte();
@@ -1322,12 +1430,13 @@ namespace Chraft.Net.Packets
             SlotCount = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write((sbyte)InventoryType);
-            stream.Write(WindowTitle);
-            stream.Write(SlotCount);
+            SetCapacity(6, WindowTitle);
+            Writer.Write(WindowId);
+            Writer.Write((sbyte)InventoryType);
+            Writer.Write(WindowTitle);
+            Writer.Write(SlotCount);
         }
     }
 
@@ -1338,7 +1447,9 @@ namespace Chraft.Net.Packets
         public short Quantity { get; set; }
         public short Damage { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader stream)
         {
             Slot = stream.ReadShort();
             ItemID = stream.ReadShort();
@@ -1346,12 +1457,13 @@ namespace Chraft.Net.Packets
             Damage = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Slot);
-            stream.Write(ItemID);
-            stream.Write(Quantity);
-            stream.Write(Damage);
+            SetCapacity();
+            Writer.Write(Slot);
+            Writer.Write(ItemID);
+            Writer.Write(Quantity);
+            Writer.Write(Damage);
         }
     }
 
@@ -1359,14 +1471,14 @@ namespace Chraft.Net.Packets
     {
         public sbyte WindowId { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
+            Writer.Write(WindowId);
         }
     }
 
@@ -1379,7 +1491,7 @@ namespace Chraft.Net.Packets
         public bool Shift { get; set; }
         public ItemStack Item { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             Slot = stream.ReadShort();
@@ -1389,14 +1501,14 @@ namespace Chraft.Net.Packets
             Item = ItemStack.Read(stream);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write(Slot);
-            stream.Write(RightClick);
-            stream.Write(Transaction);
-            stream.Write(Shift);
-            (Item ?? ItemStack.Void).Write(stream);
+            Writer.Write(WindowId);
+            Writer.Write(Slot);
+            Writer.Write(RightClick);
+            Writer.Write(Transaction);
+            Writer.Write(Shift);
+            (Item ?? ItemStack.Void).Write(Writer);
         }
     }
 
@@ -1406,18 +1518,21 @@ namespace Chraft.Net.Packets
         public short Slot { get; set; }
         public ItemStack Item { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return (Item == null || Item.Type == -1) ? 6 : 9; } }
+
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             Slot = stream.ReadShort();
             Item = ItemStack.Read(stream);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write(Slot);
-            (Item ?? ItemStack.Void).Write(stream);
+            SetCapacity();
+            Writer.Write(WindowId);
+            Writer.Write(Slot);
+            (Item ?? ItemStack.Void).Write(Writer);
         }
     }
 
@@ -1426,7 +1541,7 @@ namespace Chraft.Net.Packets
         public sbyte WindowId { get; set; }
         public ItemStack[] Items { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             Items = new ItemStack[stream.ReadShort()];
@@ -1434,12 +1549,15 @@ namespace Chraft.Net.Packets
                 Items[i] = ItemStack.Read(stream);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write((short)Items.Length);
+            SetCapacity(4);
+            Writer.Write(WindowId);
+            Writer.Write((short)Items.Length);
             for (int i = 0; i < Items.Length; i++)
-                (Items[i] ?? ItemStack.Void).Write(stream);
+                (Items[i] ?? ItemStack.Void).Write(Writer);
+
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -1461,18 +1579,21 @@ namespace Chraft.Net.Packets
         /// </summary>
         public short Value { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 6; } }
+
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             ProgressBar = stream.ReadShort();
             Value = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write(ProgressBar);
-            stream.Write(Value);
+            SetCapacity();
+            Writer.Write(WindowId);
+            Writer.Write(ProgressBar);
+            Writer.Write(Value);
         }
     }
 
@@ -1482,18 +1603,21 @@ namespace Chraft.Net.Packets
         public short Transaction { get; set; }
         public bool Accepted { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 5; } }
+
+        public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             Transaction = stream.ReadShort();
             Accepted = stream.ReadBool();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(WindowId);
-            stream.Write(Transaction);
-            stream.Write(Accepted);
+            SetCapacity();
+            Writer.Write(WindowId);
+            Writer.Write(Transaction);
+            Writer.Write(Accepted);
         }
     }
 
@@ -1504,7 +1628,7 @@ namespace Chraft.Net.Packets
         public int Z { get; set; }
         public string[] Lines { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             X = stream.ReadInt();
             Y = stream.ReadShort();
@@ -1514,13 +1638,14 @@ namespace Chraft.Net.Packets
                 Lines[i] = stream.ReadString16(25);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
+            SetCapacity(19, Lines[0], Lines[1], Lines[2], Lines[3]);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
             for (int i = 0; i < Lines.Length; i++)
-                stream.Write(Lines[i]);
+                Writer.Write(Lines[i]);
         }
     }
 
@@ -1530,12 +1655,15 @@ namespace Chraft.Net.Packets
     /// </summary>
     public class ServerListPingPacket : Packet
     {
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 1; } }
+        
+        public override void Read(PacketReader stream)
         {
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
+            SetCapacity();
         }
     }
 
@@ -1543,14 +1671,15 @@ namespace Chraft.Net.Packets
     {
         public string Reason { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        public override void Read(PacketReader stream)
         {
             Reason = stream.ReadString16(100);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(Reason);
+            SetCapacity(3, Reason);
+            Writer.Write(Reason);
         }
     }
 
@@ -1563,7 +1692,9 @@ namespace Chraft.Net.Packets
         public byte TextLength { get; set; }
         public byte[] Text { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 6 + Text.Length; } }
+
+        public override void Read(PacketReader stream)
         {
             UnknownConstantValue = stream.ReadShort();
             UnknownMapId = stream.ReadShort();
@@ -1571,13 +1702,14 @@ namespace Chraft.Net.Packets
             Text = stream.ReadBytes(TextLength);
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(UnknownConstantValue);
-            stream.Write(UnknownMapId);
-            stream.Write(TextLength);
+            SetCapacity();
+            Writer.Write(UnknownConstantValue);
+            Writer.Write(UnknownMapId);
+            Writer.Write(TextLength);
             for (int i = 0; i < TextLength; i++)
-                stream.Write(Text[i]);
+                Writer.Write(Text[i]);
         }
     }
 
@@ -1586,7 +1718,9 @@ namespace Chraft.Net.Packets
         public NewInvalidReason Reason { get; set; }
         public byte GameMode { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return Reason == NewInvalidReason.ChangeGameMode ? 3 : 2; } }
+
+        public override void Read(PacketReader stream)
         {
             Reason = (NewInvalidReason)stream.ReadByte();
             if (Reason == NewInvalidReason.ChangeGameMode)
@@ -1595,12 +1729,13 @@ namespace Chraft.Net.Packets
             }
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write((byte)Reason);
+            SetCapacity();
+            Writer.Write((byte)Reason);
             if (Reason == NewInvalidReason.ChangeGameMode)
             {
-                stream.Write(GameMode);
+                Writer.Write(GameMode);
             }
         }
 
@@ -1618,16 +1753,19 @@ namespace Chraft.Net.Packets
         public Statistics Statistic { get; set; }
         public byte Amount { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 6; } }
+
+        public override void Read(PacketReader stream)
         {
             Statistic = (Statistics)stream.ReadInt();
             Amount = stream.ReadByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write((int)Statistic);
-            stream.Write(Amount);
+            SetCapacity();
+            Writer.Write((int)Statistic);
+            Writer.Write(Amount);
         }
 
         public enum Statistics
@@ -1669,7 +1807,9 @@ namespace Chraft.Net.Packets
         public double Y { get; set; }
         public double Z { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 18; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Unknown = stream.ReadBool();
@@ -1678,13 +1818,14 @@ namespace Chraft.Net.Packets
             Z = stream.ReadDoublePacked();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(Unknown);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(Unknown);
+            Writer.Write((int)X);
+            Writer.Write((int)Y);
+            Writer.Write((int)Z);
         }
     }
 
@@ -1697,7 +1838,9 @@ namespace Chraft.Net.Packets
         public int Y { get; set; }
         public int Z { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 19; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             X = stream.ReadInt();
@@ -1706,13 +1849,14 @@ namespace Chraft.Net.Packets
             Count = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write(X);
-            stream.Write(Y);
-            stream.Write(Z);
-            stream.Write(Count);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(Count);
         }
     }
 
@@ -1723,7 +1867,9 @@ namespace Chraft.Net.Packets
         public byte Amplifier { get; set; }
         public short Duration { get; set; }
 
-        public override void Read(BigEndianStream stream)
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Effect = (EntityEffects)stream.ReadByte();
@@ -1731,12 +1877,13 @@ namespace Chraft.Net.Packets
             Duration = stream.ReadShort();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write((byte)Effect);
-            stream.Write(Amplifier);
-            stream.Write(Duration);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write((byte)Effect);
+            Writer.Write(Amplifier);
+            Writer.Write(Duration);
         }
     }
 
@@ -1744,16 +1891,20 @@ namespace Chraft.Net.Packets
     {
         public int EntityId { get; set; }
         public EntityEffects Effect { get; set; }
-        public override void Read(BigEndianStream stream)
+
+        protected override int Length { get { return 6; } }
+
+        public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Effect = (EntityEffects)stream.ReadByte();
         }
 
-        public override void Write(BigEndianStream stream)
+        public override void Write()
         {
-            stream.Write(EntityId);
-            stream.Write((byte)Effect);
+            SetCapacity();
+            Writer.Write(EntityId);
+            Writer.Write((byte)Effect);
         }
     }
 

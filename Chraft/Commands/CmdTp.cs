@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -16,14 +17,14 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Server.GetClients(tokens[1]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[1]).ToArray();
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown player.");
                 return;
             }
-            client.World = targets[0].World;
-            client.TeleportTo(targets[0].Position.X, targets[0].Position.Y, targets[0].Position.Z);
+            client.Owner.World = targets[0].Owner.World;
+            client.Owner.TeleportTo(targets[0].Owner.Position.X, targets[0].Owner.Position.Y, targets[0].Owner.Position.Z);
         }
 
         public void Help(Client client)
@@ -63,7 +64,7 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Server.GetClients(tokens[1]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[1]).ToArray();
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown payer.");
@@ -71,8 +72,8 @@ namespace Chraft.Commands
             }
             foreach (Client c in targets)
             {
-                c.World = client.World;
-                c.TeleportTo(client.Position.X, client.Position.Y, client.Position.Z);
+                c.Owner.World = client.Owner.World;
+                c.Owner.TeleportTo(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Chraft.Net;
 using Chraft.Net.Packets;
 
 namespace Chraft.Commands
@@ -16,19 +17,19 @@ namespace Chraft.Commands
                 client.SendMessage("§cUsage <player> <mode>");
                 return;
             }
-            Client c = client.Server.GetClients(tokens[1]).FirstOrDefault();
+            Client c = client.Owner.Server.GetClients(tokens[1]).FirstOrDefault();
             if (c != null)
             {
-                if (c.GameMode == Convert.ToByte(tokens[2]))
+                if (c.Owner.GameMode == Convert.ToByte(tokens[2]))
                 {
                     client.SendMessage("§7You are already in that mode");
                     return;
                 }
                 c.SendPacket(new NewInvalidStatePacket
-                                      {
-                                          GameMode = c.GameMode = Convert.ToByte(tokens[2]),
-                                          Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
-                                      });
+                {
+                    GameMode = c.Owner.GameMode = Convert.ToByte(tokens[2]),
+                    Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
+                });
             }
             else
             {

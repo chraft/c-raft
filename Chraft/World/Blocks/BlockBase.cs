@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
@@ -128,7 +129,7 @@ namespace Chraft.World.Blocks
 
             DropItems(entity, block);
 
-            DamageItem(entity);
+            //DamageItem(entity);
         }
 
         /// <summary>
@@ -185,7 +186,7 @@ namespace Chraft.World.Blocks
         {
             foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
             {
-                cl.PacketHandler.SendPacket(new SoundEffectPacket
+                cl.SendPacket(new SoundEffectPacket
                 {
                     EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
                     X = block.X,
@@ -244,9 +245,9 @@ namespace Chraft.World.Blocks
         /// <param name="entity">the entity who placed the block</param>
         protected virtual void RemoveItem(EntityBase entity)
         {
-            Client client = entity as Client;
-            if (client != null && client.GameMode == 0)
-                client.Inventory.RemoveItem(client.Inventory.ActiveSlot);
+            Player player = entity as Player;
+            if (player != null && player.GameMode == 0)
+                player.Inventory.RemoveItem(player.Inventory.ActiveSlot);
         }
 
         /// <summary>
@@ -255,9 +256,9 @@ namespace Chraft.World.Blocks
         /// <param name="entity">the entity who destroyed the block</param>
         protected virtual void DamageItem(EntityBase entity)
         {
-            Client client = entity as Client;
-            if (client != null && client.GameMode == 0)
-                client.Inventory.DamageItem(client.Inventory.ActiveSlot);
+            Player player = entity as Player;
+            if (player != null && player.GameMode == 0)
+                player.Inventory.DamageItem(player.Inventory.ActiveSlot);
         }
 
         /// <summary>

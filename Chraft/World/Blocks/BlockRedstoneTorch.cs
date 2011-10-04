@@ -23,8 +23,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            Client client = (entity as Client);
-            if (client == null)
+            Player player = (entity as Player);
+            if (player == null)
                 return;
             if (face == BlockFace.Down)
                 return;

@@ -22,14 +22,14 @@ namespace Chraft.World.Blocks
         protected override void  DropItems(EntityBase entity, StructBlock block)
         {
             LootTable = new List<ItemStack>();
-            Client client = entity as Client;
-            if (client != null)
+            Player player = entity as Player;
+            if (player != null)
             {
-                if (client.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
-                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Spade ||
-                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Spade ||
-                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
-                    client.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
+                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Spade ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Spade ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
                 {
                     LootTable.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
                 }

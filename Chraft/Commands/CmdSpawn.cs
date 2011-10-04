@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -11,7 +12,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.TeleportTo(client.World.Spawn.X, client.World.Spawn.Y + 1, client.World.Spawn.Z);
+            client.Owner.TeleportTo(client.Owner.World.Spawn.X, client.Owner.World.Spawn.Y, client.Owner.World.Spawn.Z);
         }
 
         public void Help(Client client)

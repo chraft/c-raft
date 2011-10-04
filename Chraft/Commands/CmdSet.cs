@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 using Chraft.World;
 using Chraft.Interfaces;
 
@@ -23,7 +24,7 @@ namespace Chraft.Commands
             PointI start = client.SelectionStart.Value;
             PointI end = client.SelectionEnd.Value;
 
-            ItemStack item = client.Server.Items[tokens[1]];
+            ItemStack item = client.Owner.Server.Items[tokens[1]];
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
@@ -41,7 +42,7 @@ namespace Chraft.Commands
                 {
                     for (int z = start.Z; z <= end.Z; z++)
                     {
-                        client.World.SetBlockAndData(x, y, z, (byte)item.Type, (byte)item.Durability);
+                        client.Owner.World.SetBlockAndData(x, y, z, (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }

@@ -54,11 +54,11 @@ namespace Chraft.World.Blocks
 
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client != null)
+            Player player = entity as Player;
+            if (player != null)
             {
                 SmallChestInterface sci = new SmallChestInterface(block.World, block.X, block.Y, block.Z);
-                sci.Associate(client);
+                sci.Associate(player);
                 sci.DropAll(block.X, block.Y, block.Z);
                 sci.Save();
             }
@@ -67,10 +67,10 @@ namespace Chraft.World.Blocks
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client == null)
+            Player player = entity as Player;
+            if (player == null)
                 return;
-            if (client.CurrentInterface != null)
+            if (player.CurrentInterface != null)
                 return;
 
             if (!block.World.BlockHelper.Instance(block.World.GetBlockId(block.X, block.Y, block.Z)).IsAir)
@@ -79,7 +79,7 @@ namespace Chraft.World.Blocks
                 return;
             }
 
-            Chunk chunk = client.World.GetBlockChunk(block.X, block.Y, block.Z);
+            Chunk chunk = player.World.GetBlockChunk(block.X, block.Y, block.Z);
 
             // Double chest?
             // TODO: simplify chunk API so that no bit shifting is required
@@ -98,28 +98,28 @@ namespace Chraft.World.Blocks
 
                 if ((byte)nsewBlocks[0] == block.Type) // North
                 {
-                    client.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[0], new PointI(block.X, block.Y, block.Z));
+                    player.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[0], new PointI(block.X, block.Y, block.Z));
                 }
                 else if ((byte)nsewBlocks[2] == block.Type) // East
                 {
-                    client.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[2], new PointI(block.X, block.Y, block.Z));
+                    player.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[2], new PointI(block.X, block.Y, block.Z));
                 }
                 else if ((byte)nsewBlocks[1] == block.Type) // South
                 {
-                    client.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[1]);
+                    player.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[1]);
                 }
                 else if ((byte)nsewBlocks[3] == block.Type) // West
                 {
-                    client.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[3]);
+                    player.CurrentInterface = new LargeChestInterface(block.World, new PointI(block.X, block.Y, block.Z), nsewBlockPositions[3]);
                 }
             }
             else
             {
-                client.CurrentInterface = new SmallChestInterface(block.World, block.X, block.Y, block.Z);
+                player.CurrentInterface = new SmallChestInterface(block.World, block.X, block.Y, block.Z);
             }
 
-            client.CurrentInterface.Associate(client);
-            client.CurrentInterface.Open();
+            player.CurrentInterface.Associate(player);
+            player.CurrentInterface.Open();
         }
 
     }

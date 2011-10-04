@@ -23,8 +23,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            Client client = (entity as Client);
-            if (client == null)
+            Player player = (entity as Player);
+            if (player == null)
                 return;
 
             switch (face) //Bugged, as the client has a mind of its own for facing
@@ -42,7 +42,7 @@ namespace Chraft.World.Blocks
                     block.MetaData = (byte)MetaData.Furnace.South;
                     break;
                 default:
-                    switch (client.FacingDirection(4)) // Built on floor, set by facing dir
+                    switch (player.Client.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
                             block.MetaData = (byte)MetaData.Furnace.North;
@@ -67,14 +67,14 @@ namespace Chraft.World.Blocks
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Client client = entity as Client;
-            if (client == null)
+            Player player = entity as Player;
+            if (player == null)
                 return;
-            if (client.CurrentInterface != null)
+            if (player.CurrentInterface != null)
                 return;
-            client.CurrentInterface = new WorkbenchInterface();
-            client.CurrentInterface.Associate(client);
-            ((WorkbenchInterface)client.CurrentInterface).Open(block.X, block.Y, block.Z);
+            player.CurrentInterface = new WorkbenchInterface();
+            player.CurrentInterface.Associate(player);
+            ((WorkbenchInterface)player.CurrentInterface).Open(block.X, block.Y, block.Z);
         }
     }
 }

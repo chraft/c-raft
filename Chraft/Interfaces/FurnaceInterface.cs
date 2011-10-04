@@ -64,7 +64,7 @@ namespace Chraft.Interfaces
             {
                 foreach (var furnaceInterface in this.Interfaces)
                 {
-                    furnaceInterface.PacketHandler.SendPacket(new UpdateProgressBarPacket
+                    furnaceInterface.Owner.Client.SendPacket(new UpdateProgressBarPacket
                     {
                         WindowId = furnaceInterface.Handle,
                         ProgressBar = 1,
@@ -174,7 +174,7 @@ namespace Chraft.Interfaces
                     if ((this.Cursor.Type < 256 && !BlockData.BlockBurnEfficiency.ContainsKey((BlockData.Blocks)this.Cursor.Type)) ||
                         (this.Cursor.Type >= 256 && !BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)this.Cursor.Type)))
                     {
-                        PacketHandler.SendPacket(new TransactionPacket
+                        Owner.Client.SendPacket(new TransactionPacket
                         {
                             Accepted = false,
                             Transaction = packet.Transaction,
@@ -193,7 +193,7 @@ namespace Chraft.Interfaces
 
                     if (recipe == null)
                     {
-                        PacketHandler.SendPacket(new TransactionPacket
+                        Owner.Client.SendPacket(new TransactionPacket
                         {
                             Accepted = false,
                             Transaction = packet.Transaction,
@@ -209,12 +209,12 @@ namespace Chraft.Interfaces
                 {
                     if (ItemStack.IsVoid(this[OUTPUT_SLOT]))
                     {
-                        PacketHandler.SendPacket(new TransactionPacket
-                            {
-                                Accepted = false,
-                                Transaction = packet.Transaction,
-                                WindowId = packet.WindowId
-                            });
+                        Owner.Client.SendPacket(new TransactionPacket
+                        {
+                            Accepted = false,
+                            Transaction = packet.Transaction,
+                            WindowId = packet.WindowId
+                        });
                         return;
                     }
                     else
@@ -223,7 +223,7 @@ namespace Chraft.Interfaces
                         {
                             if (!Cursor.StacksWith(this[OUTPUT_SLOT]) || Cursor.Count + this[OUTPUT_SLOT].Count > 64)
                             {
-                                PacketHandler.SendPacket(new TransactionPacket
+                                Owner.Client.SendPacket(new TransactionPacket
                                 {
                                     Accepted = false,
                                     Transaction = packet.Transaction,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity;
+using Chraft.Net;
 using Chraft.World;
 using Chraft.Utils;
 
@@ -22,8 +23,8 @@ namespace Chraft.Plugins.Events.Args
 
     public class EntityDeathEventArgs : EntityEventArgs 
     {
-        public Client KilledBy { get; set; }
-        public EntityDeathEventArgs(EntityBase entity, Client killedBy)
+        public Player KilledBy { get; set; }
+        public EntityDeathEventArgs(EntityBase entity, Player killedBy)
             : base(entity)
         {
             KilledBy = killedBy;
@@ -54,10 +55,10 @@ namespace Chraft.Plugins.Events.Args
     public class EntityDamageEventArgs : EntityEventArgs
     {
         public short Damage { get; set; }
-        public Client DamagedBy { get; set; }
+        public Player DamagedBy { get; set; }
         public DamageCause Cause { get; set; }
 
-        public EntityDamageEventArgs(EntityBase entity, short damage, Client damagedBy, DamageCause cause)
+        public EntityDamageEventArgs(EntityBase entity, short damage, Player damagedBy, DamageCause cause)
             : base(entity)
         {
             Damage = damage;

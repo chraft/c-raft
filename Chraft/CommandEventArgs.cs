@@ -1,5 +1,6 @@
 ﻿using System;
 using Chraft.Commands;
+using Chraft.Net;
 
 namespace Chraft
 {

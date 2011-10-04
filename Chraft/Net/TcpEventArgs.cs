@@ -11,16 +11,16 @@ namespace Chraft.Net
 		/// <summary>
 		/// The TCP client associated with the event.
 		/// </summary>
-		public TcpClient Tcp { get; private set; }
+		public Socket TcpSocket { get; private set; }
 		
 		/// <summary>
 		/// Whether or not the TCP event was cancelled
 		/// </summary>
 		public bool Cancelled { get; set; }
 
-		internal TcpEventArgs(TcpClient tcp)
+		internal TcpEventArgs(Socket socket)
 		{
-			Tcp = tcp;
+            TcpSocket = socket;
 		}
 	}
 }

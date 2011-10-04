@@ -15,9 +15,9 @@ namespace Chraft.Interfaces
 		{
 		}
 
-		public override void Associate(Client client)
+		public override void Associate(Player player)
 		{
-			base.Associate(client);
+			base.Associate(player);
 		}
 
         bool _useProvidedDropCoordinates = false;
@@ -52,7 +52,7 @@ namespace Chraft.Interfaces
             }
             else
             {
-                base.DropAll((int)this.Client.Position.X, (int)this.Client.Position.Y, (int)this.Client.Position.Z);
+                base.DropAll((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z);
             }
         }
 	}

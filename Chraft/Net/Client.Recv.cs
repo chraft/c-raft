@@ -12,10 +12,11 @@ using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Properties;
+using System.Net.Sockets;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Interfaces;
 
-namespace Chraft
+namespace Chraft.Net
 {
     public partial class Client
     {
@@ -41,6 +42,7 @@ namespace Chraft
         double _beginInAirY = -1;
         double _lastGroundY = -1;
         bool _onGround = false;
+
         public bool OnGround
         {
             get
@@ -52,13 +54,13 @@ namespace Chraft
                 if (_onGround != value)
                 {
                     _onGround = value;
-
+                    
                     // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z);
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId((int)_Player.Position.X, (int)_Player.Position.Y, (int)_Player.Position.Z);
 
                     if (!_onGround)
                     {
-                        _beginInAirY = this.Position.Y;
+                        _beginInAirY = _Player.Position.Y;
                         _inAirStartTime = DateTime.Now;
 #if DEBUG
                         this.SendMessage("In air");
@@ -72,18 +74,18 @@ namespace Chraft
 
                         double blockCount = 0;
 
-                        if (_lastGroundY < this.Position.Y)
+                        if (_lastGroundY < _Player.Position.Y)
                         {
                             // We have climbed (using _lastGroundY gives us a more accurate value than using _beginInAirY when climbing)
-                            blockCount = (_lastGroundY - this.Position.Y);
+                            blockCount = (_lastGroundY - _Player.Position.Y);
                         }
                         else
                         {
                             // We have fallen
                             double startY = Math.Max(_lastGroundY, _beginInAirY);
-                            blockCount = (startY - this.Position.Y);
+                            blockCount = (startY - _Player.Position.Y);
                         }
-                        _lastGroundY = this.Position.Y;
+                        _lastGroundY = _Player.Position.Y;
 
                         if (blockCount != 0)
                         {
@@ -102,7 +104,7 @@ namespace Chraft
                                 while (BlockData.IsLiquid(block))
                                 {
                                     waterCount++;
-                                    block = (BlockData.Blocks)this.World.GetBlockId((int)this.Position.X, (int)this.Position.Y + waterCount, (int)this.Position.Z);
+                                    block = (BlockData.Blocks)_Player.World.GetBlockId((int)_Player.Position.X, (int)_Player.Position.Y + waterCount, (int)_Player.Position.Z);
                                 }
 
                                 fallDamage -= waterCount * 16;
@@ -113,7 +115,7 @@ namespace Chraft
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
                                     DamageClient(DamageCause.Fall, null, roundedValue);
 
-                                    if (this.Health <= 0)
+                                    if (_Player.Health <= 0)
                                     {
                                         // Make sure that we don't think we have fallen onto the respawn
                                         _lastGroundY = -1;
@@ -147,135 +149,159 @@ namespace Chraft
         }
         public double Stance { get; set; }
 
-        private void InitializeRecv()
-        {
-            InitializeRecvBasic();
-            InitializeRecvPlayer();
-            InitializeRecvInterface();
-            InitializeRecvUse();
-        }
+        private readonly object _QueueSwapLock = new object();
 
-        private void InitializeRecvUse()
-        {
-            PacketHandler.UseEntity += new PacketEventHandler<UseEntityPacket>(PacketHandler_UseEntity);
-            PacketHandler.UseBed += new PacketEventHandler<UseBedPacket>(PacketHandler_UseBed);
-        }
+        public int TimesEnqueuedForRecv;
 
-        private void InitializeRecvInterface()
+        public ByteQueue GetBufferToProcess()
         {
-            PacketHandler.CloseWindow += PacketHandler_CloseWindow;
-            PacketHandler.WindowClick += PacketHandler_WindowClick;
-        }
-
-        private void InitializeRecvBasic()
-        {
-            PacketHandler.ChatMessage += PacketHandler_ChatMessage;
-            PacketHandler.LoginRequest += PacketHandler_LoginRequest;
-            PacketHandler.Handshake += PacketHandler_Handshake;
-            PacketHandler.Disconnect += PacketHandler_Disconnect;
-            PacketHandler.ServerListPing += PacketHandler_ServerListPing;
-            PacketHandler.KeepAlive += new PacketEventHandler<KeepAlivePacket>(PacketHandler_KeepAlive);
-
-        }
-
-        void PacketHandler_KeepAlive(object sender, PacketEventArgs<KeepAlivePacket> e)
-        {
-            _lastClientResponse = DateTime.Now;
-            if (_lastKeepAliveId > 0 && e.Packet.KeepAliveID == _lastKeepAliveId)
+            lock(_QueueSwapLock)
             {
-                this.Ping = (int)Math.Round((DateTime.Now - _keepAliveStart).TotalMilliseconds, MidpointRounding.AwayFromZero);
+                ByteQueue temp = _CurrentBuffer;
+                _CurrentBuffer = _ProcessedBuffer;
+                _ProcessedBuffer = temp;
+            }
+
+            return _ProcessedBuffer;
+        }
+
+        private void Recv_Start()
+        {
+            if (!Running)
+            {
+                DisposeRecvSystem();
+                return;
+            }
+
+            //Logger.Log(Chraft.Logger.LogLevel.Info, "Start receiving");
+
+            try
+            {
+                bool pending = _Socket.ReceiveAsync(_RecvSocketEvent);
+
+                if (!pending)
+                    Recv_Process(_RecvSocketEvent);
+            }
+            catch (Exception e)
+            {
+                _Player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
+                MarkToDispose();
+                DisposeRecvSystem();
+            }
+            
+        }
+
+        private void Recv_Process(SocketAsyncEventArgs e)
+        {
+            if(e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+            {
+                lock (_QueueSwapLock)
+                    _CurrentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
+
+                int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
+
+                if((newValue - 1) == 0)
+                    Server.RecvClientQueue.Enqueue(this);
+
+                _Player.Server.NetworkSignal.Set();
+
+                Recv_Start();
+            }
+        }
+
+        private void Recv_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            if(!Running)
+                DisposeRecvSystem();
+            else
+                Recv_Process(e);
+        }
+
+        public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
+        {
+            client.LastClientResponse = DateTime.Now;
+            if (client.LastKeepAliveId > 0 && packet.KeepAliveID == client.LastKeepAliveId)
+            {
+                client.Ping = (int)Math.Round((DateTime.Now - client.KeepAliveStart).TotalMilliseconds, MidpointRounding.AwayFromZero);
             }
 
         }
 
-        private void InitializeRecvPlayer()
+        public static void HandlePacketCreativeInventoryAction(Client client, CreativeInventoryActionPacket packet)
         {
-            PacketHandler.Animation += new PacketEventHandler<AnimationPacket>(PacketHandler_Animation);
-            PacketHandler.PlayerPosition += PacketHandler_PlayerPosition;
-            PacketHandler.PlayerPositionRotation += PacketHandler_PlayerPositionRotation;
-            PacketHandler.PlayerRotation += PacketHandler_PlayerRotation;
-            PacketHandler.PlayerDigging += PacketHandler_PlayerDigging;
-            PacketHandler.Player += PacketHandler_Player;
-            PacketHandler.PlayerBlockPlacement += PacketHandler_PlayerBlockPlacement;
-            PacketHandler.HoldingChange += PacketHandler_HoldingChange;
-            PacketHandler.Respawn += PacketHander_Respawn; // Does this need a new handler?
-            PacketHandler.CreativeInventoryAction += PacketHandler_CreativeInventoryAction;
-        }
-
-        void PacketHandler_CreativeInventoryAction(object sender, PacketEventArgs<CreativeInventoryActionPacket> e)
-        {
-            if (GameMode == 1)
-                Inventory[e.Packet.Slot] = new ItemStack(e.Packet.ItemID, (sbyte)e.Packet.Quantity, e.Packet.Damage);
+            if (client.Owner.GameMode == 1)
+                client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
             else
-                Kick("Invalid action: CreativeInventoryAction");
+                client.Kick("Invalid action: CreativeInventoryAction");
         }
 
-        private void PacketHandler_Animation(object sender, PacketEventArgs<AnimationPacket> e)
+        public static void HandlePacketAnimation(Client client, AnimationPacket packet)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            Player p = client.Owner;
+            foreach (Client c in p.Server.GetNearbyPlayers(p.World, p.Position.X, p.Position.Y, p.Position.Z))
             {
-                if (c == this)
+                if (c == client)
                     continue;
-                c.PacketHandler.SendPacket(new AnimationPacket
+                c.SendPacket(new AnimationPacket
                 {
-                    Animation = e.Packet.Animation,
-                    PlayerId = this.EntityId
+                    Animation = packet.Animation,
+                    PlayerId = p.EntityId
                 });
             }
         }
 
-        private void PacketHander_Respawn(object sender, PacketEventArgs<RespawnPacket> e)
+        public static void HandlePacketRespawn(Client client, RespawnPacket packet)
         {
-            HandleRespawn();
+            client.Owner.HandleRespawn();
         }
 
-        private void PacketHandler_ChatMessage(object sender, PacketEventArgs<ChatMessagePacket> e)
+        public static void HandlePacketChatMessage(Client client, ChatMessagePacket packet)
         {
-            string clean = Chat.CleanMessage(e.Packet.Message);
+            string clean = Chat.CleanMessage(packet.Message);
 
             if (clean.StartsWith("/"))
-                ExecuteCommand(clean.Substring(1));
+                client.ExecuteCommand(clean.Substring(1));
             else
-                ExecuteChat(clean);
+                client.ExecuteChat(clean);
         }
 
 
         #region Use
 
-        private void PacketHandler_UseBed(object sender, PacketEventArgs<UseBedPacket> e)
+        public static void HandlePacketUseBed(Client client, UseBedPacket packet)
         {
             throw new NotImplementedException();
         }
 
-        private void PacketHandler_UseEntity(object sender, PacketEventArgs<UseEntityPacket> e)
+        public static void HandlePacketUseEntity(Client client, UseEntityPacket packet)
         {
             //Console.WriteLine(e.Packet.Target);
             //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
-
-            foreach (EntityBase eb in Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z))
+            Player handledPlayer = client.Owner;
+            foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntities(handledPlayer.World, handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z))
             {
-                if (eb.EntityId != e.Packet.Target)
+                if (eb.EntityId != packet.Target)
                     continue;
 
-                if (eb is Client)
+                if (eb is Player)
                 {
-                    Client c = (Client)eb;
+                    Player player = (Player)eb;
 
-                    if (e.Packet.LeftClick)
+                    if (packet.LeftClick)
                     {
-                        if (c.Health > 0)
-                            c.DamageClient(DamageCause.EntityAttack, this, 0);
+                        if (player.Health > 0)
+                            player.Client.DamageClient(DamageCause.EntityAttack, handledPlayer, 0);
                     }
                     else
                     {
                         // TODO: Store the object being ridden, so we can update player movement.
                         // This will ride the entity, sends -1 to dismount.
-                        foreach (Client cl in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+                        foreach (Client cl in handledPlayer.Server.GetNearbyPlayers(handledPlayer.World, handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z))
                         {
-                            cl.PacketHandler.SendPacket(new AttachEntityPacket
+                            cl.SendPacket(new AttachEntityPacket
                             {
-                                EntityId = this.EntityId,
-                                VehicleId = c.EntityId
+                                EntityId = handledPlayer.EntityId,
+                                VehicleId = player.EntityId
                             });
                         }
                     }
@@ -284,15 +310,15 @@ namespace Chraft
                 {
                     Mob m = (Mob)eb;
 
-                    if (e.Packet.LeftClick)
+                    if (packet.LeftClick)
                     {
                         if (m.Health > 0)
-                            m.DamageMob(this);
+                            m.DamageMob(handledPlayer);
                     }
                     else
                     {
                         // We are interacting with a Mob - tell it what we are using to interact with it
-                        m.InteractWith(this, this.Inventory.ActiveItem);
+                        m.InteractWith(handledPlayer.Client, handledPlayer.Inventory.ActiveItem);
 
                         // TODO: move the following to appropriate mob locations
                         // TODO: Check Entity has saddle set.
@@ -319,32 +345,32 @@ namespace Chraft
 
         #region Interfaces
 
-        private void PacketHandler_WindowClick(object sender, PacketEventArgs<WindowClickPacket> e)
+        public static void HandlePacketWindowClick(Client client, WindowClickPacket packet)
         {
-            Interface iface = CurrentInterface ?? Inventory;
-            iface.OnClicked(e.Packet);
+            Interface iface = client.Owner.CurrentInterface ?? client.Owner.Inventory;
+            iface.OnClicked(packet);
         }
 
-        private void PacketHandler_CloseWindow(object sender, PacketEventArgs<CloseWindowPacket> e)
+        public static void HandlePacketCloseWindow(Client client, CloseWindowPacket packet)
         {
-            if (CurrentInterface != null)
+            if (client.Owner.CurrentInterface != null)
             {
-                CurrentInterface.Close(false);
+                client.Owner.CurrentInterface.Close(false);
             }
-            else if (this.Inventory != null && e.Packet.WindowId == this.Inventory.Handle)
+            else if (client.Owner.Inventory != null && packet.WindowId == client.Owner.Inventory.Handle)
             {
-                this.Inventory.Close(false);
+                client.Owner.Inventory.Close(false);
             }
-            CurrentInterface = null;
+            client.Owner.CurrentInterface = null;
         }
 
-        private void PacketHandler_HoldingChange(object sender, PacketEventArgs<HoldingChangePacket> e)
+        public static void HandlePacketHoldingChange(Client client, HoldingChangePacket packet)
         {
-            Inventory.OnActiveChanged((short)(e.Packet.Slot += 36));
+            client.Owner.Inventory.OnActiveChanged((short)(packet.Slot += 36));
 
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z).Where(c => c != this))
+            foreach (Client c in client.Owner.Server.GetNearbyPlayers(client.Owner.World, client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z).Where(c => c != client))
             {
-                c.SendHoldingEquipment(this);
+                c.SendHoldingEquipment(client);
             }
         }
 
@@ -353,26 +379,27 @@ namespace Chraft
 
         #region Block Con/Destruction
 
-        private void PacketHandler_PlayerItemPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
+        public static void HandlePacketPlayerItemPlacement(Client client, PlayerBlockPlacementPacket packet)
         {
+            Player player = client.Owner;
             // if(!Permissions.CanPlayerBuild(Username)) return;
-            if (Inventory.Slots[Inventory.ActiveSlot].Type <= 255)
+            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            int x = e.Packet.X;
-            int y = e.Packet.Y;
-            int z = e.Packet.Z;
+            int x = packet.X;
+            int y = packet.Y;
+            int z = packet.Z;
 
-            BlockData.Blocks adjacentBlockType = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
+            BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(x, y, z); // Get block being built against.
 
             // Placed Item Info
             int px, py, pz;
-            short pType = Inventory.Slots[Inventory.ActiveSlot].Type;
-            short pMetaData = Inventory.Slots[Inventory.ActiveSlot].Durability;
+            short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
+            short pMetaData = player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
 
-            World.FromFace(x, y, z, e.Packet.Face, out px, out py, out pz);
+            player.World.FromFace(x, y, z, packet.Face, out px, out py, out pz);
 
-            switch (e.Packet.Face)
+            switch (packet.Face)
             {
                 case BlockFace.Held:
                     return; // TODO: Process buckets, food, etc.
@@ -399,16 +426,16 @@ namespace Chraft
                     {
                         // Think the client has a Notch bug where hoe's durability is not updated properly.
                         px = x; py = y; pz = z;
-                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Soil, 0x00);
+                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Soil, 0x00);
                     }
                     break;
 
                 case BlockData.Items.Sign:
 
-                    if (e.Packet.Face == BlockFace.Up) // Floor Sign
+                    if (packet.Face == BlockFace.Up) // Floor Sign
                     {
                         // Get the direction the player is facing.
-                        switch (FacingDirection(8))
+                        switch (client.FacingDirection(8))
                         {
                             case "N":
                                 pMetaData = (byte)MetaData.SignPost.North;
@@ -438,11 +465,11 @@ namespace Chraft
                                 return;
                         }
 
-                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
+                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
                     }
                     else // Wall Sign
                     {
-                        switch (e.Packet.Face)
+                        switch (packet.Face)
                         {
                             case BlockFace.East: pMetaData = (byte)MetaData.SignWall.East;
                                 break;
@@ -456,19 +483,19 @@ namespace Chraft
                                 return;
                         }
 
-                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
+                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
                     }
                     break;
 
                 case BlockData.Items.Seeds:
-                    if (adjacentBlockType == BlockData.Blocks.Soil && e.Packet.Face == BlockFace.Down)
+                    if (adjacentBlockType == BlockData.Blocks.Soil && packet.Face == BlockFace.Down)
                     {
-                        World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Crops, 0x00);
+                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Crops, 0x00);
                     }
                     break;
 
                 case BlockData.Items.Redstone:
-                    World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
+                    player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
                     break;
 
                 case BlockData.Items.Minecart:
@@ -481,10 +508,10 @@ namespace Chraft
                 case BlockData.Items.Iron_Door:
                 case BlockData.Items.Wooden_Door:
                     {
-                        if (!BlockData.Air.Contains((BlockData.Blocks)World.GetBlockId(px, py + 1, pz)))
+                        if (!BlockData.Air.Contains((BlockData.Blocks)player.World.GetBlockId(px, py + 1, pz)))
                             return;
 
-                        switch (FacingDirection(4)) // Built on floor, set by facing dir
+                        switch (client.FacingDirection(4)) // Built on floor, set by facing dir
                         {
                             case "N":
                                 pMetaData = (byte)MetaData.Door.Northwest;
@@ -504,38 +531,38 @@ namespace Chraft
 
                         if ((BlockData.Items)pType == BlockData.Items.Iron_Door)
                         {
-                            World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
-                            World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
+                            player.World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
+                            player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
                         }
                         else
                         {
-                            World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
-                            World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
+                            player.World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
+                            player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
                         }
 
-                        World.Update(px, py + 1, pz);
+                        player.World.Update(px, py + 1, pz);
                     }
                     break;
                 case BlockData.Items.Shears:
                     if (adjacentBlockType == BlockData.Blocks.Leaves)
                     {
                         // TODO: Set correct leaves type (durability?): 0 basic leaves, 1 pine, 2 birch
-                        Server.DropItem(World, x, y, z, new ItemStack((short)BlockData.Blocks.Leaves, 1, 0));
-                        World.SetBlockAndData(x, y, z, 0, 0);
-                        World.Update(x, y, z);
+                        player.Server.DropItem(player.World, x, y, z, new ItemStack((short)BlockData.Blocks.Leaves, 1, 0));
+                        player.World.SetBlockAndData(x, y, z, 0, 0);
+                        player.World.Update(x, y, z);
                     }
                     break;
             }
-            if (GameMode == 0)
+            if (player.GameMode == 0)
             {
-                if (!Inventory.DamageItem(Inventory.ActiveSlot)) // If item isn't durable, remove it.
-                    Inventory.RemoveItem(Inventory.ActiveSlot);
+                if (!player.Inventory.DamageItem(player.Inventory.ActiveSlot)) // If item isn't durable, remove it.
+                    player.Inventory.RemoveItem(player.Inventory.ActiveSlot);
             }
 
-            World.Update(px, py, pz);
+            player.World.Update(px, py, pz);
         }
 
-        private void PacketHandler_PlayerBlockPlacement(object sender, PacketEventArgs<PlayerBlockPlacementPacket> e)
+        public static void HandlePacketPlayerBlockPlacement(Client client, PlayerBlockPlacementPacket packet)
         {
             /*
              * Scenarios:
@@ -549,76 +576,80 @@ namespace Chraft
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
 
-            if (e.Packet.X == -1 && e.Packet.Y == -1 && e.Packet.Z == -1 && e.Packet.Face == BlockFace.Held)
+            if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
                 // TODO: Implement item usage - food etc
                 return;
             }
 
-            int x = e.Packet.X;
-            int y = e.Packet.Y;
-            int z = e.Packet.Z;
+            int x = packet.X;
+            int y = packet.Y;
+            int z = packet.Z;
 
-            BlockData.Blocks type = (BlockData.Blocks)World.GetBlockId(x, y, z); // Get block being built against.
-            byte metadata = World.GetBlockData(x, y, z);
-            StructBlock facingBlock = new StructBlock(x, y, z, (byte)type, metadata, World);
+            Player player = client.Owner;
+
+            BlockData.Blocks type = (BlockData.Blocks)player.World.GetBlockId(x, y, z); // Get block being built against.
+            byte metadata = player.World.GetBlockData(x, y, z);
+            StructBlock facingBlock = new StructBlock(x, y, z, (byte)type, metadata, player.World);
 
             int bx, by, bz;
-            World.FromFace(x, y, z, e.Packet.Face, out bx, out by, out bz);
+            player.World.FromFace(x, y, z, packet.Face, out bx, out by, out bz);
 
-            if (World.BlockHelper.Instance((byte)type) is IBlockInteractive)
+            if (player.World.BlockHelper.Instance((byte)type) is IBlockInteractive)
             {
-                (World.BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(this, facingBlock);
+                (player.World.BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
                 return;
             }
 
-            if (Inventory.Slots[Inventory.ActiveSlot].Type <= 0 || Inventory.Slots[Inventory.ActiveSlot].Count < 1)
+            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 0 || player.Inventory.Slots[player.Inventory.ActiveSlot].Count < 1)
                 return;
 
             // TODO: Neaten this out, or address via handler?
-            if (Inventory.Slots[Inventory.ActiveSlot].Type > 255 || e.Packet.Face == BlockFace.Held) // Client is using an Item.
+            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type > 255 || packet.Face == BlockFace.Held) // Client is using an Item.
             {
-                PacketHandler_PlayerItemPlacement(sender, e);
+                HandlePacketPlayerItemPlacement(client, packet);
                 return;
             }
 
             // Built Block Info
 
-            byte bType = (byte)Inventory.Slots[Inventory.ActiveSlot].Type;
-            byte bMetaData = (byte)Inventory.Slots[Inventory.ActiveSlot].Durability;
+            byte bType = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
+            byte bMetaData = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
 
-            StructBlock bBlock = new StructBlock(bx, by, bz, bType, bMetaData, World);
+            StructBlock bBlock = new StructBlock(bx, by, bz, bType, bMetaData, player.World);
 
-            World.BlockHelper.Instance(bType).Place(this, bBlock, facingBlock, e.Packet.Face);
+            player.World.BlockHelper.Instance(bType).Place(player, bBlock, facingBlock, packet.Face);
         }
 
-        private void PacketHandler_PlayerDigging(object sender, PacketEventArgs<PlayerDiggingPacket> e)
+        public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
         {
-            int x = e.Packet.X;
-            int y = e.Packet.Y;
-            int z = e.Packet.Z;
+            Player player = client.Owner;
 
-            byte type = World.GetBlockId(x, y, z);
-            byte data = World.GetBlockData(x, y, z);
+            int x = packet.X;
+            int y = packet.Y;
+            int z = packet.Z;
 
-            switch (e.Packet.Action)
+            byte type = player.World.GetBlockId(x, y, z);
+            byte data = player.World.GetBlockData(x, y, z);
+
+            switch (packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
-                    this.SendMessage(String.Format("SkyLight: {0}", World.GetSkyLight(x, y, z)));
-                    this.SendMessage(String.Format("BlockLight: {0}", World.GetBlockLight(x, y, z)));
-                    this.SendMessage(String.Format("Opacity: {0}", World.GetBlockChunk(x, y, z).GetOpacity(x & 0xf, y, z & 0xf)));
-                    this.SendMessage(String.Format("Height: {0}", World.GetHeight(x, z)));
-                    this.SendMessage(String.Format("Data: {0}", World.GetBlockData(x, y, z)));
+                    client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(x, y, z)));
+                    client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(x, y, z)));
+                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(x, y, z).GetOpacity(x & 0xf, y, z & 0xf)));
+                    client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(x, z)));
+                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(x, y, z)));
                     //this.SendMessage()
-                    if (World.BlockHelper.Instance(type).IsSingleHit)
+                    if (player.World.BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
-                    if (GameMode == 1)
+                    if (player.GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
-                    StructBlock block = new StructBlock(x, y, z, type, data, World);
-                    World.BlockHelper.Instance(type).Destroy(this, block);
+                    StructBlock block = new StructBlock(x, y, z, type, data, player.World);
+                    player.World.BlockHelper.Instance(type).Destroy(player, block);
                     break;
             }
         }
@@ -628,27 +659,28 @@ namespace Chraft
 
         #region Movement and Updates
 
-        private void PacketHandler_Player(object sender, PacketEventArgs<PlayerPacket> e)
+        public static void HandlePacketPlayer(Client client, PlayerPacket packet)
         {
-            this.Ready = true;
-            this.OnGround = e.Packet.OnGround;
-            this.UpdateEntities();
+            client.Owner.Ready = true;
+            client.OnGround = packet.OnGround;
+            client.Owner.UpdateEntities();
         }
 
-        private void PacketHandler_PlayerRotation(object sender, PacketEventArgs<PlayerRotationPacket> e)
+        public static void HandlePacketPlayerRotation(Client client, PlayerRotationPacket packet)
         {
-            this.RotateTo(e.Packet.Yaw, e.Packet.Pitch);
-            this.OnGround = e.Packet.OnGround;
-            this.UpdateEntities();
+            client.Owner.RotateTo(packet.Yaw, packet.Pitch);
+            client.OnGround = packet.OnGround;
+            client.Owner.UpdateEntities();
         }
 
-        private void PacketHandler_PlayerPositionRotation(object sender, PacketEventArgs<PlayerPositionRotationPacket> e)
+        public static void HandlePacketPlayerPositionRotation(Client client, PlayerPositionRotationPacket packet)
         {
-            this.MoveTo(e.Packet.X, e.Packet.Y - EyeGroundOffset, e.Packet.Z, e.Packet.Yaw, e.Packet.Pitch);
-            this.OnGround = e.Packet.OnGround;
-            this.Stance = e.Packet.Stance;
+            //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
+            client.Owner.MoveTo(packet.X, packet.Y - Player.EyeGroundOffset, packet.Z, packet.Yaw, packet.Pitch);
+            client.OnGround = packet.OnGround;
+            client.Stance = packet.Stance;
 
-            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
+            client.CheckAndUpdateChunks(packet.X, packet.Z);
         }
 
         private double _LastX;
@@ -657,14 +689,15 @@ namespace Chraft
         private Task _UpdateChunks;
         private CancellationTokenSource _UpdateChunksToken = new CancellationTokenSource();
 
-        private void PacketHandler_PlayerPosition(object sender, PacketEventArgs<PlayerPositionPacket> e)
+        public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
-            this.Ready = true;
-            this.MoveTo(e.Packet.X, e.Packet.Y, e.Packet.Z);
-            this.OnGround = e.Packet.OnGround;
-            this.Stance = e.Packet.Stance;
+            //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
+            client.Owner.Ready = true;
+            client.Owner.MoveTo(packet.X, packet.Y, packet.Z);
+            client.OnGround = packet.OnGround;
+            client.Stance = packet.Stance;
 
-            CheckAndUpdateChunks(e.Packet.X, e.Packet.Z);
+            client.CheckAndUpdateChunks(packet.X, packet.Z);
         }
 
         public void StopUpdateChunks()
@@ -676,7 +709,7 @@ namespace Chraft
         {
             _UpdateChunksToken = new CancellationTokenSource();
             var token = _UpdateChunksToken.Token;
-            _UpdateChunks = new Task(() => { UpdateChunks(Settings.Default.SightRadius, token); }, token);
+            _UpdateChunks = new Task(() => _Player.UpdateChunks(Settings.Default.SightRadius, token), token);
             _UpdateChunks.Start();
         }
 
@@ -700,54 +733,55 @@ namespace Chraft
 
         #region Login
 
-        void PacketHandler_ServerListPing(object sender, PacketEventArgs<ServerListPingPacket> e)
+        public static void HandlePacketServerListPing(Client client, ServerListPingPacket packet)
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
-            var clientCount = this.Server.GetAuthenticatedClients().Count();
-            this.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", this.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers) });
+            var clientCount = client.Owner.Server.GetAuthenticatedClients().Count();
+            //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers) });
+            client.Kick(String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers));
         }
 
-        private void PacketHandler_Disconnect(object sender, PacketEventArgs<DisconnectPacket> e)
+        public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)
         {
-            Logger.Log(Logger.LogLevel.Info, DisplayName + " disconnected: " + e.Packet.Reason);
-            this.Stop();
+            client.Logger.Log(Logger.LogLevel.Info, client.Owner.DisplayName + " disconnected: " + packet.Reason);
+            client.Stop();
         }
 
-        private void PacketHandler_Handshake(object sender, PacketEventArgs<HandshakePacket> e)
+        public static void HandlePacketHandshake(Client client, HandshakePacket packet)
         {
-            Username = Regex.Replace(e.Packet.UsernameOrHash, Chat.DISALLOWED, "");
-            DisplayName = Username;
-            SendHandshake();
+            client.Owner.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
+            client.Owner.DisplayName = client.Owner.Username;
+            client.SendHandshake();
         }
 
-        private void PacketHandler_LoginRequest(object sender, PacketEventArgs<LoginRequestPacket> e)
+        public static void HandlePacketLoginRequest(Client client, LoginRequestPacket packet)
         {
-            if (!CheckUsername(e.Packet.Username))
-                Kick("Inconsistent username");
-            else if (e.Packet.ProtocolOrEntityId < ProtocolVersion)
-                Kick("Outdated client");
+            if (!client.Owner.CheckUsername(packet.Username))
+                client.Kick("Inconsistent username");
+            else if (packet.ProtocolOrEntityId < ProtocolVersion)
+                client.Kick("Outdated client");
             else
             {
-                if (Server.UseOfficalAuthentication)
+                if (client.Owner.Server.UseOfficalAuthentication)
                 {
                     try
                     {
-                        string authenticated = Http.GetHttpResponse(new Uri(String.Format("http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}", e.Packet.Username, this.Server.ServerHash)));
+                        string authenticated = Http.GetHttpResponse(new Uri(String.Format("http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}", packet.Username, client.Owner.Server.ServerHash)));
                         if (authenticated != "YES")
                         {
-                            Kick("Authentication failed");
+                            client.Kick("Authentication failed");
                             return;
                         }
                     }
                     catch (Exception exc)
                     {
-                        Kick("Error while authenticating...");
-                        this.Logger.Log(exc);
+                        client.Kick("Error while authenticating...");
+                        client.Logger.Log(exc);
                         return;
                     }
                 }
 
-                SendLoginSequence();
+                client.SendLoginSequence();
             }
         }
 

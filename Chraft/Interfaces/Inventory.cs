@@ -33,20 +33,20 @@ namespace Chraft.Interfaces
             Handle = 0;
 		}
 
-		internal Inventory(Client client)
+		internal Inventory(Player player)
 			: base(InterfaceType.Inventory, 4, 45)
 		{
 			_ActiveSlot = 36;
-			Associate(client);
+			Associate(player);
 			_IsOpen = true;
             // Inventory is always WindowId 0
             Handle = 0;
 			UpdateClient();
 		}
 
-		public override void Associate(Client client)
+		public override void Associate(Player player)
 		{
-			base.Associate(client);
+			base.Associate(player);
 		}
 
 		internal void OnActiveChanged(short slot)
@@ -101,7 +101,7 @@ namespace Chraft.Interfaces
 			{
 				if (ItemStack.IsVoid(Slots[i]))
 				{
-					PacketHandler.SendPacket(new ChatMessagePacket { Message = "Placing in slot " + i });
+					Owner.Client.SendPacket(new ChatMessagePacket { Message = "Placing in slot " + i });
 					this[i] = new ItemStack(id, count, durability) { Slot = i };
 					return;
 				}
