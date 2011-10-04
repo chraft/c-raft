@@ -450,20 +450,6 @@ namespace Chraft
             return true;
         }
 
-        /*private void StopTcp()
-        {
-            try
-            {
-                Logger.Log(Logger.LogLevel.Info, "Stopping listener...");
-                Tcp.Stop();
-                Logger.Log(Logger.LogLevel.Info, "Listener stopped.");
-            }
-            catch
-            {
-                Logger.Log(Logger.LogLevel.Info, "Listener already stopped.");
-            }
-        }*/
-
         public AutoResetEvent NetworkSignal = new AutoResetEvent(true);
         private int _AsyncAccepts = 0;
         private Task _ReadClientsPackets;
@@ -551,19 +537,6 @@ namespace Chraft
         {
             Accept_Process(e); 
         }
-
-        /*private void AcceptOrWait()
-        {
-            if (Tcp.Pending())
-            {
-                AcceptClient();
-                Thread.Sleep(300);
-            }
-            else
-            {
-                Thread.Sleep(10);
-            }
-        }*/
 
         /// <summary>
         /// Allocate a new entity ID.
@@ -846,8 +819,7 @@ namespace Chraft
             foreach (WorldManager w in GetWorlds())
                 w.Dispose();
             Running = false;
-            /*if (Tcp != null && Tcp.Server.IsBound)
-                Tcp.Stop();*/
+           
             if (Irc != null)
                 Irc.Stop();
         }
