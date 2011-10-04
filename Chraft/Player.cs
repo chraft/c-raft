@@ -167,6 +167,56 @@ namespace Chraft
             UpdateEntities();
         }
 
+        public override void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            {
+                if(!c.Owner.Equals(this))
+                    c.SendMoveBy(this, x, y, z);
+            }
+        }
+
+        public override void OnTeleportTo(double x, double y, double z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            {
+                if (!Equals(this))
+                    c.SendTeleportTo(this);
+                else
+                {
+                    c.SendPacket(new PlayerPositionRotationPacket
+                    {
+                        X = x,
+                        Y = y + Player.EyeGroundOffset,
+                        Z = z,
+                        Yaw = (float)Position.Yaw,
+                        Pitch = (float)Position.Pitch,
+                        Stance = c.Stance,
+                        OnGround = false
+                    }
+                    );
+                }
+            }
+        }
+
+        public override void OnRotateTo()
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            {
+                if (!c.Owner.Equals(this))
+                    c.SendRotateBy(this, PackedYaw, PackedPitch);
+            }
+        }
+
+        public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            {
+                if (!c.Owner.Equals(this))
+                    c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
+            }
+        }
+
         public void UpdateEntities()
         {
             IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z);
