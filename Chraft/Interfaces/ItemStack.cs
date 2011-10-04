@@ -62,6 +62,16 @@ namespace Chraft.Interfaces
         {
         }
 
+        internal ItemStack(PacketReader stream)
+        {
+            Type = stream.ReadShort();
+            if (Type >= 0)
+            {
+                Count = stream.ReadSByte();
+                Durability = stream.ReadShort();
+            }
+        }
+
         internal ItemStack(BigEndianStream stream)
         {
             Type = stream.ReadShort();
@@ -97,6 +107,16 @@ namespace Chraft.Interfaces
             Type = type;
             Count = count;
             Durability = durability;
+        }
+
+        internal void Write(PacketWriter stream)
+        {
+            stream.Write(Type > 0 ? Type : (short)-1);
+            if (Type > 0)
+            {
+                stream.Write(Count);
+                stream.Write(Durability);
+            }
         }
 
         internal void Write(BigEndianStream stream)
@@ -144,7 +164,7 @@ namespace Chraft.Interfaces
                 count = parts[parts.Length - 1];
             return new ItemStack(short.Parse(numeric), sbyte.Parse(count), durability == "*" ? (short)-1 : short.Parse(durability));
         }
-        internal static ItemStack Read(BigEndianStream stream)
+        internal static ItemStack Read(PacketReader stream)
         {
             ItemStack retval = new ItemStack(stream.ReadShort());
             if (retval.Type >= 0)

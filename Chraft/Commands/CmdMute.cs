@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -17,7 +18,7 @@ namespace Chraft.Commands
                 return;
             }
 
-            Client[] matchedClients = client.Server.GetClients(tokens[1]).ToArray();
+            Client[] matchedClients = client.Owner.Server.GetClients(tokens[1]).ToArray();
             Client clientToMute = null;
             if (matchedClients.Length < 1)
             {
@@ -35,7 +36,7 @@ namespace Chraft.Commands
                 int exactMatchClient = -1;
                 for (int i = 0; i < matchedClients.Length; i++)
                 {
-                    if (matchedClients[i].DisplayName.ToLower() == tokens[1].ToLower())
+                    if (matchedClients[i].Owner.DisplayName.ToLower() == tokens[1].ToLower())
                         exactMatchClient = i;
                 }
 
@@ -50,10 +51,10 @@ namespace Chraft.Commands
                     return;
                 }
             }
-            bool clientMuted = clientToMute.IsMuted;
-            clientToMute.IsMuted = !clientMuted;
+            bool clientMuted = clientToMute.Owner.IsMuted;
+            clientToMute.Owner.IsMuted = !clientMuted;
             clientToMute.SendMessage(clientMuted ? "You have been unmuted" : "You have been muted");
-            client.SendMessage(clientMuted ? clientToMute.DisplayName + " has been unmuted" : clientToMute.DisplayName + " has been muted");
+            client.SendMessage(clientMuted ? clientToMute.Owner.DisplayName + " has been unmuted" : clientToMute.Owner.DisplayName + " has been muted");
         }
 
         public void Help(Client client)

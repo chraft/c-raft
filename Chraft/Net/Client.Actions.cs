@@ -6,9 +6,9 @@ using Chraft.Utils;
 using Chraft.Commands;
 using Chraft.Plugins.Events.Args;
 
-namespace Chraft
+namespace Chraft.Net
 {
-    public partial class Client : EntityBase, IDisposable
+    public partial class Client : IDisposable
     {
         /// <summary>
         /// Invoked whenever the user sends a command.
@@ -68,12 +68,12 @@ namespace Chraft
         {
             //Event
             ClientPreChatEventArgs e1 = new ClientPreChatEventArgs(this, clean);
-            Server.PluginManager.CallEvent(Event.PLAYER_PRE_CHAT, e1);
+            _Player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_CHAT, e1);
             if (e1.EventCanceled) return;
             clean = e1.Message;
             //End Event
 
-            if (IsMuted)
+            if (_Player.IsMuted)
             {
                 SendMessage("You have been muted");
                 return;
@@ -83,13 +83,13 @@ namespace Chraft
             {
                 //Event
                 ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
-                Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
+                _Player.Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
                 if (e2.EventCanceled) return;
                 clean = e2.Message;
                 //End Event
 
-                Server.Broadcast(Chat.Format(DisplayName, clean));
-                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", DisplayName, clean);
+                _Player.Server.Broadcast(Chat.Format(_Player.DisplayName, clean));
+                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", _Player.DisplayName, clean);
             }
         }
 
@@ -113,7 +113,7 @@ namespace Chraft
         {
             //Event
             ClientPreCommandEventArgs e = new ClientPreCommandEventArgs(this, command);
-            Server.PluginManager.CallEvent(Event.PLAYER_PRE_COMMAND, e);
+            _Player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_COMMAND, e);
             if (e.EventCanceled) return;
             command = e.Command;
             //End Event
@@ -122,13 +122,13 @@ namespace Chraft
             string baseCommand = command;
             if (argsPos != -1)
                 baseCommand = command.Substring(0, command.IndexOf(" "));
-            if (!CanUseCommand(baseCommand))
+            if (!_Player.CanUseCommand(baseCommand))
             {
                 SendMessage("You do not have permission to use that command");
                 return;
             }
-            Logger.Log(Logger.LogLevel.Info, DisplayName + " issued server command: " + command);
-            Server.Broadcast(DisplayName + " executed command " + command, this);
+            Logger.Log(Logger.LogLevel.Info, _Player.DisplayName + " issued server command: " + command);
+            _Player.Server.Broadcast(_Player.DisplayName + " executed command " + command, this);
             CommandProc(command, Chat.Tokenize(command));
         }
 
@@ -137,7 +137,7 @@ namespace Chraft
             ClientCommand cmd;
             try
             {
-                cmd = Server.ClientCommandHandler.Find(tokens[0]) as ClientCommand;
+                cmd = _Player.Server.ClientCommandHandler.Find(tokens[0]) as ClientCommand;
             }
             catch (CommandNotFoundException e)
             {
@@ -148,7 +148,7 @@ namespace Chraft
             {
                 //Event
                 ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, tokens);
-                Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
+                _Player.Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
                 if (e.EventCanceled) return;
                 tokens = e.Tokens;
                 //End Event
@@ -158,18 +158,18 @@ namespace Chraft
             catch (Exception e)
             {
                 SendMessage("There was an error while executing the command.");
-                Server.Logger.Log(e);
+                _Player.Server.Logger.Log(e);
             }
         }
 
-        private void SetHealth(string[] tokens)
+        public void SetHealth(string[] tokens)
         {
             if (tokens.Length < 1)
             {
-                SetHealth(20);
+                _Player.SetHealth(20);
                 return;
             }
-            SetHealth(short.Parse(tokens[1]));
+            _Player.SetHealth(short.Parse(tokens[1]));
         }
     }
 }

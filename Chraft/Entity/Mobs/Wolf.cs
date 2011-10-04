@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 using Chraft.World;
 using Chraft.Interfaces;
 
@@ -66,7 +67,7 @@ namespace Chraft.Entity.Mobs
         {
         }
 
-        protected override void DoInteraction(Chraft.Client client, Chraft.Interfaces.ItemStack item)
+        protected override void DoInteraction(Client client, Chraft.Interfaces.ItemStack item)
         {
             base.DoInteraction(client, item);
 
@@ -74,7 +75,7 @@ namespace Chraft.Entity.Mobs
             {
                 if ((item.Type == (short)BlockData.Items.Pork || item.Type == (short)BlockData.Items.Grilled_Pork))
                 {
-                    client.Inventory.RemoveItem(item.Slot); // consume the item
+                    client.Owner.Inventory.RemoveItem(item.Slot); // consume the item
                     
                     if (this.Data.IsTamed)
                     {
@@ -94,12 +95,12 @@ namespace Chraft.Entity.Mobs
                 {
                     // Give a bone
                     this.BonesUntilTamed--;
-                    client.Inventory.RemoveItem(item.Slot); // consume the item
+                    client.Owner.Inventory.RemoveItem(item.Slot); // consume the item
 
                     if (this.BonesUntilTamed <= 0)
                     {
                         this.Data.IsTamed = true;
-                        this.Data.TamedBy = client.Username;
+                        this.Data.TamedBy = client.Owner.Username;
                         this.Health = this.MaxHealth;
                         // TODO: begin following this.Data.TamedBy
                         SendMetadataUpdate();

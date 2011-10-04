@@ -15,7 +15,7 @@ namespace Chraft.Interfaces
 	{
 		private static volatile sbyte NextHandle = 0;
 		private bool IsTransactionInProgress = false;
-        protected Client Client { get; private set; }
+        protected Player Owner { get; private set; }
 
 		public event EventHandler<InterfaceClickedEventArgs> Clicked;
 
@@ -24,7 +24,7 @@ namespace Chraft.Interfaces
 		public string Title { get; set; }
         internal sbyte Handle { get; set; }
 		internal InterfaceType Type { get; private set; }
-		protected internal PacketHandler PacketHandler { protected get; set; }
+		//protected internal PacketHandler PacketHandler { protected get; set; }
 		public ItemStack Cursor { get; set; }
 
 		protected bool _IsOpen = false;
@@ -93,12 +93,12 @@ namespace Chraft.Interfaces
 					}
 					else if (e.RightClick)
 					{	// Right-click in void: drop item
-						Client.Server.DropItem(Client, new ItemStack(Cursor.Type, 1, Cursor.Durability));
+						Owner.Server.DropItem(Owner.Client, new ItemStack(Cursor.Type, 1, Cursor.Durability));
 						Cursor.Count--;
 					}
 					else
 					{	// Left-click in void: drop stack
-						Client.Server.DropItem(Client, Cursor);
+						Owner.Server.DropItem(Owner.Client, Cursor);
 						Cursor = ItemStack.Void;
 					}
 					return;
@@ -108,7 +108,7 @@ namespace Chraft.Interfaces
 					break;
 
 				case ClickLocation.Inventory:
-					target = Client.Inventory;
+					target = Owner.Inventory;
 					break;
 				}
 
@@ -183,12 +183,12 @@ namespace Chraft.Interfaces
 			catch (Exception ex)
 			{
 				e.Cancel();
-				Client.SendMessage("§cInventory Error: " + ex.Message);
-				Client.Logger.Log(ex);
+				Owner.Client.SendMessage("§cInventory Error: " + ex.Message);
+				Owner.Client.Logger.Log(ex);
 			}
 			finally
 			{
-				PacketHandler.SendPacket(new TransactionPacket
+                Owner.Client.SendPacket(new TransactionPacket
 				{
 					Accepted = !e.Cancelled,
 					Transaction = e.Transaction,
@@ -200,10 +200,10 @@ namespace Chraft.Interfaces
 
 		protected void SendUpdate(short slot)
 		{
-			if (IsOpen && !IsTransactionInProgress && PacketHandler != null)
+			if (IsOpen && !IsTransactionInProgress && Owner != null)
 			{
 				ItemStack item = slot < 0 ? Cursor : Slots[slot];
-				PacketHandler.SendPacket(new SetSlotPacket
+                Owner.Client.SendPacket(new SetSlotPacket
 				{
 					Item = ItemStack.IsVoid(item) ? ItemStack.Void : item,
 					Slot = slot,
@@ -222,10 +222,10 @@ namespace Chraft.Interfaces
             OnItemStackChanged(((ItemStack)sender));
 		}
 
-		public virtual void Associate(Client client)
+		public virtual void Associate(Player player)
 		{
-			Client = client;
-			client.AssociateInterface(this);
+			Owner = player;
+			//Owner.Client.AssociateInterface(this);
 		}
 
         protected virtual void DoOpen()
@@ -234,7 +234,7 @@ namespace Chraft.Interfaces
 
         public void Open()
 		{
-			PacketHandler.SendPacket(new OpenWindowPacket
+            Owner.Client.SendPacket(new OpenWindowPacket
 			{
 				WindowId = Handle,
 				WindowTitle = Title,
@@ -267,7 +267,7 @@ namespace Chraft.Interfaces
             // Drop whatever is in the cursor
             if (!ItemStack.IsVoid(Cursor))
             {
-                this.Client.Server.DropItem(this.Client, Cursor);
+                Owner.Server.DropItem(Owner.Client, Cursor);
                 Cursor = ItemStack.Void;
             }
         }
@@ -282,7 +282,7 @@ namespace Chraft.Interfaces
 
                 if (sendCloseToClient)
                 {
-                    PacketHandler.SendPacket(new CloseWindowPacket
+                    Owner.Client.SendPacket(new CloseWindowPacket
                     {
                         WindowId = Handle
                     });
@@ -298,7 +298,7 @@ namespace Chraft.Interfaces
                 ItemStack stack = Slots[i];
                 if (!ItemStack.IsVoid(stack))
                 {
-                    this.Client.Server.DropItem(this.Client.World, dropX, dropY, dropZ, stack);
+                    Owner.Server.DropItem(Owner.World, dropX, dropY, dropZ, stack);
                     this[i] = ItemStack.Void;
                 }
             }

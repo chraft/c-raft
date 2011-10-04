@@ -95,7 +95,7 @@ namespace Chraft.Net
                 Data.Add(0, (byte)0);
         }
 
-        internal MetaData(BigEndianStream rx)
+        internal MetaData(PacketReader rx)
         {
             byte x;
             while ((x = rx.ReadByte()) != 0x7f)
@@ -112,7 +112,7 @@ namespace Chraft.Net
             }
         }
 
-        internal void Write(BigEndianStream tx)
+        internal void Write(PacketWriter tx)
         {
             try // I can't work out how it set this from SpawnAnimal.
             {

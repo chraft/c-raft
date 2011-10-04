@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using Chraft.Commands;
+using Chraft.Net;
 
 
 namespace Chraft.Utils
@@ -32,7 +33,7 @@ namespace Chraft.Utils
             };
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
+            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Owner.Username.ToLower()).FirstOrDefault();
 
             //default group we grab the first with default attrbute defined
             var gperm = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
@@ -137,9 +138,9 @@ namespace Chraft.Utils
             return finalList;
         }
 
-        public bool HasPermission(Client client, Command command)
+        public bool HasPermission(Player player, Command command)
         {
-            return client.Permissions.AllowedPermissions.Contains(command.Permission.ToLower()) && !client.Permissions.DeniedPermissions.Contains(command.Permission.ToLower());
+            return player.Permissions.AllowedPermissions.Contains(command.Permission.ToLower()) && !player.Permissions.DeniedPermissions.Contains(command.Permission.ToLower());
         }
 
         /// <summary>
@@ -151,7 +152,7 @@ namespace Chraft.Utils
         public bool HasPermission(string playerName, string permissionNode)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null && (client.Permissions.AllowedPermissions.Contains("*") || client.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) && !client.Permissions.DeniedPermissions.Contains(permissionNode.ToLower()));
+            return client != null && (client.Owner.Permissions.AllowedPermissions.Contains("*") || client.Owner.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) && !client.Owner.Permissions.DeniedPermissions.Contains(permissionNode.ToLower()));
         }
 
 
@@ -164,13 +165,13 @@ namespace Chraft.Utils
         public bool IsInGroup(string playerName, string groupName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null && client.Permissions.Groups.Contains(groupName.ToLower());
+            return client != null && client.Owner.Permissions.Groups.Contains(groupName.ToLower());
         }
 
 
         public bool IsInGroup(Client client, string groupName)
         {
-            return client.Permissions.Groups.Contains(groupName.ToLower());
+            return client.Owner.Permissions.Groups.Contains(groupName.ToLower());
         }
         /// <summary>
         /// Return the suffix of a specific player
@@ -180,12 +181,12 @@ namespace Chraft.Utils
         public string GetPlayerSuffix(string playerName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null ? client.Permissions.Suffix : string.Empty;
+            return client != null ? client.Owner.Permissions.Suffix : string.Empty;
         }
 
-        public string GetPlayerSuffix(Client client)
+        public string GetPlayerSuffix(Player player)
         {
-            return client.Permissions.Suffix;
+            return player.Permissions.Suffix;
         }
         /// <summary>
         /// Return the prefix of a specific player
@@ -195,12 +196,12 @@ namespace Chraft.Utils
         public string GetPlayerPrefix(string playerName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null ? client.Permissions.Prefix : string.Empty;
+            return client != null ? client.Owner.Permissions.Prefix : string.Empty;
         }
 
-        public string GetPlayerPrefix(Client client)
+        public string GetPlayerPrefix(Player player)
         {
-            return client.Permissions.Prefix;
+            return player.Permissions.Prefix;
         }
         /// <summary>
         /// Return the prefix of a specific group
@@ -268,14 +269,14 @@ namespace Chraft.Utils
             var client = _server.GetClients(playerName).FirstOrDefault();
             if (client != null)
             {
-                return client.Permissions.CanBuild;
+                return client.Owner.Permissions.CanBuild;
             }
             return false;
         }
 
         public bool? CanPlayerBuild(Client client)
         {
-            return client.Permissions.CanBuild;
+            return client.Owner.Permissions.CanBuild;
         }
 
         /// <summary>
@@ -286,12 +287,12 @@ namespace Chraft.Utils
         public IEnumerable<string> GetPlayerGroups(string playerName)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null ? client.Permissions.Groups : null;
+            return client != null ? client.Owner.Permissions.Groups : null;
         }
 
         public IEnumerable<string> GetPlayerGroups(Client client)
         {
-            return client.Permissions.Groups;
+            return client.Owner.Permissions.Groups;
         }
     }
 }

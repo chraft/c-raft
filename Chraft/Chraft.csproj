@@ -100,11 +100,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChatEventArgs.cs" />
-    <Compile Include="Client.Actions.cs" />
-    <Compile Include="Client.cs" />
-    <Compile Include="Client.Persistence.cs" />
-    <Compile Include="Client.Recv.cs" />
-    <Compile Include="Client.Send.cs" />
     <Compile Include="ClientEventArgs.cs" />
     <Compile Include="CommandEventArgs.cs" />
     <Compile Include="Commands\ClientCommandHandler.cs" />
@@ -134,9 +129,21 @@
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="Net\BigEndianStream.cs" />
+    <Compile Include="Net\BufferPool.cs" />
+    <Compile Include="Net\ByteQueue.cs" />
+    <Compile Include="Net\Client.Actions.cs" />
+    <Compile Include="Net\Client.cs" />
+    <Compile Include="Net\Client.Persistence.cs" />
+    <Compile Include="Net\Client.Recv.cs" />
+    <Compile Include="Net\Client.Send.cs" />
+    <Compile Include="Net\PacketReader.cs" />
+    <Compile Include="Net\PacketWriter.cs" />
+    <Compile Include="Net\SocketAsyncEventArgsPool.cs" />
     <Compile Include="Net\StreamRole.cs" />
     <Compile Include="NibbleArray.cs" />
     <Compile Include="Permissions.cs" />
+    <Compile Include="Player.cs" />
     <Compile Include="Plugins\Events\Args\BlockEventArgs.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\Listener\BlockListener.cs" />
@@ -328,10 +335,10 @@
     <Compile Include="Utils\Http.cs" />
     <Compile Include="Utils\IPermissions.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Net\BigEndianStream.cs" />
+    <Compile Include="Net\PacketHandler.cs" />
     <Compile Include="Net\MetaData.cs" />
     <Compile Include="Net\PacketEventArgs.cs" />
-    <Compile Include="Net\PacketHandler.cs" />
+    <Compile Include="Net\PacketHandlers.cs" />
     <Compile Include="Net\PacketMap.cs" />
     <Compile Include="Net\PacketType.cs" />
     <Compile Include="Server.cs" />
@@ -373,6 +380,7 @@
     <Compile Include="World\BoundingBox.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="Properties\Settings.settings">
       <Generator>PublicSettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
@@ -26,7 +28,13 @@ namespace Chraft
 
         private volatile int NextEntityId = 0;
         private bool Running = true;
-        private TcpListener Tcp = null;
+        private Socket _Listener;
+        private SocketAsyncEventArgs _AcceptEventArgs;
+
+        public static ConcurrentQueue<Client> RecvClientQueue = new ConcurrentQueue<Client>();
+        public static ConcurrentQueue<Client> SendClientQueue = new ConcurrentQueue<Client>();
+
+        public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
         /// <summary>
         /// Invoked when a client is accepted and started.
@@ -64,9 +72,9 @@ namespace Chraft
         public ServerCommandHandler ServerCommandHandler { get; private set; }
 
         /// <summary>
-        /// Gets a thread-unsafe list of clients.  Use GetClients for a thread-safe version.
+        /// Gets a thread-safe list of clients.  Use GetClients for a thread-safe version.
         /// </summary>
-        public Dictionary<int, Client> Clients { get; private set; }
+        public ConcurrentDictionary<int, Client> Clients { get; private set; }
 
         /// <summary>
         /// Gets a thread-unsafe list of worlds.  Use GetWorlds for a thread-safe version.
@@ -122,7 +130,7 @@ namespace Chraft
         {
             ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
-            Clients = new Dictionary<int, Client>();
+            Clients = new ConcurrentDictionary<int, Client>();
             Rand = new Random();
             Logger = new Logger(this, Settings.Default.LogFile);
             PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
@@ -133,6 +141,11 @@ namespace Chraft
             ServerCommandHandler = new ServerCommandHandler();
             if (Settings.Default.IrcEnabled)
                 InitializeIrc();
+
+            _AcceptEventArgs = new SocketAsyncEventArgs();
+            _AcceptEventArgs.Completed += Accept_Completion;
+
+            _Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         }
 
         public static Recipe[] GetRecipes()
@@ -207,6 +220,12 @@ namespace Chraft
             t.IsBackground = true;
             t.Start();
 
+            for (int i = 0; i < 10; ++i)
+            {
+                Client.SendSocketEventPool.Push(new SocketAsyncEventArgs());
+                Client.RecvSocketEventPool.Push(new SocketAsyncEventArgs());
+            }
+
             while (Running)
                 RunProc();
         }
@@ -217,7 +236,7 @@ namespace Chraft
             {
                 foreach (var client in this.GetAuthenticatedClients())
                 {
-                    this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Username, Online = client.Ready, Ping = (short)client.Ping });
+                    this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Owner.Username, Online = client.Owner.Ready, Ping = (short)client.Ping });
                     Thread.Sleep(50);
                 }
                 Thread.Sleep(1000);
@@ -251,53 +270,167 @@ namespace Chraft
             Logger.Log(Logger.LogLevel.Info, "Using IP Addresss {0}.", Settings.Default.IPAddress);
             Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
 
-            RunListener();
+            IPAddress address = IPAddress.Parse(Settings.Default.IPAddress);
+            IPEndPoint ipEndPoint = new IPEndPoint(address, Settings.Default.Port);
+
+            _Listener.Bind(ipEndPoint);
+            _Listener.Listen(5);
+
+            RunNetwork();
 
             if (Running)
             {
-                Logger.Log(Logger.LogLevel.Info, "Waiting one second before restarting listener.");
+                Logger.Log(Logger.LogLevel.Info, "Waiting one second before restarting network.");
                 Thread.Sleep(1000);
             }
         }
 
-        private bool StartTcp()
+        public static void ProcessSendQueue()
         {
-            try
+            int count = SendClientQueue.Count;
+
+            Parallel.For(0, count, i =>
             {
-                Tcp = new TcpListener(IPAddress.Parse(Settings.Default.IPAddress), Settings.Default.Port);
-                Tcp.Start(5);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(Logger.LogLevel.Error, "Could not listen: {0}", ex.Message);
-                Logger.Log(Logger.LogLevel.Info, "Waiting one second before retrying.");
-                return false;
-            }
+                Client client;
+                if (!SendClientQueue.TryDequeue(out client))
+                    return;
+
+                if(!client.Running)
+                {
+                    client.DisposeSendSystem();
+                    return;
+                }
+
+                client.Send_Start();
+            });
         }
 
-        private void AcceptClient()
+        public static void ProcessReadQueue()
         {
-            TcpClient tcp = Tcp.AcceptTcpClient();
-            if (OnBeforeAccept(tcp))
-            {
-                Client c = new Client(this, AllocateEntity(), tcp);
-                //Event
-                ClientAcceptedEventArgs e = new ClientAcceptedEventArgs(this, c);
-                PluginManager.CallEvent(Event.SERVER_ACCEPT, e);
-                //Do not check for EventCanceled because that could make this unstable.
-                //End Event
+            int count = RecvClientQueue.Count;
 
-                lock (Clients)
-                    Clients.Add(c.EntityId, c);
-                AddEntity(c);
-                c.Start();
-                OnJoined(c);
-            }
-            else
+            Parallel.For(0, count, i =>
             {
-                tcp.Close();
-            }
+                Client client;
+                if (!RecvClientQueue.TryDequeue(out client))
+                    return;
+
+                if(!client.Running)
+                    return;
+                
+                Interlocked.Exchange(ref client.TimesEnqueuedForRecv, 0);
+                ByteQueue bufferToProcess = client.GetBufferToProcess();
+
+                int length = client.FragPackets.Size + bufferToProcess.Size;
+                while(length > 0)
+                {
+                    byte packetType = 0;
+
+                    if (client.FragPackets.Size > 0)
+                        packetType = client.FragPackets.GetPacketID();
+                    else
+                        packetType = bufferToProcess.GetPacketID();
+
+                    //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Reading packet {0}", ((PacketType)packetType).ToString());
+
+                    PacketHandler handler = PacketHandlers.GetHandler((PacketType)packetType);
+
+                    if(handler == null)
+                    {
+                        byte[] unhandledPacketData = GetBufferToBeRead(bufferToProcess, client, length);
+                        
+                        // TODO: handle this case, writing on the console a warning and/or writing it plus the bytes on a log
+                        client.Logger.Log(Chraft.Logger.LogLevel.Caution, "Unhandled packet arrived, id: {0}", unhandledPacketData[0]);
+
+                        client.Logger.Log(Chraft.Logger.LogLevel.Warning, "Data:\r\n {0}", BitConverter.ToString(unhandledPacketData, 1));
+                        length = 0;
+                    }
+                    else if(handler.Length == 0)
+                    {
+                        byte[] data = GetBufferToBeRead(bufferToProcess, client, length);
+
+                        if (length >= handler.MinimumLength)
+                        {
+                            PacketReader reader = new PacketReader(data, length, StreamRole.Server);
+
+                            handler.OnReceive(client, reader);
+
+                            // If we failed it's because the packet isn't complete
+                            if (reader.Failed)
+                            {
+                                EnqueueFragment(client, data);
+                                length = 0;
+                            }
+                            else
+                            {
+                                bufferToProcess.Enqueue(data, reader.Index, data.Length - reader.Index);
+                                length = bufferToProcess.Length;
+                            }
+                        }
+                        else
+                            EnqueueFragment(client, data);
+                        
+                    }
+                    else if (length >= handler.Length)
+                    {
+                        byte[] data = GetBufferToBeRead(bufferToProcess, client, handler.Length);
+
+                        PacketReader reader = new PacketReader(data, handler.Length, StreamRole.Server);
+
+                        handler.OnReceive(client, reader);
+
+                        // If we failed it's because the packet isn't complete
+                        if (reader.Failed)
+                        {
+                            EnqueueFragment(client, data);
+                            length = 0;
+                        }
+                        else
+                            length = bufferToProcess.Length;
+                    }
+                    else
+                    {
+                        byte[] data = GetBufferToBeRead(bufferToProcess, client, length);
+                        EnqueueFragment(client, data);
+                        length = 0;
+                    }
+                }
+            });
+        }
+
+        private static void EnqueueFragment(Client client, byte[] data)
+        {
+            int fragPacketWaiting = client.FragPackets.Length;
+            // We are waiting for more data than an uncompressed chunk, it's not possible
+            if (fragPacketWaiting > 81920)
+                client.Kick("Too much pending data to be read");
+            else
+                client.FragPackets.Enqueue(data, 0, data.Length);
+        }
+
+        private static byte[] GetBufferToBeRead(ByteQueue processedBuffer, Client client, int length)
+        {
+            int availableData = client.FragPackets.Size + processedBuffer.Size;
+
+            if (length > availableData)
+                return null;
+
+            int fromFrag;
+
+            byte[] data = new byte[length];
+
+            if (length >= client.FragPackets.Size)
+                fromFrag = client.FragPackets.Size;
+            else
+                fromFrag = length;
+
+            client.FragPackets.Dequeue(data, 0, fromFrag);
+
+            int fromProcessed = length - fromFrag; 
+            
+            processedBuffer.Dequeue(data, 0, fromProcessed);
+
+            return data;
         }
 
         private void OnJoined(Client c)
@@ -306,18 +439,18 @@ namespace Chraft
                 Joined.Invoke(this, new ClientEventArgs(c));
         }
 
-        private bool OnBeforeAccept(TcpClient tcp)
+        private bool OnBeforeAccept(Socket socket)
         {
             if (BeforeAccept != null)
             {
-                TcpEventArgs e = new TcpEventArgs(tcp);
+                TcpEventArgs e = new TcpEventArgs(socket);
                 BeforeAccept.Invoke(this, e);
                 return !e.Cancelled;
             }
             return true;
         }
 
-        private void StopTcp()
+        /*private void StopTcp()
         {
             try
             {
@@ -329,30 +462,97 @@ namespace Chraft
             {
                 Logger.Log(Logger.LogLevel.Info, "Listener already stopped.");
             }
-        }
+        }*/
 
-        private void RunListener()
+        public AutoResetEvent NetworkSignal = new AutoResetEvent(true);
+        private int _AsyncAccepts = 0;
+        private Task _ReadClientsPackets;
+        private Task _SendClientPackets;
+        private Task _DisposeClients;
+
+        private void RunNetwork()
         {
-            if (!StartTcp())
-                return;
-            Logger.Log(Logger.LogLevel.Info, "Ready to accept clients.");
+            while (NetworkSignal.WaitOne())
+            {
+                int accepts = Interlocked.CompareExchange(ref _AsyncAccepts, 1, 0);
 
-            try
-            {
-                while (Tcp.Server.IsBound)
-                    AcceptOrWait();
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(ex);
-            }
-            finally
-            {
-                StopTcp();
+                if (accepts == 0)
+                {
+                    //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting async accept");
+                    _AcceptEventArgs.AcceptSocket = null;
+                    _Listener.AcceptAsync(_AcceptEventArgs);
+                }
+
+                if (RecvClientQueue.Count > 0 && (_ReadClientsPackets == null || _ReadClientsPackets.IsCompleted))
+                {
+                    //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting ProcessReadQueue");
+                    _ReadClientsPackets = new Task(ProcessReadQueue);
+                    _ReadClientsPackets.Start();
+                }
+
+                if(ClientsToDispose.Count > 0 && (_DisposeClients == null || _DisposeClients.IsCompleted))
+                {
+                    _DisposeClients = new Task(DisposeClients);
+                    _DisposeClients.Start();
+                }
+
+                if(SendClientQueue.Count > 0 && (_SendClientPackets == null || _SendClientPackets.IsCompleted))
+                {
+                    _SendClientPackets = new Task(ProcessSendQueue);
+                    _SendClientPackets.Start();
+                }
             }
         }
 
-        private void AcceptOrWait()
+        private void DisposeClients()
+        {
+            int count = ClientsToDispose.Count;
+            while (ClientsToDispose.Count > 0)
+            {
+                Client client;
+                if (!ClientsToDispose.TryDequeue(out client))
+                    continue;
+
+                client.Dispose();
+            }
+        }
+
+        private void Accept_Process(SocketAsyncEventArgs e)
+        {
+            if (OnBeforeAccept(e.AcceptSocket))
+            {
+                Client c = new Client(e.AcceptSocket, new Player(this, AllocateEntity()));
+                //Event
+                ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(this, c);
+                PluginManager.CallEvent(Event.SERVER_ACCEPT, args);
+                //Do not check for EventCanceled because that could make this unstable.
+                //End Event
+
+                lock (Clients)
+                {
+                    AddClient(c);
+                    Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Clients.Count);
+                }
+                AddEntity(c.Owner);
+                c.Start();
+                Logger.Log(Chraft.Logger.LogLevel.Info, "Starting client");
+                OnJoined(c);
+            }
+            else
+            {
+                e.AcceptSocket.Close();
+            }
+
+            Interlocked.Exchange(ref _AsyncAccepts, 0);
+            NetworkSignal.Set();
+        }
+
+        private void Accept_Completion(object sender, SocketAsyncEventArgs e)
+        {
+            Accept_Process(e); 
+        }
+
+        /*private void AcceptOrWait()
         {
             if (Tcp.Pending())
             {
@@ -363,7 +563,7 @@ namespace Chraft
             {
                 Thread.Sleep(10);
             }
-        }
+        }*/
 
         /// <summary>
         /// Allocate a new entity ID.
@@ -410,7 +610,7 @@ namespace Chraft
         {
             foreach (Client c in GetClients())
             {
-                if (excludeClient == null || c.EntityId != excludeClient.EntityId)
+                if (excludeClient == null || c.Owner.EntityId != excludeClient.Owner.EntityId)
                     c.SendPacket(packet);
             }
         }
@@ -421,11 +621,11 @@ namespace Chraft
         /// <param name="packet"></param>
         public void BroadcastToAuthenticated(Packet packet)
         {
-            System.Threading.Tasks.Parallel.ForEach(this.GetAuthenticatedClients(), (client) =>
-            {
-                client.SendPacket(packet);
-            });
+            System.Threading.Tasks.Parallel.ForEach(this.GetAuthenticatedClients(), (client) => client.SendPacket(packet));
         }
+
+        private Client[] _ClientsCache;
+        private int _ClientListChanges;
 
         /// <summary>
         /// Gets a thread-safe array of connected clients.
@@ -433,18 +633,23 @@ namespace Chraft
         /// <returns>A thread-safe array of connected clients.</returns>
         public Client[] GetClients()
         {
-            return Clients.Values.ToArray();
+            int changes = Interlocked.Exchange(ref _ClientListChanges, 0);
+            if (_ClientsCache == null || changes > 0)
+             _ClientsCache =  Clients.Values.ToArray();
+
+            return _ClientsCache;
         }
 
+        // TODO: cache this thing?
         public IEnumerable<Client> GetAuthenticatedClients()
         {
-            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Username) && client.Ready);
+            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Owner.Username) && client.Owner.Ready);
         }
 
         public IEnumerable<Client> GetClients(string name)
         {
             return from c in GetClients()
-                   where c.Username.ToLower().Contains(name.ToLower()) || c.DisplayName.ToLower().Contains(name.ToLower())
+                   where c.Owner.Username.ToLower().Contains(name.ToLower()) || c.Owner.DisplayName.ToLower().Contains(name.ToLower())
                    select c;
         }
 
@@ -482,6 +687,18 @@ namespace Chraft
             }
         }
 
+        public void AddClient(Client client)
+        {
+            Clients.TryAdd(client.Owner.SessionID, client);
+            Interlocked.Increment(ref _ClientListChanges);
+        }
+
+        public void RemoveClient(Client client)
+        {
+            Clients.TryRemove(client.Owner.SessionID, out client);
+            Interlocked.Increment(ref _ClientListChanges);
+        }
+
         /// <summary>
         /// Sends a packet in parallel to each nearby player.
         /// </summary>
@@ -494,7 +711,7 @@ namespace Chraft
         {
             System.Threading.Tasks.Parallel.ForEach(this.GetNearbyPlayers(world, x, y, z), (client) =>
             {
-                client.PacketHandler.SendPacket(packet);
+                client.SendPacket(packet);
             });
         }
 
@@ -511,7 +728,7 @@ namespace Chraft
             int radius = Settings.Default.SightRadius << 4;
             foreach (Client c in GetAuthenticatedClients())
             {
-                if (c.World == world && Math.Abs(x - c.Position.X) <= radius && Math.Abs(y - c.Position.Y) <= radius && Math.Abs(z - c.Position.Z) <= radius)
+                if (c.Owner.World == world && Math.Abs(x - c.Owner.Position.X) <= radius && Math.Abs(y - c.Owner.Position.Y) <= radius && Math.Abs(z - c.Owner.Position.Z) <= radius)
                     yield return c;
             }
         }
@@ -558,7 +775,7 @@ namespace Chraft
         /// <returns>The entity ID of the item drop.</returns>
         public int DropItem(Client client, ItemStack stack)
         {
-            return DropItem(client.World, (int)client.Position.X, (int)client.Position.Y, (int)client.Position.Z, stack);
+            return DropItem(client.Owner.World, (int)client.Owner.Position.X, (int)client.Owner.Position.Y, (int)client.Owner.Position.Z, stack);
         }
 
         /// <summary>
@@ -629,8 +846,8 @@ namespace Chraft
             foreach (WorldManager w in GetWorlds())
                 w.Dispose();
             Running = false;
-            if (Tcp != null && Tcp.Server.IsBound)
-                Tcp.Stop();
+            /*if (Tcp != null && Tcp.Server.IsBound)
+                Tcp.Stop();*/
             if (Irc != null)
                 Irc.Stop();
         }

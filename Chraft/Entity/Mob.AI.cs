@@ -1,4 +1,5 @@
 ﻿using System;
+using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Utils;
 
@@ -90,7 +91,7 @@ namespace Chraft.Entity {
             this.Position.Y += Velocity.Y;
             this.Position.Z += Velocity.Z;
             foreach (Client c in World.Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z)) {
-                c.PacketHandler.SendPacket(new EntityTeleportPacket {
+                c.SendPacket(new EntityTeleportPacket {
                     EntityId = this.EntityId,
                     X = this.Position.X,
                     Y = this.Position.Y,

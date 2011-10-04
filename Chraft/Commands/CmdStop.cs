@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Chraft.Net;
 
 namespace Chraft.Commands
 {
@@ -46,10 +47,10 @@ namespace Chraft.Commands
         }
         public void Use(Client client, string[] tokens)
         {
-            client.Server.Broadcast("The server is shutting down.");
-            client.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
+            client.Owner.Server.Broadcast("The server is shutting down.");
+            client.Owner.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
             Thread.Sleep(5000);
-            client.Server.Stop();
+            client.Owner.Server.Stop();
             Thread.Sleep(10);
             Console.WriteLine("Press Enter to exit.");
         }

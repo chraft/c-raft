@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Threading;
+using Chraft.Net;
 using ICSharpCode.SharpZipLib.GZip;
 using Chraft.Properties;
 using Ionic.Zlib;
@@ -30,10 +31,8 @@ namespace Chraft.World
         public bool Persistent { get; set; }
         public DateTime CreationDate;
 
+        private ConcurrentDictionary<short, short> BlocksUpdating = new ConcurrentDictionary<short, short>();
         
-        private short[] BlocksUpdating = new short[20];
-        
-
         internal Chunk(WorldManager world, int x, int z)
             : base(world, x, z)
         {
@@ -515,7 +514,7 @@ namespace Chraft.World
             lock (Clients)
                 Clients.Add(client);
             lock (Entities)
-                Entities.Add(client);
+                Entities.Add(client.Owner);
         }
 
         internal void RemoveClient(Client client)
@@ -523,7 +522,7 @@ namespace Chraft.World
             lock (Clients)
                 Clients.Remove(client);
             lock (Entities)
-                Entities.Remove(client);
+                Entities.Remove(client.Owner);
 
             if (Clients.Count == 0 && !Persistent)
             {
@@ -762,7 +761,7 @@ namespace Chraft.World
         {
             BlocksUpdateLock.EnterWriteLock();
             int num = Interlocked.Exchange(ref NumBlocksToUpdate, 0);
-            short[] temp = BlocksToBeUpdated;
+            ConcurrentDictionary<short, short> temp = BlocksToBeUpdated;
             BlocksToBeUpdated = BlocksUpdating;
             BlocksUpdateLock.ExitWriteLock();
 
@@ -770,35 +769,46 @@ namespace Chraft.World
 
             if (num == 1)
             {
-                int index = BlocksUpdating[0];
+                short keyCoords = BlocksUpdating.Keys.First();
+                short index;
+                BlocksUpdating.TryGetValue(keyCoords, out index);
                 int worldX = (X << 4) + (index >> 12 & 0xf);
                 int worldY = (index & 0xff);
                 int worldZ = (Z << 4) + (index >> 8 & 0xf);
                 byte blockId = World.GetBlockId(worldX, worldY, worldZ);
                 byte data = World.GetBlockData(worldX, worldY, worldZ);
 
-                SendPacketToAllNearbyPlayers(new BlockChangePacket { X = worldX, Y = (sbyte)worldY, Z = worldZ, Data = data, Type = blockId });
+                SendPacketToAllNearbyPlayers(new BlockChangePacket
+                {X = worldX, Y = (sbyte) worldY, Z = worldZ, Data = data, Type = blockId});
+                
             }
             else if (num < 20)
             {
                 sbyte[] data = new sbyte[num];
                 sbyte[] types = new sbyte[num];
+                short[] blocks = new short[num];
 
-                for (int i = 0; i < num; ++i)
+                int count = 0;
+                foreach (short key in BlocksUpdating.Keys)
                 {
-                    int index = BlocksUpdating[i];
+                    short index;
+                    BlocksUpdating.TryGetValue(key, out index);
                     int worldX = (X << 4) + (index >> 12 & 0xf);
                     int worldY = (index & 0xff);
                     int worldZ = (Z << 4) + (index >> 8 & 0xf);
 
-                    
+                    data[count] = (sbyte)World.GetBlockData(worldX, worldY, worldZ);
+                    types[count] = (sbyte)World.GetBlockId(worldX, worldY, worldZ);
+                    blocks[count] = index;
                 }
-                SendPacketToAllNearbyPlayers(new MultiBlockChangePacket { Coords = BlocksUpdating, Metadata = data, Types = types, X = this.X, Z = this.Z});
+                SendPacketToAllNearbyPlayers(new MultiBlockChangePacket { Coords = blocks, Metadata = data, Types = types, X = this.X, Z = this.Z});
             }
             else
             {
                 SendPacketToAllNearbyPlayers(new MapChunkPacket { Chunk = this });
             }
+
+            BlocksUpdating.Clear();
             base.UpdateBlocksToNearbyPlayers(state);
         }
 
@@ -816,10 +826,10 @@ namespace Chraft.World
                     {
                         foreach (Client client in c.GetClients())
                         {
-                            if (!nearbyClients.ContainsKey(client.SessionID))
+                            if (!nearbyClients.ContainsKey(client.Owner.SessionID))
                             {
-                                nearbyClients.Add(client.SessionID, client);
-                                client.PacketHandler.SendPacket(packet);
+                                nearbyClients.Add(client.Owner.SessionID, client);
+                                client.SendPacket(packet);
                             }
                         }
                     }

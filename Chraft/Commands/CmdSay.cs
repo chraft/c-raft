@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Commands
@@ -18,7 +19,7 @@ namespace Chraft.Commands
             {
                 message += tokens[i] + " ";
             }
-            client.Server.Broadcast(message);
+            client.Owner.Server.Broadcast(message);
         }
         public void Help(Client client)
         {

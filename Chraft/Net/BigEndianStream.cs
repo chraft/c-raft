@@ -12,31 +12,24 @@ namespace Chraft.Net
 {
     public class BigEndianStream : Stream
     {
-        public Stream Net { get; private set; }
+        public Stream FileStream { get; private set; }
         public StreamRole Role { get; private set; }
 
-        public override bool CanRead { get { return Net.CanRead; } }
-        public override bool CanSeek { get { return Net.CanSeek; } }
-        public override bool CanWrite { get { return Net.CanWrite; } }
-        public override long Length { get { return Net.Length; } }
-        public override long Position { get { return Net.Position; } set { Net.Position = value; } }
+        public override bool CanRead { get { return FileStream.CanRead; } }
+        public override bool CanSeek { get { return FileStream.CanSeek; } }
+        public override bool CanWrite { get { return FileStream.CanWrite; } }
+        public override long Length { get { return FileStream.Length; } }
+        public override long Position { get { return FileStream.Position; } set { FileStream.Position = value; } }
 
         public BigEndianStream(Stream stream, StreamRole role)
         {
-            Net = stream;
+            FileStream = stream;
             Role = role;
-        }
-
-        public Packet ReadPacket()
-        {
-            PacketType type = (PacketType)ReadByte();
-            Packet p = Packet.Read(type, this);
-            return p;
         }
 
         public new byte ReadByte()
         {
-            int b = Net.ReadByte();
+            int b = FileStream.ReadByte();
             if (b >= byte.MinValue && b <= byte.MaxValue)
                 return (byte)b;
             throw new EndOfStreamException();
@@ -120,7 +113,7 @@ namespace Chraft.Net
 
         public void Write(byte data)
         {
-            Net.WriteByte(data);
+            FileStream.WriteByte(data);
         }
 
         public void Write(sbyte data)
@@ -183,45 +176,29 @@ namespace Chraft.Net
             Write((byte)(data ? 1 : 0));
         }
 
-        public void WritePacket(Packet packet)
-        {
-            Write((byte)packet.GetPacketType());
-            packet.WriteFlush(this);
-        }
-
-        public MetaData ReadMetaData()
-        {
-            return new MetaData(this);
-        }
-
-        public void Write(MetaData Data)
-        {
-            Data.Write(this);
-        }
-
         public override void Flush()
         {
-            Net.Flush();
+            FileStream.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return Net.Read(buffer, offset, count);
+            return FileStream.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            return Net.Seek(offset, origin);
+            return FileStream.Seek(offset, origin);
         }
 
         public override void SetLength(long value)
         {
-            Net.SetLength(value);
+            FileStream.SetLength(value);
         }
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            Net.Write(buffer, offset, count);
+            FileStream.Write(buffer, offset, count);
         }
 
         public double ReadDoublePacked()

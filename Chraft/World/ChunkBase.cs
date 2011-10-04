@@ -29,7 +29,7 @@ namespace Chraft.World
         protected int NumBlocksToUpdate;
         protected int _TimerStarted;
         protected Timer _UpdateTimer;
-        protected short[] BlocksToBeUpdated = new short[20];
+        protected ConcurrentDictionary<short, short> BlocksToBeUpdated = new ConcurrentDictionary<short, short>();
         protected ReaderWriterLockSlim BlocksUpdateLock = new ReaderWriterLockSlim();
 
 		public WorldManager World { get; private set; }
@@ -130,60 +130,20 @@ namespace Chraft.World
             Light.setNibble(x, y, z, high);
         }
 
+        public void SetBlockLight(int x, int y, int z, byte value)
+        {
+            Light.setNibble(x, y, z, value);
+        }
+
         public void SetSkyLight(int x, int y, int z, byte value)
         {
             SkyLight.setNibble(x, y, z, value);
         }
 
-		/*public unsafe byte GetBlockLight(int x, int y, int z)
+	    public void SetData(int x, int y, int z, byte value)
 		{
-			fixed (byte* light = Light)
-				return unchecked((byte)(light[Translate(x, y, z)] >> 4 & 0xf));
+			Data.setNibble(x, y, z, value);
 		}
-
-		public unsafe byte GetSkyLight(int x, int y, int z)
-		{
-			fixed (byte* light = Light)
-				return unchecked((byte)(light[Translate(x, y, z)] & 0xf));
-		}
-
-		public unsafe byte GetData(int x, int y, int z)
-		{
-			fixed (byte* data = Data)
-				return unchecked(data[Translate(x, y, z)]);
-		}
-
-		public unsafe byte GetDualLight(int x, int y, int z)
-		{
-			fixed (byte* light = Light)
-				return light[Translate(x, y, z)];
-		}
-
-		public unsafe void SetBlockLight(int x, int y, int z, byte value)
-		{
-			int i = Translate(x, y, z);
-			fixed (byte* light = Light)
-				light[i] = unchecked((byte)(light[i] & 0xf | (value << 4)));
-		}
-
-		public unsafe void SetSkyLight(int x, int y, int z, byte value)
-		{
-			int i = Translate(x, y, z);
-			fixed (byte* light = Light)
-				light[i] = unchecked((byte)(light[i] & 0xf | value));
-		}
-
-		public unsafe void SetDualLight(int x, int y, int z, byte value)
-		{
-			fixed (byte* light = Light)
-				light[Translate(x, y, z)] = value;
-		}
-
-		public unsafe void SetData(int x, int y, int z, byte value)
-		{
-			fixed (byte* data = Data)
-				data[Translate(x, y, z)] = value;
-		}*/
 
 		public byte GetLuminance(int x, int y, int z)
 		{
@@ -201,7 +161,7 @@ namespace Chraft.World
 			Types = data;
 		}
 
-		public void ForAdjacentSameChunk(int x, int y, int z, ForEachBlock predicate)
+		/*public void ForAdjacentSameChunk(int x, int y, int z, ForEachBlock predicate)
 		{
 			if (x > 0)
 				predicate(x - 1, y, z);
@@ -215,7 +175,7 @@ namespace Chraft.World
 				predicate(x, y, z - 1);
 			if (z < 15)
 				predicate(x, y, z + 1);
-		}
+		}*/
 
 		public void ForEach(ForEachBlock predicate)
 		{
@@ -247,7 +207,10 @@ namespace Chraft.World
 
             BlocksUpdateLock.EnterReadLock();
             if (num <= 20)
-                BlocksToBeUpdated[num - 1] = (short)(x << 12 | z << 8 | y);
+            {
+                short packedCoords = (short) (x << 12 | z << 8 | y);
+                BlocksToBeUpdated.AddOrUpdate(packedCoords, packedCoords, (key, oldValue) => packedCoords);
+            }
             BlocksUpdateLock.ExitReadLock();
 
             int started = Interlocked.CompareExchange(ref _TimerStarted, 1, 0);

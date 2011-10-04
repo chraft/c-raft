@@ -76,15 +76,15 @@ namespace Chraft.Entity
 
         public void DamageMob(EntityBase hitBy = null)
         {
-            var hitByClient = hitBy as Client;
+            var hitByPlayer = hitBy as Player;
             var hitByMob = hitBy as Mob;
-            if (hitByClient != null)
+            if (hitByPlayer != null)
             {
                 //TODO: Make damage more customizable.  CSV anyone?
                 //TODO: Fix damage.
                 //Damage values taken from http://www.minecraftwiki.net/wiki/Damage#Dealing_Damage
                 short damage = 2;
-                ItemStack itemHeld = hitByClient.Inventory.ActiveItem;
+                ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
                 switch (itemHeld.Type)
                 {
                     case 268:
@@ -112,15 +112,15 @@ namespace Chraft.Entity
                 }
 
                 //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitByClient, DamageCause.EntityAttack);
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitByPlayer, DamageCause.EntityAttack);
                 Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
                 if (e.EventCanceled) return;
                 damage = e.Damage;
-                hitByClient = e.DamagedBy;
+                hitByPlayer = e.DamagedBy;
                 //End Event
 
                 //Debug
-                hitByClient.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
+                hitByPlayer.Client.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
                 this.Health -= damage;
             }
             else if (hitByMob != null)
@@ -153,13 +153,13 @@ namespace Chraft.Entity
 
             foreach (Client c in World.Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                c.PacketHandler.SendPacket(new AnimationPacket // Hurt Animation
+                c.SendPacket(new AnimationPacket // Hurt Animation
                 {
                     Animation = 2,
                     PlayerId = this.EntityId
                 });
 
-                c.PacketHandler.SendPacket(new EntityStatusPacket // Hurt Action
+                c.SendPacket(new EntityStatusPacket // Hurt Action
                 {
                     EntityId = this.EntityId,
                     EntityStatus = 2
@@ -168,7 +168,7 @@ namespace Chraft.Entity
 
             // TODO: Entity Knockback
 
-            if (this.Health <= 0) HandleDeath(hitByClient);
+            if (this.Health <= 0) HandleDeath(hitByPlayer);
         }
 
         protected virtual void DoInteraction(Client client, ItemStack item)
@@ -194,13 +194,13 @@ namespace Chraft.Entity
 
         public void HandleDeath(EntityBase killedBy = null)
         {
-            var killedByClient = killedBy as Client;
+            var killedByPlayer = killedBy as Player;
             
             //Event
-            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedByClient);
+            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedByPlayer);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DEATH, e);
             if (e.EventCanceled) return;
-            killedByClient = e.KilledBy;
+            killedByPlayer = e.KilledBy;
             //End Event
             
             // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
@@ -212,7 +212,7 @@ namespace Chraft.Entity
             World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z, 
                 new EntityStatusPacket // Death Action
                 {
-                    EntityId = this.EntityId,
+                    EntityId = EntityId,
                     EntityStatus = 3
                 });
 
@@ -233,7 +233,7 @@ namespace Chraft.Entity
 
         public void Despawn()
         {
-            this.Server.RemoveEntity(this);
+            Server.RemoveEntity(this);
 
             // Client.UpdateEntities() will handle any notifications about this entity disappearing
         }

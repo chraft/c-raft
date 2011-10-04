@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
 using Chraft.Net.Packets;
 
 namespace Chraft.Commands
@@ -20,22 +21,22 @@ namespace Chraft.Commands
             }
             if (int.TryParse(tokens[1], out newTime) && newTime >= 0 && newTime <= 24000)
             {
-                client.World.Time = newTime;
+                client.Owner.World.Time = newTime;
             }
             else if (tokens[1].ToLower() == "day")
             {
-                client.World.Time = 0;
+                client.Owner.World.Time = 0;
             }
             else if (tokens[1].ToLower() == "night")
             {
-                client.World.Time = 12000;
+                client.Owner.World.Time = 12000;
             }
             else
             {
                 client.SendMessage("You must specify a time value between 0 and 24000");
                 return;
             }
-            client.Server.Broadcast(new TimeUpdatePacket { Time = client.World.Time });
+            client.Owner.Server.Broadcast(new TimeUpdatePacket { Time = client.Owner.World.Time });
         }
 
         public void Help(Client client)
