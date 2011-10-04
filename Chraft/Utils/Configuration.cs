@@ -30,7 +30,7 @@ namespace Chraft.Utils
         {
             var list = new ArrayList();
 
-            foreach (var node in Config.Descendants(parentNode).Where(node => node.Name == nodeName))
+            foreach (var node in Config.Descendants(parentNode ?? "").Where(node => node.Name == nodeName))
             {
                 list.Add(node.Value);
             }
@@ -57,7 +57,7 @@ namespace Chraft.Utils
         }
 
         /// <summary>
-        /// loads a permission file
+        /// loads a configuration file
         /// </summary>
         /// <param name="filename"></param>
         /// <returns>bool whether load was successful</returns>
@@ -79,7 +79,7 @@ namespace Chraft.Utils
         }
 
         /// <summary>
-        /// Saves the permissions file, will create file if it does not exist
+        /// Saves the configuration file, will create file if it does not exist
         /// </summary>
         /// <param name="filename"></param>
         /// <returns>bool whether file created successfully</returns>
