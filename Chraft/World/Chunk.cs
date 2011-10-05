@@ -800,6 +800,7 @@ namespace Chraft.World
                     data[count] = (sbyte)World.GetBlockData(worldX, worldY, worldZ);
                     types[count] = (sbyte)World.GetBlockId(worldX, worldY, worldZ);
                     blocks[count] = index;
+                    ++count;
                 }
                 SendPacketToAllNearbyPlayers(new MultiBlockChangePacket { Coords = blocks, Metadata = data, Types = types, X = this.X, Z = this.Z});
             }
