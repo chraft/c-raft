@@ -19,5 +19,12 @@ namespace Chraft.World.Blocks
             LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Y > sourceBlock.Y)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
+        }
     }
 }

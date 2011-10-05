@@ -53,5 +53,11 @@ namespace Chraft.World.Blocks
             base.DropItems(entity, block);
         }
 
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Y > sourceBlock.Y)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
+        }
     }
 }
