@@ -9,6 +9,9 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
+    /// <summary>
+    /// Represents a certain block in the world
+    /// </summary>
     public struct StructBlock
     {
         public byte Type;
@@ -43,11 +46,29 @@ namespace Chraft.World.Blocks
         /// </summary>
         public BlockData.Blocks Type { get; set; }
 
+        /// <summary>
+        /// Can we move through the block
+        /// </summary>
         public bool IsAir { get; protected set; }
+
+        /// <summary>
+        /// Is the block liquid
+        /// </summary>
         public bool IsLiquid { get; protected set; }
+
+        /// <summary>
+        /// Is the block solid - can be a basement for other blocks
+        /// </summary>
         public bool IsSolid { get; protected set; }
 
+        /// <summary>
+        /// Opacity of the block where 0x0 is transparent and 0xf is opaque
+        /// </summary>
         public byte Opacity { get; protected set; }
+
+        /// <summary>
+        /// If the block is opaque or not
+        /// </summary>
         public bool IsOpaque
         {
             get { return (Opacity == 0xf); }
@@ -108,6 +129,10 @@ namespace Chraft.World.Blocks
             Luminance = 0;
         }
 
+        /// <summary>
+        /// Destroy the block
+        /// </summary>
+        /// <param name="block">block that has been destroyed</param>
         public virtual void Destroy(StructBlock block)
         {
             Destroy(null, block);
@@ -115,8 +140,10 @@ namespace Chraft.World.Blocks
 
 
         /// <summary>
-        /// Destroy the block and drop the loot (if any).
+        /// Destroy the block
         /// </summary>
+        /// <param name="entity">entity who destroyed the block</param>
+        /// <param name="block">block that has been destroyed</param>
         public virtual void Destroy(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
@@ -129,14 +156,60 @@ namespace Chraft.World.Blocks
 
             DropItems(entity, block);
 
-            //DamageItem(entity);
+            DamageItem(entity);
+
+            NotifyNearbyBlocks(entity, block);
         }
 
         /// <summary>
-        /// Method that is called when the player touches the block. For future use - pressure plates, proximity sensors etc.
+        /// Notifies the nearby block that the current block has been destroyed
+        /// May be used by recipient block to start the physic simulation etc
         /// </summary>
+        /// <param name="entity">entity who destroyed the block</param>
+        /// <param name="block">block that has been destroyed</param>
+        protected virtual void NotifyNearbyBlocks(EntityBase entity, StructBlock block)
+        {
+            List<PointI> blocks = new List<PointI>(6);
+            if (block.Y < 127)
+                blocks.Add(new PointI(block.X, block.Y + 1, block.Z));
+            if (block.Y > 0)
+                blocks.Add(new PointI(block.X, block.Y - 1, block.Z));
+            blocks.Add(new PointI(block.X - 1, block.Y, block.Z));
+            blocks.Add(new PointI(block.X + 1, block.Y, block.Z));
+            blocks.Add(new PointI(block.X, block.Y, block.Z - 1));
+            blocks.Add(new PointI(block.X, block.Y, block.Z + 1));
+            byte blockId = 0;
+            byte blockMeta = 0;
+            foreach (var pointI in blocks)
+            {
+                blockId = block.World.GetBlockId(pointI.X, pointI.Y, pointI.Z);
+                blockMeta = block.World.GetBlockData(pointI.X, pointI.Y, pointI.Z);
+                block.World.BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(pointI.X, pointI.Y, pointI.Z, blockId, blockMeta, block.World));
+            }
+        }
+
+        /// <summary>
+        /// Process the notification about nearby block destruction
+        /// </summary>
+        /// <param name="entity">entity who destroyed the nearby block</param>
+        /// <param name="sourceBlock">block that has been destroyed</param>
+        /// <param name="targetBlock">block that recieves the notification</param>
+        public virtual void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        { }
+
+        /// <summary>
+        /// Called when the entity touches the block - pressure plates, proximity sensors etc
+        /// </summary>
+        /// <param name="entity">entity who touched the block</param>
+        /// <param name="block">block that has been touched</param>
         public virtual void Touch(EntityBase entity, StructBlock block) { }
 
+        /// <summary>
+        /// Places the block
+        /// </summary>
+        /// <param name="block">block that is being placed</param>
+        /// <param name="targetBlock">block that is being targeted (aimed)</param>
+        /// <param name="face">side of the target block</param>
         public virtual void Place(StructBlock block, StructBlock targetBlock, BlockFace face)
         {
             Place(null, block, targetBlock, face);
@@ -144,6 +217,10 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Places the block
         /// </summary>
+        /// <param name="entity">entity who placed the block</param>
+        /// <param name="block">block that is being placed</param>
+        /// <param name="targetBlock">block that is being targeted (aimed)</param>
+        /// <param name="face">side of the target block</param>
         public virtual void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
             if (!CanBePlacedOn(entity, block, targetBlock, face))
@@ -157,9 +234,11 @@ namespace Chraft.World.Blocks
         }
 
         /// <summary>
-        /// The BLOCK_DESTROY event invoker
+        /// Raises the block destruction event
         /// </summary>
-        /// <returns>true if the block will be destroyed</returns>
+        /// <param name="entity">entity who destroyed the block</param>
+        /// <param name="block">block that has been destroyed</param>
+        /// <returns>resulting event args</returns>
         protected virtual BlockDestroyEventArgs RaiseDestroyEvent(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs e = new BlockDestroyEventArgs(this, entity);
@@ -168,9 +247,11 @@ namespace Chraft.World.Blocks
         }
 
         /// <summary>
-        /// The BLOCK_PLACE event invoker
+        /// Raises the block placement event
         /// </summary>
-        /// <returns>true if the block will be placed</returns>
+        /// <param name="entity">entity who placed the block</param>
+        /// <param name="block">block that has been placed</param>
+        /// <returns>resulting event args</returns>
         protected virtual bool RaisePlaceEvent(EntityBase entity, StructBlock block)
         {
             BlockPlaceEventArgs e = new BlockPlaceEventArgs(this, entity);
@@ -182,6 +263,10 @@ namespace Chraft.World.Blocks
             return !e.EventCanceled;
         }
 
+        /// <summary>
+        /// Plays the sound on block destruction
+        /// </summary>
+        /// <param name="block">block that has been destroyed</param>
         protected virtual void PlaySoundOnDestroy(StructBlock block)
         {
             foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
@@ -200,6 +285,7 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Updates world data upon block destruction
         /// </summary>
+        /// <param name="block">block that has been destroyed</param>
         protected virtual void UpdateOnDestroy(StructBlock block)
         {
             block.World.SetBlockAndData(block.X, block.Y, block.Z, (byte)BlockData.Blocks.Air, 0);
@@ -212,13 +298,17 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Updates the world data upon block placement
         /// </summary>
+        /// <param name="block">block that has been placed</param>
         protected virtual void UpdateOnPlace(StructBlock block)
         {
             block.World.SetBlockAndData(block.X, block.Y, block.Z, block.Type, block.MetaData);
             block.World.Update(block.X, block.Y, block.Z, false);
         }
 
-
+        /// <summary>
+        /// Invoked to drop the loot after block destruction
+        /// </summary>
+        /// <param name="block">block that has been destroyed</param>
         protected virtual void DropItems(StructBlock block)
         {
             DropItems(null, block);
@@ -227,6 +317,8 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Invoked to drop the loot after block destruction
         /// </summary>
+        /// <param name="entity">entity that destroyed the block</param>
+        /// <param name="block">block that has been destroyed</param>
         protected virtual void DropItems(EntityBase entity, StructBlock block)
         {
             if (LootTable != null && LootTable.Count > 0)
@@ -262,9 +354,13 @@ namespace Chraft.World.Blocks
         }
 
         /// <summary>
-        /// Checks if this block can be placed next to the target one
+        /// Checks if the block can be placed next to the target one
         /// </summary>
-        /// <returns>true if can be placed, false otherwise</returns>
+        /// <param name="who">the entity who places the block</param>
+        /// <param name="block">the block being placed</param>
+        /// <param name="targetBlock">the block being targeted (aimed)</param>
+        /// <param name="targetSide">the side of the target block</param>
+        /// <returns>true if the block can be placed, false otherwise</returns>
         protected virtual bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
             BlockBase tBlock = targetBlock.World.BlockHelper.Instance(targetBlock.Type);
@@ -279,6 +375,17 @@ namespace Chraft.World.Blocks
                 originalBlock != (byte)BlockData.Blocks.Lava &&
                 originalBlock != (byte)BlockData.Blocks.Still_Lava)
                 return false;
+
+            // We can't place the solid blocks on the player position (both feets and head)
+            // TODO: Improve collision detection. Now the player can be partially in the block when it is placed
+            if (!block.World.BlockHelper.Instance(block.Type).IsAir)
+                foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
+                {
+                    if (c.Owner.Position.BlockX == block.X && c.Owner.Position.BlockZ == block.Z &&
+                    (c.Owner.Position.BlockY == block.Y || c.Owner.Position.Y + 1 == block.Y))
+                        return false;
+                }
+
             return true;
         }
 

@@ -33,5 +33,12 @@ namespace Chraft.World.Blocks
                 return;
             base.Place(entity, block, targetBlock, face);
         }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Y > sourceBlock.Y)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
+        }
     }
 }
