@@ -543,15 +543,6 @@ namespace Chraft.Net
                         player.World.Update(px, py + 1, pz);
                     }
                     break;
-                case BlockData.Items.Shears:
-                    if (adjacentBlockType == BlockData.Blocks.Leaves)
-                    {
-                        // TODO: Set correct leaves type (durability?): 0 basic leaves, 1 pine, 2 birch
-                        player.Server.DropItem(player.World, x, y, z, new ItemStack((short)BlockData.Blocks.Leaves, 1, 0));
-                        player.World.SetBlockAndData(x, y, z, 0, 0);
-                        player.World.Update(x, y, z);
-                    }
-                    break;
             }
             if (player.GameMode == 0)
             {
