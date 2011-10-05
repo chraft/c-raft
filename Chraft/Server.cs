@@ -618,9 +618,10 @@ namespace Chraft
             return GetClients().Where((client) => !String.IsNullOrEmpty(client.Owner.Username) && client.Owner.Ready);
         }
 
+
         public IEnumerable<Client> GetClients(string name)
         {
-            return from c in GetClients()
+            return from c in GetAuthenticatedClients()
                    where c.Owner.Username.ToLower().Contains(name.ToLower()) || c.Owner.DisplayName.ToLower().Contains(name.ToLower())
                    select c;
         }
