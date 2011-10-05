@@ -531,7 +531,7 @@ namespace Chraft.World
 
         internal void Grow()
         {
-            //ForEach((x, y, z) => Grow(x, y, z));
+            ForEach(Grow);
         }
 
         private void Grow(int x, int y, int z)

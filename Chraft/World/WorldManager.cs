@@ -369,7 +369,7 @@ namespace Chraft.World
         public Chunk[] GetChunks()
         {
             int changes = Interlocked.Exchange(ref Chunks.Changes, 0);
-            if(_ChunksCache == null && changes > 0)
+            if(_ChunksCache == null || changes > 0)
                 _ChunksCache = Chunks.Values.ToArray();
 
             return _ChunksCache;
