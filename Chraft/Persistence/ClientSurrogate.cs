@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Interfaces;
-using System.Runtime.Serialization;
 
 namespace Chraft.Persistence
 {
@@ -15,7 +11,11 @@ namespace Chraft.Persistence
         public double Z { get; set; }
         public double Yaw { get; set; }
         public double Pitch { get; set; }
+        public short Health { get; set; }
+        public short Food { get; set; }
+        public float FoodSaturation { get; set; }
         public Inventory Inventory { get; set; }
         public byte GameMode { get; set; }
+        public string DisplayName { get; set; }
     }
 }

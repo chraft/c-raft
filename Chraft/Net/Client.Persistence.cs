@@ -25,25 +25,31 @@ namespace Chraft.Net
             _Player.Position.Z = client.Z;
             _Player.Position.Yaw = client.Yaw;
             _Player.Position.Pitch = client.Pitch;
-            if (client.Inventory == null) return;
-            _Player.Inventory = new Inventory {Handle = 0};
-            ItemStack[] slots = new ItemStack[client.Inventory.SlotCount];
-            
-            for (short i = 0; i < client.Inventory.SlotCount; i++)
+            if (client.Inventory != null)
             {
-                slots[i] = ItemStack.Void;
-                if (!ItemStack.IsVoid(client.Inventory.Slots[i]))
+                _Player.Inventory = new Inventory {Handle = 0};
+                ItemStack[] slots = new ItemStack[client.Inventory.SlotCount];
+
+                for (short i = 0; i < client.Inventory.SlotCount; i++)
                 {
-                    slots[i].Type = client.Inventory.Slots[i].Type;
-                    slots[i].Count = client.Inventory.Slots[i].Count;
-                    slots[i].Durability = client.Inventory.Slots[i].Durability;
-                    slots[i].Slot = i;
+                    slots[i] = ItemStack.Void;
+                    if (!ItemStack.IsVoid(client.Inventory.Slots[i]))
+                    {
+                        slots[i].Type = client.Inventory.Slots[i].Type;
+                        slots[i].Count = client.Inventory.Slots[i].Count;
+                        slots[i].Durability = client.Inventory.Slots[i].Durability;
+                        slots[i].Slot = i;
+                    }
+                    // Using the default indexer on Inventory ensures all event handlers are correctly hooked up
+                    _Player.Inventory[i] = slots[i];
                 }
-                // Using the default indexer on Inventory ensures all event handlers are correctly hooked up
-                _Player.Inventory[i] = slots[i];
+                _Player.Inventory.Associate(_Player);
             }
-            _Player.Inventory.Associate(_Player);
             _Player.GameMode = client.GameMode;
+            _Player.Health = client.Health;
+            _Player.Food = client.Food;
+            _Player.FoodSaturation = client.FoodSaturation;
+            _Player.DisplayName = client.DisplayName;
         }
 
         private void Save()
@@ -65,7 +71,11 @@ namespace Chraft.Net
                         Z = _Player.Position.Z,
                         Yaw = _Player.Position.Yaw,
                         Pitch = _Player.Position.Pitch,
-                        GameMode = _Player.GameMode 
+                        GameMode = _Player.GameMode,
+                        DisplayName = _Player.DisplayName,
+                        Health = _Player.Health,
+                        Food = _Player.Food,
+                        FoodSaturation = _Player.FoodSaturation
                     });
                     tx.Flush();
                     tx.Close();
