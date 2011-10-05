@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Threading;
 using Chraft.Net;
-using ICSharpCode.SharpZipLib.GZip;
 using Chraft.Properties;
 using Ionic.Zlib;
 using Chraft.World.Weather;
