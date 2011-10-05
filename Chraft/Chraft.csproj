@@ -248,6 +248,13 @@
     <Compile Include="World\Blocks\Interfaces\IBlockGrowable.cs" />
     <Compile Include="World\Blocks\Interfaces\IBlockInteractive.cs" />
     <Compile Include="World\Blocks\BlockDeadBush.cs" />
+    <Compile Include="World\Blocks\BlockCobweb.cs" />
+    <Compile Include="World\Blocks\BlockDetectorRail.cs" />
+    <Compile Include="World\Blocks\BlockPoweredRail.cs" />
+    <Compile Include="World\Blocks\BlockPiston.cs" />
+    <Compile Include="World\Blocks\BlockPistonHead.cs" />
+    <Compile Include="World\Blocks\BlockSponge.cs" />
+    <Compile Include="World\Blocks\BlockStickyPiston.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />

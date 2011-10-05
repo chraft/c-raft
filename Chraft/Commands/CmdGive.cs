@@ -15,6 +15,8 @@ namespace Chraft.Commands
         public void Use(Client client, string[] tokens)
         {
             ItemStack item;
+            string itemName = string.Empty;
+            short metaData = 0;
             uint amount = 0;
             List<Client> who = new List<Client>();
 
@@ -23,7 +25,18 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target and an item or just an item to give it to yourself.");
                 return;
             }
-            item = client.Owner.Server.Items[tokens[1]];
+
+            if (tokens[1].Contains(':'))
+            {
+                itemName = tokens[1].Split(':')[0].Trim();
+                short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
+                item = client.Owner.Server.Items[itemName];
+                item.Durability = metaData;
+            }
+            else
+            {
+                item = client.Owner.Server.Items[tokens[1]];
+            }
 
             if (tokens.Length == 2)
             {
@@ -39,7 +52,18 @@ namespace Chraft.Commands
                         who.Add(client);
                     else
                     {
-                        item = client.Owner.Server.Items[tokens[2]];
+                        if (tokens[2].Contains(':'))
+                        {
+                            itemName = tokens[2].Split(':')[0].Trim();
+                            short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                            item = client.Owner.Server.Items[itemName];
+                            item.Durability = metaData;
+                        }
+
+                        else
+                        {
+                            item = client.Owner.Server.Items[tokens[2]];
+                        }
                         who.AddRange(client.Owner.Server.GetClients(tokens[1]));
                     }
 
@@ -48,7 +72,17 @@ namespace Chraft.Commands
                 {
                     // OR trying to give something to a player(s)
                     who.AddRange(client.Owner.Server.GetClients(tokens[1]));
-                    item = client.Owner.Server.Items[tokens[2]];
+                    if (tokens[2].Contains(':'))
+                    {
+                        itemName = tokens[2].Split(':')[0].Trim();
+                        short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                        item = client.Owner.Server.Items[itemName];
+                        item.Durability = metaData;
+                    }
+                    else
+                    {
+                        item = client.Owner.Server.Items[tokens[2]];
+                    }
                 }  
             }
             else
@@ -57,7 +91,17 @@ namespace Chraft.Commands
                 if (uint.TryParse(tokens[3], out amount))
                 {
                     who.AddRange(client.Owner.Server.GetClients(tokens[1]));
-                    item = client.Owner.Server.Items[tokens[2]];
+                    if (tokens[2].Contains(':'))
+                    {
+                        itemName = tokens[2].Split(':')[0].Trim();
+                        short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                        item = client.Owner.Server.Items[itemName];
+                        item.Durability = metaData;
+                    }
+                    else
+                    {
+                        item = client.Owner.Server.Items[tokens[2]];
+                    }
                 }
 
             }
@@ -84,8 +128,8 @@ namespace Chraft.Commands
 
         public void Help(Client client)
         {
-            client.SendMessage("/give <Player> <Item OR Block> [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
-            client.SendMessage("/give <Item OR Block> [Amount] - Gives you [Amount] of <Item OR Block>.");
+            client.SendMessage("/give <Player> <Item OR Block>[:MetaData] [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
+            client.SendMessage("/give <Item OR Block>[:MetaData] [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
         public string Name
