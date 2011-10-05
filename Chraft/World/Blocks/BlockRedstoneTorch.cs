@@ -46,5 +46,16 @@ namespace Chraft.World.Blocks
 
             base.Place(entity, block, targetBlock, face);
         }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Y > sourceBlock.Y && targetBlock.MetaData == (byte)MetaData.Torch.Standing ||
+                targetBlock.X > sourceBlock.X && targetBlock.MetaData == (byte)MetaData.Torch.South ||
+                targetBlock.X < sourceBlock.X && targetBlock.MetaData == (byte)MetaData.Torch.North ||
+                targetBlock.Z > sourceBlock.Z && targetBlock.MetaData == (byte)MetaData.Torch.West ||
+                targetBlock.Z < sourceBlock.Z && targetBlock.MetaData == (byte)MetaData.Torch.East)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
+        }
     }
 }

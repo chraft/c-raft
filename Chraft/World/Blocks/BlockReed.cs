@@ -15,6 +15,7 @@ namespace Chraft.World.Blocks
             Name = "Reed";
             Type = BlockData.Blocks.Reed;
             Opacity = 0x0;
+            IsAir = true;
             IsSolid = true;
             IsSingleHit = true;
             LootTable.Add(new ItemStack((short)Type, 1));
@@ -24,6 +25,13 @@ namespace Chraft.World.Blocks
         {
             // TODO: Check there is water nearby before placing.
             base.Place(entity, block, targetBlock, face);
+        }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Y > sourceBlock.Y)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
     }
 }
