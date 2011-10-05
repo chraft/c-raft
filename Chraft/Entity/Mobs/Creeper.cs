@@ -37,11 +37,11 @@ namespace Chraft.Entity.Mobs
                 short item;
                 if (Server.Rand.Next(2) > 1)
                 {
-                    item = (short)BlockData.Items.Gold_Record;
+                    item = (short)BlockData.Items.Disc13;
                 }
                 else
                 {
-                    item = (short)BlockData.Items.Green_Record;
+                    item = (short)BlockData.Items.DiscCat;
                 }
                 Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack(item, count, 0));
             }

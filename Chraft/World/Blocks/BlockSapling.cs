@@ -18,7 +18,6 @@ namespace Chraft.World.Blocks
             IsAir = true;
             IsSingleHit = true;
             BurnEfficiency = 100;
-            LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }
 
@@ -28,6 +27,13 @@ namespace Chraft.World.Blocks
             if (!targetBlock.World.BlockHelper.Instance(targetBlock.Type).IsFertile || targetSide != BlockFace.Up)
                 return false;
             return base.CanBePlacedOn(entity, block, targetBlock, targetSide);
+        }
+
+        protected override void DropItems(EntityBase entity, StructBlock block)
+        {
+            LootTable = new List<ItemStack>();
+            LootTable.Add(new ItemStack((short)Type, 1, block.MetaData));
+            base.DropItems(entity, block);
         }
 
         public void Grow(StructBlock block)
