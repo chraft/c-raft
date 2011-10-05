@@ -44,7 +44,7 @@ namespace Chraft.Entity
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
-        public virtual short MaxHealth { get { return 10; } }
+        public virtual short MaxHealth { get { return 20; } }
         public sbyte PackedPitch { get { return Position.PackedPitch; } }
         public sbyte PackedYaw { get { return Position.PackedYaw; } }
         public Server Server { get; private set; }
@@ -86,11 +86,14 @@ namespace Chraft.Entity
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
             Position.Vector = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
 
-            
+            OnMoveTo(dx, dy, dz);
+        }
+
+        public virtual void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        {
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendMoveBy(this, dx, dy, dz);
+                c.SendMoveBy(this, x, y, z);
             }
         }
 
@@ -106,26 +109,16 @@ namespace Chraft.Entity
             Position.Y = y;
             Position.Z = z;
             
+            OnTeleportTo(x, y, z);
+            return true;
+        }
+
+        public virtual void OnTeleportTo(double x, double y, double z)
+        {
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendTeleportTo(this);
-                else
-                {
-                    c.SendPacket(new PlayerPositionRotationPacket
-                    {
-                        X = x,
-                        Y = y + Player.EyeGroundOffset,
-                        Z = z,
-                        Yaw = (float)c.Owner.Position.Yaw,
-                        Pitch = (float)c.Owner.Position.Pitch,
-                        Stance = c.Stance,
-                        OnGround = false
-                    }
-                    );
-                }
+                c.SendTeleportTo(this);
             }
-            return true;
         }
 
         /// <summary>
@@ -137,10 +130,15 @@ namespace Chraft.Entity
         {
             Position.Yaw = yaw;
             Position.Pitch = pitch;
+
+            OnRotateTo();
+        }
+
+        public virtual void OnRotateTo()
+        {
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendRotateBy(this, PackedYaw, PackedPitch);
+                c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
 
@@ -169,10 +167,16 @@ namespace Chraft.Entity
             Position.Vector = newPosition;
             Position.Yaw = yaw;
             Position.Pitch = pitch;
+
+            OnMoveRotateTo(dx, dy, dz);
+            
+        }
+
+        public virtual void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        {
             foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendMoveRotateBy(this, dx, dy, dz, PackedYaw, PackedPitch);
+                c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
         }
 
