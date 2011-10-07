@@ -5,9 +5,7 @@ namespace Chraft.Net.Packets
 {
 	public class MapChunkPacket : Packet
 	{
-		public int X { get { return (Chunk.X << 4); } }
-		public short Y { get { return 0; } }
-		public int Z { get { return (Chunk.Z << 4); } }
+        public UniversalCoords Coords { get { return Chunk.Coords; } }
 		public byte SizeX { get { return 15; } }
 		public byte SizeY { get { return 127; } }
 		public byte SizeZ { get { return 15; } }
@@ -23,7 +21,7 @@ namespace Chraft.Net.Packets
 			byte sizeZ = (byte)(stream.ReadByte() + 1);
 
 			int o = sizeX * sizeY * sizeZ;
-			Chunk = new Chunk(null, posX << 4, posZ << 4);
+            Chunk = new Chunk(null, UniversalCoords.FromWorld(posX, posY, posZ));
 
 		    int len = stream.ReadInt();
 			byte[] data = new byte[o * 5 / 2];
@@ -64,9 +62,9 @@ namespace Chraft.Net.Packets
             }
 
             SetCapacity(18 + len);
-            Writer.Write(X);
-            Writer.Write(Y);
-            Writer.Write(Z);
+            Writer.Write(Coords.WorldX);
+            Writer.Write((short)Coords.WorldY);
+            Writer.Write(Coords.WorldZ);
             Writer.Write(SizeX);
             Writer.Write(SizeY);
             Writer.Write(SizeZ);

@@ -23,22 +23,19 @@ namespace Chraft.Interfaces
             {
                 get
                 {
-                    return String.Format("{0}-{1},{2},{3}", this.World.Name, X, Y, Z);
+                    return String.Format("{0}-{1},{2},{3}", this.World.Name, Coords.WorldX, Coords.WorldY, Coords.WorldZ);
                 }
             }
-            public int X { get; private set; }
-            public int Y { get; private set; }
-            public int Z { get; private set; }
+
+            public UniversalCoords Coords { get; private set; }
             public WorldManager World { get; private set; }
             public volatile bool IsBurning;
             public volatile bool IsSmelting;
 
-            public FurnaceInstance(WorldManager world, int x, int y, int z)
+            public FurnaceInstance(WorldManager world, UniversalCoords coords)
             {
                 this.World = world;
-                X = x;
-                Y = y;
-                Z = z;
+                Coords = coords;
             }
 
             public void Add(FurnaceInterface furnaceInterface)
@@ -87,15 +84,15 @@ namespace Chraft.Interfaces
         /// <param name="z"></param>
         /// <param name="furnace"></param>
         /// <returns>The FurnaceInstance that the FurnaceInterface was added to</returns>
-        private static FurnaceInstance AddFurnaceInterface(int x, int y, int z, FurnaceInterface furnace)
+        private static FurnaceInstance AddFurnaceInterface(UniversalCoords coords, FurnaceInterface furnace)
         {
-            string id = String.Format("{0}-{1},{2},{3}", furnace.World.Name, x, y, z);
+            string id = String.Format("{0}-{1},{2},{3}", furnace.World.Name, coords.WorldX, coords.WorldY, coords.WorldZ);
             lock (_staticLock)
             {
                 FurnaceInstance furnaceInstance;
                 if (!_furnaceInstances.ContainsKey(id))
                 {
-                    furnaceInstance = new FurnaceInstance(furnace.World, x, y, z);
+                    furnaceInstance = new FurnaceInstance(furnace.World, coords);
                     _furnaceInstances[id] = furnaceInstance;
                 }
                 else
@@ -108,9 +105,9 @@ namespace Chraft.Interfaces
             }
         }
 
-        private static void RemoveFurnaceInterface(int x, int y, int z, FurnaceInterface furnace)
+        private static void RemoveFurnaceInterface(UniversalCoords coords, FurnaceInterface furnace)
         {
-            string id = String.Format("{0}-{1},{2},{3}", furnace.World.Name, x, y, z);
+            string id = String.Format("{0}-{1},{2},{3}", furnace.World.Name, coords.WorldX, coords.WorldY, coords.WorldZ);
             lock (_staticLock)
             {
                 if (_furnaceInstances.ContainsKey(id))
@@ -121,8 +118,8 @@ namespace Chraft.Interfaces
         }
         #endregion
 
-        public FurnaceInterface(World.WorldManager world, int x, int y, int z)
-            : base(world, InterfaceType.Furnace, x, y, z, 3)
+        public FurnaceInterface(World.WorldManager world, UniversalCoords coords)
+            : base(world, InterfaceType.Furnace, coords, 3)
 		{
             
 		}
@@ -131,12 +128,12 @@ namespace Chraft.Interfaces
         protected override void DoOpen()
         {
             base.DoOpen();
-            this._furnaceInstance = AddFurnaceInterface(this.X, this.Y, this.Z, this);
+            this._furnaceInstance = AddFurnaceInterface(Coords, this);
         }
 
         protected override void DoClose()
         {
-            RemoveFurnaceInterface(this.X, this.Y, this.Z, this);
+            RemoveFurnaceInterface(Coords, this);
             _furnaceInstance = null;
             base.DoClose();
         }
@@ -291,7 +288,7 @@ namespace Chraft.Interfaces
                     _burnForTicks = BlockData.ItemBurnEfficiency[(BlockData.Items)this[FUEL_SLOT].Type];
 
                 // Set block to burning furnace
-                this.World.SetBlockAndData(this.X, this.Y, this.Z, (byte)BlockData.Blocks.Burning_Furnace, this.World.GetBlockData(this.X, this.Y, this.Z));
+                this.World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, this.World.GetBlockData(Coords));
                 _burnerStartTick = this.World.WorldTicks;
                 _furnaceInstance.IsBurning = true;
 

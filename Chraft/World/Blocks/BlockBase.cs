@@ -15,22 +15,18 @@ namespace Chraft.World.Blocks
     public struct StructBlock
     {
         public byte Type;
-        public int X;
-        public int Y;
-        public int Z;
+        public UniversalCoords Coords;
         public byte MetaData;
         public Chunk Chunk;
         public WorldManager World;
 
-        public StructBlock(int x, int y, int z, byte type, byte metaData, WorldManager world)
+        public StructBlock(UniversalCoords coords, byte type, byte metaData, WorldManager world)
         {
             Type = type;
-            X = x;
-            Y = y;
-            Z = z;
+            Coords = coords;
             MetaData = metaData;
             World = world;
-            Chunk = World.GetBlockChunk(x, y, z);
+            Chunk = World.GetBlockChunk(Coords);
         }
     }
 
@@ -169,22 +165,22 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been destroyed</param>
         protected virtual void NotifyNearbyBlocks(EntityBase entity, StructBlock block)
         {
-            List<PointI> blocks = new List<PointI>(6);
-            if (block.Y < 127)
-                blocks.Add(new PointI(block.X, block.Y + 1, block.Z));
-            if (block.Y > 0)
-                blocks.Add(new PointI(block.X, block.Y - 1, block.Z));
-            blocks.Add(new PointI(block.X - 1, block.Y, block.Z));
-            blocks.Add(new PointI(block.X + 1, block.Y, block.Z));
-            blocks.Add(new PointI(block.X, block.Y, block.Z - 1));
-            blocks.Add(new PointI(block.X, block.Y, block.Z + 1));
+            List<UniversalCoords> blocks = new List<UniversalCoords>(6);
+            if (block.Coords.WorldY < 127)
+                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
+            if (block.Coords.WorldY > 0)
+                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX - 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX + 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ - 1));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ + 1));
             byte blockId = 0;
             byte blockMeta = 0;
-            foreach (var pointI in blocks)
+            foreach (var coords in blocks)
             {
-                blockId = block.World.GetBlockId(pointI.X, pointI.Y, pointI.Z);
-                blockMeta = block.World.GetBlockData(pointI.X, pointI.Y, pointI.Z);
-                block.World.BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(pointI.X, pointI.Y, pointI.Z, blockId, blockMeta, block.World));
+                blockId = block.World.GetBlockId(coords);
+                blockMeta = block.World.GetBlockData(coords);
+                block.World.BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
             }
         }
 
@@ -269,14 +265,14 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been destroyed</param>
         protected virtual void PlaySoundOnDestroy(StructBlock block)
         {
-            foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
+            foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
             {
                 cl.SendPacket(new SoundEffectPacket
                 {
                     EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
-                    X = block.X,
-                    Y = (byte)block.Y,
-                    Z = block.Z,
+                    X = block.Coords.WorldX,
+                    Y = (byte)block.Coords.WorldY,
+                    Z = block.Coords.WorldZ,
                     SoundData = block.Type
                 });
             }
@@ -288,11 +284,11 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been destroyed</param>
         protected virtual void UpdateOnDestroy(StructBlock block)
         {
-            block.World.SetBlockAndData(block.X, block.Y, block.Z, (byte)BlockData.Blocks.Air, 0);
-            block.Chunk.RecalculateHeight(block.X & 0xf, block.Z & 0xf);
-            block.Chunk.RecalculateSky(block.X & 0xf, block.Z & 0xf);
-            block.Chunk.SpreadSkyLightFromBlock((byte)(block.X & 0xf), (byte)block.Y, (byte)(block.Z & 0xf));
-            block.World.Update(block.X, block.Y, block.Z, false);
+            block.World.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
+            block.Chunk.RecalculateHeight(block.Coords);
+            block.Chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
+            block.Chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
+            block.World.Update(block.Coords, false);
         }
 
         /// <summary>
@@ -301,8 +297,8 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been placed</param>
         protected virtual void UpdateOnPlace(StructBlock block)
         {
-            block.World.SetBlockAndData(block.X, block.Y, block.Z, block.Type, block.MetaData);
-            block.World.Update(block.X, block.Y, block.Z, false);
+            block.World.SetBlockAndData(block.Coords, block.Type, block.MetaData);
+            block.World.Update(block.Coords, false);
         }
 
         /// <summary>
@@ -326,7 +322,7 @@ namespace Chraft.World.Blocks
                 foreach (var lootEntry in LootTable)
                 {
                     if (lootEntry.Count > 0)
-                        block.World.Server.DropItem(block.World, block.X, block.Y, block.Z, lootEntry);
+                        block.World.Server.DropItem(block.World, block.Coords, lootEntry);
                 }              
             }
         }
@@ -367,7 +363,7 @@ namespace Chraft.World.Blocks
             if (!tBlock.IsSolid)
                 return false;
 
-            byte originalBlock = block.World.GetBlockId(block.X, block.Y, block.Z);
+            byte originalBlock = block.World.GetBlockId(block.Coords);
 
             if ( originalBlock != (byte)BlockData.Blocks.Air &&
                 originalBlock != (byte)BlockData.Blocks.Water &&
@@ -379,10 +375,10 @@ namespace Chraft.World.Blocks
             // We can't place the solid blocks on the player position (both feets and head)
             // TODO: Improve collision detection. Now the player can be partially in the block when it is placed
             if (!block.World.BlockHelper.Instance(block.Type).IsAir)
-                foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, block.X, block.Y, block.Z))
+                foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
-                    if (c.Owner.Position.BlockX == block.X && c.Owner.Position.BlockZ == block.Z &&
-                    (c.Owner.Position.BlockY == block.Y || c.Owner.Position.Y + 1 == block.Y))
+                    if (c.Owner.Position.BlockX == block.Coords.WorldX && c.Owner.Position.BlockZ == block.Coords.WorldZ &&
+                    (c.Owner.Position.BlockY == block.Coords.WorldY || c.Owner.Position.BlockY + 1 == block.Coords.WorldY))
                         return false;
                 }
 

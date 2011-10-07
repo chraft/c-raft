@@ -24,7 +24,7 @@ namespace Chraft.World.Blocks
         {
             if (face == BlockFace.Down)
                 return;
-            byte blockId = targetBlock.World.GetBlockId(block.X, block.Y - 1, block.Z);
+            byte blockId = targetBlock.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
             // We can place the dead bush only on the sand
             if (blockId != (byte)BlockData.Blocks.Sand)
                 return;
@@ -36,7 +36,7 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Y > sourceBlock.Y)
+            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
                 Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }

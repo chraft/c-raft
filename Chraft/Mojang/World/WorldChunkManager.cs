@@ -20,9 +20,9 @@ namespace Chraft.World
 			NoiseGen3 = new NoiseGeneratorOctaves2(new Random(world.GetSeed() * 0x84a59L), 2);
 		}
 
-		public virtual Biome GetBiomeFromCoords(PointI chunkcoordintpair)
+        public virtual Biome GetBiomeFromCoords(UniversalCoords coords)
 		{
-			return GetBiome(chunkcoordintpair.X >> 4, chunkcoordintpair.Z >> 4);
+            return GetBiome(coords.ChunkX, coords.ChunkZ);
 		}
 
 		public virtual Biome GetBiome(int i, int j)

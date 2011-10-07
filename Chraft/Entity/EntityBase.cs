@@ -70,9 +70,9 @@ namespace Chraft.Entity
         /// <param name="x">The X coordinate of the target.</param>
         /// <param name="y">The Y coordinate of the target.</param>
         /// <param name="z">The Z coordinate of the target.</param>
-        public virtual void MoveTo(double x, double y, double z)
+        public virtual void MoveTo(AbsWorldCoords absCoords)
         {
-            Vector3 newPosition = new Vector3(x, y, z);
+            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
@@ -91,7 +91,7 @@ namespace Chraft.Entity
 
         public virtual void OnMoveTo(sbyte x, sbyte y, sbyte z)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 c.SendMoveBy(this, x, y, z);
             }
@@ -103,19 +103,19 @@ namespace Chraft.Entity
         /// <param name="x">The X coordinate of the target.</param>
         /// <param name="y">The Y coordinate of the target.</param>
         /// <param name="z">The Z coordinate of the target.</param>
-        public virtual bool TeleportTo(double x, double y, double z)
+        public virtual bool TeleportTo(AbsWorldCoords absCoords)
         {
-            Position.X = x;
-            Position.Y = y;
-            Position.Z = z;
+            Position.X = absCoords.X;
+            Position.Y = absCoords.Y;
+            Position.Z = absCoords.Z;
             
-            OnTeleportTo(x, y, z);
+            OnTeleportTo(absCoords);
             return true;
         }
 
-        public virtual void OnTeleportTo(double x, double y, double z)
+        public virtual void OnTeleportTo(AbsWorldCoords absCoords)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
             {
                 c.SendTeleportTo(this);
             }
@@ -136,7 +136,7 @@ namespace Chraft.Entity
 
         public virtual void OnRotateTo()
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
@@ -150,9 +150,9 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         /// <param name="yaw">The absolute yaw to which entity should change.</param>
         /// <param name="pitch">The absolute pitch to which entity should change.</param>
-        public virtual void MoveTo(double x, double y, double z, float yaw, float pitch)
+        public virtual void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
-            Vector3 newPosition = new Vector3(x, y, z);
+            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
@@ -174,7 +174,7 @@ namespace Chraft.Entity
 
         public virtual void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }

@@ -56,7 +56,7 @@ namespace Chraft.Net
                     _onGround = value;
                     
                     // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId((int)_Player.Position.X, (int)_Player.Position.Y, (int)_Player.Position.Z);
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId(UniversalCoords.FromWorld(_Player.Position.X, _Player.Position.Y, _Player.Position.Z));
 
                     if (!_onGround)
                     {
@@ -238,7 +238,8 @@ namespace Chraft.Net
         public static void HandlePacketAnimation(Client client, AnimationPacket packet)
         {
             Player p = client.Owner;
-            foreach (Client c in p.Server.GetNearbyPlayers(p.World, p.Position.X, p.Position.Y, p.Position.Z))
+            AbsWorldCoords absCoords = new AbsWorldCoords(p.Position.X, p.Position.Y, p.Position.Z);
+            foreach (Client c in p.Server.GetNearbyPlayers(p.World, absCoords))
             {
                 if (c == client)
                     continue;
@@ -278,7 +279,8 @@ namespace Chraft.Net
             //Console.WriteLine(e.Packet.Target);
             //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
             Player handledPlayer = client.Owner;
-            foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntities(handledPlayer.World, handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z))
+            AbsWorldCoords absCoords = new AbsWorldCoords(handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z);
+            foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntities(handledPlayer.World, absCoords))
             {
                 if (eb.EntityId != packet.Target)
                     continue;
@@ -296,7 +298,7 @@ namespace Chraft.Net
                     {
                         // TODO: Store the object being ridden, so we can update player movement.
                         // This will ride the entity, sends -1 to dismount.
-                        foreach (Client cl in handledPlayer.Server.GetNearbyPlayers(handledPlayer.World, handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z))
+                        foreach (Client cl in handledPlayer.Server.GetNearbyPlayers(handledPlayer.World, absCoords))
                         {
                             cl.SendPacket(new AttachEntityPacket
                             {
@@ -368,7 +370,7 @@ namespace Chraft.Net
         {
             client.Owner.Inventory.OnActiveChanged((short)(packet.Slot += 36));
 
-            foreach (Client c in client.Owner.Server.GetNearbyPlayers(client.Owner.World, client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z).Where(c => c != client))
+            foreach (Client c in client.Owner.Server.GetNearbyPlayers(client.Owner.World, new AbsWorldCoords(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z)).Where(c => c != client))
             {
                 c.SendHoldingEquipment(client);
             }
@@ -386,18 +388,15 @@ namespace Chraft.Net
             if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            int x = packet.X;
-            int y = packet.Y;
-            int z = packet.Z;
+            UniversalCoords packetCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(x, y, z); // Get block being built against.
+            BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(packetCoords); // Get block being built against.
 
             // Placed Item Info
-            int px, py, pz;
             short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
             short pMetaData = player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
 
-            player.World.FromFace(x, y, z, packet.Face, out px, out py, out pz);
+            UniversalCoords coordsFromFace = player.World.FromFace(packetCoords, packet.Face);
 
             switch (packet.Face)
             {
@@ -425,8 +424,7 @@ namespace Chraft.Net
                     if (adjacentBlockType == BlockData.Blocks.Dirt || adjacentBlockType == BlockData.Blocks.Grass)
                     {
                         // Think the client has a Notch bug where hoe's durability is not updated properly.
-                        px = x; py = y; pz = z;
-                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Soil, 0x00);
+                        player.World.SetBlockAndData(packetCoords, (byte)BlockData.Blocks.Soil, 0x00);
                     }
                     break;
 
@@ -465,7 +463,7 @@ namespace Chraft.Net
                                 return;
                         }
 
-                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
+                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
                     }
                     else // Wall Sign
                     {
@@ -483,19 +481,19 @@ namespace Chraft.Net
                                 return;
                         }
 
-                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
+                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
                     }
                     break;
 
                 case BlockData.Items.Seeds:
                     if (adjacentBlockType == BlockData.Blocks.Soil && packet.Face == BlockFace.Down)
                     {
-                        player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Crops, 0x00);
+                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Crops, 0x00);
                     }
                     break;
 
                 case BlockData.Items.Redstone:
-                    player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
+                    player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
                     break;
 
                 case BlockData.Items.Minecart:
@@ -508,7 +506,7 @@ namespace Chraft.Net
                 case BlockData.Items.Iron_Door:
                 case BlockData.Items.Wooden_Door:
                     {
-                        if (!BlockData.Air.Contains((BlockData.Blocks)player.World.GetBlockId(px, py + 1, pz)))
+                        if (!BlockData.Air.Contains((BlockData.Blocks)player.World.GetBlockId(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ)))
                             return;
 
                         switch (client.FacingDirection(4)) // Built on floor, set by facing dir
@@ -531,16 +529,16 @@ namespace Chraft.Net
 
                         if ((BlockData.Items)pType == BlockData.Items.Iron_Door)
                         {
-                            player.World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
-                            player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
+                            player.World.SetBlockAndData(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
+                            player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
                         }
                         else
                         {
-                            player.World.SetBlockAndData(px, py + 1, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
-                            player.World.SetBlockAndData(px, py, pz, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
+                            player.World.SetBlockAndData(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
+                            player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
                         }
 
-                        player.World.Update(px, py + 1, pz);
+                        player.World.Update(UniversalCoords.FromWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
                     }
                     break;
             }
@@ -550,7 +548,7 @@ namespace Chraft.Net
                     player.Inventory.RemoveItem(player.Inventory.ActiveSlot);
             }
 
-            player.World.Update(px, py, pz);
+            player.World.Update(coordsFromFace);
         }
 
         public static void HandlePacketPlayerBlockPlacement(Client client, PlayerBlockPlacementPacket packet)
@@ -567,24 +565,22 @@ namespace Chraft.Net
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
 
+            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+
             if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
                 // TODO: Implement item usage - food etc
                 return;
             }
 
-            int x = packet.X;
-            int y = packet.Y;
-            int z = packet.Z;
-
             Player player = client.Owner;
 
-            BlockData.Blocks type = (BlockData.Blocks)player.World.GetBlockId(x, y, z); // Get block being built against.
-            byte metadata = player.World.GetBlockData(x, y, z);
-            StructBlock facingBlock = new StructBlock(x, y, z, (byte)type, metadata, player.World);
+            BlockData.Blocks type = (BlockData.Blocks)player.World.GetBlockId(coords); // Get block being built against.
+            byte metadata = player.World.GetBlockData(coords);
+            StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
 
             int bx, by, bz;
-            player.World.FromFace(x, y, z, packet.Face, out bx, out by, out bz);
+            UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
             if (player.World.BlockHelper.Instance((byte)type) is IBlockInteractive)
             {
@@ -607,7 +603,7 @@ namespace Chraft.Net
             byte bType = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
             byte bMetaData = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
 
-            StructBlock bBlock = new StructBlock(bx, by, bz, bType, bMetaData, player.World);
+            StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
 
             player.World.BlockHelper.Instance(bType).Place(player, bBlock, facingBlock, packet.Face);
         }
@@ -616,21 +612,19 @@ namespace Chraft.Net
         {
             Player player = client.Owner;
 
-            int x = packet.X;
-            int y = packet.Y;
-            int z = packet.Z;
+            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            byte type = player.World.GetBlockId(x, y, z);
-            byte data = player.World.GetBlockData(x, y, z);
+            byte type = player.World.GetBlockId(coords);
+            byte data = player.World.GetBlockData(coords);
 
             switch (packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
-                    client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(x, y, z)));
-                    client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(x, y, z)));
-                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(x, y, z).GetOpacity(x & 0xf, y, z & 0xf)));
-                    client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(x, z)));
-                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(x, y, z)));
+                    client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(coords)));
+                    client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(coords)));
+                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(coords).GetOpacity(coords)));
+                    client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(coords)));
+                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(coords)));
                     //this.SendMessage()
                     if (player.World.BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -639,7 +633,7 @@ namespace Chraft.Net
                     break;
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
-                    StructBlock block = new StructBlock(x, y, z, type, data, player.World);
+                    StructBlock block = new StructBlock(coords, type, data, player.World);
                     player.World.BlockHelper.Instance(type).Destroy(player, block);
                     break;
             }
@@ -667,7 +661,7 @@ namespace Chraft.Net
         public static void HandlePacketPlayerPositionRotation(Client client, PlayerPositionRotationPacket packet)
         {
             //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
-            client.Owner.MoveTo(packet.X, packet.Y - Player.EyeGroundOffset, packet.Z, packet.Yaw, packet.Pitch);
+            client.Owner.MoveTo(new AbsWorldCoords(packet.X, packet.Y - Player.EyeGroundOffset, packet.Z), packet.Yaw, packet.Pitch);
             client.OnGround = packet.OnGround;
             client.Stance = packet.Stance;
 
@@ -684,7 +678,7 @@ namespace Chraft.Net
         {
             //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
             client.Owner.Ready = true;
-            client.Owner.MoveTo(packet.X, packet.Y, packet.Z);
+            client.Owner.MoveTo(new AbsWorldCoords(packet.X, packet.Y, packet.Z));
             client.OnGround = packet.OnGround;
             client.Stance = packet.Stance;
 

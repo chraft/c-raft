@@ -31,7 +31,7 @@ namespace Chraft.World.Blocks
             } else
             {
                 // Eat one piece
-                block.World.SetBlockData(block.X, block.Y, block.Z, block.MetaData++);
+                block.World.SetBlockData(block.Coords, block.MetaData++);
             }
         }
     }

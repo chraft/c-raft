@@ -10,45 +10,61 @@ namespace Chraft.World
 	public class ChunkSet
 	{
 		private readonly object _ChunksWriteLock = new object();
-        private readonly ConcurrentDictionary<PointI, Chunk> Chunks = new ConcurrentDictionary<PointI, Chunk>();
+        private readonly ConcurrentDictionary<int, Chunk> Chunks = new ConcurrentDictionary<int, Chunk>();
 
-        public ICollection<PointI> Keys { get { return Chunks.Keys; } }
+        public ICollection<int> Keys { get { return Chunks.Keys; } }
 		public ICollection<Chunk> Values { get { return Chunks.Values; } }
 		public int Count { get { return Chunks.Count; } }
 		public bool IsReadOnly { get { return false; } }
         public int Changes;
 
-		public Chunk this[int x, int z]
+		public Chunk this[UniversalCoords coords]
 		{
 			get
 			{
                 Chunk chunk;
-                Chunks.TryGetValue(new PointI(x, z), out chunk);
+                Chunks.TryGetValue(coords.ChunkPackedCoords, out chunk);
 				return chunk;
 			}
 			private set
 			{
-                Chunks.AddOrUpdate(new PointI(x, z), value, (key, oldValue) => value);
+                Chunks.AddOrUpdate(coords.ChunkPackedCoords, value, (key, oldValue) => value);
 			}
 		}
 
-		public void Add(Chunk value)
+        public Chunk this[int chunkX, int chunkZ]
+        {
+            get
+            {
+                Chunk chunk;
+                int packedCoords = UniversalCoords.FromChunkToPackedChunk(chunkX, chunkZ);
+                Chunks.TryGetValue(packedCoords, out chunk);
+                return chunk;
+            }
+            private set
+            {
+                int packedCoords = UniversalCoords.FromChunkToPackedChunk(chunkX, chunkZ);
+                Chunks.AddOrUpdate(packedCoords, value, (key, oldValue) => value);
+            }
+        }
+
+		public void Add(Chunk chunk)
 		{
-			this[value.X, value.Z] = value;
+            this[chunk.Coords] = chunk;
             Interlocked.Increment(ref Changes);
 		}
 
-		public bool Remove(int x, int z)
+        public bool Remove(UniversalCoords coords)
 		{
             Chunk chunk;
             Interlocked.Increment(ref Changes);
-            return Chunks.TryRemove(new PointI(x, z), out chunk);
+            return Chunks.TryRemove(coords.ChunkPackedCoords, out chunk);
 		}
 
-		internal bool Remove(Chunk c)
+		internal bool Remove(Chunk chunk)
 		{
-            c.Deleted = true;
-			return Remove(c.X, c.Z);
+            chunk.Deleted = true;
+            return Remove(chunk.Coords);
 		}
 	}
 }

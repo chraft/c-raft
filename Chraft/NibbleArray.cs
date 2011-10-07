@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.World;
 
 namespace Chraft
 {
@@ -18,11 +19,15 @@ namespace Chraft
             Data = data;
         }
 
-        public int getNibble(int x, int y, int z)
+        public int getNibble(int blockX, int blockY, int blockZ)
         {
-            int l = x << 11 | z << 7 | y;
-            int i1 = l >> 1;
-            int j1 = l & 1;
+            return getNibble(blockX << 11 | blockZ << 7 | blockY);
+        }
+
+        public int getNibble(int packed)
+        {
+            int i1 = packed >> 1;
+            int j1 = packed & 1;
             if(j1 == 0)
             {
                 return Data[i1] & 0xf;
@@ -32,17 +37,21 @@ namespace Chraft
             }
         }
 
-        public void setNibble(int x, int y, int z, int value)
+        public void setNibble(int blockX, int blockY, int blockZ, byte value)
         {
-            int i1 = x << 11 | z << 7 | y;
-            int j1 = i1 >> 1;
-            int k1 = i1 & 1;
+            setNibble(blockX << 11 | blockZ << 7 | blockY, value);
+        }
+
+        public void setNibble(int packed, byte value)
+        {
+            int j1 = packed >> 1;
+            int k1 = packed & 1;
             if(k1 == 0)
             {
                 Data[j1] = (byte)(Data[j1] & 0xf0 | value & 0xf);
             } else
             {
-                Data[j1] = (byte)(Data[j1] & 0xf | (value & 0xf) << 4);
+                 Data[j1] = (byte)(Data[j1] & 0xf | (value & 0xf) << 4);
             }
         }
 

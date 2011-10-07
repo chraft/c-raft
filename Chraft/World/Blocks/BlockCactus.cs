@@ -27,10 +27,10 @@ namespace Chraft.World.Blocks
                 return false;
             // Can be placed only if North/West/East/South is clear
             bool isAir = true;
-            block.Chunk.ForNSEW(block.X & 0xf, block.Y, block.Z & 0xf,
-                delegate(int bx, int by, int bz)
+            block.Chunk.ForNSEW(block.Coords,
+                delegate(UniversalCoords uc)
                 {
-                    if (block.World.GetBlockId(bx, by, bz) != (byte)BlockData.Blocks.Air)
+                    if (block.World.GetBlockId(uc) != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
             if (!isAir)
@@ -46,21 +46,21 @@ namespace Chraft.World.Blocks
             // When it becomes 15, a new cactus block is created on top as long as the total height does not exceed 3.
             int maxHeight = 3;
 
-            if (block.Y == 127)
+            if (block.Coords.WorldY == 127)
                 return;
-
-            byte blockId = block.World.GetBlockId(block.X, block.Y + 1, block.Z);
+            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            byte blockId = block.World.GetBlockId(oneUp);
             if (blockId != (byte)BlockData.Blocks.Air || blockId == (byte)BlockData.Blocks.Cactus)
                 return;
-            if (block.Y > maxHeight - 1)
-                if (block.World.GetBlockId(block.X, block.Y - maxHeight, block.Z) == (byte)BlockData.Blocks.Cactus)
+            if (block.Coords.WorldY > maxHeight - 1)
+                if (block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - maxHeight, block.Coords.WorldZ)) == (byte)BlockData.Blocks.Cactus)
                     return;
 
             bool isAir = true;
-            block.Chunk.ForNSEW(block.X & 0xf, block.Y + 1, block.Z & 0xf,
-                delegate(int bx, int by, int bz)
+            block.Chunk.ForNSEW(oneUp,
+                delegate(UniversalCoords uc)
                 {
-                    if (block.World.GetBlockId(bx, by, bz) != (byte)BlockData.Blocks.Air)
+                    if (block.World.GetBlockId(uc) != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
             if (!isAir)
@@ -72,7 +72,7 @@ namespace Chraft.World.Blocks
                 if (willGrow)
                 {
                     Console.WriteLine("Growing cactus..");
-                    block.Chunk.SetData(block.X, block.Y, block.Z, block.MetaData++, false);
+                    block.Chunk.SetData(block.Coords, block.MetaData++, false);
                 }
                 return;
             }
@@ -81,8 +81,8 @@ namespace Chraft.World.Blocks
                 if (!willGrow)
                     return;
                 Console.WriteLine("Creating new cactus");
-                block.World.SetBlockData(block.X, block.Y, block.Z, 0);
-                block.World.SetBlockAndData(block.X, block.Y + 1, block.Z, (byte)BlockData.Blocks.Cactus, 0x0);
+                block.World.SetBlockData(block.Coords, 0);
+                block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
             }
         }
 

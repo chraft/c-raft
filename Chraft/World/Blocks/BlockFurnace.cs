@@ -69,9 +69,9 @@ namespace Chraft.World.Blocks
             Player player = entity as Player;
             if (player != null)
             {
-                FurnaceInterface fi = new FurnaceInterface(block.World, block.X, block.Y, block.Z);
+                FurnaceInterface fi = new FurnaceInterface(block.World, block.Coords);
                 fi.Associate(player);
-                fi.DropAll(block.X, block.Y, block.Z);
+                fi.DropAll(block.Coords);
                 fi.Save();
             }
             base.DropItems(entity, block);
@@ -84,7 +84,7 @@ namespace Chraft.World.Blocks
                 return;
             if (player.CurrentInterface != null)
                 return;
-            player.CurrentInterface= new FurnaceInterface(block.World, block.X, block.Y, block.Z);
+            player.CurrentInterface= new FurnaceInterface(block.World, block.Coords);
             player.CurrentInterface.Associate(player);
             player.CurrentInterface.Open();
         }

@@ -15,7 +15,7 @@ namespace Chraft.World
 	{
 		public const int SIZE = 16 * 16 * 128;
 
-		public delegate void ForEachBlock(int x, int y, int z);
+		public delegate void ForEachBlock(UniversalCoords coords);
 
 		protected List<Client> Clients = new List<Client>();
 		protected List<EntityBase> Entities = new List<EntityBase>();
@@ -33,14 +33,13 @@ namespace Chraft.World
         protected ReaderWriterLockSlim BlocksUpdateLock = new ReaderWriterLockSlim();
 
 		public WorldManager World { get; private set; }
-		public int X { get; set; }
-		public int Z { get; set; }
 
-		internal ChunkBase(WorldManager world, int x, int z)
+	    public UniversalCoords Coords { get; set; }
+
+        internal ChunkBase(WorldManager world, UniversalCoords coords)
 		{
 			World = world;
-			X = x;
-			Z = z;
+		    Coords = coords;
             _UpdateTimer = new Timer(UpdateBlocksToNearbyPlayers, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
@@ -74,86 +73,156 @@ namespace Chraft.World
 				return TileEntities.ToArray();
 		}
 
-		public unsafe byte this[int x, int y, int z]
+		public unsafe byte this[UniversalCoords coords]
 		{
 			get
 			{
 				fixed (byte* types = Types)
-					return types[Translate(x, y, z)];
+					return types[coords.BlockPackedCoords];
 			}
 			set
 			{
 				fixed (byte* types = Types)
-					types[Translate(x, y, z)] = value;
+                    types[coords.BlockPackedCoords] = value;
 			}
 		}
 
-		private int Translate(int x, int y, int z)
-		{
-			return x << 11 | z << 7 | y;
-		}
-
-        public byte GetBlockLight(int x, int y, int z)
+        public unsafe byte this[int blockX, int blockY, int blockZ]
         {
-            return (byte)Light.getNibble(x, y, z);
+            get
+            {
+                fixed (byte* types = Types)
+                    return types[blockX << 11 | blockZ << 7 | blockY];
+            }
+            set
+            {
+                fixed (byte* types = Types)
+                    types[blockX << 11 | blockZ << 7 | blockY] = value;
+            }
         }
 
-        public byte GetSkyLight(int x, int y, int z)
+        public byte GetBlockLight(UniversalCoords coords)
         {
-            return (byte)SkyLight.getNibble(x, y, z);
+            return (byte)Light.getNibble(coords.BlockPackedCoords);
         }
 
-        public byte GetData(int x, int y, int z)
+        public byte GetBlockLight(int blockX, int blockY, int blockZ)
         {
-            return (byte)Data.getNibble(x, y, z);
+            return (byte)Light.getNibble(blockX, blockY, blockZ);
         }
 
-        public byte GetDualLight(int x, int y, int z)
+        public byte GetSkyLight(UniversalCoords coords)
         {
-            return (byte)(Light.getNibble(x, y, z) << 4 | SkyLight.getNibble(x, y, z));
+            return (byte)SkyLight.getNibble(coords.BlockPackedCoords);
         }
 
-        public void SetData(int x, int y, int z, byte value, bool needsUpdate)
+        public byte GetSkyLight(int blockX, int blockY, int blockZ)
         {
-            Data.setNibble(x, y, z, value);
+            return (byte)SkyLight.getNibble(blockX, blockY, blockZ);
+        }
+
+        public byte GetData(UniversalCoords coords)
+        {
+            return (byte)Data.getNibble(coords.BlockPackedCoords);
+        }
+
+        public byte GetData(int blockX, int blockY, int blockZ)
+        {
+            return (byte)Data.getNibble(blockX, blockY, blockZ);
+        }
+
+        public byte GetDualLight(UniversalCoords coords)
+        {
+            return (byte)(Light.getNibble(coords.BlockPackedCoords) << 4 | SkyLight.getNibble(coords.BlockPackedCoords));
+        }
+
+        public byte GetDualLight(int blockX, int blockY, int blockZ)
+        {
+            return (byte)(Light.getNibble(blockX, blockY, blockZ) << 4 | SkyLight.getNibble(blockX, blockY, blockZ));
+        }
+
+        public void SetData(UniversalCoords coords, byte value, bool needsUpdate)
+        {
+            Data.setNibble(coords.BlockPackedCoords, value);
+
+            if (needsUpdate)
+                BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
+        }
+
+        public void SetData(int blockX, int blockY, int blockZ, byte value, bool needsUpdate)
+        {
+            Data.setNibble(blockX, blockY, blockZ, value);
 
             if(needsUpdate)
-                BlockNeedsUpdate(x, y, z);
+                BlockNeedsUpdate(blockX, blockY, blockZ);
         }
 
-        public void SetDualLight(int x, int y, int z, byte value)
+        public void SetDualLight(UniversalCoords coords, byte value)
         {
             byte low = (byte)(value & 0x0F);
             byte high = (byte)((value & 0x0F) >> 4);
 
-            SkyLight.setNibble(x, y, z, low);
-            Light.setNibble(x, y, z, high);
+            SkyLight.setNibble(coords.BlockPackedCoords, low);
+            Light.setNibble(coords.BlockPackedCoords, high);
         }
 
-        public void SetBlockLight(int x, int y, int z, byte value)
+        public void SetDualLight(int blockX, int blockY, int blockZ, byte value)
         {
-            Light.setNibble(x, y, z, value);
+            byte low = (byte)(value & 0x0F);
+            byte high = (byte)((value & 0x0F) >> 4);
+
+            SkyLight.setNibble(blockX, blockY, blockZ, low);
+            Light.setNibble(blockX, blockY, blockZ, high);
         }
 
-        public void SetSkyLight(int x, int y, int z, byte value)
+        public void SetBlockLight(UniversalCoords coords, byte value)
         {
-            SkyLight.setNibble(x, y, z, value);
+            Light.setNibble(coords.BlockPackedCoords, value);
         }
 
-	    public void SetData(int x, int y, int z, byte value)
+        public void SetBlockLight(int blockX, int blockY, int blockZ, byte value)
+        {
+            Light.setNibble(blockX, blockY, blockZ, value);
+        }
+
+        public void SetSkyLight(UniversalCoords coords, byte value)
+        {
+            SkyLight.setNibble(coords.BlockPackedCoords, value);
+        }
+
+        public void SetSkyLight(int blockX, int blockY, int blockZ, byte value)
+        {
+            SkyLight.setNibble(blockX, blockY, blockZ, value);
+        }
+
+        public void SetData(UniversalCoords coords, byte value)
 		{
-			Data.setNibble(x, y, z, value);
+            Data.setNibble(coords.BlockPackedCoords, value);
 		}
 
-		public byte GetLuminance(int x, int y, int z)
+        public void SetData(int blockX, int blockY, int blockZ, byte value)
+        {
+            Data.setNibble(blockX, blockY, blockZ, value);
+        }
+
+        public byte GetLuminance(UniversalCoords coords)
 		{
-			return BlockData.Luminance[this[x, y, z]];
+            return BlockData.Luminance[(byte)GetType(coords)];
 		}
 
-		public byte GetOpacity(int x, int y, int z)
+        public byte GetLuminance(int blockX, int blockY, int blockZ)
+        {
+            return BlockData.Luminance[(byte)GetType(blockX, blockY, blockZ)];
+        }
+
+        public byte GetOpacity(UniversalCoords coords)
+        {
+            return BlockData.Opacity[(byte)GetType(coords)];
+        }
+
+        public byte GetOpacity(int blockX, int blockY, int blockZ)
 		{
-            int index = this[x, y, z];
-            return BlockData.Opacity[index];
+            return BlockData.Opacity[(byte)GetType(blockX, blockY, blockZ)];
 		}
 
 		public void SetAllBlocks(byte[] data)
@@ -182,33 +251,44 @@ namespace Chraft.World
 			for (int x = 0; x < 16; x++)
 				for (int z = 0; z < 16; z++)
 					for (int y = 127; y >=0; --y)
-						predicate(x, y, z);
+						predicate(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z));
 		}
 
-		public BlockData.Blocks GetType(int x, int y, int z)
+		public BlockData.Blocks GetType(UniversalCoords coords)
 		{
-			return (BlockData.Blocks)this[x, y, z];
+			return (BlockData.Blocks)this[coords];
 		}
 
-		public void SetType(int x, int y, int z, BlockData.Blocks value)
+        public BlockData.Blocks GetType(int blockX, int blockY, int blockZ)
+        {
+            return (BlockData.Blocks)this[blockX, blockY, blockZ];
+        }
+
+        public void SetType(UniversalCoords coords, BlockData.Blocks value)
 		{
-			this[x, y, z] = (byte)value;
-            BlockNeedsUpdate(x, y, z);
+			this[coords] = (byte)value;
+            BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
 		}
 
-		public bool IsAir(int x, int y, int z)
+        public void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
+        {
+            this[blockX, blockY, blockZ] = (byte)value;
+            BlockNeedsUpdate(blockX, blockY, blockZ);
+        }
+
+        public bool IsAir(UniversalCoords coords)
 		{
-			return BlockData.Air.Contains(GetType(x, y, z));
+			return BlockData.Air.Contains(GetType(coords));
 		}
 
-        public void BlockNeedsUpdate(int x, int y, int z)
+        public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)
         {
             int num = Interlocked.Increment(ref NumBlocksToUpdate);
 
             BlocksUpdateLock.EnterReadLock();
             if (num <= 20)
             {
-                short packedCoords = (short) (x << 12 | z << 8 | y);
+                short packedCoords = (short) (blockX << 12 | blockZ << 8 | blockY);
                 BlocksToBeUpdated.AddOrUpdate(packedCoords, packedCoords, (key, oldValue) => packedCoords);
             }
             BlocksUpdateLock.ExitReadLock();

@@ -5,6 +5,7 @@ using System.Text;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.World;
 
 namespace Chraft.Interfaces
 {
@@ -21,9 +22,8 @@ namespace Chraft.Interfaces
 		}
 
         bool _useProvidedDropCoordinates = false;
-        int DropX;
-        int DropY;
-        int DropZ;
+
+	    private UniversalCoords _DropCoords;
 
         /// <summary>
         /// Opens the Workbench and specifies where items should be dropped if exiting the workbench with items still in it.
@@ -31,12 +31,10 @@ namespace Chraft.Interfaces
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        public virtual void Open(int x, int y, int z)
+        public virtual void Open(UniversalCoords coords)
         {
             _useProvidedDropCoordinates = true;
-            DropX = x;
-            DropY = y;
-            DropZ = z;
+            _DropCoords = coords;
 
             this.Open();
         }
@@ -48,11 +46,11 @@ namespace Chraft.Interfaces
             // Drop all items from the workbench
             if (_useProvidedDropCoordinates)
             {
-                base.DropAll(DropX, DropY, DropZ);
+                base.DropAll(_DropCoords);
             }
             else
             {
-                base.DropAll((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z);
+                base.DropAll(UniversalCoords.FromWorld((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z));
             }
         }
 	}

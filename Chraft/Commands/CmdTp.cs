@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.World;
 
 namespace Chraft.Commands
 {
@@ -23,8 +24,10 @@ namespace Chraft.Commands
                 client.SendMessage("§cUnknown player.");
                 return;
             }
-            client.Owner.World = targets[0].Owner.World;
-            client.Owner.TeleportTo(targets[0].Owner.Position.X, targets[0].Owner.Position.Y, targets[0].Owner.Position.Z);
+
+            Client target = targets[0];
+            client.Owner.World = target.Owner.World;
+            client.Owner.TeleportTo(new AbsWorldCoords(target.Owner.Position.X, target.Owner.Position.Y, target.Owner.Position.Z));
         }
 
         public void Help(Client client)
@@ -73,7 +76,7 @@ namespace Chraft.Commands
             foreach (Client c in targets)
             {
                 c.Owner.World = client.Owner.World;
-                c.Owner.TeleportTo(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
+                c.Owner.TeleportTo(new AbsWorldCoords(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z));
             }
         }
 

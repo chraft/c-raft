@@ -21,8 +21,8 @@ namespace Chraft.Commands
                 return;
             }
 
-            PointI start = client.SelectionStart.Value;
-            PointI end = client.SelectionEnd.Value;
+            UniversalCoords start = client.SelectionStart.Value;
+            UniversalCoords end = client.SelectionEnd.Value;
 
             ItemStack item = client.Owner.Server.Items[tokens[1]];
             if (ItemStack.IsVoid(item))
@@ -36,13 +36,13 @@ namespace Chraft.Commands
                 client.SendMessage("§cInvalid item.");
             }
 
-            for (int x = start.X; x <= end.X; x++)
+            for (int x = start.WorldX; x <= end.WorldX; x++)
             {
-                for (int y = start.Y; y <= end.Y; y++)
+                for (int y = start.WorldY; y <= end.WorldY; y++)
                 {
-                    for (int z = start.Z; z <= end.Z; z++)
+                    for (int z = start.WorldZ; z <= end.WorldZ; z++)
                     {
-                        client.Owner.World.SetBlockAndData(x, y, z, (byte)item.Type, (byte)item.Durability);
+                        client.Owner.World.SetBlockAndData(UniversalCoords.FromWorld(x,y,z), (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }

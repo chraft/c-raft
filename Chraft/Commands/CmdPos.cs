@@ -13,7 +13,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.Point2 = new PointI((int)client.Owner.Position.X, (int)client.Owner.Position.Y, (int)client.Owner.Position.Z);
+            client.Point2 = UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
             client.SendMessage("§7First position set.");
         }
 
@@ -48,7 +48,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.Point1 = new PointI((int)client.Owner.Position.X, (int)client.Owner.Position.Y, (int)client.Owner.Position.Z);
+            client.Point1 = UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
             client.SendMessage("§7Second position set.");
         }
 

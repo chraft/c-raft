@@ -29,7 +29,7 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             var killedByMob = killedBy as Mob;
-
+            UniversalCoords coords = UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z);
             if (killedByMob.Type == MobType.Skeleton)
             {
                 // If killed by a skeleton drop a music disc
@@ -43,13 +43,13 @@ namespace Chraft.Entity.Mobs
                 {
                     item = (short)BlockData.Items.DiscCat;
                 }
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack(item, count, 0));
+                Server.DropItem(World, coords, new Interfaces.ItemStack(item, count, 0));
             }
             else
             {
                 sbyte count = (sbyte)Server.Rand.Next(2);
                 if (count > 0)
-                    Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
+                    Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
             }
         }
     }

@@ -44,7 +44,7 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Y > sourceBlock.Y)
+            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
                 Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }

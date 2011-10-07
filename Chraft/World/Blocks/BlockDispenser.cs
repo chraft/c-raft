@@ -69,9 +69,9 @@ namespace Chraft.World.Blocks
             Player player = entity as Player;
             if (player != null)
             {
-                DispenserInterface di = new DispenserInterface(block.World, block.X, block.Y, block.Z);
+                DispenserInterface di = new DispenserInterface(block.World, block.Coords);
                 di.Associate(player);
-                di.DropAll(block.Y, block.Y, block.Z);
+                di.DropAll(block.Coords);
                 di.Save();
             }
             base.DropItems(entity, block);
