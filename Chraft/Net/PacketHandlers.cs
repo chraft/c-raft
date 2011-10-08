@@ -40,18 +40,19 @@ namespace Chraft.Net
             Register(PacketType.EntityAction, 6, 0, new OnPacketReceive(ReadEntityAction));
             Register(PacketType.CloseWindow, 2, 0, new OnPacketReceive(ReadCloseWindow));
             Register(PacketType.WindowClick, 0, 10, new OnPacketReceive(ReadWindowClick));
+            Register(PacketType.CreativeInventoryAction, 9, 0, ReadCreativeInventoryAction);
             Register(PacketType.ServerListPing, 1, 0, new OnPacketReceive(ReadServerListPing));
             Register(PacketType.Disconnect, 0, 3, new OnPacketReceive(ReadDisconnect));
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
         {
-            m_Handlers[(byte) packetID] = new PacketHandler(packetID, length, minimumLength, onReceive);
+            m_Handlers[(byte)packetID] = new PacketHandler(packetID, length, minimumLength, onReceive);
         }
 
         public static PacketHandler GetHandler(PacketType packetID)
         {
-            return m_Handlers[(byte) packetID];
+            return m_Handlers[(byte)packetID];
         }
 
         public static void ReadKeepAlive(Client client, PacketReader reader)
@@ -68,7 +69,7 @@ namespace Chraft.Net
             LoginRequestPacket lr = new LoginRequestPacket();
             lr.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketLoginRequest(client, lr);
         }
 
@@ -95,7 +96,7 @@ namespace Chraft.Net
             UseEntityPacket ue = new UseEntityPacket();
             ue.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketUseEntity(client, ue);
         }
 
@@ -104,7 +105,7 @@ namespace Chraft.Net
             RespawnPacket rp = new RespawnPacket();
             rp.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketRespawn(client, rp);
         }
 
@@ -113,7 +114,7 @@ namespace Chraft.Net
             PlayerPacket pp = new PlayerPacket();
             pp.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketPlayer(client, pp);
         }
 
@@ -122,7 +123,7 @@ namespace Chraft.Net
             PlayerPositionPacket pp = new PlayerPositionPacket();
             pp.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketPlayerPosition(client, pp);
         }
 
@@ -140,7 +141,7 @@ namespace Chraft.Net
             PlayerPositionRotationPacket ppr = new PlayerPositionRotationPacket();
             ppr.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketPlayerPositionRotation(client, ppr);
         }
 
@@ -149,7 +150,7 @@ namespace Chraft.Net
             PlayerDiggingPacket pd = new PlayerDiggingPacket();
             pd.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketPlayerDigging(client, pd);
         }
 
@@ -158,7 +159,7 @@ namespace Chraft.Net
             PlayerBlockPlacementPacket pb = new PlayerBlockPlacementPacket();
             pb.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketPlayerBlockPlacement(client, pb);
         }
 
@@ -167,7 +168,7 @@ namespace Chraft.Net
             HoldingChangePacket hc = new HoldingChangePacket();
             hc.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketHoldingChange(client, hc);
         }
 
@@ -176,7 +177,7 @@ namespace Chraft.Net
             AnimationPacket ap = new AnimationPacket();
             ap.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketAnimation(client, ap);
         }
 
@@ -195,7 +196,7 @@ namespace Chraft.Net
             CloseWindowPacket cw = new CloseWindowPacket();
             cw.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketCloseWindow(client, cw);
         }
 
@@ -204,7 +205,7 @@ namespace Chraft.Net
             WindowClickPacket wc = new WindowClickPacket();
             wc.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketWindowClick(client, wc);
         }
 
@@ -213,7 +214,7 @@ namespace Chraft.Net
             ServerListPingPacket sl = new ServerListPingPacket();
             sl.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketServerListPing(client, sl);
         }
 
@@ -222,9 +223,17 @@ namespace Chraft.Net
             DisconnectPacket dp = new DisconnectPacket();
             dp.Read(reader);
 
-            if(!reader.Failed)
+            if (!reader.Failed)
                 Client.HandlePacketDisconnect(client, dp);
         }
 
+        public static void ReadCreativeInventoryAction(Client client, PacketReader reader)
+        {
+            CreativeInventoryActionPacket ci = new CreativeInventoryActionPacket();
+            ci.Read(reader);
+
+            if (!reader.Failed)
+                Client.HandlePacketCreativeInventoryAction(client, ci);
+        }
     }
 }
