@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -17,6 +17,7 @@ using Chraft.Properties;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
 using System.Collections.Concurrent;
+//using Chraft.Player ;
 
 namespace Chraft.Net
 {
@@ -44,6 +45,9 @@ namespace Chraft.Net
 
         private bool _SendSystemDisposed;
         private bool _RecvSystemDisposed;
+
+        private byte _value;
+        private Client _Client;
 
         private object _DisposeLock = new object();
 
@@ -203,9 +207,9 @@ namespace Chraft.Net
             _Player.Server.RemoveClient(this);
             _Player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _Player.Server.Clients.Count);
             _Player.Server.RemoveEntity(_Player);
-            foreach (PointI c in _Player.LoadedChunks.Keys)
+            foreach (int packedCoords in _Player.LoadedChunks.Keys)
             {
-                Chunk chunk = _Player.World[c.X, c.Z, false, false];
+                Chunk chunk = _Player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
                 if (chunk != null)
                     chunk.RemoveClient(this);
             }
@@ -302,6 +306,16 @@ namespace Chraft.Net
                 case DamageCause.BlockExplosion:
                     break;
                 case DamageCause.Contact:
+                    if(_value == 81)
+                    {
+                        _Player.Health = -- _Player.Health;
+                        _Client.SendPacket(new UpdateHealthPacket
+                        {
+                            Health = _Player.Health--,
+                            Food = _Player.Food,
+                            FoodSaturation = _Player.FoodSaturation,
+                        });
+                    }
                     break;
                 case DamageCause.Drowning:
                     break;
@@ -346,7 +360,7 @@ namespace Chraft.Net
                 FoodSaturation = Owner.FoodSaturation,
             });
 
-            foreach (Client c in _Player.Server.GetNearbyPlayers(_Player.World, _Player.Position.X, _Player.Position.Y, _Player.Position.Z))
+            foreach (Client c in _Player.Server.GetNearbyPlayers(_Player.World, new AbsWorldCoords(_Player.Position.X, _Player.Position.Y, _Player.Position.Z)))
             {
                 if (c == this)
                     continue;
@@ -398,6 +412,16 @@ namespace Chraft.Net
             if (rotation > 140)
                 return "N";
             return "W";
+        }
+
+        void CallEvent(Event Event, byte value)
+        {
+            CallEvent(Event.BLOCK_TOUCH, _value);
+        }
+
+        void SetHealth(short health)
+        {
+            SetHealth(_Player.Health);
         }
     }
 }
