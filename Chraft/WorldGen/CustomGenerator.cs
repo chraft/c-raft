@@ -79,7 +79,7 @@ namespace Chraft.WorldGen
                 chunk.Recalculate();
             watch.Stop();
 
-            //Console.WriteLine(watch.ElapsedMilliseconds);
+            Console.WriteLine("Chunk {0} {1}", x, z);
 
             
             //chunk.Save();
@@ -98,7 +98,7 @@ namespace Chraft.WorldGen
                 int worldX = bx + (x * 16);
                 for (int bz = 0; bz <= 16; bz += 4)
                 {
-                    BIOME_TYPE type = CalcBiomeType((int)x, (int)z);
+                    BIOME_TYPE type = CalcBiomeType(x, z);
                     int worldZ = bz + (z * 16);
                     for (int by = 0; by <= 128; by += 8)
                     {
@@ -506,7 +506,7 @@ namespace Chraft.WorldGen
             if (y <= 63)
                 return;
 
-            double lakeIntens = CalcLakeIntensity(x + c.X * 16 , z + c.Z * 16);
+            double lakeIntens = CalcLakeIntensity(x + c.Coords.ChunkX * 16, z + c.Coords.ChunkZ * 16);
 
             if (lakeIntens < 0.2 && heightPercentage < 0.015)
             {

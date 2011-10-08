@@ -34,9 +34,9 @@ namespace Chraft.World
         public int ChunkX { get { return (int)this.X >> 4; } }
         public int ChunkZ { get { return (int)this.Z >> 4; } }
 
-        public int BlockX { get { return (int)Math.Floor(this.X); } }
-        public int BlockY { get { return (int)Math.Floor(this.Y); } }
-        public int BlockZ { get { return (int)Math.Floor(this.Z); } }
+        public int BlockX { get { return MathHelper.floor_double(this.X); } }
+        public int BlockY { get { return MathHelper.floor_double(this.Y); } }
+        public int BlockZ { get { return MathHelper.floor_double(this.Z); } }
 
         public Location(double x, double y, double z)
             : this(x, y, z, 0, 0)

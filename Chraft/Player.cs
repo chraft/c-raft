@@ -40,7 +40,7 @@ namespace Chraft
 
     public class Player : EntityBase
     {
-        public ConcurrentDictionary<PointI, Chunk> LoadedChunks = new ConcurrentDictionary<PointI, Chunk>();
+        public ConcurrentDictionary<int, Chunk> LoadedChunks = new ConcurrentDictionary<int, Chunk>();
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         public volatile bool LoggedIn = false;
         public PermissionHandler PermHandler;
@@ -96,9 +96,9 @@ namespace Chraft
         {
             World = Server.GetDefaultWorld();
             Position = new Location(
-                World.Spawn.X,
-                World.Spawn.Y + EyeGroundOffset,
-                World.Spawn.Z);
+                World.Spawn.WorldX,
+                World.Spawn.WorldY + EyeGroundOffset,
+                World.Spawn.WorldZ);
         }
         public void InitializeInventory()
         {
@@ -147,9 +147,9 @@ namespace Chraft
         /// <param name="x">The X coordinate of the target.</param>
         /// <param name="y">The Y coordinate of the target.</param>
         /// <param name="z">The Z coordinate of the target.</param>
-        public override void MoveTo(double x, double y, double z)
+        public override void MoveTo(AbsWorldCoords absCoords)
         {
-            base.MoveTo(x, y, z);
+            base.MoveTo(absCoords);
             UpdateEntities();
         }
 
@@ -161,15 +161,65 @@ namespace Chraft
         /// <param name="z">The Z coordinate of the target.</param>
         /// <param name="yaw">The absolute yaw to which client should change.</param>
         /// <param name="pitch">The absolute pitch to which client should change.</param>
-        public override void MoveTo(double x, double y, double z, float yaw, float pitch)
+        public override void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
-            base.MoveTo(x, y, z, yaw, pitch);
+            base.MoveTo(absCoords, yaw, pitch);
             UpdateEntities();
+        }
+
+        public override void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if(!c.Owner.Equals(this))
+                    c.SendMoveBy(this, x, y, z);
+            }
+        }
+
+        public override void OnTeleportTo(AbsWorldCoords absCoords)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
+            {
+                if (!Equals(this))
+                    c.SendTeleportTo(this);
+                else
+                {
+                    c.SendPacket(new PlayerPositionRotationPacket
+                    {
+                        X = absCoords.X,
+                        Y = absCoords.Y + Player.EyeGroundOffset,
+                        Z = absCoords.Z,
+                        Yaw = (float)Position.Yaw,
+                        Pitch = (float)Position.Pitch,
+                        Stance = c.Stance,
+                        OnGround = false
+                    }
+                    );
+                }
+            }
+        }
+
+        public override void OnRotateTo()
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if (!c.Owner.Equals(this))
+                    c.SendRotateBy(this, PackedYaw, PackedPitch);
+            }
+        }
+
+        public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if (!c.Owner.Equals(this))
+                    c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
+            }
         }
 
         public void UpdateEntities()
         {
-            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z);
+            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z));
 
             foreach (EntityBase e in nearbyEntities)
             {
@@ -218,7 +268,7 @@ namespace Chraft
 
             deathMessage = this.DisplayName.ToString() + " was killed " + deathBy;
 
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 c.SendMessage(deathMessage);
 
@@ -232,7 +282,7 @@ namespace Chraft
                 });
             }
 
-            Inventory.DropAll((int)Position.X, (int)Position.Y, (int)Position.Z);
+            Inventory.DropAll(UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z));
         }
 
         /// <summary>
@@ -243,9 +293,9 @@ namespace Chraft
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
             Server.RemoveEntity(this);
 
-            Position.X = World.Spawn.X;
-            Position.Y = World.Spawn.Y + EyeGroundOffset;
-            Position.Z = World.Spawn.Z;
+            Position.X = World.Spawn.WorldX;
+            Position.Y = World.Spawn.WorldY + EyeGroundOffset;
+            Position.Z = World.Spawn.WorldZ;
 
             _Client.StopUpdateChunks();
             UpdateChunks(1, CancellationToken.None, false);
@@ -268,7 +318,7 @@ namespace Chraft
                 return;
             Server.RemoveEntity(item);
 
-            foreach (Client c in Server.GetNearbyPlayers(item.World, item.Position.X, item.Position.Y, item.Position.Z))
+            foreach (Client c in Server.GetNearbyPlayers(item.World, new AbsWorldCoords(item.Position.X, item.Position.Y, item.Position.Z)))
             {
                 c.SendPacket(new CollectItemPacket
                 {
@@ -282,7 +332,7 @@ namespace Chraft
 
         public void SynchronizeEntities()
         { 
-            foreach (EntityBase e in Server.GetNearbyEntities(World, Position.X, Position.Y, Position.Z))
+            foreach (EntityBase e in Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 if (e.Equals(this))
                     continue;
@@ -316,8 +366,9 @@ namespace Chraft
 
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
         {
-            List<PointI> nearbyChunks = new List<PointI>();
-            List<PointI> toUpdate = new List<PointI>();
+            List<int> nearbyChunks = new List<int>();
+            List<int> toUpdate = new List<int>();
+
             int chunkX = (int)Position.X >> 4;
             int chunkZ = (int)Position.Z >> 4;
 
@@ -328,22 +379,27 @@ namespace Chraft
                     if (token.IsCancellationRequested)
                         return;
 
-                    nearbyChunks.Add(new PointI(x, z));
+                    int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
+                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
+                    nearbyChunks.Add(packedChunk);
 
-                    if (!LoadedChunks.ContainsKey(new PointI(x, z)))
+                    if (!LoadedChunks.ContainsKey(packedChunk))
                     {
-                        toUpdate.Add(new PointI(x, z));
+                        toUpdate.Add(packedChunk);
                         _Client.SendPreChunk(x, z, true, sync);
                     }
                 }
             }
 
-            foreach (PointI c in toUpdate)
+            foreach (int c in toUpdate)
             {
                 if (token.IsCancellationRequested)
                     return;
-
-                Chunk chunk = World[c.X, c.Z, true, true];
+                int x = UniversalCoords.FromPackedChunkToX(c);
+                int z = UniversalCoords.FromPackedChunkToZ(c);
+                
+                Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
                 chunk.AddClient(_Client);
                 LoadedChunks.TryAdd(c, chunk);
                 _Client.SendChunk(chunk, sync);
@@ -351,12 +407,12 @@ namespace Chraft
 
             if (remove)
             {
-                foreach (PointI c in LoadedChunks.Keys.Where<PointI>(c => !nearbyChunks.Contains(c)))
+                foreach (int c in LoadedChunks.Keys.Where(c => !nearbyChunks.Contains(c)))
                 {
                     if (token.IsCancellationRequested)
                         return;
 
-                    _Client.SendPreChunk(c.X, c.Z, false, sync);
+                    _Client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c), UniversalCoords.FromPackedChunkToZ(c), false, sync);
                     Chunk chunk;
                     LoadedChunks.TryRemove(c, out chunk);
                     chunk.RemoveClient(_Client);

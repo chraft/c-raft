@@ -23,40 +23,40 @@ namespace Chraft.Net
         /// <summary>
         /// Gets or sets the first point of the cuboid selection.
         /// </summary>
-        public PointI? Point1 { get; set; }
+        public UniversalCoords? Point1 { get; set; }
 
         /// <summary>
         /// Gets or sets the second point of the cuboid selection.
         /// </summary>
-        public PointI? Point2 { get; set; }
+        public UniversalCoords? Point2 { get; set; }
 
         /// <summary>
         /// Gets or sets the start of the cuboid selection.
         /// </summary>
-        public PointI? SelectionStart
+        public UniversalCoords? SelectionStart
         {
             get
             {
                 if (Point1 == null || Point2 == null)
                     return null;
-                return new PointI(Point1.Value.X < Point2.Value.X ? Point1.Value.X : Point2.Value.X,
-                    Point1.Value.Y < Point2.Value.Y ? Point1.Value.Y : Point2.Value.Y,
-                    Point1.Value.Z < Point2.Value.Z ? Point1.Value.Z : Point2.Value.Z);
+                return UniversalCoords.FromWorld(Point1.Value.WorldX < Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
+                    Point1.Value.WorldY < Point2.Value.WorldY ? Point1.Value.WorldY : Point2.Value.WorldY,
+                    Point1.Value.WorldZ < Point2.Value.WorldZ ? Point1.Value.WorldZ : Point2.Value.WorldZ);
             }
         }
 
         /// <summary>
         /// Gets or sets the end of the cuboid selection.
         /// </summary>
-        public PointI? SelectionEnd
+        public UniversalCoords? SelectionEnd
         {
             get
             {
                 if (Point1 == null || Point2 == null)
                     return null;
-                return new PointI(Point1.Value.X > Point2.Value.X ? Point1.Value.X : Point2.Value.X,
-                    Point1.Value.Y > Point2.Value.Y ? Point1.Value.Y : Point2.Value.Y,
-                    Point1.Value.Z > Point2.Value.Z ? Point1.Value.Z : Point2.Value.Z);
+                return UniversalCoords.FromWorld(Point1.Value.WorldX > Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
+                    Point1.Value.WorldY > Point2.Value.WorldY ? Point1.Value.WorldY : Point2.Value.WorldY,
+                    Point1.Value.WorldZ > Point2.Value.WorldZ ? Point1.Value.WorldZ : Point2.Value.WorldZ);
             }
         }
 

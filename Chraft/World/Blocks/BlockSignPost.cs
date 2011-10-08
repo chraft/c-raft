@@ -16,14 +16,20 @@ namespace Chraft.World.Blocks
             Name = "SignPost";
             Type = BlockData.Blocks.Sign_Post;
             IsAir = true;
-            IsSingleHit = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            return;
+            base.Place(entity, block, targetBlock, face);
+        }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
     }
 }

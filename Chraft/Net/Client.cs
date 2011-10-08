@@ -203,9 +203,9 @@ namespace Chraft.Net
             _Player.Server.RemoveClient(this);
             _Player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _Player.Server.Clients.Count);
             _Player.Server.RemoveEntity(_Player);
-            foreach (PointI c in _Player.LoadedChunks.Keys)
+            foreach (int packedCoords in _Player.LoadedChunks.Keys)
             {
-                Chunk chunk = _Player.World[c.X, c.Z, false, false];
+                Chunk chunk = _Player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
                 if (chunk != null)
                     chunk.RemoveClient(this);
             }
@@ -346,7 +346,7 @@ namespace Chraft.Net
                 FoodSaturation = Owner.FoodSaturation,
             });
 
-            foreach (Client c in _Player.Server.GetNearbyPlayers(_Player.World, _Player.Position.X, _Player.Position.Y, _Player.Position.Z))
+            foreach (Client c in _Player.Server.GetNearbyPlayers(_Player.World, new AbsWorldCoords(_Player.Position.X, _Player.Position.Y, _Player.Position.Z)))
             {
                 if (c == this)
                     continue;

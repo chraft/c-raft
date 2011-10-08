@@ -16,16 +16,37 @@ namespace Chraft.World.Blocks
             Name = "WallSign";
             Type = BlockData.Blocks.Wall_Sign;
             IsAir = true;
-            IsSingleHit = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            if (face != BlockFace.West && face != BlockFace.North && face != BlockFace.South && face != BlockFace.East)
-                return;
+            switch (face)
+            {
+                case BlockFace.West:
+                    block.MetaData = (byte)MetaData.SignWall.West;
+                    break;
+                case BlockFace.East:
+                    block.MetaData = (byte)MetaData.SignWall.East;
+                    break;
+                case BlockFace.North:
+                    block.MetaData = (byte)MetaData.SignWall.North;
+                    break;
+                case BlockFace.South:
+                    block.MetaData = (byte)MetaData.SignWall.South;
+                    break;
+                default:
+                    return;
+            }
             base.Place(entity, block, targetBlock, face);
+        }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
     }
 }

@@ -1130,22 +1130,20 @@ namespace Chraft.Net.Packets
 
     public class MultiBlockChangePacket : Packet
     {
-        public int X { get; set; }
-        public int Z { get; set; }
-        public short[] Coords { get; set; }
+        public UniversalCoords ChunkCoords { get; set; }
+        public short[] CoordsArray { get; set; }
         public sbyte[] Types { get; set; }
         public sbyte[] Metadata { get; set; }
 
         public override void Read(PacketReader stream)
         {
-            X = stream.ReadInt();
-            Z = stream.ReadInt();
+            ChunkCoords = UniversalCoords.FromChunk(stream.ReadInt(), stream.ReadInt());
             short length = stream.ReadShort();
-            Coords = new short[length];
+            CoordsArray = new short[length];
             Types = new sbyte[length];
             Metadata = new sbyte[length];
-            for (int i = 0; i < Coords.Length; i++)
-                Coords[i] = stream.ReadShort();
+            for (int i = 0; i < CoordsArray.Length; i++)
+                CoordsArray[i] = stream.ReadShort();
             for (int i = 0; i < Types.Length; i++)
                 Types[i] = stream.ReadSByte();
             for (int i = 0; i < Metadata.Length; i++)
@@ -1155,12 +1153,12 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity(11 + (Coords.Length * 2) + Types.Length + Metadata.Length);
-            Writer.Write(X);
-            Writer.Write(Z);
-            Writer.Write((short)Coords.Length);
-            for (int i = 0; i < Coords.Length; i++)
-                Writer.Write(Coords[i]);
+            SetCapacity(11 + (CoordsArray.Length * 2) + Types.Length + Metadata.Length);
+            Writer.Write(ChunkCoords.ChunkX);
+            Writer.Write(ChunkCoords.ChunkZ);
+            Writer.Write((short)CoordsArray.Length);
+            for (int i = 0; i < CoordsArray.Length; i++)
+                Writer.Write(CoordsArray[i]);
             for (int i = 0; i < Types.Length; i++)
                 Writer.Write(Types[i]);
             for (int i = 0; i < Metadata.Length; i++)

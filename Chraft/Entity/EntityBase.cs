@@ -44,7 +44,7 @@ namespace Chraft.Entity
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
-        public virtual short MaxHealth { get { return 10; } }
+        public virtual short MaxHealth { get { return 20; } }
         public sbyte PackedPitch { get { return Position.PackedPitch; } }
         public sbyte PackedYaw { get { return Position.PackedYaw; } }
         public Server Server { get; private set; }
@@ -70,9 +70,9 @@ namespace Chraft.Entity
         /// <param name="x">The X coordinate of the target.</param>
         /// <param name="y">The Y coordinate of the target.</param>
         /// <param name="z">The Z coordinate of the target.</param>
-        public virtual void MoveTo(double x, double y, double z)
+        public virtual void MoveTo(AbsWorldCoords absCoords)
         {
-            Vector3 newPosition = new Vector3(x, y, z);
+            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
@@ -86,11 +86,14 @@ namespace Chraft.Entity
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
             Position.Vector = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
 
-            
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            OnMoveTo(dx, dy, dz);
+        }
+
+        public virtual void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendMoveBy(this, dx, dy, dz);
+                c.SendMoveBy(this, x, y, z);
             }
         }
 
@@ -100,32 +103,22 @@ namespace Chraft.Entity
         /// <param name="x">The X coordinate of the target.</param>
         /// <param name="y">The Y coordinate of the target.</param>
         /// <param name="z">The Z coordinate of the target.</param>
-        public virtual bool TeleportTo(double x, double y, double z)
+        public virtual bool TeleportTo(AbsWorldCoords absCoords)
         {
-            Position.X = x;
-            Position.Y = y;
-            Position.Z = z;
+            Position.X = absCoords.X;
+            Position.Y = absCoords.Y;
+            Position.Z = absCoords.Z;
             
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
-            {
-                if (!c.Owner.Equals(this))
-                    c.SendTeleportTo(this);
-                else
-                {
-                    c.SendPacket(new PlayerPositionRotationPacket
-                    {
-                        X = x,
-                        Y = y + Player.EyeGroundOffset,
-                        Z = z,
-                        Yaw = (float)c.Owner.Position.Yaw,
-                        Pitch = (float)c.Owner.Position.Pitch,
-                        Stance = c.Stance,
-                        OnGround = false
-                    }
-                    );
-                }
-            }
+            OnTeleportTo(absCoords);
             return true;
+        }
+
+        public virtual void OnTeleportTo(AbsWorldCoords absCoords)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
+            {
+                c.SendTeleportTo(this);
+            }
         }
 
         /// <summary>
@@ -137,10 +130,15 @@ namespace Chraft.Entity
         {
             Position.Yaw = yaw;
             Position.Pitch = pitch;
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+
+            OnRotateTo();
+        }
+
+        public virtual void OnRotateTo()
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendRotateBy(this, PackedYaw, PackedPitch);
+                c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
 
@@ -152,9 +150,9 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         /// <param name="yaw">The absolute yaw to which entity should change.</param>
         /// <param name="pitch">The absolute pitch to which entity should change.</param>
-        public virtual void MoveTo(double x, double y, double z, float yaw, float pitch)
+        public virtual void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
-            Vector3 newPosition = new Vector3(x, y, z);
+            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
@@ -169,10 +167,16 @@ namespace Chraft.Entity
             Position.Vector = newPosition;
             Position.Yaw = yaw;
             Position.Pitch = pitch;
-            foreach (Client c in Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+
+            OnMoveRotateTo(dx, dy, dz);
+            
+        }
+
+        public virtual void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
-                    c.SendMoveRotateBy(this, dx, dy, dz, PackedYaw, PackedPitch);
+                c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
         }
 

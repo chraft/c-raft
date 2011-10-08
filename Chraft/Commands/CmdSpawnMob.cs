@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Chraft.Entity;
 using Chraft.Net;
+using Chraft.World;
 
 namespace Chraft.Commands
 {
@@ -23,7 +24,7 @@ namespace Chraft.Commands
             catch (Exception e) { client.Logger.Log(e); type = MobType.Sheep; }
             for (int i = 0; i < amount; i++)
             {
-                client.Owner.World.SpawnMob((int)client.Owner.Position.X, (int)client.Owner.Position.Y, (int)client.Owner.Position.Z, type);
+                client.Owner.World.SpawnMob(UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), type);
             }
         }
         private int parseint(string s)

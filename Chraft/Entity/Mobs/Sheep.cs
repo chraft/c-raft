@@ -5,6 +5,7 @@ using System.Text;
 using Chraft.Utils;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
@@ -77,15 +78,15 @@ namespace Chraft.Entity.Mobs
 
             if (client != null && !Chraft.Interfaces.ItemStack.IsVoid(item))
             {
-                if (item.Type == (short)Chraft.World.BlockData.Items.Shears && !this.Data.Sheared)
+                if (item.Type == (short)Chraft.World.BlockData.Items.Shears && !Data.Sheared)
                 {
                     // Drop wool when sheared
                     sbyte count = (sbyte)Server.Rand.Next(2, 4);
                     if (count > 0)
-                        Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, count, (short)this.Data.WoolColor));
-                    this.Data.Sheared = true;
+                        Server.DropItem(World, UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, count, (short)Data.WoolColor));
+                    Data.Sheared = true;
 
-                    this.SendMetadataUpdate();
+                    SendMetadataUpdate();
                 }
                 else if (item.Type == (short)Chraft.World.BlockData.Items.Ink_Sack)
                 {
@@ -94,8 +95,8 @@ namespace Chraft.Entity.Mobs
                     if (item.Durability >= 0 && item.Durability <= 15)
                     {
                         //this.Data.WoolColor = (WoolColor)Enum.ToObject(typeof(WoolColor), (15 - item.Durability));
-                        this.Data.WoolColor = DyeColorToWoolColor((MetaData.Dyes)Enum.ToObject(typeof(MetaData.Dyes), item.Durability));
-                        this.SendMetadataUpdate();
+                        Data.WoolColor = DyeColorToWoolColor((MetaData.Dyes)Enum.ToObject(typeof(MetaData.Dyes), item.Durability));
+                        SendMetadataUpdate();
                     }
                 }
             }
@@ -104,7 +105,7 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             if (!this.Data.Sheared)
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
+                Server.DropItem(World, UniversalCoords.FromWorld(this.Position.X, this.Position.Y, this.Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
         }
     }
 }

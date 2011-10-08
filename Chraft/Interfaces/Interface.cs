@@ -6,6 +6,7 @@ using Chraft.Net;
 using System.Runtime.Serialization;
 using Chraft.Net.Packets;
 using Chraft.Persistence;
+using Chraft.World;
 
 
 namespace Chraft.Interfaces
@@ -290,7 +291,7 @@ namespace Chraft.Interfaces
             }
 		}
 
-        public void DropAll(int dropX, int dropY, int dropZ)
+        public void DropAll(UniversalCoords coords)
         {
             // Drop all items from the workbench
             for (short i = 0; i < SlotCount; i++)
@@ -298,7 +299,7 @@ namespace Chraft.Interfaces
                 ItemStack stack = Slots[i];
                 if (!ItemStack.IsVoid(stack))
                 {
-                    Owner.Server.DropItem(Owner.World, dropX, dropY, dropZ, stack);
+                    Owner.Server.DropItem(Owner.World, coords, stack);
                     this[i] = ItemStack.Void;
                 }
             }

@@ -676,13 +676,11 @@ namespace Chraft
         /// Sends a packet in parallel to each nearby player.
         /// </summary>
         /// <param name="world">The world containing the coordinates.</param>
-        /// <param name="x">The center X coordinate.</param>
-        /// <param name="y">The center Y coordinate.</param>
-        /// <param name="z">The center Z coordinate.</param>
+        /// <param name="absCoords>The center coordinates.</param>
         /// <param name="packet">The packet to send</param>
-        public void SendPacketToNearbyPlayers(WorldManager world, double x, double y, double z, Packet packet)
+        public void SendPacketToNearbyPlayers(WorldManager world, AbsWorldCoords absCoords, Packet packet)
         {
-            System.Threading.Tasks.Parallel.ForEach(this.GetNearbyPlayers(world, x, y, z), (client) =>
+            Parallel.ForEach(this.GetNearbyPlayers(world, absCoords), (client) =>
             {
                 client.SendPacket(packet);
             });
@@ -692,16 +690,14 @@ namespace Chraft
         /// Yields an enumerable of nearby players, thread-safe.
         /// </summary>
         /// <param name="world">The world containing the coordinates.</param>
-        /// <param name="x">The center X coordinate.</param>
-        /// <param name="y">The center Y coordinate.</param>
-        /// <param name="z">The center Z coordinate.</param>
+        /// <param name="absCoords">The center coordinates.</param>
         /// <returns>A lazy enumerable of nearby players.</returns>
-        public IEnumerable<Client> GetNearbyPlayers(WorldManager world, double x, double y, double z)
+        public IEnumerable<Client> GetNearbyPlayers(WorldManager world, AbsWorldCoords absCoords)
         {
             int radius = Settings.Default.SightRadius << 4;
             foreach (Client c in GetAuthenticatedClients())
             {
-                if (c.Owner.World == world && Math.Abs(x - c.Owner.Position.X) <= radius && Math.Abs(y - c.Owner.Position.Y) <= radius && Math.Abs(z - c.Owner.Position.Z) <= radius)
+                if (c.Owner.World == world && Math.Abs(absCoords.X - c.Owner.Position.X) <= radius && Math.Abs(absCoords.Y - c.Owner.Position.Y) <= radius && Math.Abs(absCoords.Z - c.Owner.Position.Z) <= radius)
                     yield return c;
             }
         }
@@ -714,12 +710,12 @@ namespace Chraft
         /// <param name="y">The center Y coordinate.</param>
         /// <param name="z">The center Z coordinate.</param>
         /// <returns>A lazy enumerable of nearby entities.</returns>
-        public IEnumerable<EntityBase> GetNearbyEntities(WorldManager world, double x, double y, double z)
+        public IEnumerable<EntityBase> GetNearbyEntities(WorldManager world, AbsWorldCoords coords)
         {
             int radius = Settings.Default.SightRadius << 4;
             foreach (EntityBase e in GetEntities())
             {
-                if (e.World == world && Math.Abs(x - e.Position.X) <= radius && Math.Abs(y - e.Position.Y) <= radius && Math.Abs(z - e.Position.Z) <= radius)
+                if (e.World == world && Math.Abs(coords.X - e.Position.X) <= radius && Math.Abs(coords.Y - e.Position.Y) <= radius && Math.Abs(coords.Z - e.Position.Z) <= radius)
                     yield return e;
             }
         }
@@ -748,7 +744,7 @@ namespace Chraft
         /// <returns>The entity ID of the item drop.</returns>
         public int DropItem(Client client, ItemStack stack)
         {
-            return DropItem(client.Owner.World, (int)client.Owner.Position.X, (int)client.Owner.Position.Y, (int)client.Owner.Position.Z, stack);
+            return DropItem(client.Owner.World, UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), stack);
         }
 
         /// <summary>
@@ -760,13 +756,13 @@ namespace Chraft
         /// <param name="z">The target Z coordinate.</param>
         /// <param name="stack">The stack to be dropped</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(WorldManager world, int x, int y, int z, ItemStack stack)
+        public int DropItem(WorldManager world, UniversalCoords coords, ItemStack stack)
         {
             int entityId = AllocateEntity();
             AddEntity(new ItemEntity(this, entityId)
             {
                 World = world,
-                Position = new Location(new Vector3(x + 0.5, y, z + 0.5)), // Put in the middle of the block (ignoring Y)
+                Position = new Location(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5)), // Put in the middle of the block (ignoring Y)
                 ItemId = stack.Type,
                 Count = stack.Count,
                 Durability = stack.Durability

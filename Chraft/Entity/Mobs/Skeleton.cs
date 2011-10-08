@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
@@ -27,12 +28,13 @@ namespace Chraft.Entity.Mobs
 
         protected override void DoDeath(EntityBase killedBy)
         {
+            UniversalCoords coords = UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z);
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Arrow, count, 0));
+                Server.DropItem(World, coords, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Arrow, count, 0));
             count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Bone, count, 0));
+                Server.DropItem(World, coords, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Bone, count, 0));
         }
     }
 }

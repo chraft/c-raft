@@ -23,7 +23,7 @@ namespace Chraft.Entity.Mobs
         {
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, (int)this.Position.X, (int)this.Position.Y, (int)this.Position.Z, new Interfaces.ItemStack((short)BlockData.Items.Leather, count, 0));
+                Server.DropItem(World, UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Items.Leather, count, 0));
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Chraft.World.Blocks
             // TODO: Check if the water within 4 blocks on the same horizontal level and grow faster?
             if (block.World.Server.Rand.Next(10) == 0)
             {
-                block.World.SetBlockData(block.X, block.Y, block.Z, block.MetaData++);
+                block.World.SetBlockData(block.Coords, block.MetaData++);
             }
         }
 
@@ -58,6 +58,13 @@ namespace Chraft.World.Blocks
             if (!targetBlock.World.BlockHelper.Instance(targetBlock.Type).IsPlowed || targetSide != BlockFace.Up)
                 return false;
             return base.CanBePlacedOn(who, targetBlock, targetBlock, targetSide);
+        }
+
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
     }
 }

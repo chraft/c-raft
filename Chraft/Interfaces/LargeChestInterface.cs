@@ -9,19 +9,19 @@ namespace Chraft.Interfaces
 {
 	public class LargeChestInterface : PersistentContainerInterface
 	{
-        protected String NEDataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", NEChest.X, NEChest.Y, NEChest.Z)); } }
-        protected String SWDataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", SWChest.X, SWChest.Y, SWChest.Z)); } }
+        protected String NEDataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", NEChest.WorldX, NEChest.WorldY, NEChest.WorldZ)); } }
+        protected String SWDataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", SWChest.WorldX, SWChest.WorldY, SWChest.WorldZ)); } }
 
-        protected PointI NEChest { get; private set; }
-        protected PointI SWChest { get; private set; }
+        protected UniversalCoords NEChest { get; private set; }
+        protected UniversalCoords SWChest { get; private set; }
 
         /// <summary>
         /// Creates a Large Chest interface for the two chests specified (North or East chest, and South or West chest)
         /// </summary>
         /// <param name="world"></param>
-        /// <param name="NEChest">The North or East chest coordinates</param>
-        /// <param name="SWChest">The South or West chest coordinates</param>
-        public LargeChestInterface(World.WorldManager world, Chraft.World.PointI neChest, Chraft.World.PointI swChest)
+        /// <param name="neChest">The North or East chest coordinates</param>
+        /// <param name="swChest">The South or West chest coordinates</param>
+        public LargeChestInterface(World.WorldManager world, UniversalCoords neChest, UniversalCoords swChest)
             : base(world, InterfaceType.Chest, 54)
 		{
             NEChest = neChest;

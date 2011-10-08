@@ -3,33 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using Chraft.World;
 
 namespace Chraft.Interfaces
 {
     public class SingleContainerInterface : PersistentContainerInterface
     {
-        protected int X { get; private set; }
-        protected int Y { get; private set; }
-        protected int Z { get; private set; }
+        protected UniversalCoords Coords { get; private set; }
 
-        protected String DataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", X, Y, Z)); } }
+        protected String DataFile { get { return Path.Combine(DataPath, String.Format("x{0}y{1}z{2}.dat", Coords.WorldX, Coords.WorldY, Coords.WorldZ)); } }
 
-        public SingleContainerInterface(World.WorldManager world, int x, int y, int z, sbyte slotCount)
+        public SingleContainerInterface(World.WorldManager world, UniversalCoords coords, sbyte slotCount)
             : base(world, InterfaceType.Chest, slotCount)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            Coords = coords;
 
             Load();
         }
 
-        internal SingleContainerInterface(World.WorldManager world, InterfaceType interfaceType, int x, int y, int z, sbyte slotCount)
+        internal SingleContainerInterface(World.WorldManager world, InterfaceType interfaceType, UniversalCoords coords, sbyte slotCount)
             : base(world, interfaceType, slotCount)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
+            Coords = coords;
 
             Load();
         }

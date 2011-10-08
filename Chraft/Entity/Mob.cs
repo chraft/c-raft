@@ -66,7 +66,7 @@ namespace Chraft.Entity
 
         protected void SendMetadataUpdate()
         {
-            World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z,
+            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
                new EntityMetadataPacket // Metadata update
                {
                    EntityId = this.EntityId,
@@ -151,7 +151,7 @@ namespace Chraft.Entity
                 this.Health -= damage;
             }
 
-            foreach (Client c in World.Server.GetNearbyPlayers(World, Position.X, Position.Y, Position.Z))
+            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
                 c.SendPacket(new AnimationPacket // Hurt Animation
                 {
@@ -209,7 +209,7 @@ namespace Chraft.Entity
             //    // TODO: Stats/Achievement hook or something
             //}
 
-            World.Server.SendPacketToNearbyPlayers(World, Position.X, Position.Y, Position.Z, 
+            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
                 new EntityStatusPacket // Death Action
                 {
                     EntityId = EntityId,

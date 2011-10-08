@@ -156,6 +156,7 @@
     <Compile Include="WorldGen\IChunkGenerator.cs" />
     <Compile Include="WorldGen\MathHelper.cs" />
     <Compile Include="WorldGen\Noises.cs" />
+    <Compile Include="World\AbsWorldCoords.cs" />
     <Compile Include="World\Blocks\BlockAir.cs" />
     <Compile Include="World\Blocks\BlockBase.cs" />
     <Compile Include="World\Blocks\BlockBed.cs" />
@@ -248,6 +249,13 @@
     <Compile Include="World\Blocks\Interfaces\IBlockGrowable.cs" />
     <Compile Include="World\Blocks\Interfaces\IBlockInteractive.cs" />
     <Compile Include="World\Blocks\BlockDeadBush.cs" />
+    <Compile Include="World\Blocks\BlockCobweb.cs" />
+    <Compile Include="World\Blocks\BlockDetectorRail.cs" />
+    <Compile Include="World\Blocks\BlockPoweredRail.cs" />
+    <Compile Include="World\Blocks\BlockPiston.cs" />
+    <Compile Include="World\Blocks\BlockPistonHead.cs" />
+    <Compile Include="World\Blocks\BlockSponge.cs" />
+    <Compile Include="World\Blocks\BlockStickyPiston.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
@@ -370,8 +378,8 @@
     <Compile Include="World\NBT\TagNodeListNamed.cs" />
     <Compile Include="World\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
-    <Compile Include="World\PointI.cs" />
     <Compile Include="Mojang\World\WorldChunkManager.cs" />
+    <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />
     <Compile Include="World\Weather\WeatherState.cs" />
     <Compile Include="World\WorldManager.cs" />

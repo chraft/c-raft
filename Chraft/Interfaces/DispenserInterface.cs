@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.World;
 
 namespace Chraft.Interfaces
 {
 	public class DispenserInterface : SingleContainerInterface
 	{
-        public DispenserInterface(World.WorldManager world, int x, int y, int z)
-            : base(world, InterfaceType.Dispenser, x, y, z, 9)
+        public DispenserInterface(World.WorldManager world, UniversalCoords coords)
+            : base(world, InterfaceType.Dispenser, coords, 9)
 		{
 		}
 	}

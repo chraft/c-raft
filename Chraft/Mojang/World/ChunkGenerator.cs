@@ -236,13 +236,14 @@ namespace Chraft.World
                     for (int bz = 0; bz < 16; bz++)
                     {
                         // TODO: Consider temperature/biome for trees & cacti.
-                        if (by > 0 && chunk.GetType(bx, by - 1, bz) == BlockData.Blocks.Grass && Rand.nextInt(140) == 0)
+                        UniversalCoords coords = UniversalCoords.FromBlock(x, z, bx, by, bz);
+                        if (by > 0 && chunk.GetType(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ)) == BlockData.Blocks.Grass && Rand.nextInt(140) == 0)
                         {
                             switch (Rand.nextInt(3))
                             {
-                                case 0: chunk.GrowTree(bx, by, bz); break;
-                                case 1: chunk.GrowTree(bx, by, bz, 2); break;
-                                case 2: chunk.GrowTree(bx, by, bz, 1); break;
+                                case 0: chunk.GrowTree(coords); break;
+                                case 1: chunk.GrowTree(coords, 2); break;
+                                case 2: chunk.GrowTree(coords, 1); break;
                             }
                         }
 

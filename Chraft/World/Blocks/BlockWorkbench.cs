@@ -74,7 +74,7 @@ namespace Chraft.World.Blocks
                 return;
             player.CurrentInterface = new WorkbenchInterface();
             player.CurrentInterface.Associate(player);
-            ((WorkbenchInterface)player.CurrentInterface).Open(block.X, block.Y, block.Z);
+            ((WorkbenchInterface)player.CurrentInterface).Open(block.Coords);
         }
     }
 }

@@ -126,11 +126,11 @@ namespace Chraft.Net
                     Send_Async(data);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 MarkToDispose();
                 DisposeSendSystem();
-
+                Logger.Log(Logger.LogLevel.Error, e.Message);
                 // TODO: log something?
             }
             
@@ -247,9 +247,9 @@ namespace Chraft.Net
         {
             SendPacket(new SpawnPositionPacket
             {
-                X = _Player.World.Spawn.X,
-                Y = _Player.World.Spawn.Y,
-                Z = _Player.World.Spawn.Z
+                X = _Player.World.Spawn.WorldX,
+                Y = _Player.World.Spawn.WorldY,
+                Z = _Player.World.Spawn.WorldZ
             });
         }
 
@@ -496,7 +496,7 @@ namespace Chraft.Net
 
         #endregion
 
-        public void SendWeather(WeatherState weather, int i, int i1)
+        public void SendWeather(WeatherState weather, UniversalCoords coords)
         {
 
             //throw new NotImplementedException();
