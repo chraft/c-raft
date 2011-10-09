@@ -21,6 +21,14 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
+        public bool CanGrow(StructBlock block)
+        {
+            // Crops grow from 0x0 to 0x7
+            if (block.MetaData == 0x07)
+                return false;
+            return true;
+        }
+
         protected override void DropItems(EntityBase who, StructBlock block)
         {
             LootTable = new List<ItemStack>();
@@ -43,13 +51,14 @@ namespace Chraft.World.Blocks
 
         public void Grow(StructBlock block)
         {
-            // Crops grow from 0x0 to 0x7
-            if (block.MetaData == 0x07)
+            if (!CanGrow(block))
                 return;
+
             // TODO: Check if the water within 4 blocks on the same horizontal level and grow faster?
             if (block.World.Server.Rand.Next(10) == 0)
             {
-                block.World.SetBlockData(block.Coords, block.MetaData++);
+                block.MetaData++;
+                block.World.SetBlockData(block.Coords, block.MetaData);
             }
         }
 
@@ -62,7 +71,9 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+            if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
+                targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
+                targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
                 Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }

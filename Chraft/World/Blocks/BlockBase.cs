@@ -374,7 +374,7 @@ namespace Chraft.World.Blocks
 
             // We can't place the solid blocks on the player position (both feets and head)
             // TODO: Improve collision detection. Now the player can be partially in the block when it is placed
-            if (!block.World.BlockHelper.Instance(block.Type).IsAir)
+            if (!block.World.BlockHelper.Instance(block.Type).IsAir && !block.World.BlockHelper.Instance(block.Type).IsLiquid)
                 foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
                     if (c.Owner.Position.BlockX == block.Coords.WorldX && c.Owner.Position.BlockZ == block.Coords.WorldZ &&

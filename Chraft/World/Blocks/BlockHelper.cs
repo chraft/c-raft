@@ -39,5 +39,15 @@ namespace Chraft.World.Blocks
             _blocks.TryGetValue(blockId, out block);
             return block;
         }
+
+        public bool IsGrowable(byte blockId)
+        {
+            return (Instance(blockId) is IBlockGrowable);
+        }
+
+        public bool IsGrowable(BlockData.Blocks blockType)
+        {
+            return IsGrowable((byte)blockType);
+        }
     }
 }

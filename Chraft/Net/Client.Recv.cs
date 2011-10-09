@@ -391,6 +391,7 @@ namespace Chraft.Net
             UniversalCoords packetCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
             BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(packetCoords); // Get block being built against.
+            byte adjacentBlockData = player.World.GetBlockData(packetCoords);
 
             // Placed Item Info
             short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
@@ -491,7 +492,11 @@ namespace Chraft.Net
                         player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Crops, 0x00);
                     }
                     break;
-
+                case BlockData.Items.Reeds:
+                    StructBlock block = new StructBlock(coordsFromFace, (byte)BlockData.Blocks.Reed, 0x00, player.World);
+                    StructBlock targetBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
+                    player.World.BlockHelper.Instance((byte)BlockData.Blocks.Reed).Place(block, targetBlock, packet.Face);
+                    break;
                 case BlockData.Items.Redstone:
                     player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
                     break;
@@ -579,7 +584,6 @@ namespace Chraft.Net
             byte metadata = player.World.GetBlockData(coords);
             StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
 
-            int bx, by, bz;
             UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
             if (player.World.BlockHelper.Instance((byte)type) is IBlockInteractive)

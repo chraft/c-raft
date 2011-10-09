@@ -36,40 +36,47 @@ namespace Chraft.World.Blocks
             base.DropItems(entity, block);
         }
 
+        public bool CanGrow(StructBlock block)
+        {
+            if (block.Coords.WorldY > 120)
+                return false;
+            return true;
+        }
+
         public void Grow(StructBlock block)
         {
-            // Too high
-/*            if (Y > 120)
+            if (!CanGrow(block))
                 return;
 
-            // Grow a trunk. Replace only the BlockAir
-            for (int i = Y; i < Y + 5; i++)
+            for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {
-                if (Chunk.World.GetBlockId(X, i, Z) == (byte)BlockData.Blocks.Air)
-                    WorldMgr.GetChunk(X, Z, false, true).ReplaceBlock(this, BlockData.Blocks.Log, BlockMeta);
-                else
+                block.World.SetBlockAndData(block.Coords.WorldX, i, block.Coords.WorldZ, (byte)BlockData.Blocks.Log, block.MetaData);
+                if (block.World.GetBlockId(block.Coords.WorldX, i + 1, block.Coords.WorldZ) != (byte)BlockData.Blocks.Air)
                     break;
             }
 
             // Grow leaves
-            for (int i = Y + 2; i < Y + 5; i++)
-                for (int j = X - 2; j <= X + 2; j++)
-                    for (int k = Z - 2; k <= Z + 2; k++)
-                        if (!WorldMgr.ChunkExists(j, k) || !(WorldMgr.GetBlock(j, i, k) is BlockAir))
+            for (int i = block.Coords.WorldY + 2; i < block.Coords.WorldY + 5; i++)
+                for (int j = block.Coords.WorldX - 2; j <= block.Coords.WorldX + 2; j++)
+                    for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
+                        if (!block.World.ChunkExists(j >> 4, k >> 4) || (block.World.GetBlockId(j, i, k) != (byte)BlockData.Blocks.Air))
                             continue;
                         else
-                            WorldMgr.GetChunk(j, k, false, true).ReplaceBlock(this, BlockData.Blocks.Leaves, BlockMeta);
+                            block.World.SetBlockAndData(j, i, k, (byte)BlockData.Blocks.Leaves,
+                                                        block.MetaData);
 
-            for (int i = X - 1; i <= X + 1; i++)
-                for (int j = Z - 1; j <= Z + 1; j++)
-                    if (!WorldMgr.ChunkExists(i, j) || !(WorldMgr.GetBlock(i, Y + 5, j) is BlockAir))
+            for (int i = block.Coords.WorldX - 1; i <= block.Coords.WorldX + 1; i++)
+                for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
+                    if (!block.World.ChunkExists(i >> 4, j >> 4) || (block.World.GetBlockId(i, block.Coords.WorldY + 5, j) != (byte)BlockData.Blocks.Air))
                         continue;
                     else
-                        WorldMgr.GetChunk(i, j, false, true).ReplaceBlock(this, BlockData.Blocks.Leaves, BlockMeta);
-
-            foreach (Client c in WorldMgr.Server.GetNearbyPlayers(WorldMgr, X, Y, Z))
-                c.SendBlockRegion(X - 3, Y, Z - 3, 7, 7, 7);
- */
+                        block.World.SetBlockAndData(i, block.Coords.WorldY + 5, j, (byte)BlockData.Blocks.Leaves,
+                                                    block.MetaData);
+            AbsWorldCoords absCoords = new AbsWorldCoords(block.Coords);
+            foreach (Net.Client c in block.World.Server.GetNearbyPlayers(block.World, absCoords))
+            {
+                c.SendBlockRegion(block.Coords.WorldX - 3, block.Coords.WorldY, block.Coords.WorldZ - 3, 7, 7, 7);
+            }
         }
     }
 }

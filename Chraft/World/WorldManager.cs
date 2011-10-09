@@ -336,19 +336,23 @@ namespace Chraft.World
                 pulse.Start();
             }
            
-            // Every second
+            // Every 5 seconds
             if(this.WorldTicks % 100 == 0)
+            {
+                if(_CollectTask == null || _CollectTask.IsCompleted)
+                {
+                    _CollectTask = new Task(CollectProc);
+                    _CollectTask.Start();
+                }
+            }
+
+            // Every 10 seconds
+            if (WorldTicks % 200 == 0)
             {
                 if (_GrowStuffTask == null || _GrowStuffTask.IsCompleted)
                 {
                     _GrowStuffTask = new Task(GrowProc);
                     _GrowStuffTask.Start();
-                }
-
-                if(_CollectTask == null || _CollectTask.IsCompleted)
-                {
-                    _CollectTask = new Task(CollectProc);
-                    _CollectTask.Start();
                 }
             }
 

@@ -5,6 +5,8 @@ using System.IO;
 using System.Threading;
 using Chraft.Net;
 using Chraft.Properties;
+using Chraft.World.Blocks;
+using Chraft.World.Blocks.Interfaces;
 using Ionic.Zlib;
 using Chraft.World.Weather;
 using System.Collections;
@@ -528,9 +530,18 @@ namespace Chraft.World
         private void Grow(UniversalCoords coords)
         {
             BlockData.Blocks type = GetType(coords);
+            byte metaData = GetData(coords);
+
+            if (!(World.BlockHelper.Instance((byte)type) is IBlockGrowable))
+                return;
+
             UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
             byte light = GetBlockLight(oneUp);
             byte sky = GetSkyLight(oneUp);
+
+            StructBlock thisBlock = new StructBlock(coords, (byte)type, metaData, this.World);
+            IBlockGrowable blockToGrow = (World.BlockHelper.Instance((byte)type) as IBlockGrowable);
+            blockToGrow.Grow(thisBlock);
 
             switch (type)
             {
@@ -544,40 +555,8 @@ namespace Chraft.World
                 SpawnMob(oneUp);
                 return;
             }
-
-            switch (type)
-            {
-                case BlockData.Blocks.Cactus:
-                    GrowCactus(oneUp);
-                    break;
-
-                case BlockData.Blocks.Crops:
-                    GrowCrops(coords);
-                    break;
-
-                case BlockData.Blocks.Dirt:
-                    GrowGrass(coords);
-                    break;
-
-                case BlockData.Blocks.Cobblestone:
-                    GrowCobblestone(coords);
-                    break;
-
-                case BlockData.Blocks.Reed:
-                    GrowReed(oneUp);
-                    break;
-
-                case BlockData.Blocks.Sapling:
-                    GrowSapling(coords);
-                    break;
-            }
-        }
-
-        private void GrowSapling(UniversalCoords coords)
-        {
-            GrowTree(coords);
-            /*foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Coords.WorldX + coords.WorldX, coords.WorldY, Coords.WorldZ + coords.WorldZ)))
-                c.SendBlockRegion((X << 4) + x - 3, y, (Z << 4) + z - 3, 7, 7, 7);*/
+            if (type == BlockData.Blocks.Grass)
+                SpawnAnimal(coords);
         }
 
         public void GrowTree(UniversalCoords coords, byte treeType = 0)
@@ -647,31 +626,7 @@ namespace Chraft.World
             }
         }
 
-        private void GrowCrops(UniversalCoords coords)
-        {
-            byte data = GetData(coords);
-
-            if (data == 0x07)
-                return;
-
-            if (World.Server.Rand.Next(10) == 0) // Was 200
-            {
-                SetData(coords, ++data, true);
-            }
-        }
-
-        private void GrowCobblestone(UniversalCoords coords)
-        {
-            if (!IsAdjacentTo(coords, (byte)BlockData.Blocks.Mossy_Cobblestone))
-                return;
-
-            if (World.Server.Rand.Next(60) == 0)
-            {
-                SetType(coords, BlockData.Blocks.Mossy_Cobblestone);
-            }
-        }
-
-        private void GrowGrass(UniversalCoords coords)
+        private void SpawnAnimal(UniversalCoords coords)
         {
             UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
             if (coords.WorldY >= 127 || !IsAir(oneUp))
@@ -685,10 +640,6 @@ namespace Chraft.World
                         World.SpawnAnimal(oneUp);
                 }
             }
-            if (World.Server.Rand.Next(30) == 0)
-            {
-                SetType(coords, BlockData.Blocks.Grass);
-            }
         }
 
         private void GrowDirt(UniversalCoords coords)
@@ -699,20 +650,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(30) != 0)
             {
                 SetType(coords, BlockData.Blocks.Dirt);
-            }
-        }
-
-        private void GrowReed(UniversalCoords coords)
-        {
-            if (GetType(coords) == BlockData.Blocks.Reed)
-                return;
-
-            if (GetType(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 3, coords.WorldZ)) == BlockData.Blocks.Reed)
-                return;
-
-            if (World.Server.Rand.Next(60) == 0)
-            {
-                SetType(coords, BlockData.Blocks.Reed);
             }
         }
 
