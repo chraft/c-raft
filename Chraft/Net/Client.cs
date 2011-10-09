@@ -17,7 +17,6 @@ using Chraft.Properties;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
 using System.Collections.Concurrent;
-//using Chraft.Player ;
 
 namespace Chraft.Net
 {
@@ -45,9 +44,6 @@ namespace Chraft.Net
 
         private bool _SendSystemDisposed;
         private bool _RecvSystemDisposed;
-
-        private byte _value;
-        private Client _Client;
 
         private object _DisposeLock = new object();
 
@@ -306,16 +302,6 @@ namespace Chraft.Net
                 case DamageCause.BlockExplosion:
                     break;
                 case DamageCause.Contact:
-                    if(_value == 81)
-                    {
-                        _Player.Health = -- _Player.Health;
-                        _Client.SendPacket(new UpdateHealthPacket
-                        {
-                            Health = _Player.Health--,
-                            Food = _Player.Food,
-                            FoodSaturation = _Player.FoodSaturation,
-                        });
-                    }
                     break;
                 case DamageCause.Drowning:
                     break;
@@ -412,16 +398,6 @@ namespace Chraft.Net
             if (rotation > 140)
                 return "N";
             return "W";
-        }
-
-        void CallEvent(Event Event, byte value)
-        {
-            CallEvent(Event.BLOCK_TOUCH, _value);
-        }
-
-        void SetHealth(short health)
-        {
-            SetHealth(_Player.Health);
         }
     }
 }
