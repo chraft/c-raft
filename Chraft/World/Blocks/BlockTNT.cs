@@ -16,6 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.TNT;
             IsSingleHit = true;
             IsSolid = true;
+            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }
