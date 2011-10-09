@@ -730,7 +730,7 @@ namespace Chraft.World
             {Blocks.Log, 300},
             {Blocks.Wood, 300},
             {Blocks.Wooden_Stairs, 300},
-
+            {Blocks.Trapdoor, 300},
             {Blocks.Sapling, 100},
         };
 
