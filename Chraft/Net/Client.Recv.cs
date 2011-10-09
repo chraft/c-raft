@@ -634,6 +634,8 @@ namespace Chraft.Net
                     //this.SendMessage()
                     if (BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
+                    if (BlockHelper.Instance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
+                        goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (player.GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
