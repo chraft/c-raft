@@ -73,7 +73,7 @@ namespace Chraft.World.Blocks
             if (player.CurrentInterface != null)
                 return;
 
-            if (!block.World.BlockHelper.Instance(block.World.GetBlockId(block.Coords)).IsAir)
+            if (!BlockHelper.Instance(block.World.GetBlockId(block.Coords)).IsAir)
             {
                 // Cannot open a chest if no space is above it
                 return;

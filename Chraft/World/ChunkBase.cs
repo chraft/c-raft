@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using Chraft.Net;
 using Chraft.Properties;
 using Chraft.Net.Packets;
+using Chraft.World.Blocks;
 
 namespace Chraft.World
 {
@@ -207,22 +208,22 @@ namespace Chraft.World
 
         public byte GetLuminance(UniversalCoords coords)
 		{
-            return BlockData.Luminance[(byte)GetType(coords)];
+            return BlockHelper.Instance((byte)GetType(coords)).Luminance;
 		}
 
         public byte GetLuminance(int blockX, int blockY, int blockZ)
         {
-            return BlockData.Luminance[(byte)GetType(blockX, blockY, blockZ)];
+            return BlockHelper.Instance((byte)GetType(blockX, blockY, blockZ)).Luminance;
         }
 
         public byte GetOpacity(UniversalCoords coords)
         {
-            return BlockData.Opacity[(byte)GetType(coords)];
+            return BlockHelper.Instance((byte)GetType(coords)).Opacity;
         }
 
         public byte GetOpacity(int blockX, int blockY, int blockZ)
 		{
-            return BlockData.Opacity[(byte)GetType(blockX, blockY, blockZ)];
+            return BlockHelper.Instance((byte)GetType(blockX, blockY, blockZ)).Opacity;
 		}
 
 		public void SetAllBlocks(byte[] data)
@@ -278,7 +279,7 @@ namespace Chraft.World
 
         public bool IsAir(UniversalCoords coords)
 		{
-			return BlockData.Air.Contains(GetType(coords));
+			return BlockHelper.Instance((byte)GetType(coords)).IsAir;
 		}
 
         public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)

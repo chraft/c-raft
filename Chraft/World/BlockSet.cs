@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.World.Blocks;
 
 namespace Chraft.World
 {
@@ -85,12 +86,12 @@ namespace Chraft.World
 
 		public byte GetLuminence(int x, int y, int z)
 		{
-			return BlockData.Luminance[this[x, y, z]];
+			return BlockHelper.Instance(this[x, y, z]).Luminance;
 		}
 
 		public byte GetOpacity(int x, int y, int z)
 		{
-			return BlockData.Opacity[this[x, y, z]];
+			return BlockHelper.Instance(this[x, y, z]).Opacity;
 		}
 
 		public void SetAllBlocks(byte[] data)
@@ -130,11 +131,6 @@ namespace Chraft.World
 		public void SetType(int x, int y, int z, BlockData.Blocks value)
 		{
 			this[x, y, z] = (byte)value;
-		}
-
-		public bool IsAir(int x, int y, int z)
-		{
-			return BlockData.Air.Contains(GetType(x, y, z));
 		}
 	}
 }

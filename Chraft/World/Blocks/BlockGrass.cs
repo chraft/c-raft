@@ -5,10 +5,11 @@ using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
+using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockGrass : BlockBase
+    class BlockGrass : BlockBase, IBlockGrowable
     {
         public BlockGrass()
         {
@@ -19,5 +20,28 @@ namespace Chraft.World.Blocks
             LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
         }
 
+        public bool CanGrow(StructBlock block)
+        {
+            // Grass become Dirt after some time if something solid is on top of it
+            bool isSolid = false;
+            if (block.Coords.WorldY < 127)
+            {
+                UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
+                                                                       block.Coords.WorldZ);
+                isSolid = !BlockHelper.Instance(block.World.GetBlockId(blockAbove)).IsAir;
+            }
+            return isSolid;
+        }
+
+        public void Grow(StructBlock block)
+        {
+            if (!CanGrow(block))
+                return;
+
+            if (block.World.Server.Rand.Next(10) == 0)
+            {
+                block.World.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Dirt, 0);
+            }
+        }
     }
 }

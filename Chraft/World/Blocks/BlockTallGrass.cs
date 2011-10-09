@@ -27,7 +27,7 @@ namespace Chraft.World.Blocks
                 return;
             byte blockId = targetBlock.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
             // We can place the tall grass only on the fertile blocks - dirt, soil, grass)
-            if (!targetBlock.World.BlockHelper.Instance(blockId).IsFertile)
+            if (!BlockHelper.Instance(blockId).IsFertile)
                 return;
             base.Place(entity, block, targetBlock, face);
         }
@@ -55,7 +55,9 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+            if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
+                targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
+                targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
                 Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }

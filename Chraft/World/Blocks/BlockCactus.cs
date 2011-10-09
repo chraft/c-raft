@@ -39,7 +39,16 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(who, block, targetBlock, targetSide);
         }
 
-        public void Grow(StructBlock block)
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock thisBlock)
+        {
+            if ((thisBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
+                thisBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
+                thisBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
+                Destroy(thisBlock);
+            base.NotifyDestroy(entity, sourceBlock, thisBlock);
+        }
+
+        public bool CanGrow(StructBlock block)
         {
             // BlockMeta = 0x0 is a freshly planted cactus.
             // The data value is incremented at random intervals.
@@ -47,14 +56,24 @@ namespace Chraft.World.Blocks
             int maxHeight = 3;
 
             if (block.Coords.WorldY == 127)
-                return;
+                return false;
+
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             byte blockId = block.World.GetBlockId(oneUp);
-            if (blockId != (byte)BlockData.Blocks.Air || blockId == (byte)BlockData.Blocks.Cactus)
-                return;
-            if (block.Coords.WorldY > maxHeight - 1)
-                if (block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - maxHeight, block.Coords.WorldZ)) == (byte)BlockData.Blocks.Cactus)
-                    return;
+            if (blockId != (byte)BlockData.Blocks.Air)
+                return false;
+
+            // Calculating the cactus length below this block
+            int cactusHeightBelow = 0;
+            for (int i = block.Coords.WorldY - 1; i >= 0; i--)
+            {
+                if (block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, i, block.Coords.WorldZ)) != (byte)BlockData.Blocks.Cactus)
+                    break;
+                cactusHeightBelow++;
+            }
+
+            if ((cactusHeightBelow + 1) >= maxHeight)
+                return false;
 
             bool isAir = true;
             block.Chunk.ForNSEW(oneUp,
@@ -63,27 +82,34 @@ namespace Chraft.World.Blocks
                     if (block.World.GetBlockId(uc) != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
+
             if (!isAir)
+                return false;
+
+            return true;
+        }
+
+        public void Grow(StructBlock block)
+        {
+            if (!CanGrow(block))
                 return;
 
+            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             bool willGrow = (block.World.Server.Rand.Next(60) == 0);
+
             if (block.MetaData < 0xe) // 14
             {
                 if (willGrow)
                 {
-                    Console.WriteLine("Growing cactus..");
-                    block.Chunk.SetData(block.Coords, block.MetaData++, false);
+                    block.Chunk.SetData(block.Coords, ++block.MetaData, false);
                 }
                 return;
             }
-            else
-            {
-                if (!willGrow)
-                    return;
-                Console.WriteLine("Creating new cactus");
-                block.World.SetBlockData(block.Coords, 0);
-                block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
-            }
+            if (!willGrow)
+                return;
+
+            block.World.SetBlockData(block.Coords, 0);
+            block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block)

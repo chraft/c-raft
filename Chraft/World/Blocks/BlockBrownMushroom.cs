@@ -22,7 +22,9 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
+            if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
+                targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
+                targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
                 Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }

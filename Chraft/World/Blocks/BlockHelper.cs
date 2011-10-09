@@ -8,17 +8,15 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    public class BlockHelper
+    public static class BlockHelper
     {
-        private bool _initialized;
-        public BlockHelper()
+        static BlockHelper()
         {
-            if (!_initialized)
-                Init();
+            Init();
         }
 
-        private ConcurrentDictionary<byte, BlockBase> _blocks;
-        private void Init()
+        private static ConcurrentDictionary<byte, BlockBase> _blocks;
+        private static void Init()
         {
             _blocks = new ConcurrentDictionary<byte, BlockBase>();
             BlockBase block;
@@ -30,14 +28,23 @@ namespace Chraft.World.Blocks
                 block = (BlockBase) t.GetConstructor(Type.EmptyTypes).Invoke(null);
                 _blocks.TryAdd((byte)block.Type, block);
             }
-            _initialized = true;
         }
 
-        public BlockBase Instance(byte blockId)
+        public static BlockBase Instance(byte blockId)
         {
             BlockBase block = null;
             _blocks.TryGetValue(blockId, out block);
             return block;
+        }
+
+        public static bool IsGrowable(byte blockId)
+        {
+            return (Instance(blockId) is IBlockGrowable);
+        }
+
+        public static bool IsGrowable(BlockData.Blocks blockType)
+        {
+            return IsGrowable((byte)blockType);
         }
     }
 }

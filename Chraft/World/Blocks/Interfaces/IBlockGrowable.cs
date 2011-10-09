@@ -8,5 +8,6 @@ namespace Chraft.World.Blocks.Interfaces
     interface IBlockGrowable
     {
         void Grow(StructBlock block);
+        bool CanGrow(StructBlock block);
     }
 }

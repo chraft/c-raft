@@ -18,6 +18,15 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Cake;
         }
 
+        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        {
+            if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
+                targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
+                targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
+                Destroy(targetBlock);
+            base.NotifyDestroy(entity, sourceBlock, targetBlock);
+        }
+
         public void Interact(EntityBase entity, StructBlock block)
         {
             // Eat the cake. No food restoration at the moment.
