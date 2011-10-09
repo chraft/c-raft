@@ -719,8 +719,7 @@ namespace Chraft.Net.Packets
         public short UnknownB { get; set; }
         public short UnknownC { get; set; }
 
-        // TODO: length here isn't fixed, it can be 22 or 28, must understand what UnknownFlag is.
-        protected override int Length { get { return 28; } }
+        protected override int Length { get { return UnknownFlag > 0 ? 28 : 22; } }
 
         public override void Read(PacketReader stream)
         {
@@ -744,9 +743,12 @@ namespace Chraft.Net.Packets
             Writer.Write((int)(Y * 32));
             Writer.Write((int)(Z * 32));
             Writer.Write(UnknownFlag);
-            Writer.Write(UnknownA);
-            Writer.Write(UnknownB);
-            Writer.Write(UnknownC);
+            if (UnknownFlag != 0)
+            {
+                Writer.Write(UnknownA);
+                Writer.Write(UnknownB);
+                Writer.Write(UnknownC);
+            }
         }
 
         public enum ObjectType : sbyte
