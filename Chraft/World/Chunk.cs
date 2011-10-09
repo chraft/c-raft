@@ -235,7 +235,7 @@ namespace Chraft.World
                 newSkylight = 15;
             else
             {
-                byte toSubtract = (byte)(1 - vertical + BlockData.Opacity[Types[x << 11 | z << 7 | y]]);
+                byte toSubtract = (byte)(1 - vertical + BlockHelper.Instance(Types[x << 11 | z << 7 | y]).Opacity);
                 newSkylight -= toSubtract;
 
                 if (newSkylight < 0)
@@ -532,7 +532,7 @@ namespace Chraft.World
             BlockData.Blocks type = GetType(coords);
             byte metaData = GetData(coords);
 
-            if (!(World.BlockHelper.Instance((byte)type) is IBlockGrowable))
+            if (!(BlockHelper.Instance((byte)type) is IBlockGrowable))
                 return;
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
@@ -540,7 +540,7 @@ namespace Chraft.World
             byte sky = GetSkyLight(oneUp);
 
             StructBlock thisBlock = new StructBlock(coords, (byte)type, metaData, this.World);
-            IBlockGrowable blockToGrow = (World.BlockHelper.Instance((byte)type) as IBlockGrowable);
+            IBlockGrowable blockToGrow = (BlockHelper.Instance((byte)type) as IBlockGrowable);
             blockToGrow.Grow(thisBlock);
 
             switch (type)

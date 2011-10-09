@@ -105,7 +105,7 @@ namespace Chraft.World.Blocks
                 UniversalCoords baseBlock = UniversalCoords.FromWorld(block.Coords.WorldX,
                                                                       block.Coords.WorldY - reedHeightBelow,
                                                                       block.Coords.WorldZ);
-                block.World.BlockHelper.Instance(block.Type).Destroy(new StructBlock(baseBlock, block.Type, block.MetaData, block.World));
+                BlockHelper.Instance(block.Type).Destroy(new StructBlock(baseBlock, block.Type, block.MetaData, block.World));
                 return false;
             }
 

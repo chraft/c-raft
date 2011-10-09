@@ -64,7 +64,7 @@ namespace Chraft.World.Blocks
 
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            if (!targetBlock.World.BlockHelper.Instance(targetBlock.Type).IsPlowed || targetSide != BlockFace.Up)
+            if (!BlockHelper.Instance(targetBlock.Type).IsPlowed || targetSide != BlockFace.Up)
                 return false;
             return base.CanBePlacedOn(who, targetBlock, targetBlock, targetSide);
         }

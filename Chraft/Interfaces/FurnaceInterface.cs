@@ -6,6 +6,7 @@ using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Interfaces.Recipes;
 using System.Threading;
+using Chraft.World.Blocks;
 
 namespace Chraft.Interfaces
 {
@@ -168,7 +169,8 @@ namespace Chraft.Interfaces
                 if (!ItemStack.IsVoid(this.Cursor))
                 {
                     // Only allow operations against valid fuel blocks/items
-                    if ((this.Cursor.Type < 256 && !BlockData.BlockBurnEfficiency.ContainsKey((BlockData.Blocks)this.Cursor.Type)) ||
+
+                    if ((this.Cursor.Type < 256 && !BlockHelper.Instance((byte)Cursor.Type).IsIgnitable) ||
                         (this.Cursor.Type >= 256 && !BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)this.Cursor.Type)))
                     {
                         Owner.Client.SendPacket(new TransactionPacket
@@ -283,7 +285,7 @@ namespace Chraft.Interfaces
             lock (_furnaceInstance)
             {
                 if (this[FUEL_SLOT].Type < 256)
-                    _burnForTicks = BlockData.BlockBurnEfficiency[(BlockData.Blocks)this[FUEL_SLOT].Type];
+                    _burnForTicks = BlockHelper.Instance((byte)this[FUEL_SLOT].Type).BurnEfficiency;
                 else
                     _burnForTicks = BlockData.ItemBurnEfficiency[(BlockData.Items)this[FUEL_SLOT].Type];
 

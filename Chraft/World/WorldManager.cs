@@ -34,7 +34,6 @@ namespace Chraft.World
         public string Name { get { return Settings.Default.DefaultWorldName; } }
         public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
         public WeatherManager Weather { get; private set; }
-        public BlockHelper BlockHelper { get; private set; }
 
         private readonly ChunkSet _Chunks;
         private ChunkSet Chunks { get { return _Chunks; } }
@@ -176,7 +175,6 @@ namespace Chraft.World
             _ChunkProvider = new ChunkProvider(this);
             Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
             ChunkManager = new WorldChunkManager(this);
-            BlockHelper = new BlockHelper();
 
             InitializeSpawn();
             InitializeThreads();

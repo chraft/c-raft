@@ -28,7 +28,7 @@ namespace Chraft.World.Blocks
             {
                 UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                        block.Coords.BlockZ);
-                isAir = block.World.BlockHelper.Instance(block.World.GetBlockId(blockAbove)).IsAir;
+                isAir = BlockHelper.Instance(block.World.GetBlockId(blockAbove)).IsAir;
             }
             return isAir;
         }

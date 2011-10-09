@@ -101,7 +101,7 @@ namespace Chraft.Net
                                 // If we are in water, count how many blocks above are also water
                                 BlockData.Blocks block = currentBlock;
                                 int waterCount = 0;
-                                while (BlockData.IsLiquid(block))
+                                while (BlockHelper.Instance((byte)block).IsLiquid)
                                 {
                                     waterCount++;
                                     block = (BlockData.Blocks)_Player.World.GetBlockId((int)_Player.Position.X, (int)_Player.Position.Y + waterCount, (int)_Player.Position.Z);
@@ -495,7 +495,7 @@ namespace Chraft.Net
                 case BlockData.Items.Reeds:
                     StructBlock block = new StructBlock(coordsFromFace, (byte)BlockData.Blocks.Reed, 0x00, player.World);
                     StructBlock targetBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
-                    player.World.BlockHelper.Instance((byte)BlockData.Blocks.Reed).Place(block, targetBlock, packet.Face);
+                    BlockHelper.Instance((byte)BlockData.Blocks.Reed).Place(block, targetBlock, packet.Face);
                     break;
                 case BlockData.Items.Redstone:
                     player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
@@ -511,7 +511,9 @@ namespace Chraft.Net
                 case BlockData.Items.Iron_Door:
                 case BlockData.Items.Wooden_Door:
                     {
-                        if (!BlockData.Air.Contains((BlockData.Blocks)player.World.GetBlockId(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ)))
+                        byte blockId = player.World.GetBlockId(coordsFromFace.WorldX, coordsFromFace.WorldY + 1,
+                                                               coordsFromFace.WorldZ);
+                        if (!BlockHelper.Instance(blockId).IsAir)
                             return;
 
                         switch (client.FacingDirection(4)) // Built on floor, set by facing dir
@@ -586,9 +588,9 @@ namespace Chraft.Net
 
             UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
-            if (player.World.BlockHelper.Instance((byte)type) is IBlockInteractive)
+            if (BlockHelper.Instance((byte)type) is IBlockInteractive)
             {
-                (player.World.BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
+                (BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
                 return;
             }
 
@@ -609,7 +611,7 @@ namespace Chraft.Net
 
             StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
 
-            player.World.BlockHelper.Instance(bType).Place(player, bBlock, facingBlock, packet.Face);
+            BlockHelper.Instance(bType).Place(player, bBlock, facingBlock, packet.Face);
         }
 
         public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
@@ -630,7 +632,7 @@ namespace Chraft.Net
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(coords)));
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(coords)));
                     //this.SendMessage()
-                    if (player.World.BlockHelper.Instance(type).IsSingleHit)
+                    if (BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (player.GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -638,7 +640,7 @@ namespace Chraft.Net
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
                     StructBlock block = new StructBlock(coords, type, data, player.World);
-                    player.World.BlockHelper.Instance(type).Destroy(player, block);
+                    BlockHelper.Instance(type).Destroy(player, block);
                     break;
             }
         }

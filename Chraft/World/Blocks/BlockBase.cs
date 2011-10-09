@@ -180,7 +180,7 @@ namespace Chraft.World.Blocks
             {
                 blockId = block.World.GetBlockId(coords);
                 blockMeta = block.World.GetBlockData(coords);
-                block.World.BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
+                BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
             }
         }
 
@@ -359,7 +359,7 @@ namespace Chraft.World.Blocks
         /// <returns>true if the block can be placed, false otherwise</returns>
         protected virtual bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            BlockBase tBlock = targetBlock.World.BlockHelper.Instance(targetBlock.Type);
+            BlockBase tBlock = BlockHelper.Instance(targetBlock.Type);
             if (!tBlock.IsSolid)
                 return false;
 
@@ -374,7 +374,7 @@ namespace Chraft.World.Blocks
 
             // We can't place the solid blocks on the player position (both feets and head)
             // TODO: Improve collision detection. Now the player can be partially in the block when it is placed
-            if (!block.World.BlockHelper.Instance(block.Type).IsAir && !block.World.BlockHelper.Instance(block.Type).IsLiquid)
+            if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
                 foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
                     if (c.Owner.Position.BlockX == block.Coords.WorldX && c.Owner.Position.BlockZ == block.Coords.WorldZ &&
