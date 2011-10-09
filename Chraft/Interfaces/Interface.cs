@@ -39,6 +39,9 @@ namespace Chraft.Interfaces
 			}
 			set
 			{
+                //temp fix, todo- handle item being dropped using cursor rather then key press
+                if (slot == -1){return;}
+                //end temp fix
 				if (Slots[slot] != null)
 					Slots[slot].Changed -= ItemStack_Changed;
 				Slots[slot] = value ?? ItemStack.Void;
