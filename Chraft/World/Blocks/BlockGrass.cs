@@ -23,14 +23,14 @@ namespace Chraft.World.Blocks
         public bool CanGrow(StructBlock block)
         {
             // Grass become Dirt after some time if something solid is on top of it
-            bool isAir = true;
+            bool isSolid = false;
             if (block.Coords.WorldY < 127)
             {
                 UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
-                                                                       block.Coords.BlockZ);
-                isAir = BlockHelper.Instance(block.World.GetBlockId(blockAbove)).IsAir;
+                                                                       block.Coords.WorldZ);
+                isSolid = !BlockHelper.Instance(block.World.GetBlockId(blockAbove)).IsAir;
             }
-            return isAir;
+            return isSolid;
         }
 
         public void Grow(StructBlock block)
