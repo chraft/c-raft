@@ -574,7 +574,7 @@ namespace Chraft.World
 
         public byte GetBlockId(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(worldX, worldZ))
+            if (!ChunkExists(worldX >> 4, worldZ >> 4))
                 return 0;
             return (byte)Chunks[worldX >> 4, worldZ >> 4].GetType(worldX & 0xF, worldY, worldZ & 0xF);
         }
@@ -588,7 +588,7 @@ namespace Chraft.World
 
         public byte GetBlockData(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(worldX, worldZ))
+            if (!ChunkExists(worldX >> 4, worldZ >> 4))
                 return 0;
             return Chunks[worldX >> 4, worldZ >> 4].GetData(worldX & 0xF, worldY, worldZ & 0xF);
         }
@@ -602,7 +602,7 @@ namespace Chraft.World
 
         public byte GetBlockLight(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(worldX, worldZ))
+            if (!ChunkExists(worldX >> 4, worldZ >> 4))
                 return 0;
             return Chunks[worldX >> 4, worldZ >> 4].GetBlockLight(worldX & 0xF, worldY, worldZ & 0xF);
         }
