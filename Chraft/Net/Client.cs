@@ -292,7 +292,7 @@ namespace Chraft.Net
         {
 
             //event start
-            EntityDamageEventArgs entevent = new EntityDamageEventArgs(_Player, Convert.ToInt16(args[0]), null, cause);
+            EntityDamageEventArgs entevent = new EntityDamageEventArgs(_Player, Convert.ToInt16(DamageAmount), null, cause);
             _Player.Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, entevent);
             if (_Player.GameMode == 1) { entevent.EventCanceled = true; }
             if (entevent.EventCanceled) return;
@@ -317,7 +317,7 @@ namespace Chraft.Net
                 case DamageCause.Fall:
                     if (args.Length > 0)
                     {
-                        _Player.Health -= Convert.ToInt16(args[0]);
+                        _Player.Health -= Convert.ToInt16(DamageAmount);
                     }
                     break;
                 case DamageCause.Fire:
