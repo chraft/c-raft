@@ -256,6 +256,9 @@
     <Compile Include="World\Blocks\BlockPistonHead.cs" />
     <Compile Include="World\Blocks\BlockSponge.cs" />
     <Compile Include="World\Blocks\BlockStickyPiston.cs" />
+    <Compile Include="World\Blocks\Physics\BlockBasePhysics.cs" />
+    <Compile Include="World\Blocks\Physics\FallingSand.cs" />
+    <Compile Include="World\Blocks\Physics\FallingGravel.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="World\Location.cs" />
     <Compile Include="Entity\Mob.cs" />
