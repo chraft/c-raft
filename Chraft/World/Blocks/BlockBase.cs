@@ -158,6 +158,25 @@ namespace Chraft.World.Blocks
         }
 
         /// <summary>
+        /// Removes the block from the world. Don't drop anything.
+        /// </summary>
+        /// <param name="block">block that is being removed</param>
+        public virtual void Remove(StructBlock block)
+        {
+            UpdateOnDestroy(block);
+            NotifyNearbyBlocks(null, block);
+        }
+
+        /// <summary>
+        /// Spawns the block in the world (not placed by the player)
+        /// </summary>
+        /// <param name="block">block that is being spawned</param>
+        public virtual void Spawn(StructBlock block)
+        {
+            UpdateOnPlace(block);
+        }
+
+        /// <summary>
         /// Notifies the nearby block that the current block has been destroyed
         /// May be used by recipient block to start the physic simulation etc
         /// </summary>

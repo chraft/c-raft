@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Chraft.Net;
@@ -7,6 +8,7 @@ using Chraft.Properties;
 using System.IO;
 using Chraft.Entity;
 using Chraft.World.Blocks;
+using Chraft.World.Blocks.Physics;
 using Chraft.World.Weather;
 using Chraft.Plugins.Events.Args;
 using System.Threading.Tasks;
@@ -39,6 +41,9 @@ namespace Chraft.World
         private ChunkSet Chunks { get { return _Chunks; } }
 
         public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
+
+        public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
+        private Task _PhysicsSimulationTask;
 
         private readonly object ChunkLightUpdateLock = new object();
         private Task _GrowStuffTask;
@@ -175,6 +180,7 @@ namespace Chraft.World
             _ChunkProvider = new ChunkProvider(this);
             Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
             ChunkManager = new WorldChunkManager(this);
+            PhysicsBlocks = new ConcurrentDictionary<int, BlockBasePhysics>();
 
             InitializeSpawn();
             InitializeThreads();
@@ -354,7 +360,12 @@ namespace Chraft.World
                 }
             }
 
-            
+            if (_PhysicsSimulationTask == null || _PhysicsSimulationTask.IsCompleted)
+            {
+                _PhysicsSimulationTask = new Task(PhysicsProc);
+                _PhysicsSimulationTask.Start();
+            }
+
         }
 
         public Chunk GetChunkFromPosition(int x, int z)
@@ -418,6 +429,14 @@ namespace Chraft.World
             foreach (Chunk c in GetChunks())
             {
                 c.Grow();
+            }
+        }
+
+        private void PhysicsProc()
+        {
+            foreach (var physicsBlock in PhysicsBlocks)
+            {
+                physicsBlock.Value.Simulate();
             }
         }
 
@@ -705,21 +724,6 @@ namespace Chraft.World
         {
             BlockData.Blocks type = (BlockData.Blocks)GetBlockId(coords);
             UniversalCoords oneDown = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
-            if (type == BlockData.Blocks.Sand && coords.WorldY > 0 && GetBlockId(oneDown) == 0)
-            {
-                SetBlockAndData(coords, 0, 0);
-                SetBlockAndData(oneDown, (byte)BlockData.Blocks.Sand, 0);
-                Update(oneDown, updateClients);
-                return;
-            }
-
-            if (type == BlockData.Blocks.Gravel && coords.WorldY > 0 && GetBlockId(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ)) == 0)
-            {
-                SetBlockAndData(coords, 0, 0);
-                SetBlockAndData(oneDown, (byte)BlockData.Blocks.Gravel, 0);
-                Update(oneDown, updateClients);
-                return;
-            }
 
             if (type == BlockData.Blocks.Water)
             {
