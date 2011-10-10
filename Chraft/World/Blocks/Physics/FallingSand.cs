@@ -41,9 +41,7 @@ namespace Chraft.World.Blocks.Physics
 
         protected override void OnStop()
         {
-            UniversalCoords currentBlockCoords = UniversalCoords.FromWorld(MathHelper.floor_double(Position.X),
-                                                                           MathHelper.floor_double(Position.Y),
-                                                                           MathHelper.floor_double(Position.Z));
+            UniversalCoords currentBlockCoords = UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z);
             byte blockId = World.GetBlockId(currentBlockCoords);
             if (BlockHelper.Instance(blockId).IsAir)
             {
