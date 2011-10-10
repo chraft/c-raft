@@ -285,9 +285,10 @@ namespace Chraft.Net
         /// Updates nearby players when Client is hurt.
         /// </summary>
         /// <param name="cause"></param>
+        /// <param name="DamageAmount"></param>
         /// <param name="hitBy">The Client hurting the current Client.</param>
         /// <param name="args">First argument should always be the damage amount.</param>
-        public void DamageClient(DamageCause cause, EntityBase hitBy = null, params object[] args)
+        public void DamageClient(DamageCause cause, double DamageAmount, EntityBase hitBy = null, params object[] args)
         {
 
             //event start

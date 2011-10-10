@@ -23,26 +23,26 @@ namespace Chraft.Net
         {
             m_Handlers = new PacketHandler[0x100];
 
-            Register(PacketType.KeepAlive, 5, 0, new OnPacketReceive(ReadKeepAlive));
-            Register(PacketType.LoginRequest, 0, 23, new OnPacketReceive(ReadLoginRequest));
-            Register(PacketType.Handshake, 0, 3, new OnPacketReceive(ReadHandshake));
-            Register(PacketType.ChatMessage, 0, 3, new OnPacketReceive(ReadChatMessage));
-            Register(PacketType.UseEntity, 10, 0, new OnPacketReceive(ReadUseEntity));
-            Register(PacketType.Respawn, 14, 0, new OnPacketReceive(ReadRespawn));
-            Register(PacketType.Player, 2, 0, new OnPacketReceive(ReadPlayer));
-            Register(PacketType.PlayerPosition, 34, 0, new OnPacketReceive(ReadPlayerPosition));
-            Register(PacketType.PlayerRotation, 10, 0, new OnPacketReceive(ReadPlayerRotation));
-            Register(PacketType.PlayerPositionRotation, 42, 0, new OnPacketReceive(ReadPlayerPositionRotation));
-            Register(PacketType.PlayerDigging, 12, 0, new OnPacketReceive(ReadPlayerDigging));
-            Register(PacketType.PlayerBlockPlacement, 0, 13, new OnPacketReceive(ReadPlayerBlockPlacement));
-            Register(PacketType.HoldingChange, 3, 0, new OnPacketReceive(ReadHoldingChange));
-            Register(PacketType.Animation, 6, 0, new OnPacketReceive(ReadAnimation));
-            Register(PacketType.EntityAction, 6, 0, new OnPacketReceive(ReadEntityAction));
-            Register(PacketType.CloseWindow, 2, 0, new OnPacketReceive(ReadCloseWindow));
-            Register(PacketType.WindowClick, 0, 10, new OnPacketReceive(ReadWindowClick));
+            Register(PacketType.KeepAlive, 5, 0, ReadKeepAlive);
+            Register(PacketType.LoginRequest, 0, 23, ReadLoginRequest);
+            Register(PacketType.Handshake, 0, 3, ReadHandshake);
+            Register(PacketType.ChatMessage, 0, 3, ReadChatMessage);
+            Register(PacketType.UseEntity, 10, 0, ReadUseEntity);
+            Register(PacketType.Respawn, 14, 0, ReadRespawn);
+            Register(PacketType.Player, 2, 0, ReadPlayer);
+            Register(PacketType.PlayerPosition, 34, 0, ReadPlayerPosition);
+            Register(PacketType.PlayerRotation, 10, 0, ReadPlayerRotation);
+            Register(PacketType.PlayerPositionRotation, 42, 0, ReadPlayerPositionRotation);
+            Register(PacketType.PlayerDigging, 12, 0, ReadPlayerDigging);
+            Register(PacketType.PlayerBlockPlacement, 0, 13, ReadPlayerBlockPlacement);
+            Register(PacketType.HoldingChange, 3, 0, ReadHoldingChange);
+            Register(PacketType.Animation, 6, 0, ReadAnimation);
+            Register(PacketType.EntityAction, 6, 0, ReadEntityAction);
+            Register(PacketType.CloseWindow, 2, 0, ReadCloseWindow);
+            Register(PacketType.WindowClick, 0, 10, ReadWindowClick);
             Register(PacketType.CreativeInventoryAction, 9, 0, ReadCreativeInventoryAction);
-            Register(PacketType.ServerListPing, 1, 0, new OnPacketReceive(ReadServerListPing));
-            Register(PacketType.Disconnect, 0, 3, new OnPacketReceive(ReadDisconnect));
+            Register(PacketType.ServerListPing, 1, 0, ReadServerListPing);
+            Register(PacketType.Disconnect, 0, 3, ReadDisconnect);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)

@@ -46,7 +46,7 @@ namespace Chraft.Net
 
         #region Wolf Meta Data
         /// <summary>
-        /// Gets / Sets wolfs tamed state
+        /// Gets / Sets wolfs sitting state
         /// </summary>
         public bool IsSitting
         {
@@ -56,7 +56,7 @@ namespace Chraft.Net
         }
 
         /// <summary>
-        /// Gets / Sets wolfs tamed state
+        /// Gets / Sets wolfs aggressive state
         /// </summary>
         public bool IsAggressive
         {

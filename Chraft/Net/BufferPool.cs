@@ -24,79 +24,79 @@ using System.Collections.Generic;
 
 namespace Chraft.Net
 {
-	public class BufferPool
-	{
-		private static List<BufferPool> m_Pools = new List<BufferPool>();
+    public class BufferPool
+    {
+        private static List<BufferPool> m_Pools = new List<BufferPool>();
 
-		public static List<BufferPool> Pools{ get{ return m_Pools; } set{ m_Pools = value; } }
+        public static List<BufferPool> Pools { get { return m_Pools; } set { m_Pools = value; } }
 
-		private string m_Name;
+        private string m_Name;
 
-		private int m_InitialCapacity;
-		private int m_BufferSize;
+        private int m_InitialCapacity;
+        private int m_BufferSize;
 
-		private int m_Misses;
+        private int m_Misses;
 
-		private Queue<byte[]> m_FreeBuffers;
+        private Queue<byte[]> m_FreeBuffers;
 
-		public void GetInfo( out string name, out int freeCount, out int initialCapacity, out int currentCapacity, out int bufferSize, out int misses )
-		{
-			lock ( this )
-			{
-				name = m_Name;
-				freeCount = m_FreeBuffers.Count;
-				initialCapacity = m_InitialCapacity;
-				currentCapacity = m_InitialCapacity * (1 + m_Misses);
-				bufferSize = m_BufferSize;
-				misses = m_Misses;
-			}
-		}
+        public void GetInfo(out string name, out int freeCount, out int initialCapacity, out int currentCapacity, out int bufferSize, out int misses)
+        {
+            lock (this)
+            {
+                name = m_Name;
+                freeCount = m_FreeBuffers.Count;
+                initialCapacity = m_InitialCapacity;
+                currentCapacity = m_InitialCapacity * (1 + m_Misses);
+                bufferSize = m_BufferSize;
+                misses = m_Misses;
+            }
+        }
 
-		public BufferPool( string name, int initialCapacity, int bufferSize )
-		{
-			m_Name = name;
+        public BufferPool(string name, int initialCapacity, int bufferSize)
+        {
+            m_Name = name;
 
-			m_InitialCapacity = initialCapacity;
-			m_BufferSize = bufferSize;
+            m_InitialCapacity = initialCapacity;
+            m_BufferSize = bufferSize;
 
-			m_FreeBuffers = new Queue<byte[]>( initialCapacity );
+            m_FreeBuffers = new Queue<byte[]>(initialCapacity);
 
-			for ( int i = 0; i < initialCapacity; ++i )
-				m_FreeBuffers.Enqueue( new byte[bufferSize] );
+            for (int i = 0; i < initialCapacity; ++i)
+                m_FreeBuffers.Enqueue(new byte[bufferSize]);
 
-			lock ( m_Pools )
-				m_Pools.Add( this );
-		}
+            lock (m_Pools)
+                m_Pools.Add(this);
+        }
 
-		public byte[] AcquireBuffer()
-		{
-			lock ( this )
-			{
-				if ( m_FreeBuffers.Count > 0 )
-					return m_FreeBuffers.Dequeue();
+        public byte[] AcquireBuffer()
+        {
+            lock (this)
+            {
+                if (m_FreeBuffers.Count > 0)
+                    return m_FreeBuffers.Dequeue();
 
-				++m_Misses;
+                ++m_Misses;
 
-				for ( int i = 0; i < m_InitialCapacity; ++i )
-					m_FreeBuffers.Enqueue( new byte[m_BufferSize] );
+                for (int i = 0; i < m_InitialCapacity; ++i)
+                    m_FreeBuffers.Enqueue(new byte[m_BufferSize]);
 
-				return m_FreeBuffers.Dequeue();
-			}
-		}
+                return m_FreeBuffers.Dequeue();
+            }
+        }
 
-		public void ReleaseBuffer( byte[] buffer )
-		{
-			if ( buffer == null )
-				return;
+        public void ReleaseBuffer(byte[] buffer)
+        {
+            if (buffer == null)
+                return;
 
-			lock ( this )
-				m_FreeBuffers.Enqueue( buffer );
-		}
+            lock (this)
+                m_FreeBuffers.Enqueue(buffer);
+        }
 
-		public void Free()
-		{
-			lock ( m_Pools )
-				m_Pools.Remove( this );
-		}
-	}
+        public void Free()
+        {
+            lock (m_Pools)
+                m_Pools.Remove(this);
+        }
+    }
 }

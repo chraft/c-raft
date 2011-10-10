@@ -113,7 +113,7 @@ namespace Chraft.Net
                                 if (fallDamage > 0)
                                 {
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
-                                    DamageClient(DamageCause.Fall, null, roundedValue);
+                                    DamageClient(DamageCause.Fall, roundedValue);
 
                                     if (_Player.Health <= 0)
                                     {
@@ -292,7 +292,7 @@ namespace Chraft.Net
                     if (packet.LeftClick)
                     {
                         if (player.Health > 0)
-                            player.Client.DamageClient(DamageCause.EntityAttack, handledPlayer, 0);
+                            player.Client.DamageClient(DamageCause.EntityAttack, 0, handledPlayer);
                     }
                     else
                     {
