@@ -18,7 +18,8 @@ Fork the code from the DEVELOP branch and submit pull requests for that branch, 
 You need the .NET 4 Framework if you wish to contribute, builds are also compiled against the mono compiler to check compatibility.
 Comment your code well, remember that you are not the only one contributing.
 Builds are built on each commit and the status output to the IRC channel. 
-Use spaces as tabs, you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx  
+
+Use spaces as tabs (4 per tab), you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx in MonoDevelop you can set this for the solution in the Solution options / Source Code / Text Style.
 
 Testing:  
 Builds are available on request (IRC) but will be made generally available soon.
