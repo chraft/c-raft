@@ -19,7 +19,7 @@ You need the .NET 4 Framework if you wish to contribute, builds are also compile
 Comment your code well, remember that you are not the only one contributing.
 Builds are built on each commit and the status output to the IRC channel. 
 
-Use spaces as tabs (4 per tab), you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx in MonoDevelop you can set this for the solution in the Solution options / Source Code / Text Style.
+Use spaces as tabs (4 per tab), you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx in MonoDevelop you can set this for the solution in the Solution options / Source Code / Code Formatting / Text file / Text Style, tick Convert tabs to spaces.
 
 Testing:  
 Builds are available on request (IRC) but will be made generally available soon.
