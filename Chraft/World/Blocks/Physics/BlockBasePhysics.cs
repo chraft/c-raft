@@ -37,7 +37,7 @@ namespace Chraft.World.Blocks.Physics
                                              {
                                                  EntityId = EntityId,
                                                  Type = Type,
-                                                 UnknownFlag = 0,
+                                                 FireBallThrowerEid = 0,
                                                  X = Position.X,
                                                  Y = Position.Y,
                                                  Z = Position.Z

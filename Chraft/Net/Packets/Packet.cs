@@ -714,24 +714,24 @@ namespace Chraft.Net.Packets
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-        public int UnknownFlag { get; set; }
-        public short UnknownA { get; set; }
-        public short UnknownB { get; set; }
-        public short UnknownC { get; set; }
+        public int FireBallThrowerEid { get; set; }
+        public short FireBallX { get; set; }
+        public short FireBallY { get; set; }
+        public short FireBallZ { get; set; }
 
-        protected override int Length { get { return UnknownFlag > 0 ? 28 : 22; } }
+        protected override int Length { get { return FireBallThrowerEid > 0 ? 28 : 22; } }
 
         public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Type = (ObjectType)stream.ReadSByte();
-            X = (double)stream.ReadInt() / 32.0d; // ((double)intX / 32.0d) => representation of X as double
-            Y = (double)stream.ReadInt() / 32.0d;
-            Z = (double)stream.ReadInt() / 32.0d;
-            UnknownFlag = stream.ReadInt();
-            UnknownA = stream.ReadShort();
-            UnknownB = stream.ReadShort();
-            UnknownC = stream.ReadShort();
+            X = stream.ReadInt() / 32.0d; // ((double)intX / 32.0d) => representation of X as double
+            Y = stream.ReadInt() / 32.0d;
+            Z = stream.ReadInt() / 32.0d;
+            FireBallThrowerEid = stream.ReadInt();
+            FireBallX = stream.ReadShort();
+            FireBallY = stream.ReadShort();
+            FireBallZ = stream.ReadShort();
         }
 
         public override void Write()
@@ -742,12 +742,12 @@ namespace Chraft.Net.Packets
             Writer.Write((int)(X * 32));
             Writer.Write((int)(Y * 32));
             Writer.Write((int)(Z * 32));
-            Writer.Write(UnknownFlag);
-            if (UnknownFlag != 0)
+            Writer.Write(FireBallThrowerEid);
+            if (FireBallThrowerEid != 0)
             {
-                Writer.Write(UnknownA);
-                Writer.Write(UnknownB);
-                Writer.Write(UnknownC);
+                Writer.Write(FireBallX);
+                Writer.Write(FireBallY);
+                Writer.Write(FireBallZ);
             }
         }
 
