@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Interfaces;
 using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
@@ -40,9 +41,22 @@ namespace Chraft.World.Blocks.Physics
 
         protected override void OnStop()
         {
-            UniversalCoords uc = UniversalCoords.FromWorld(MathHelper.floor_double(Position.X), MathHelper.floor_double(Position.Y) + 1, MathHelper.floor_double(Position.Z));
-            StructBlock block = new StructBlock(uc, BlockId, 0, World);
-            BlockHelper.Instance(BlockId).Spawn(block);
+            UniversalCoords currentBlockCoords = UniversalCoords.FromWorld(MathHelper.floor_double(Position.X),
+                                                                           MathHelper.floor_double(Position.Y),
+                                                                           MathHelper.floor_double(Position.Z));
+            byte blockId = World.GetBlockId(currentBlockCoords);
+            if (BlockHelper.Instance(blockId).IsAir)
+            {
+                World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
+            }
+            else
+            {
+                UniversalCoords aboveBlockCoords = UniversalCoords.FromWorld(currentBlockCoords.WorldX,
+                                                                             currentBlockCoords.WorldY + 1,
+                                                                             currentBlockCoords.WorldZ);
+                StructBlock aboveBlock = new StructBlock(aboveBlockCoords, BlockId, 0, World);
+                BlockHelper.Instance(BlockId).Spawn(aboveBlock);
+            }
             base.OnStop();
         }
     }
