@@ -458,6 +458,11 @@ namespace Chraft
             });
         }
 
+        public void DropItem()
+        {
+            Server.DropItem(this, Inventory.Slots[Inventory.ActiveSlot]);
+        }
+
 
         #region Permission related commands
         //Check if the player has permissions to use the command from a command object

@@ -54,7 +54,7 @@ namespace Chraft.Net
                 if (_onGround != value)
                 {
                     _onGround = value;
-                    
+
                     // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
                     BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId(UniversalCoords.FromWorld(_Player.Position.X, _Player.Position.Y, _Player.Position.Z));
 
@@ -155,7 +155,7 @@ namespace Chraft.Net
 
         public ByteQueue GetBufferToProcess()
         {
-            lock(_QueueSwapLock)
+            lock (_QueueSwapLock)
             {
                 ByteQueue temp = _CurrentBuffer;
                 _CurrentBuffer = _ProcessedBuffer;
@@ -188,19 +188,19 @@ namespace Chraft.Net
                 MarkToDispose();
                 DisposeRecvSystem();
             }
-            
+
         }
 
         private void Recv_Process(SocketAsyncEventArgs e)
         {
-            if(e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
+            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 lock (_QueueSwapLock)
                     _CurrentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
                 int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
 
-                if((newValue - 1) == 0)
+                if ((newValue - 1) == 0)
                     Server.RecvClientQueue.Enqueue(this);
 
                 _Player.Server.NetworkSignal.Set();
@@ -211,7 +211,7 @@ namespace Chraft.Net
 
         private void Recv_Completed(object sender, SocketAsyncEventArgs e)
         {
-            if(!Running)
+            if (!Running)
                 DisposeRecvSystem();
             else
                 Recv_Process(e);
@@ -643,6 +643,12 @@ namespace Chraft.Net
                 case PlayerDiggingPacket.DigAction.FinishDigging:
                     StructBlock block = new StructBlock(coords, type, data, player.World);
                     BlockHelper.Instance(type).Destroy(player, block);
+                    break;
+
+                case PlayerDiggingPacket.DigAction.DropItem:
+                    var slot = player.Inventory.ActiveSlot;
+                    player.Inventory.RemoveItem(slot);
+                    player.DropItem();
                     break;
             }
         }

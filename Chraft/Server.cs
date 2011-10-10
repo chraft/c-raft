@@ -748,6 +748,18 @@ namespace Chraft
         }
 
         /// <summary>
+        /// Drops an item based on the given player's position and rotation.
+        /// </summary>
+        /// <param name="player">The player to be used for position calculations.</param>
+        /// <param name="stack">The stack to be dropped.</param>
+        /// <returns>The entity ID of the item drop.</returns>
+        public int DropItem(Player player, ItemStack stack)
+        {
+            //todo - proper drop
+            return DropItem(player.World, UniversalCoords.FromWorld(player.Position.X + 4, player.Position.Y, player.Position.Z), stack);
+        }
+
+        /// <summary>
         /// Drops an item at the given location.
         /// </summary>
         /// <param name="world">The world in which the coordinates reside.</param>

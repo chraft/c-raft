@@ -478,7 +478,8 @@ namespace Chraft.Net.Packets
         {
             StartDigging = 0,
             FinishDigging = 2,
-            DropItem = 4
+            DropItem = 4,
+            ShootArrow = 5
         }
     }
 
