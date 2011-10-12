@@ -8,7 +8,7 @@ namespace Chraft.World.Blocks.Physics
 {
     public class FallingGravel : FallingSand
     {
-        public FallingGravel(WorldManager world, Location pos) : base(world, pos)
+        public FallingGravel(WorldManager world, AbsWorldCoords pos) : base(world, pos)
         {
             Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingGravel;
             BlockId = (byte) BlockData.Blocks.Gravel;

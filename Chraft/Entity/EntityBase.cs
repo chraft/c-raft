@@ -45,11 +45,24 @@ namespace Chraft.Entity
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
         public virtual short MaxHealth { get { return 20; } }
-        public sbyte PackedPitch { get { return Position.PackedPitch; } }
-        public sbyte PackedYaw { get { return Position.PackedYaw; } }
+        /// <summary>
+        /// Rotation around the X-axis
+        /// </summary>
+        public double Pitch { get; set; }
+
+        /// <summary>
+        /// Rotation around the Y-axis.
+        /// </summary>
+        public double Yaw { get; set; }
+
+        public sbyte PackedPitch { get { return (sbyte)(this.Pitch / 360.0 * 256.0 % 256.0); } }
+
+        public sbyte PackedYaw { get { return (sbyte)(this.Yaw / 360.0 * 256.0 % 256.0); } }
+
         public Server Server { get; private set; }
         public int TimeInWorld;
-        public Location Position { get; set; }
+        //public Location Position { get; set; }
+        public AbsWorldCoords Position { get; set; }
 
         public EntityBase(Server server, int entityId)
         {
@@ -63,6 +76,12 @@ namespace Chraft.Entity
             if (Server == null)
                 Server = server;
         }
+        
+        
+        public virtual void Update()
+        {
+            
+        }
 
         /// <summary>
         /// Move less than four blocks to the given destination and update all affected clients.
@@ -72,10 +91,10 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public virtual void MoveTo(AbsWorldCoords absCoords)
         {
-            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
-
+            AbsWorldCoords newPosition = absCoords;
+                     
             //Event
-            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
@@ -84,7 +103,7 @@ namespace Chraft.Entity
             sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
             sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
-            Position.Vector = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
+            Position = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
 
             OnMoveTo(dx, dy, dz);
         }
@@ -105,9 +124,7 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public virtual bool TeleportTo(AbsWorldCoords absCoords)
         {
-            Position.X = absCoords.X;
-            Position.Y = absCoords.Y;
-            Position.Z = absCoords.Z;
+            Position = absCoords;
             
             OnTeleportTo(absCoords);
             return true;
@@ -128,8 +145,8 @@ namespace Chraft.Entity
         /// <param name="pitch">Target pitch, absolute.</param>
         public void RotateTo(float yaw, float pitch)
         {
-            Position.Yaw = yaw;
-            Position.Pitch = pitch;
+            this.Yaw = yaw;
+            this.Pitch = pitch;
 
             OnRotateTo();
         }
@@ -152,10 +169,11 @@ namespace Chraft.Entity
         /// <param name="pitch">The absolute pitch to which entity should change.</param>
         public virtual void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
-            Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
+            //Vector3 newPosition = new Vector3(absCoords.X, absCoords.Y, absCoords.Z);
+            AbsWorldCoords newPosition = absCoords;
 
             //Event
-            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position.Vector);
+            EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
             Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
@@ -164,9 +182,9 @@ namespace Chraft.Entity
             sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
             sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
             sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
-            Position.Vector = newPosition;
-            Position.Yaw = yaw;
-            Position.Pitch = pitch;
+            Position = newPosition;
+            this.Yaw = yaw;
+            this.Pitch = pitch;
 
             OnMoveRotateTo(dx, dy, dz);
             

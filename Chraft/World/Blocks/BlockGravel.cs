@@ -72,7 +72,7 @@ namespace Chraft.World.Blocks
         protected void StartPhysics(StructBlock block)
         {
             Remove(block);
-            FallingGravel fgBlock = new FallingGravel(block.World, new Location(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            FallingGravel fgBlock = new FallingGravel(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fgBlock.Start();
             block.World.PhysicsBlocks.TryAdd(fgBlock.EntityId, fgBlock);
         }

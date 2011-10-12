@@ -396,8 +396,10 @@ namespace Chraft.World.Blocks
             if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
                 foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
-                    if (c.Owner.Position.BlockX == block.Coords.WorldX && c.Owner.Position.BlockZ == block.Coords.WorldZ &&
-                    (c.Owner.Position.BlockY == block.Coords.WorldY || c.Owner.Position.BlockY + 1 == block.Coords.WorldY))
+                    UniversalCoords playerCoords = UniversalCoords.FromWorld(c.Owner.Position.X, c.Owner.Position.Y, c.Owner.Position.Z);
+                    
+                    if (playerCoords.WorldX == block.Coords.WorldX && playerCoords.WorldZ == block.Coords.WorldZ &&
+                       (playerCoords.WorldY == block.Coords.WorldY || playerCoords.WorldY + 1 == block.Coords.WorldY))
                         return false;
                 }
 

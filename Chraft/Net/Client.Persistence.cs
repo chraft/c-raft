@@ -20,11 +20,9 @@ namespace Chraft.Net
             ClientSurrogate client;
             using (FileStream rx = File.OpenRead(DataFile))
                 client = (ClientSurrogate)Xml.Deserialize(rx);
-            _Player.Position.X = client.X;
-            _Player.Position.Y = client.Y + 1; // Players drop one block upon spawning
-            _Player.Position.Z = client.Z;
-            _Player.Position.Yaw = client.Yaw;
-            _Player.Position.Pitch = client.Pitch;
+            _Player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y + 1, client.Z);
+            _Player.Yaw = client.Yaw;
+            _Player.Pitch = client.Pitch;
             if (client.Inventory != null)
             {
                 _Player.Inventory = new Inventory {Handle = 0};
@@ -69,8 +67,8 @@ namespace Chraft.Net
                         X = _Player.Position.X,
                         Y = _Player.Position.Y,
                         Z = _Player.Position.Z,
-                        Yaw = _Player.Position.Yaw,
-                        Pitch = _Player.Position.Pitch,
+                        Yaw = _Player.Yaw,
+                        Pitch = _Player.Pitch,
                         GameMode = _Player.GameMode,
                         DisplayName = _Player.DisplayName,
                         Health = _Player.Health,

@@ -32,9 +32,9 @@ namespace Chraft.Plugins.Events.Args
     }
     public class EntitySpawnEventArgs : EntityEventArgs 
     {
-        public Vector3 Location { get; set; }
+        public AbsWorldCoords Location { get; set; }
 
-        public EntitySpawnEventArgs(EntityBase entity, Vector3 Location)
+        public EntitySpawnEventArgs(EntityBase entity, AbsWorldCoords Location)
             : base(entity)
         {
             this.Location = Location;
@@ -42,10 +42,10 @@ namespace Chraft.Plugins.Events.Args
     }
     public class EntityMoveEventArgs : EntityEventArgs 
     {
-        public Vector3 NewPosition { get; set; }
-        public Vector3 OldPosition { get; private set; }
+        public AbsWorldCoords NewPosition { get; set; }
+        public AbsWorldCoords OldPosition { get; private set; }
 
-        public EntityMoveEventArgs(EntityBase entity, Vector3 newPosition, Vector3 oldPosition) 
+        public EntityMoveEventArgs(EntityBase entity, AbsWorldCoords newPosition, AbsWorldCoords oldPosition) 
             : base(entity)
         {
             NewPosition = newPosition;

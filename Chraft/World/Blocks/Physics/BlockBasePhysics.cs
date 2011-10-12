@@ -11,12 +11,12 @@ namespace Chraft.World.Blocks.Physics
     {
         public int EntityId { get; protected set; }
         public WorldManager World { get; protected set; }
-        public Location Position { get; protected set; }
+        public AbsWorldCoords Position { get; protected set; }
         public bool IsPlaying { get; protected set; }
         public Vector3 Velocity { get; protected set; }
         public AddObjectVehiclePacket.ObjectType Type;
 
-        protected BlockBasePhysics(WorldManager world, Location pos)
+        protected BlockBasePhysics(WorldManager world, AbsWorldCoords pos)
         {
             World = world;
             Position = pos;

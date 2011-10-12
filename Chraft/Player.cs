@@ -95,7 +95,7 @@ namespace Chraft
         public void InitializePosition()
         {
             World = Server.GetDefaultWorld();
-            Position = new Location(
+            Position = new AbsWorldCoords(
                 World.Spawn.WorldX,
                 World.Spawn.WorldY + EyeGroundOffset,
                 World.Spawn.WorldZ);
@@ -189,8 +189,8 @@ namespace Chraft
                         X = absCoords.X,
                         Y = absCoords.Y + Player.EyeGroundOffset,
                         Z = absCoords.Z,
-                        Yaw = (float)Position.Yaw,
-                        Pitch = (float)Position.Pitch,
+                        Yaw = (float)this.Yaw,
+                        Pitch = (float)this.Pitch,
                         Stance = c.Stance,
                         OnGround = false
                     }
@@ -293,9 +293,10 @@ namespace Chraft
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
             Server.RemoveEntity(this);
 
-            Position.X = World.Spawn.WorldX;
-            Position.Y = World.Spawn.WorldY + EyeGroundOffset;
-            Position.Z = World.Spawn.WorldZ;
+            Position = new AbsWorldCoords(
+                World.Spawn.WorldX,
+                World.Spawn.WorldY + EyeGroundOffset,
+                World.Spawn.WorldZ);
 
             _Client.StopUpdateChunks();
             UpdateChunks(1, CancellationToken.None, false);

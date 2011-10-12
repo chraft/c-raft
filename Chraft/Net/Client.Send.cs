@@ -236,8 +236,8 @@ namespace Chraft.Net
                 X = _Player.Position.X,
                 Y = _Player.Position.Y + Player.EyeGroundOffset,
                 Z = _Player.Position.Z,
-                Yaw = (float)_Player.Position.Yaw,
-                Pitch = (float)_Player.Position.Pitch,
+                Yaw = (float)_Player.Yaw,
+                Pitch = (float)_Player.Pitch,
                 Stance = Stance,
                 OnGround = false
             });

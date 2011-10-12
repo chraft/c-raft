@@ -86,9 +86,7 @@ namespace Chraft.Entity {
         }
 
         public void UpdatePosition() {
-            this.Position.X += Velocity.X;
-            this.Position.Y += Velocity.Y;
-            this.Position.Z += Velocity.Z;
+            this.Position = new AbsWorldCoords(this.Position.ToVector() + Velocity);
             foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z))) {
                 c.SendPacket(new EntityTeleportPacket {
                     EntityId = this.EntityId,

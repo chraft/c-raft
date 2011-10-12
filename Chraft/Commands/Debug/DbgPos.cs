@@ -15,15 +15,15 @@ namespace Chraft.Commands.Debug
         {
             if (tokens.Length == 1)
             {
-                client.SendMessage(String.Format("§7Your position: X={0:0.00},Y={1:0.00},Z={2:0.00}, Yaw={3:0.00}, Pitch={4:0.00}", client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z, client.Owner.Position.Yaw, client.Owner.Position.Pitch));
+                client.SendMessage(String.Format("§7Your position: X={0:0.00},Y={1:0.00},Z={2:0.00}, Yaw={3:0.00}, Pitch={4:0.00}", client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z, client.Owner.Yaw, client.Owner.Pitch));
             }
             else if (tokens[1] == "yaw")
             {
-                Vector3 z1 = client.Owner.Position.Vector + Vector3.ZAxis;
-                Vector3 posToZ1 = (client.Owner.Position.Vector - z1);
+                Vector3 z1 = client.Owner.Position.ToVector() + Vector3.ZAxis;
+                Vector3 posToZ1 = (client.Owner.Position.ToVector() - z1);
 
-                client.SendMessage(String.Format("§7Player.Position.Yaw {0:0.00}, vector computed yaw (SignedAngle) {1:0.00}", client.Owner.Position.Yaw % 360, Vector3.ZAxis.SignedAngle(Vector3.ZAxis.Yaw(client.Owner.Position.Yaw.ToRadians()), Vector3.ZAxis.Yaw(client.Owner.Position.Yaw.ToRadians()).Yaw(90.0.ToRadians())).ToDegrees()));
-                client.SendMessage(String.Format("§7Normalised facing Yaw: " + client.Owner.Position.Vector.Normalize().Yaw(client.Owner.Position.Yaw % 360).ToString()));
+                client.SendMessage(String.Format("§7Player.Position.Yaw {0:0.00}, vector computed yaw (SignedAngle) {1:0.00}", client.Owner.Yaw % 360, Vector3.ZAxis.SignedAngle(Vector3.ZAxis.Yaw(client.Owner.Yaw.ToRadians()), Vector3.ZAxis.Yaw(client.Owner.Yaw.ToRadians()).Yaw(90.0.ToRadians())).ToDegrees()));
+                client.SendMessage(String.Format("§7Normalised facing Yaw: " + new Vector3(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z).Normalize().Yaw(client.Owner.Yaw % 360).ToString()));
             }
         }
 

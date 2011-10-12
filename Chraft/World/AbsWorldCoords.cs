@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Utils;
 
 namespace Chraft.World
 {
@@ -23,6 +24,18 @@ namespace Chraft.World
             X = coords.WorldX;
             Y = coords.WorldY;
             Z = coords.WorldZ;
+        }
+        
+        public AbsWorldCoords(Vector3 vector)
+        {
+            X = vector.X;
+            Y = vector.Y;
+            Z = vector.Z;
+        }
+        
+        public Vector3 ToVector()
+        {
+            return new Vector3(X, Y, Z);
         }
     }
 }

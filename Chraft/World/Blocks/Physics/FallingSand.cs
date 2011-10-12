@@ -11,7 +11,7 @@ namespace Chraft.World.Blocks.Physics
     {
         protected byte BlockId;
 
-        public FallingSand(WorldManager world, Location pos) : base(world, pos)
+        public FallingSand(WorldManager world, AbsWorldCoords pos) : base(world, pos)
         {
             Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingSand;
             BlockId = (byte) BlockData.Blocks.Sand;
@@ -36,7 +36,7 @@ namespace Chraft.World.Blocks.Physics
                 return;
             }
 
-            Position.Vector += Velocity;
+            Position = new AbsWorldCoords(Position.ToVector() + Velocity);
         }
 
         protected override void OnStop()

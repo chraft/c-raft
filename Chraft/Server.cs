@@ -774,7 +774,7 @@ namespace Chraft
             AddEntity(new ItemEntity(this, entityId)
             {
                 World = world,
-                Position = new Location(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5)), // Put in the middle of the block (ignoring Y)
+                Position = new AbsWorldCoords(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5)), // Put in the middle of the block (ignoring Y)
                 ItemId = stack.Type,
                 Count = stack.Count,
                 Durability = stack.Durability

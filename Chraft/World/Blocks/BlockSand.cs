@@ -50,7 +50,7 @@ namespace Chraft.World.Blocks
         protected void StartPhysics(StructBlock block)
         {
             Remove(block);
-            FallingSand fsBlock = new FallingSand(block.World, new Location(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            FallingSand fsBlock = new FallingSand(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fsBlock.Start();
             block.World.PhysicsBlocks.TryAdd(fsBlock.EntityId, fsBlock);
         }

@@ -25,21 +25,25 @@ namespace Chraft.Utils
 
         public static float sqrt_double(double d)
         {
+            
             return (float) Math.sqrt(d);
         }
 
+        [System.Obsolete]
         public static int floor_float(float f)
         {
             int i = (int) f;
             return f >= (float) i ? i : i - 1;
         }
 
+        [System.Obsolete]
         public static int floor_double(double d)
         {
             int i = (int) d;
             return d >= (double) i ? i : i - 1;
         }
-
+  
+        [System.Obsolete]      
         public static float abs(float f)
         {
             return f < 0.0F ? -f : f;

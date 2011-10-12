@@ -372,7 +372,7 @@ namespace Chraft.Net
         public string FacingDirection(byte points)
         {
 
-            byte rotation = (byte)(_Player.Position.Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
+            byte rotation = (byte)(_Player.Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
 
             if (points == 8)
             {
