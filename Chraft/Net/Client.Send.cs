@@ -150,11 +150,11 @@ namespace Chraft.Net
         {
             if(_Player.LoggedIn)
             {
-                _Player.SynchronizeEntities();
                 SendPacket(new TimeUpdatePacket
                 {
                     Time = _Player.World.Time
                 });
+                _Player.SynchronizeEntities();
             }
         }
 

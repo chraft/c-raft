@@ -28,6 +28,8 @@ namespace Chraft.World
         public NibbleArray SkyLight = new NibbleArray(SIZE);
 
         protected int NumBlocksToUpdate;
+	    public int ChangesToSave;
+
         protected int _TimerStarted;
         protected Timer _UpdateTimer;
         protected ConcurrentDictionary<short, short> BlocksToBeUpdated = new ConcurrentDictionary<short, short>();
@@ -282,9 +284,24 @@ namespace Chraft.World
 			return BlockHelper.Instance((byte)GetType(coords)).IsAir;
 		}
 
+        public void MarkToSave()
+        {
+            int changes = Interlocked.Increment(ref ChangesToSave);
+
+            if(changes == 1)
+                World.ChunksToSave.Enqueue(this);
+        }
+
+        public virtual void Save()
+        {
+            
+        }
+
         public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)
         {
             int num = Interlocked.Increment(ref NumBlocksToUpdate);
+
+            MarkToSave();
 
             BlocksUpdateLock.EnterReadLock();
             if (num <= 20)

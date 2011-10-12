@@ -45,32 +45,33 @@ namespace Chraft.World
         public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
         private Task _PhysicsSimulationTask;
 
-        private readonly object ChunkLightUpdateLock = new object();
+        public ConcurrentQueue<ChunkBase> ChunksToSave;
+
+        private CancellationTokenSource _SaveToken;
+        public bool NeedsFullSave;
+        public bool FullSaving;
+
         private Task _GrowStuffTask;
         private Task _CollectTask;
+        private Task _SaveTask;
 
         private int _Time;
-        private readonly ReaderWriterLockSlim _TimeWriteLock = new ReaderWriterLockSlim();
         private Chunk[] _ChunksCache;
         /// <summary>
         /// In units of 0.05 seconds (between 0 and 23999)
         /// </summary>
         public int Time
         {
-            get {
-                _TimeWriteLock.EnterReadLock();
+            get { 
                 int time = _Time;
-                //Console.WriteLine("Reading: {0}", _Time);
-                _TimeWriteLock.ExitReadLock();
+                
                 return time; }
             set {
-                _TimeWriteLock.EnterWriteLock();
-                _Time = value;
-                _TimeWriteLock.ExitWriteLock();
+                _Time = value;             
                 }
         }
 
-        private int _worldTicks = 0;
+        private int _WorldTicks = 0;
         
         /// <summary>
         /// The current World Tick independant of the world's current Time (1 tick = 0.05 secs with a max value of 4,294,967,295 gives approx. 6.9 years of ticks)
@@ -79,7 +80,7 @@ namespace Chraft.World
         {
             get
             {
-                return _worldTicks;
+                return _WorldTicks;
             }
         }
 
@@ -164,6 +165,7 @@ namespace Chraft.World
             _Chunks = new ChunkSet();
             Server = server;
             ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
+            ChunksToSave = new ConcurrentQueue<ChunkBase>();
             Load();
         }
 
@@ -228,9 +230,8 @@ namespace Chraft.World
 
         private void InitializeThreads()
         {
-            this.Running = true;
+            Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
-            SaveStart();
             EntityMoverStart();
         }
 
@@ -245,21 +246,6 @@ namespace Chraft.World
                     break;
                 }
             }
-
-            
-        }
-
-        private void CollectStart()
-        {
-            Thread trd = new Thread(CollectRun);
-            trd.IsBackground = false;
-            trd.Start();
-        }
-
-        private void CollectRun()
-        {
-            while (Running)
-                CollectProc();
         }
 
         private void CollectProc()
@@ -277,29 +263,42 @@ namespace Chraft.World
             }
         }
 
-        private void SaveStart()
+        private void FullSave()
         {
-            Thread trd = new Thread(SaveRun);
-            trd.IsBackground = false;
-            trd.Priority = ThreadPriority.Lowest;
-            trd.Start();
+            // Wait until the task has been canceled
+            _SaveTask.Wait();
+
+            int count = ChunksToSave.Count;
+            _SaveTask = new Task(() => SaveProc(count, CancellationToken.None));
+            _SaveTask.Start();
+            NeedsFullSave = false;
+            FullSaving = false;
         }
 
-        private void SaveRun()
+        private void SaveProc(int chunkToSave, CancellationToken token)
         {
-            while (Running)
-                SaveProc(true);
-            SaveProc(false);
-        }
+            if (token.IsCancellationRequested)
+                return;
 
-        private void SaveProc(bool passive)
-        {
-            Chunk[] chunks = GetChunks();
-            for (int i = 0; i < chunks.Length && Running; i++)
+            int count = ChunksToSave.Count;
+
+            if (count > chunkToSave)
+                count = chunkToSave;
+
+            for (int i = 0; i < count && Running && !token.IsCancellationRequested; ++i)
             {
-                chunks[i].Save();
-                if (passive)
-                    Thread.Sleep(1000);
+                ChunkBase chunk;
+                ChunksToSave.TryDequeue(out chunk);
+
+                if (chunk == null)
+                    continue;
+
+                /* Better to "signal" that the chunk can be queued again before saving, 
+                 * we don't know which signaled changes will be saved during the save */
+                Interlocked.Exchange(ref chunk.ChangesToSave, 0);
+
+                chunk.Save();
+                
             }
         }
 
@@ -316,32 +315,46 @@ namespace Chraft.World
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
-            Interlocked.Increment(ref _worldTicks);
+            Interlocked.Increment(ref _WorldTicks);
 
             int time;
-            // Lock Time so that others cannot write to it
-            _TimeWriteLock.EnterWriteLock();
-            //Console.WriteLine("Writing Time");
-            time = ++_Time;
-            //Console.WriteLine("Time: {0}", _Time);
+            time = Interlocked.Increment(ref _Time);
+
             if (time == 24000)
             {	// A day has passed.
                 // MUST interface directly with _Time to bypass the write lock, which we hold.
                 _Time = time = 0;
             }
-            _TimeWriteLock.ExitWriteLock();
-            
 
             // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
-            if (this.WorldTicks % 20 == 0)
+            if (WorldTicks % 10 == 0)
             {
-                // Triggered once every ten seconds
+                // Triggered once every half second
                 Task pulse = new Task(Server.DoPulse);
                 pulse.Start();
             }
+
+            if (NeedsFullSave)
+            {
+                FullSaving = true;
+                if(_SaveTask != null && !_SaveTask.IsCompleted)
+                    _SaveToken.Cancel();
+
+                Task.Factory.StartNew(FullSave);
+            }
+            else if(WorldTicks % 20 == 0 && !FullSaving && ChunksToSave.Count > 0)
+            {
+                if(_SaveTask == null || _SaveTask.IsCompleted)
+                {
+                    _SaveToken = new CancellationTokenSource();
+                    var token = _SaveToken.Token;
+                    _SaveTask = new Task(() => SaveProc(20, token), token);
+                    _SaveTask.Start();
+                }
+            }
            
             // Every 5 seconds
-            if(this.WorldTicks % 100 == 0)
+            if(WorldTicks % 100 == 0)
             {
                 if(_CollectTask == null || _CollectTask.IsCompleted)
                 {
@@ -365,6 +378,20 @@ namespace Chraft.World
                 _PhysicsSimulationTask = new Task(PhysicsProc);
                 _PhysicsSimulationTask.Start();
             }
+
+#if PROFILE
+            // Must wait at least one second between calls to perf counter
+            if (WorldTicks % 20 == 0)
+            {
+                if (Server.ProfileStartTime == DateTime.MinValue)
+                    Server.ProfileStartTime = DateTime.Now;
+
+                using (StreamWriter writer = new StreamWriter("cpu.csv", true))
+                {
+                    writer.WriteLine("{0};{1}", (DateTime.Now - Server.ProfileStartTime).TotalSeconds, Server.CpuPerfCounter.NextValue() / Environment.ProcessorCount);
+                }
+            }
+#endif
 
         }
 

@@ -464,7 +464,7 @@ namespace Chraft.World
             }
         }
 
-        public void Save()
+        public override void Save()
         {
             if (!EnterSave())
                 return;

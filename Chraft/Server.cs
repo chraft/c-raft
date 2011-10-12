@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -34,6 +35,9 @@ namespace Chraft
         public static ConcurrentQueue<Client> SendClientQueue = new ConcurrentQueue<Client>();
 
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
+
+        public static PerformanceCounter CpuPerfCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName);
+        public static DateTime ProfileStartTime = DateTime.MinValue;
 
         /// <summary>
         /// Invoked when a client is accepted and started.
@@ -792,7 +796,7 @@ namespace Chraft
         }
 
         /// <summary>
-        /// Pulses separated by almost exactly ten seconds.  Should be run in a standalone thread, as it could
+        /// Pulses separated by almost exactly half a second.  Should be run in a standalone thread, as it could
         /// take some time to process.  Thread-safe, locking.
         /// </summary>
         internal void DoPulse()

@@ -85,7 +85,7 @@ namespace Chraft.WorldGen
             
             //chunk.Save();
             _World.AddChunk(chunk);
-
+            chunk.MarkToSave();
             return chunk;
         }
 

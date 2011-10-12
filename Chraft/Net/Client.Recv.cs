@@ -686,7 +686,7 @@ namespace Chraft.Net
         private double _LastZ;
         private int _MovementsArrived;
         private Task _UpdateChunks;
-        private CancellationTokenSource _UpdateChunksToken = new CancellationTokenSource();
+        private CancellationTokenSource _UpdateChunksToken;
 
         public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
@@ -701,7 +701,8 @@ namespace Chraft.Net
 
         public void StopUpdateChunks()
         {
-            _UpdateChunksToken.Cancel();
+            if(_UpdateChunksToken != null)
+                _UpdateChunksToken.Cancel();
         }
 
         public void ScheduleUpdateChunks()
