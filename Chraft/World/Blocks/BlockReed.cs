@@ -72,7 +72,6 @@ namespace Chraft.World.Blocks
             // MetaData = 0x0 is a freshly planted reed (sugar cane).
             // The data value is incremented randomly.
             // When it becomes 15, a new reed block is created on top as long as the total height does not exceed 3.
-            int maxHeight = 3;
 
             // Calculating the reed length below this block
             int reedHeightBelow = 0;
@@ -84,23 +83,23 @@ namespace Chraft.World.Blocks
             }
 
             // If the total reed height is bigger than the maximal height - it'll not grow
-            if ((reedHeightBelow + 1) >= maxHeight)
+            if ((reedHeightBelow + 1) >= MaxHeight)
                 return false;
 
             // Checking if there are water next to the basement block
             bool isWater = false;
             blockId = 0;
-            block.Chunk.ForNSEW(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ),
+            block.Chunk.ForNSEW(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - reedHeightBelow - 1, block.Coords.WorldZ),
                 delegate(UniversalCoords uc)
-                    {
-                        blockId = block.World.GetBlockId(uc);
+                {
+                    blockId = block.World.GetBlockId(uc);
                     if (blockId == (byte)BlockData.Blocks.Water || blockId == (byte)BlockData.Blocks.Still_Water)
                     {
                         isWater = true;
                     }
                 });
 
-            if (!isWater && reedHeightBelow == 0)
+            if (!isWater && reedHeightBelow < MaxHeight)
             {
                 UniversalCoords baseBlock = UniversalCoords.FromWorld(block.Coords.WorldX,
                                                                       block.Coords.WorldY - reedHeightBelow,
@@ -117,17 +116,11 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block))
                 return;
 
-            bool willGrow = (block.World.Server.Rand.Next(2) == 0);
-            //if (block.MetaData < 0xe) // 14
-            if (block.MetaData < 1) // 14
+            if (block.MetaData < 0xe) // 14
             {
-                if (willGrow)
-                    block.World.SetBlockData(block.Coords, ++block.MetaData);
+                block.World.SetBlockData(block.Coords, ++block.MetaData);
                 return;
             }
-
-            if (!willGrow)
-                return;
 
             block.World.SetBlockData(block.Coords, 0);
             UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,

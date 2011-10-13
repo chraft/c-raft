@@ -95,18 +95,12 @@ namespace Chraft.World.Blocks
                 return;
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
-            bool willGrow = (block.World.Server.Rand.Next(60) == 0);
 
             if (block.MetaData < 0xe) // 14
             {
-                if (willGrow)
-                {
-                    block.Chunk.SetData(block.Coords, ++block.MetaData, false);
-                }
+                block.Chunk.SetData(block.Coords, ++block.MetaData, false);
                 return;
             }
-            if (!willGrow)
-                return;
 
             block.World.SetBlockData(block.Coords, 0);
             block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);

@@ -40,6 +40,11 @@ namespace Chraft.World.Blocks
         {
             if (block.Coords.WorldY > 120)
                 return false;
+            /*UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
+                                                              block.Coords.WorldZ);
+            byte lightUp = block.World.GetBlockData(oneUp);
+            if (lightUp < 9)
+                return false;*/
             return true;
         }
 
@@ -47,6 +52,15 @@ namespace Chraft.World.Blocks
         {
             if (!CanGrow(block))
                 return;
+
+            if (block.World.Server.Rand.Next(29) != 0)
+                return;
+
+            if ((block.MetaData & 8) == 0)
+            {
+                block.World.SetBlockData(block.Coords, (byte)(block.MetaData | 8));
+                return;
+            }
 
             for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {

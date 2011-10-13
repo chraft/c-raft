@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
@@ -26,6 +24,12 @@ namespace Chraft.World.Blocks
             // Crops grow from 0x0 to 0x7
             if (block.MetaData == 0x07)
                 return false;
+            if (block.Coords.WorldY == 127)
+                return false;
+            /*byte blockAboveLight = block.World.GetBlockLight(block.Coords.WorldX, block.Coords.WorldY + 1,
+                                                             block.Coords.WorldZ);
+            if (blockAboveLight < 9)
+                return false;*/
             return true;
         }
 
@@ -54,7 +58,7 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block))
                 return;
 
-            // TODO: Check if the water within 4 blocks on the same horizontal level and grow faster?
+            // TODO: Check if the blocks nearby are hydrated and grow faster
             if (block.World.Server.Rand.Next(10) == 0)
             {
                 block.MetaData++;
