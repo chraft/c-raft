@@ -216,8 +216,11 @@ namespace Chraft.World
             {
                 Chunk chunk = new Chunk(this, coords);
                 if (chunk.Load())
+                {
                     AddChunk(chunk);
-                
+                    chunk.InitGrowableCache();
+                }
+
                 else if (create)
                     chunk = Generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
                 else

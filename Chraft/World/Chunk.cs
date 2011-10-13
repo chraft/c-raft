@@ -32,7 +32,9 @@ namespace Chraft.World
         public DateTime CreationDate;
 
         private ConcurrentDictionary<short, short> BlocksUpdating = new ConcurrentDictionary<short, short>();
-        
+
+        private ConcurrentDictionary<short, short> GrowableBlocks = new ConcurrentDictionary<short, short>();
+
         internal Chunk(WorldManager world, UniversalCoords coords)
             : base(world, coords)
         {
@@ -522,12 +524,145 @@ namespace Chraft.World
             }
         }
 
-        internal void Grow()
+        public new void SetType(UniversalCoords coords, BlockData.Blocks value)
         {
-            ForEach(Grow);
+            base.SetType(coords, value);
+            byte blockId = (byte)value;
+
+            if (GrowableBlocks.ContainsKey(coords.BlockPackedCoords))
+            {
+                short unused;
+
+                if (!BlockHelper.IsGrowable(blockId))
+                {
+                    GrowableBlocks.TryRemove(coords.BlockPackedCoords, out unused);
+                }
+                else
+                {
+                    StructBlock block = new StructBlock(coords, blockId, GetData(coords), World);
+                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    {
+                        GrowableBlocks.TryRemove(coords.BlockPackedCoords, out unused);
+                    }
+                }
+            }
+            else
+            {
+                if (BlockHelper.IsGrowable(blockId))
+                {
+                    StructBlock block = new StructBlock(coords, blockId, GetData(coords), World);
+                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    {
+                        GrowableBlocks.TryAdd(coords.BlockPackedCoords, coords.BlockPackedCoords);
+                    }
+                }
+            }
         }
 
-        private void Grow(UniversalCoords coords)
+        public new void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
+        {
+            base.SetType(blockX, blockY, blockZ, value);
+
+            byte blockId = (byte)value;
+            short blockPackedCoords = (short)(blockX << 11 | blockZ << 7 | blockY);
+
+
+            if (GrowableBlocks.ContainsKey(blockPackedCoords))
+            {
+                short unused;
+
+                if (!BlockHelper.IsGrowable(blockId))
+                {
+                    GrowableBlocks.TryRemove(blockPackedCoords, out unused);
+                }
+                else
+                {
+                    byte metaData = GetData(blockX, blockY, blockZ);
+                    StructBlock block = new StructBlock(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY, blockZ), blockId, metaData, World);
+                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    {
+                        GrowableBlocks.TryRemove(blockPackedCoords, out unused);
+                    }
+                }
+            }
+            else
+            {
+                if (BlockHelper.IsGrowable(blockId))
+                {
+                    byte metaData = GetData(blockX, blockY, blockZ);
+                    UniversalCoords blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY,
+                                                                            blockZ);
+                    StructBlock block = new StructBlock(blockCoords, blockId, metaData, World);
+                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                        GrowableBlocks.TryAdd(blockPackedCoords, blockPackedCoords);
+                }
+            }
+        }
+
+        public void InitGrowableCache()
+        {
+            byte blockId = 0;
+            byte blockMeta = 0;
+            UniversalCoords blockCoords;
+            StructBlock block;
+            for (int x = 0; x < 16; x++)
+                for (int y = 0; y < 128; y++)
+                    for (int z = 0; z < 16; z++)
+                    {
+                        blockId = (byte)GetType(x, y, z);
+                        if (BlockHelper.IsGrowable(blockId))
+                        {
+                            blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z);
+                            blockMeta = GetData(x, y, z);
+                            block = new StructBlock(blockCoords, blockId, blockMeta, World);
+                            if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                                GrowableBlocks.TryAdd(blockCoords.BlockPackedCoords, blockCoords.BlockPackedCoords);
+                        }
+                    }
+        }
+
+        internal void Grow()
+        {
+            byte blockId = 0;
+            byte metaData = 0;
+            short unused;
+            StructBlock block;
+            IBlockGrowable iGrowable;
+            int blockX, blockY, blockZ;
+            byte light, sky;
+
+            //short blockPackedCoords = (short)(blockX << 11 | blockZ << 7 | blockY);
+            foreach (var growableBlock in GrowableBlocks)
+            {
+                blockX = growableBlock.Key >> 11;
+                blockY = (growableBlock.Key & 0xff) % 128;
+                blockZ = (growableBlock.Key >> 7) & 0xf;
+
+                blockId = (byte)GetType(blockX, blockY, blockZ);
+                light = GetBlockLight(blockX, blockY, blockZ);
+                sky = GetSkyLight(blockX, blockY, blockZ);
+                if (BlockHelper.IsGrowable(blockId))
+                {
+                    metaData = GetData(blockX, blockY, blockZ);
+                    block = new StructBlock(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY, blockZ), blockId, metaData, World);
+                    iGrowable = (BlockHelper.Instance(blockId) as IBlockGrowable);
+                    if (iGrowable.CanGrow(block))
+                    {
+                        iGrowable.Grow(block);
+
+                        if (light < 7 && sky < 7)
+                        {
+                            SpawnMob(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));
+                        }/* else if (blockId == (byte)BlockData.Blocks.Grass)
+                            SpawnAnimal(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));*/
+                        continue;
+                    }
+                }
+                GrowableBlocks.TryRemove(growableBlock.Key, out unused);
+            }
+        }
+
+        /*private void Grow(UniversalCoords coords)
         {
             BlockData.Blocks type = GetType(coords);
             byte metaData = GetData(coords);
@@ -557,7 +692,7 @@ namespace Chraft.World
             }
             if (type == BlockData.Blocks.Grass)
                 SpawnAnimal(coords);
-        }
+        }*/
 
         public void GrowTree(UniversalCoords coords, byte treeType = 0)
         {
@@ -628,16 +763,15 @@ namespace Chraft.World
 
         private void SpawnAnimal(UniversalCoords coords)
         {
-            UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
-            if (coords.WorldY >= 127 || !IsAir(oneUp))
+            if (coords.WorldY >= 127 || !IsAir(coords))
                 return;
 
-            if (IsAir(oneUp))
+            if (IsAir(coords))
             {
                 if (World.Time % 50 == 0)
                 {
                     if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                        World.SpawnAnimal(oneUp);
+                        World.SpawnAnimal(coords);
                 }
             }
         }
