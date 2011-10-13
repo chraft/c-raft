@@ -445,23 +445,6 @@ namespace Chraft.World
             return _ChunksCache;
         }
 
-        private void GrowStart()
-        {
-            Thread thread = new Thread(GrowThread);
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.BelowNormal;
-            thread.Start();
-        }
-
-        private void GrowThread()
-        {
-            while (Running)
-            {
-                Thread.Sleep(1000);
-                GrowProc();
-            }
-        }
-
         private void GrowProc()
         {
             foreach (Chunk c in GetChunks())
@@ -826,52 +809,6 @@ namespace Chraft.World
                     //Update(x, y, z, updateClients);
                     return;
                 }
-            }
-        }
-
-        internal bool GrowTree(int x, int y, int z, byte treeType = (byte) 0)
-        {
-            // TODO: Expand this futher to build redwood.
-            if (y > 120)
-                return false;
-
-            for (int by = y; by < y + 5; by++)
-                SetBlockAndData(x, by, z, (byte)BlockData.Blocks.Log, treeType);
-
-            for (int by = y + 2; by < y + 5; by++)
-                for (int bx = x - 2; bx <= x + 2; bx++)
-                    for (int bz = z - 2; bz <= z + 2; bz++)
-                        SetLeaves(bx, by, bz);
-
-            for (int bx = x - 1; bx <= x + 1; bx++)
-                for (int bz = z - 1; bz <= z + 1; bz++)
-                    SetLeaves(bx, y + 5, bz);
-            return true;
-        }
-
-        private void SetLeaves(int x, int y, int z, byte treeType = (byte) 0)
-        {
-            if (!ChunkExists(x >> 4, z >> 4) || GetBlockId(x, y, z) != 0)
-                return;
-            SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Leaves, treeType);
-        }
-
-        internal void GrowCactus(UniversalCoords coords)
-        {
-            if (coords.WorldY > 120)
-                return;
-
-            //World.Logger.Log(Logger.LogLevel.Info, "Checking Cactus at: " + (X + x) + " " + (Y + y) + " " + (Z + z));
-            // TODO: Fixing this, NSEW isn't working as it's supposed to.
-            for (int by = coords.WorldY; by < coords.WorldY + 3; by++)
-            {
-                if (!GetChunk(coords, false, true).IsNSEWTo(UniversalCoords.FromWorld(coords.WorldX, by, coords.WorldZ), (byte)BlockData.Blocks.Air))
-                    return;
-            }
-
-            for (int by = coords.WorldY; by < coords.WorldY + 3; by++)
-            {
-                SetBlockAndData(UniversalCoords.FromWorld(coords.WorldX, by, coords.WorldZ), (byte)BlockData.Blocks.Cactus, 0);
             }
         }
 

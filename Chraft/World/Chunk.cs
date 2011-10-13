@@ -694,15 +694,6 @@ namespace Chraft.World
                 SpawnAnimal(coords);
         }*/
 
-        public void GrowTree(UniversalCoords coords, byte treeType = 0)
-        {
-            World.GrowTree(Coords.WorldX + coords.WorldX, coords.WorldY, Coords.WorldZ + coords.WorldZ, treeType);
-        }
-
-        public void PlaceCactus(UniversalCoords coords)
-        {
-            World.GrowCactus(coords);
-        }
         public void ForAdjacent(UniversalCoords coords, ForEachBlock predicate)
         {
             predicate(UniversalCoords.FromWorld(coords.WorldX - 1, coords.WorldY, coords.WorldZ));
@@ -744,23 +735,6 @@ namespace Chraft.World
             return retval;
         }
 
-        public void GrowCactus(UniversalCoords coords)
-        {
-            if (GetType(coords) == BlockData.Blocks.Cactus)
-                return;
-
-            if (GetType(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 3, coords.WorldZ)) == BlockData.Blocks.Cactus)
-                return;
-
-            if (!IsNSEWTo(coords, (byte)BlockData.Blocks.Air))
-                return;
-
-            if (World.Server.Rand.Next(60) == 0)
-            {
-                SetType(coords, BlockData.Blocks.Cactus);
-            }
-        }
-
         private void SpawnAnimal(UniversalCoords coords)
         {
             if (coords.WorldY >= 127 || !IsAir(coords))
@@ -773,17 +747,6 @@ namespace Chraft.World
                     if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
                         World.SpawnAnimal(coords);
                 }
-            }
-        }
-
-        private void GrowDirt(UniversalCoords coords)
-        {
-            if (coords.WorldY >= 127 || IsAir(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ)))
-                return;
-
-            if (World.Server.Rand.Next(30) != 0)
-            {
-                SetType(coords, BlockData.Blocks.Dirt);
             }
         }
 
