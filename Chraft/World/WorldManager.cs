@@ -54,6 +54,7 @@ namespace Chraft.World
         private Task _GrowStuffTask;
         private Task _CollectTask;
         private Task _SaveTask;
+        private Task _Profile;
 
         private int _Time;
         private Chunk[] _ChunksCache;
@@ -383,17 +384,26 @@ namespace Chraft.World
             // Must wait at least one second between calls to perf counter
             if (WorldTicks % 20 == 0)
             {
-                if (Server.ProfileStartTime == DateTime.MinValue)
-                    Server.ProfileStartTime = DateTime.Now;
-
-                using (StreamWriter writer = new StreamWriter("cpu.csv", true))
+                if(_Profile == null || _Profile.IsCompleted)
                 {
-                    writer.WriteLine("{0};{1}", (DateTime.Now - Server.ProfileStartTime).TotalSeconds, Server.CpuPerfCounter.NextValue() / Environment.ProcessorCount);
+                   _Profile = new Task(Profile);
+                   _Profile.Start();
                 }
             }
 #endif
-
         }
+#if PROFILE
+        private void Profile()
+        {
+            if (Server.ProfileStartTime == DateTime.MinValue)
+                Server.ProfileStartTime = DateTime.Now;
+
+            using (StreamWriter writer = new StreamWriter("cpu.csv", true))
+            {
+                writer.WriteLine("{0};{1}", (DateTime.Now - Server.ProfileStartTime).TotalSeconds, Server.CpuPerfCounter.NextValue() / Environment.ProcessorCount);
+            }
+        }
+#endif
 
         public Chunk GetChunkFromPosition(int x, int z)
         {

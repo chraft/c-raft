@@ -36,8 +36,10 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
+#if PROFILE
         public static PerformanceCounter CpuPerfCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName);
         public static DateTime ProfileStartTime = DateTime.MinValue;
+#endif
 
         /// <summary>
         /// Invoked when a client is accepted and started.
