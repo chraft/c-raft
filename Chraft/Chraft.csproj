@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -358,18 +358,9 @@
     <Compile Include="World\BlockFace.cs" />
     <Compile Include="World\BlockSet.cs" />
     <Compile Include="World\Chunk.cs" />
-    <Compile Include="Mojang\World\ChunkGenerator.cs" />
     <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
-    <Compile Include="Mojang\World\MapGenBase.cs" />
-    <Compile Include="Mojang\World\MapGenCaves.cs" />
-    <Compile Include="Mojang\World\Biome.cs" />
-    <Compile Include="Mojang\World\Noise\NoiseGenerator.cs" />
-    <Compile Include="Mojang\World\Noise\NoiseGenerator2.cs" />
-    <Compile Include="Mojang\World\Noise\NoiseGeneratorOctaves.cs" />
-    <Compile Include="Mojang\World\Noise\NoiseGeneratorOctaves2.cs" />
-    <Compile Include="Mojang\World\Noise\NoiseGeneratorPerlin.cs" />
     <Compile Include="World\NBT\EndianConverter.cs" />
     <Compile Include="World\NBT\INBTTag.cs" />
     <Compile Include="World\NBT\MCRegionReader.cs" />
@@ -380,7 +371,6 @@
     <Compile Include="World\NBT\TagNodeListNamed.cs" />
     <Compile Include="World\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
-    <Compile Include="Mojang\World\WorldChunkManager.cs" />
     <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />
     <Compile Include="World\Weather\WeatherState.cs" />
@@ -404,7 +394,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Mojang\LICENSE.TXT" />
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

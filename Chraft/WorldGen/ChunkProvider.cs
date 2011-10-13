@@ -5,8 +5,7 @@ namespace Chraft.WorldGen
 {
     public enum GeneratorType
     {
-        Custom,
-        Mojang
+        Custom 
     }
     public class ChunkProvider
     {
@@ -22,8 +21,7 @@ namespace Chraft.WorldGen
             switch(type)
             {
                 case GeneratorType.Custom: return new CustomChunkGenerator(_World, seed);
-                case GeneratorType.Mojang: return new ChunkGenerator(_World, seed);
-                default: return new ChunkGenerator(_World, seed);
+                default: return new CustomChunkGenerator(_World, seed);
             }
         }
     }

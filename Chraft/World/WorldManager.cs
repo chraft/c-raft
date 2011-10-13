@@ -24,7 +24,6 @@ namespace Chraft.World
         private Timer GlobalTick;
         private IChunkGenerator Generator;
         public object ChunkGenLock = new object();
-        private WorldChunkManager ChunkManager;
         private ChunkProvider _ChunkProvider;
 
         public sbyte Dimension { get { return 0; } }
@@ -182,7 +181,6 @@ namespace Chraft.World
 
             _ChunkProvider = new ChunkProvider(this);
             Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
-            ChunkManager = new WorldChunkManager(this);
             PhysicsBlocks = new ConcurrentDictionary<int, BlockBasePhysics>();
 
             InitializeSpawn();
@@ -722,11 +720,6 @@ namespace Chraft.World
         public void SetBlockData(int worldX, int worldY, int worldZ, byte data)
         {
             GetChunkFromWorld(worldX, worldZ, false, true).SetData(worldX & 0xF, worldY, worldZ & 0xF, data, true);
-        }
-
-        internal WorldChunkManager GetWorldChunkManager()
-        {
-            return ChunkManager;
         }
 
         public bool ChunkExists(UniversalCoords coords)
