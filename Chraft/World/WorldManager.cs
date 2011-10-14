@@ -43,6 +43,7 @@ namespace Chraft.World
 
         public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
         private Task _PhysicsSimulationTask;
+        private Task _entityUpdateTask;
 
         public ConcurrentQueue<ChunkBase> ChunksToSave;
 
@@ -240,11 +241,6 @@ namespace Chraft.World
         {
             Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
-<<<<<<< OURS
-            EntityMoverStart();
-=======
-            SaveStart();
->>>>>>> THEIRS
         }
 
         private void InitializeSpawn()
@@ -326,13 +322,8 @@ namespace Chraft.World
 
         private void GlobalTickProc(object state)
         {
-<<<<<<< OURS
-            // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
-            Interlocked.Increment(ref _WorldTicks);
-=======
             // Increment the world tick count
-            Interlocked.Increment(ref _worldTicks);
->>>>>>> THEIRS
+            Interlocked.Increment(ref _WorldTicks);
 
             int time;
             time = Interlocked.Increment(ref _Time);
@@ -344,20 +335,11 @@ namespace Chraft.World
             }
 
             // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
-<<<<<<< OURS
             if (WorldTicks % 10 == 0)
-=======
-            
-            // Every 1 second
-            if (this.WorldTicks % 20 == 0)
->>>>>>> THEIRS
             {
-<<<<<<< OURS
                 // Triggered once every half second
                 Task pulse = new Task(Server.DoPulse);
                 pulse.Start();
-=======
->>>>>>> THEIRS
             }
 
             if (NeedsFullSave)
@@ -382,10 +364,6 @@ namespace Chraft.World
             // Every 5 seconds
             if(WorldTicks % 100 == 0)
             {
-                Task pulse = new Task(Server.DoPulse);
-                pulse.Start();
-
-                
                 if(_CollectTask == null || _CollectTask.IsCompleted)
                 {
                     _CollectTask = new Task(CollectProc);
@@ -792,55 +770,6 @@ namespace Chraft.World
                     //Update(x, y, z, updateClients);
                     return;
                 }
-<<<<<<< OURS
-=======
-            }
-        }
-
-        internal bool GrowTree(int x, int y, int z, byte treeType = (byte) 0)
-        {
-            // TODO: Expand this futher to build redwood.
-            if (y > 120)
-                return false;
-
-            for (int by = y; by < y + 5; by++)
-                SetBlockAndData(x, by, z, (byte)BlockData.Blocks.Log, treeType);
-
-            for (int by = y + 2; by < y + 5; by++)
-                for (int bx = x - 2; bx <= x + 2; bx++)
-                    for (int bz = z - 2; bz <= z + 2; bz++)
-                        SetLeaves(bx, by, bz);
-
-            for (int bx = x - 1; bx <= x + 1; bx++)
-                for (int bz = z - 1; bz <= z + 1; bz++)
-                    SetLeaves(bx, y + 5, bz);
-            return true;
-        }
-
-        private void SetLeaves(int x, int y, int z, byte treeType = (byte) 0)
-        {
-            if (!ChunkExists(x >> 4, z >> 4) || GetBlockId(x, y, z) != 0)
-                return;
-            SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Leaves, treeType);
-        }
-
-        internal void GrowCactus(UniversalCoords coords)
-        {
-            if (coords.WorldY > 120)
-                return;
-
-            //World.Logger.Log(Logger.LogLevel.Info, "Checking Cactus at: " + (X + x) + " " + (Y + y) + " " + (Z + z));
-            // TODO: Fixing this, NSEW isn't working as it's supposed to.
-            for (int by = coords.WorldY; by < coords.WorldY + 3; by++)
-            {
-                if (!GetChunk(coords, false, true).IsNSEWTo(UniversalCoords.FromAbsWorld(coords.WorldX, by, coords.WorldZ), (byte)BlockData.Blocks.Air))
-                    return;
-            }
-
-            for (int by = coords.WorldY; by < coords.WorldY + 3; by++)
-            {
-                SetBlockAndData(UniversalCoords.FromAbsWorld(coords.WorldX, by, coords.WorldZ), (byte)BlockData.Blocks.Cactus, 0);
->>>>>>> THEIRS
             }
         }
 
