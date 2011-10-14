@@ -19,7 +19,7 @@ namespace Chraft.Commands
                     ChangeGameMode(client, client.Owner.GameMode == 0 ? 1 : 0);
                     break;
                 case 2:
-                    if (Int32.Parse(tokens[1]) != 0 || Int32.Parse(tokens[1]) != 2)
+                    if (Int32.Parse(tokens[2]) != 0 || Int32.Parse(tokens[2]) != 1)
                     {
                         Help(client);
                         break;
