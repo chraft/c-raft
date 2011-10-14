@@ -1,21 +1,25 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Net;
-using Chraft.Plugins.Events.Args;
+using Chraft.Net.Packets;
+
 
 namespace Chraft.World.Blocks
 {
-    class BlockSignPost : BlockBase
+    class BlockSignPost : BlockSignBase
     {
         public BlockSignPost()
         {
             Name = "SignPost";
             Type = BlockData.Blocks.Sign_Post;
             IsAir = true;
+            IsSolid = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }

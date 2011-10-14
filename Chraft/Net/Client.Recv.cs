@@ -634,11 +634,12 @@ namespace Chraft.Net
             switch (packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
-                    client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(coords)));
-                    client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(coords)));
-                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(coords).GetOpacity(coords)));
-                    client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(coords)));
-                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(coords)));
+                    UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
+                    client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
+                    client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
+                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(oneUp).GetOpacity(oneUp)));
+                    client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
+                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
                     if (BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -705,6 +706,18 @@ namespace Chraft.Net
             client.Stance = packet.Stance;
 
             client.CheckAndUpdateChunks(packet.X, packet.Z);
+        }
+
+        public static void HandlePacketUpdateSign(Client client, UpdateSignPacket packet)
+        {
+            BlockData.Blocks blockId = (BlockData.Blocks)client.Owner.World.GetBlockId(packet.X, packet.Y, packet.Z);
+
+            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            if(blockId == BlockData.Blocks.Sign_Post)
+            {
+               BlockSignPost sign = (BlockSignPost)BlockHelper.Instance((byte) blockId);
+               sign.SaveText(coords, client.Owner, packet.Lines);
+            }
         }
 
         public void StopUpdateChunks()

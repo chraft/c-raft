@@ -34,6 +34,8 @@ namespace Chraft.World
         public Logger Logger { get { return Server.Logger; } }
         public string Name { get { return Settings.Default.DefaultWorldName; } }
         public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
+        public string SignsFolder { get { return Folder + Path.DirectorySeparatorChar + "Signs"; } }
+
         public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;

@@ -35,6 +35,8 @@ namespace Chraft.World
 
         private ConcurrentDictionary<short, short> GrowableBlocks = new ConcurrentDictionary<short, short>();
 
+        public ConcurrentDictionary<short, string> SignsText = new ConcurrentDictionary<short, string>();
+
         internal Chunk(WorldManager world, UniversalCoords coords)
             : base(world, coords)
         {
@@ -407,6 +409,8 @@ namespace Chraft.World
                 Monitor.Exit(_SavingLock);
                 if (zip != null)
                     zip.Dispose();
+
+                (BlockHelper.Instance((byte) BlockData.Blocks.Sign_Post) as BlockSignBase).LoadSignsFromDisk(this, World.SignsFolder);
             }
         }
 

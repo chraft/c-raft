@@ -29,7 +29,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;PROFILE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -221,6 +221,7 @@
     <Compile Include="World\Blocks\BlockSand.cs" />
     <Compile Include="World\Blocks\BlockSandstone.cs" />
     <Compile Include="World\Blocks\BlockSapling.cs" />
+    <Compile Include="World\Blocks\BlockSignBase.cs" />
     <Compile Include="World\Blocks\BlockSignPost.cs" />
     <Compile Include="World\Blocks\BlockSlab.cs" />
     <Compile Include="World\Blocks\BlockSnow.cs" />

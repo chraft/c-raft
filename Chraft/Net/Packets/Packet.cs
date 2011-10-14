@@ -1636,7 +1636,7 @@ namespace Chraft.Net.Packets
             Z = stream.ReadInt();
             Lines = new string[4];
             for (int i = 0; i < Lines.Length; i++)
-                Lines[i] = stream.ReadString16(25);
+                Lines[i] = stream.ReadString16(15);
         }
 
         public override void Write()

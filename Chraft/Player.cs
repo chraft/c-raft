@@ -411,6 +411,8 @@ namespace Chraft
                 chunk.AddClient(_Client);
                 LoadedChunks.TryAdd(c, chunk);
                 _Client.SendChunk(chunk, sync);
+
+                _Client.SendSignTexts(chunk);
             }
 
             if (remove)

@@ -6,6 +6,7 @@ using Chraft.Net.Packets;
 using Chraft.World;
 using Chraft.Properties;
 using System.Threading;
+using Chraft.World.Blocks;
 using Chraft.World.Weather;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -281,13 +282,9 @@ namespace Chraft.Net
             _Player.InitializeHealth();
             _Player.OnJoined();
             SendMotd();
-            /*Thread.Sleep(10000);
-            _UpdateChunks = new Task(() => _Player.UpdateChunks(Settings.Default.SightRadius, CancellationToken.None));
-            _UpdateChunks.Start();*/
         }
 
         #endregion
-
 
         #region Chunks
 
@@ -311,6 +308,36 @@ namespace Chraft.Net
                 Async = !sync
             };
             SendPacket(packet);
+        }
+
+        internal void SendSignTexts(Chunk chunk)
+        {
+            foreach (var signKVP in chunk.SignsText)
+            {
+                int blockX = signKVP.Key >> 11;
+                int blockY = (signKVP.Key & 0xFF) % 128;
+                int blockZ = (signKVP.Key >> 7) & 0xF;
+
+                UniversalCoords coords = UniversalCoords.FromBlock(chunk.Coords.ChunkX, chunk.Coords.ChunkZ, blockX, blockY, blockZ);
+
+                string[] lines = new string[4];
+
+                int length = signKVP.Value.Length;
+
+                for (int i = 0; i < 4; ++i, length -= 15)
+                {
+                    int currentLength = length;
+                    if (currentLength > 15)
+                        currentLength = 15;
+
+                    if (length > 0)
+                        lines[i] = signKVP.Value.Substring(i * 15, currentLength);
+                    else
+                        lines[i] = "";
+                }
+
+                SendPacket(new UpdateSignPacket { X = coords.WorldX, Y = coords.WorldY, Z = coords.WorldZ, Lines = lines });
+            }
         }
 
         #endregion
