@@ -19,7 +19,7 @@ namespace Chraft.World.Blocks
 
         public override void Destroy(EntityBase entity, StructBlock block) {}
 
-        public override void Touch(EntityBase entity, StructBlock block) { }
+        public override void Touch(EntityBase entity, StructBlock block, BlockFace face) { }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide) { }
 

@@ -240,7 +240,7 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity who touched the block</param>
         /// <param name="block">block that has been touched</param>
-        public virtual void Touch(EntityBase entity, StructBlock block) { }
+        public virtual void Touch(EntityBase entity, StructBlock block, BlockFace face) { }
 
         /// <summary>
         /// Places the block

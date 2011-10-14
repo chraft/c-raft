@@ -24,7 +24,7 @@ namespace Chraft.World.Blocks.Interfaces
         /// <summary>
         /// Block was touched by someone
         /// </summary>
-        void Touch(EntityBase who, StructBlock block);
+        void Touch(EntityBase who, StructBlock block, BlockFace face);
 
         /// <summary>
         /// Place the block
