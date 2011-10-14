@@ -174,6 +174,7 @@ namespace Chraft.World.Blocks
         public virtual void Spawn(StructBlock block)
         {
             UpdateOnPlace(block);
+            NotifyNearbyBlocks(null, block, false);
         }
 
         /// <summary>
@@ -182,7 +183,7 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity who destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void NotifyNearbyBlocks(EntityBase entity, StructBlock block)
+        protected virtual void NotifyNearbyBlocks(EntityBase entity, StructBlock block, bool destroyed = true)
         {
             List<UniversalCoords> blocks = new List<UniversalCoords>(6);
             if (block.Coords.WorldY < 127)
@@ -199,7 +200,10 @@ namespace Chraft.World.Blocks
             {
                 blockId = block.World.GetBlockId(coords);
                 blockMeta = block.World.GetBlockData(coords);
-                BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
+                if (destroyed)
+                    BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
+                else
+                    BlockHelper.Instance(blockId).NotifyPlace(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
             }
         }
 
@@ -210,6 +214,9 @@ namespace Chraft.World.Blocks
         /// <param name="sourceBlock">block that has been destroyed</param>
         /// <param name="targetBlock">block that recieves the notification</param>
         public virtual void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        { }
+
+        public virtual void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         { }
 
         /// <summary>
@@ -246,6 +253,7 @@ namespace Chraft.World.Blocks
 
             UpdateOnPlace(block);
             RemoveItem(entity);
+            NotifyNearbyBlocks(entity, block, false);
         }
 
         /// <summary>
