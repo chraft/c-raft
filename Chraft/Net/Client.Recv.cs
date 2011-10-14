@@ -274,6 +274,10 @@ namespace Chraft.Net
                 client.ExecuteChat(clean);
         }
 
+        public static void HandleTransactionPacket(Client client, TransactionPacket packet)
+        {
+           //todo-something?
+        }
 
         #region Use
 

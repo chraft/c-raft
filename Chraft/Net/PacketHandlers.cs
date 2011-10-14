@@ -43,6 +43,7 @@ namespace Chraft.Net
             Register(PacketType.CreativeInventoryAction, 9, 0, ReadCreativeInventoryAction);
             Register(PacketType.ServerListPing, 1, 0, ReadServerListPing);
             Register(PacketType.Disconnect, 0, 3, ReadDisconnect);
+            Register(PacketType.Transaction,5,0, ReadTransaction);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
@@ -234,6 +235,15 @@ namespace Chraft.Net
 
             if (!reader.Failed)
                 Client.HandlePacketCreativeInventoryAction(client, ci);
+        }
+
+        public static void ReadTransaction(Client client, PacketReader reader)
+        {
+            TransactionPacket tp = new TransactionPacket();
+            tp.Read(reader);
+
+            if (!reader.Failed)
+                Client.HandleTransactionPacket(client, tp);
         }
     }
 }
