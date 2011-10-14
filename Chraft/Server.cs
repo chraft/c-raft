@@ -621,7 +621,7 @@ namespace Chraft
         // TODO: cache this thing?
         public IEnumerable<Client> GetAuthenticatedClients()
         {
-            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Owner.Username) && client.Owner.Ready);
+            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Owner.Username));
         }
 
 
@@ -678,6 +678,7 @@ namespace Chraft
             Interlocked.Increment(ref _ClientListChanges);
         }
 
+        // TODO: This should be removed in favor of the one below
         /// <summary>
         /// Sends a packet in parallel to each nearby player.
         /// </summary>
@@ -693,6 +694,22 @@ namespace Chraft
         }
 
         /// <summary>
+        /// Sends a packet in parallel to each nearby player.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="absCoords>The center coordinates.</param>
+        /// <param name="packet">The packet to send</param>
+        public void SendPacketToNearbyPlayers(WorldManager world, UniversalCoords coords, Packet packet)
+        {
+            Parallel.ForEach(this.GetNearbyPlayers(world, coords), (client) =>
+            {
+                client.SendPacket(packet);
+            });
+        }
+
+
+        // TODO: This should be removed in favor of the one below
+        /// <summary>
         /// Yields an enumerable of nearby players, thread-safe.
         /// </summary>
         /// <param name="world">The world containing the coordinates.</param>
@@ -703,7 +720,25 @@ namespace Chraft
             int radius = Settings.Default.SightRadius << 4;
             foreach (Client c in GetAuthenticatedClients())
             {
-                if (c.Owner.World == world && Math.Abs(absCoords.X - c.Owner.Position.X) <= radius && Math.Abs(absCoords.Y - c.Owner.Position.Y) <= radius && Math.Abs(absCoords.Z - c.Owner.Position.Z) <= radius)
+                if (c.Owner.World == world && Math.Abs(absCoords.X - c.Owner.Position.X) <= radius && Math.Abs(absCoords.Z - c.Owner.Position.Z) <= radius)
+                    yield return c;
+            }
+        }
+
+        /// <summary>
+        /// Yields an enumerable of nearby players, thread-safe.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="absCoords">The center coordinates.</param>
+        /// <returns>A lazy enumerable of nearby players.</returns>
+        public IEnumerable<Client> GetNearbyPlayers(WorldManager world, UniversalCoords coords)
+        {
+            int radius = Settings.Default.SightRadius;
+            foreach (Client c in GetAuthenticatedClients())
+            {
+                int playerChunkX = (int) Math.Floor(c.Owner.Position.X) >> 4;
+                int playerChunkZ = (int) Math.Floor(c.Owner.Position.Z) >> 4;
+                if (c.Owner.World == world && Math.Abs(coords.ChunkX - playerChunkX) <= radius && Math.Abs(coords.ChunkZ - playerChunkZ) <= radius)
                     yield return c;
             }
         }
