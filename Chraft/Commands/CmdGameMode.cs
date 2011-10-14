@@ -12,34 +12,48 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 2)
+            Client c = null;
+            switch (tokens.Length)
             {
-                client.SendMessage("§cUsage <player> <mode>");
-                return;
+                case 0:
+                    ChangeGameMode(client, client.Owner.GameMode == 0 ? 1 : 0);
+                    break;
+                case 2:
+                    if (Int32.Parse(tokens[1]) != 0 || Int32.Parse(tokens[1]) != 2)
+                    {
+                        Help(client);
+                        break;
+                    }
+                    c = client.Owner.Server.GetClients(tokens[1]).FirstOrDefault();
+                    if (c != null)
+                    {
+                        if (c.Owner.GameMode == Convert.ToByte(tokens[2]))
+                        {
+                            client.SendMessage("§Player is already in that mode");
+                            return;
+                        }
+                        ChangeGameMode(client, Int32.Parse(tokens[2]));
+                    }
+                    client.SendMessage(string.Format("§cPlayer {0} not found", tokens[1]));
+                    break;
+                default:
+                    Help(client);
+                    break;
             }
-            Client c = client.Owner.Server.GetClients(tokens[1]).FirstOrDefault();
-            if (c != null)
+        }
+
+        private static void ChangeGameMode(Client client, int mode)
+        {
+            client.SendPacket(new NewInvalidStatePacket
             {
-                if (c.Owner.GameMode == Convert.ToByte(tokens[2]))
-                {
-                    client.SendMessage("§7You are already in that mode");
-                    return;
-                }
-                c.SendPacket(new NewInvalidStatePacket
-                {
-                    GameMode = c.Owner.GameMode = Convert.ToByte(tokens[2]),
-                    Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
-                });
-            }
-            else
-            {
-                client.SendMessage(string.Format("§cPlayer {0} not found", tokens[1]));
-            }
+                GameMode = client.Owner.GameMode = Convert.ToByte(mode),
+                Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
+            });
         }
 
         public void Help(Client client)
         {
-            client.SendMessage("/gamemode <player> <mode>");
+            client.SendMessage("/gamemode <player> <mode>[0|1]");
         }
 
         public string Name
