@@ -86,11 +86,6 @@ namespace Chraft.World.Blocks
                     else
                         block.World.SetBlockAndData(i, block.Coords.WorldY + 5, j, (byte)BlockData.Blocks.Leaves,
                                                     block.MetaData);
-            AbsWorldCoords absCoords = new AbsWorldCoords(block.Coords);
-            foreach (Net.Client c in block.World.Server.GetNearbyPlayers(block.World, absCoords))
-            {
-                c.SendBlockRegion(block.Coords.WorldX - 3, block.Coords.WorldY, block.Coords.WorldZ - 3, 7, 7, 7);
-            }
         }
     }
 }
