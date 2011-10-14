@@ -65,7 +65,7 @@ namespace Chraft.WorldGen
             _FastRandom = new FastRandom(_Seed);
         }
 
-        public Chunk ProvideChunk(int x, int z, Chunk chunk, bool recalculate)
+        public void ProvideChunk(int x, int z, Chunk chunk, bool recalculate)
         {
             
             InitGen();
@@ -86,7 +86,6 @@ namespace Chraft.WorldGen
             //chunk.Save();
             _World.AddChunk(chunk);
             chunk.MarkToSave();
-            return chunk;
         }
 
         private void GenerateTerrain(Chunk c, byte[] data, int x, int z)

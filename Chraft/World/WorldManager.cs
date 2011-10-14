@@ -214,17 +214,21 @@ namespace Chraft.World
         {
             lock (ChunkGenLock)
             {
-                Chunk chunk = new Chunk(this, coords);
-                if (chunk.Load())
-                {
-                    AddChunk(chunk);
-                    chunk.InitGrowableCache();
-                }
+                // We should check again since two threads can enter here, one after the other, with the same chunk to load 
+                Chunk chunk;
+                if ((chunk = Chunks[coords]) != null)
+                    return chunk;
 
+                chunk = new Chunk(this, coords);
+                if (chunk.Load())
+                    AddChunk(chunk);
                 else if (create)
-                    chunk = Generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
+                    Generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
                 else
                     chunk = null;
+
+                if(chunk != null)
+                    chunk.InitGrowableCache();
 
                 return chunk;
             }
