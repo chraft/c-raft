@@ -22,10 +22,17 @@ namespace Chraft.World
             set { _maximum = value; }
         }
         
+        public BoundingBox(AbsWorldCoords minimum, AbsWorldCoords maximum) : 
+            this(minimum.ToVector(), maximum.ToVector())
+        {
+            
+        }
+        
         public BoundingBox(Vector3 minimum, Vector3 maximum)
         {
             _minimum = Vector3.Origin;
             _maximum = Vector3.Origin;
+            System.Diagnostics.Debug.Assert(minimum <= maximum, "Minimum must be less than or equal to Maximum");
             this.Minimum = minimum;
             this.Maximum = maximum;
         }

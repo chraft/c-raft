@@ -20,9 +20,9 @@ namespace Chraft.World.Blocks.Physics
 
         public override void Simulate()
         {
-            int x = MathHelper.floor_double(Position.X);
-            int y = MathHelper.floor_double(Position.Y);
-            int z = MathHelper.floor_double(Position.Z);
+            int x = (int)Math.Floor(Position.X);
+            int y = (int)Math.Floor(Position.Y);
+            int z = (int)Math.Floor(Position.Z);
             byte blockId = World.GetBlockId(x, y, z);
             if (blockId != (byte)BlockData.Blocks.Air)
             {
@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks.Physics
 
         protected override void OnStop()
         {
-            UniversalCoords currentBlockCoords = UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z);
+            UniversalCoords currentBlockCoords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
             byte blockId = World.GetBlockId(currentBlockCoords);
             if (BlockHelper.Instance(blockId).IsAir)
             {
@@ -49,7 +49,7 @@ namespace Chraft.World.Blocks.Physics
             }
             else
             {
-                UniversalCoords aboveBlockCoords = UniversalCoords.FromWorld(currentBlockCoords.WorldX,
+                UniversalCoords aboveBlockCoords = UniversalCoords.FromAbsWorld(currentBlockCoords.WorldX,
                                                                              currentBlockCoords.WorldY + 1,
                                                                              currentBlockCoords.WorldZ);
                 StructBlock aboveBlock = new StructBlock(aboveBlockCoords, BlockId, 0, World);

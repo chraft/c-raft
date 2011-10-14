@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +13,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.Point2 = UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
+            client.Point2 = UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
             client.SendMessage("§7First position set.");
         }
 
@@ -48,7 +48,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            client.Point1 = UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
+            client.Point1 = UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
             client.SendMessage("§7Second position set.");
         }
 

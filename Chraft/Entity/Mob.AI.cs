@@ -56,27 +56,27 @@ namespace Chraft.Entity {
             // TODO: Actual collision prediction.
             if (Velocity.Z != 0)
             {
-                if (World.GetBlockId(UniversalCoords.FromWorld(Position.X, Position.Y, (Position.Z + Velocity.Z))) != 0)
-                    if (World.GetBlockId(UniversalCoords.FromWorld(Position.X, Position.Y + 1, (Position.Z + Velocity.Z))) != 0)
+                if (World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y, (Position.Z + Velocity.Z))) != 0)
+                    if (World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + 1, (Position.Z + Velocity.Z))) != 0)
                         Velocity.Z -= Velocity.Z;
                     else
                         Velocity.Y += 1;
             }
             if (Velocity.X != 0)
             {
-                if (World.GetBlockId(UniversalCoords.FromWorld((Position.X + Velocity.X), Position.Y, Position.Z)) != 0)
-                    if (World.GetBlockId(UniversalCoords.FromWorld((Position.X + Velocity.X), Position.Y + 1, Position.Z)) != 0)
+                if (World.GetBlockId(UniversalCoords.FromAbsWorld((Position.X + Velocity.X), Position.Y, Position.Z)) != 0)
+                    if (World.GetBlockId(UniversalCoords.FromAbsWorld((Position.X + Velocity.X), Position.Y + 1, Position.Z)) != 0)
                         Velocity.X -= Velocity.X;
                     else
                         Velocity.Y += 1;
             }
 
             // TODO: Actual gravity
-            if (World.GetBlockId(UniversalCoords.FromWorld(Position.X, Position.Y - 1, Position.Z)) == 0)
+            if (World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y - 1, Position.Z)) == 0)
                 Velocity.Y -= 1;
 
             // Emergency Collision Detection
-            if (World.GetBlockId(UniversalCoords.FromWorld((Position.X + Velocity.X), (Position.Y + Velocity.Y), (Position.Z + Velocity.Z))) != 0)
+            if (World.GetBlockId(UniversalCoords.FromAbsWorld((Position.X + Velocity.X), (Position.Y + Velocity.Y), (Position.Z + Velocity.Z))) != 0)
             {
                 // We're going straight into a block! Oh nooooooes.
                 Velocity.Y += 1;

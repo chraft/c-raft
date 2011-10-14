@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +25,7 @@ namespace Chraft.World.Blocks
             bool canGrow = false;
             if (block.Coords.WorldY < 127)
             {
-                UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
+                UniversalCoords oneUp = UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                   block.Coords.WorldZ);
                 byte blockAboveId = block.World.GetBlockId(oneUp);
                 byte blockAboveLight = block.Chunk.GetBlockLight(oneUp);
