@@ -350,6 +350,13 @@ namespace Chraft
             }
         }
 
+        public Chunk GetCurrentChunk()
+        {
+            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z, false, false);
+
+            return chunk;
+        }
+
         public void UpdateChunks(int radius, CancellationToken token)
         {
             UpdateChunks(radius, token, false, true);
