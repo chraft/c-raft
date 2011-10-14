@@ -750,7 +750,7 @@ namespace Chraft
         /// <returns>The entity ID of the item drop.</returns>
         public int DropItem(Client client, ItemStack stack)
         {
-            return DropItem(client.Owner.World, UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), stack);
+            return DropItem(client.Owner.World, UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), stack);
         }
 
         /// <summary>
@@ -762,7 +762,7 @@ namespace Chraft
         public int DropItem(Player player, ItemStack stack)
         {
             //todo - proper drop
-            return DropItem(player.World, UniversalCoords.FromWorld(player.Position.X + 4, player.Position.Y, player.Position.Z), stack);
+            return DropItem(player.World, UniversalCoords.FromAbsWorld(player.Position.X + 4, player.Position.Y, player.Position.Z), stack);
         }
 
         /// <summary>

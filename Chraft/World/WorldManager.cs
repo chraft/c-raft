@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -43,6 +43,7 @@ namespace Chraft.World
 
         public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
         private Task _PhysicsSimulationTask;
+        private Task _entityUpdateTask;
 
         public ConcurrentQueue<ChunkBase> ChunksToSave;
 
@@ -108,7 +109,7 @@ namespace Chraft.World
             if ((chunk = Chunks[worldX >> 4, worldZ >> 4]) != null)
                 return chunk;
 
-            return load ? LoadChunk(UniversalCoords.FromWorld(worldX, 0, worldZ), create, recalculate) : null;
+            return load ? LoadChunk(UniversalCoords.FromAbsWorld(worldX, 0, worldZ), create, recalculate) : null;
         }
         
         public IEnumerable<EntityBase> GetEntitiesWithinBoundingBoxExcludingEntity(EntityBase entity, BoundingBox boundingBox)
@@ -122,8 +123,8 @@ namespace Chraft.World
         {
             List<BoundingBox > collidingBoundingBoxes = new List<BoundingBox>();
 
-            UniversalCoords minimumBlockXYZ = UniversalCoords.FromWorld((int)Math.Floor(boundingBox.Minimum.X), (int)Math.Floor(boundingBox.Minimum.Y), (int)Math.Floor(boundingBox.Minimum.Z));
-            UniversalCoords maximumBlockXYZ = UniversalCoords.FromWorld((int)Math.Floor(boundingBox.Maximum.X + 1.0D), (int)Math.Floor(boundingBox.Maximum.Y + 1.0D), (int)Math.Floor(boundingBox.Maximum.Z + 1.0D));
+            UniversalCoords minimumBlockXYZ = UniversalCoords.FromAbsWorld((int)Math.Floor(boundingBox.Minimum.X), (int)Math.Floor(boundingBox.Minimum.Y), (int)Math.Floor(boundingBox.Minimum.Z));
+            UniversalCoords maximumBlockXYZ = UniversalCoords.FromAbsWorld((int)Math.Floor(boundingBox.Maximum.X + 1.0D), (int)Math.Floor(boundingBox.Maximum.Y + 1.0D), (int)Math.Floor(boundingBox.Maximum.Z + 1.0D));
 
             for (int x = minimumBlockXYZ.WorldX; x < maximumBlockXYZ.WorldX; x++)
             {
@@ -131,15 +132,17 @@ namespace Chraft.World
                 {
                     for (int y = minimumBlockXYZ.WorldY - 1; y < maximumBlockXYZ.WorldY; y++)
                     {
-                        byte block = this.GetBlockId(x, y, z);
-                        // TODO: this needs to move into block logic
-                        BoundingBox blockBox = new BoundingBox(
-                            new Vector3(x, y, z),
-                            new Vector3(x + 1, y + 1, z + 1)
-                        );
-                        if (blockBox.IntersectsWith(boundingBox))
+                        StructBlock block = this.GetBlock(UniversalCoords.FromWorld(x, y, z));
+                        
+                        BlockBase blockInstance = BlockHelper.Instance(block.Type);
+                        
+                        if (blockInstance != null && blockInstance.IsCollidable)
                         {
-                            collidingBoundingBoxes.Add(blockBox);
+                            BoundingBox blockBox = blockInstance.GetCollisionBoundingBox(block);
+                            if (blockBox.IntersectsWith(boundingBox))
+                            {
+                                collidingBoundingBoxes.Add(blockBox);
+                            }   
                         }
                     }
                 }
@@ -238,17 +241,16 @@ namespace Chraft.World
         {
             Running = true;
             GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
-            EntityMoverStart();
         }
 
         private void InitializeSpawn()
         {
-            Spawn = UniversalCoords.FromWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
+            Spawn = UniversalCoords.FromAbsWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
             for (int i = 127; i > 0; i--)
             {
                 if (GetBlockOrLoad(Spawn.WorldX, i, Spawn.WorldZ) != 0)
                 {
-                    Spawn = UniversalCoords.FromWorld(Spawn.WorldX, i + 4, Spawn.WorldZ);
+                    Spawn = UniversalCoords.FromAbsWorld(Spawn.WorldX, i + 4, Spawn.WorldZ);
                     break;
                 }
             }
@@ -320,7 +322,7 @@ namespace Chraft.World
 
         private void GlobalTickProc(object state)
         {
-            // Increment the world tick count (low-lock sync via volatile - safe because this is an atomic operation)
+            // Increment the world tick count
             Interlocked.Increment(ref _WorldTicks);
 
             int time;
@@ -378,7 +380,8 @@ namespace Chraft.World
                     _GrowStuffTask.Start();
                 }
             }
-
+   
+            // Every Tick (50ms)
             if (_PhysicsSimulationTask == null || _PhysicsSimulationTask.IsCompleted)
             {
                 _PhysicsSimulationTask = new Task(PhysicsProc);
@@ -396,7 +399,14 @@ namespace Chraft.World
                 }
             }
 #endif
+
+            if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
+            {
+                _entityUpdateTask = new Task(EntityProc);
+                _entityUpdateTask.Start();
+            }
         }
+        
 #if PROFILE
         private void Profile()
         {
@@ -464,76 +474,12 @@ namespace Chraft.World
                 physicsBlock.Value.Simulate();
             }
         }
-
-        private void EntityMoverStart()
-        {
-            Thread thread = new Thread(MovementThread);
-            thread.IsBackground = true;
-            thread.Priority = ThreadPriority.BelowNormal;
-            thread.Start();
-        }
-
-        private void MovementThread()
-        {
-            while (Running)
-            {
-                Thread.Sleep(200);
-                MovProc();
-            }
-        }
-
-        private void MovProc()
+  
+        private void EntityProc()
         {
             Parallel.ForEach(Server.GetEntities().Where((entity) => entity.World == this), (e) =>
             {
-                e.TimeInWorld++;
-
-                if (e is Mob)
-                {
-                    Mob m = (Mob)e;
-
-                    m.Update();
-                }
-                else if (e is ItemEntity)
-                {
-                    byte? uBlock = GetBlockOrNull((int)e.Position.X, (int)(e.Position.Y - 0.4), (int)e.Position.Z);
-
-                    if (uBlock != null) // Ignore if item is in an unloaded chunk.
-                    {
-                        switch ((BlockData.Blocks)uBlock)
-                        {
-                            case BlockData.Blocks.Air:
-                            case BlockData.Blocks.Brown_Mushroom:
-                            case BlockData.Blocks.Crops:
-                            case BlockData.Blocks.Ladder:
-                            case BlockData.Blocks.Lever:
-                            case BlockData.Blocks.Portal:
-                            case BlockData.Blocks.Rails:
-                            case BlockData.Blocks.Red_Mushroom:
-                            case BlockData.Blocks.Red_Rose:
-                            case BlockData.Blocks.Redstone_Torch:
-                            case BlockData.Blocks.Redstone_Torch_On:
-                            case BlockData.Blocks.Redstone_Wire:
-                            case BlockData.Blocks.Reed:
-                            case BlockData.Blocks.Sapling:
-                            case BlockData.Blocks.Still_Water:
-                            case BlockData.Blocks.Stone_Button:
-                            case BlockData.Blocks.Torch:
-                            case BlockData.Blocks.Water:
-                            case BlockData.Blocks.Yellow_Flower:
-                                e.Position = new AbsWorldCoords(e.Position.X, e.Position.Y - 0.4, e.Position.Z);
-                                break;
-
-                            case BlockData.Blocks.Fire:
-                            case BlockData.Blocks.Lava:
-                            case BlockData.Blocks.Still_Lava:
-                                Server.RemoveEntity(e);
-                                break;
-                        }
-                    }
-
-                    // TOOD: Water flow movement.
-                }
+                e.Update();
             });
         }
 
@@ -608,7 +554,18 @@ namespace Chraft.World
         {
             return GetChunkFromWorld(worldX, worldZ, false, true);
         }
+  
+        public StructBlock GetBlock(UniversalCoords coords)
+        {
+            return new StructBlock(coords, GetBlockId(coords), GetBlockData(coords), this);
+        }
 
+        public StructBlock GetBlock(int worldX, int worldY, int worldZ)
+        {
+            UniversalCoords coords = UniversalCoords.FromWorld(worldX, worldY, worldZ);
+            return new StructBlock(coords, GetBlockId(coords), GetBlockData(coords), this);
+        }
+                                                            
         public byte GetBlockId(UniversalCoords coords)
         {
             if (!ChunkExists(coords))
@@ -743,7 +700,7 @@ namespace Chraft.World
         private void UpdatePhysics(UniversalCoords coords, bool updateClients = true)
         {
             BlockData.Blocks type = (BlockData.Blocks)GetBlockId(coords);
-            UniversalCoords oneDown = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
+            UniversalCoords oneDown = UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
 
             if (type == BlockData.Blocks.Water)
             {
@@ -768,7 +725,7 @@ namespace Chraft.World
 
             if (type == BlockData.Blocks.Air)
             {
-                UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
+                UniversalCoords oneUp = UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                 if (coords.WorldY < 127 && (GetBlockId(oneUp) == (byte)BlockData.Blocks.Water || GetBlockId(oneUp) == (byte)BlockData.Blocks.Still_Water))
                 {
                     SetBlockAndData(coords, (byte)BlockData.Blocks.Water, 0);
@@ -872,7 +829,7 @@ namespace Chraft.World
                     break;
             }
 
-            return UniversalCoords.FromWorld(bx, by, bz);
+            return UniversalCoords.FromAbsWorld(bx, by, bz);
         }
     }
 }

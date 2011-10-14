@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -65,7 +65,7 @@ namespace Chraft.World.Blocks
                 return false;
 
             // Can grow only if the block above is free
-            byte blockId = block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
+            byte blockId = block.World.GetBlockId(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
             if (blockId != (byte)BlockData.Blocks.Air)
                 return false;
 
@@ -89,7 +89,7 @@ namespace Chraft.World.Blocks
             // Checking if there are water next to the basement block
             bool isWater = false;
             blockId = 0;
-            block.Chunk.ForNSEW(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - reedHeightBelow - 1, block.Coords.WorldZ),
+            block.Chunk.ForNSEW(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY - reedHeightBelow - 1, block.Coords.WorldZ),
                 delegate(UniversalCoords uc)
                 {
                     blockId = block.World.GetBlockId(uc);
@@ -101,7 +101,7 @@ namespace Chraft.World.Blocks
 
             if (!isWater && reedHeightBelow < MaxHeight)
             {
-                UniversalCoords baseBlock = UniversalCoords.FromWorld(block.Coords.WorldX,
+                UniversalCoords baseBlock = UniversalCoords.FromAbsWorld(block.Coords.WorldX,
                                                                       block.Coords.WorldY - reedHeightBelow,
                                                                       block.Coords.WorldZ);
                 BlockHelper.Instance(block.Type).Destroy(new StructBlock(baseBlock, block.Type, block.MetaData, block.World));
@@ -123,7 +123,7 @@ namespace Chraft.World.Blocks
             }
 
             block.World.SetBlockData(block.Coords, 0);
-            UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
+            UniversalCoords blockAbove = UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                    block.Coords.WorldZ);
             block.World.SetBlockAndData(blockAbove, (byte)BlockData.Blocks.Reed, 0x0);
         }

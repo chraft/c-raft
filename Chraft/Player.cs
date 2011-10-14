@@ -282,7 +282,7 @@ namespace Chraft
                 });
             }
 
-            Inventory.DropAll(UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z));
+            Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
         }
 
         /// <summary>

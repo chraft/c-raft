@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +24,7 @@ namespace Chraft.Commands
             catch (Exception e) { client.Logger.Log(e); type = MobType.Sheep; }
             for (int i = 0; i < amount; i++)
             {
-                client.Owner.World.SpawnMob(UniversalCoords.FromWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), type);
+                client.Owner.World.SpawnMob(UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), type);
             }
         }
         private int parseint(string s)

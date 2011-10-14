@@ -1,4 +1,4 @@
-﻿using Chraft.World;
+using Chraft.World;
 using java.util.zip;
 
 namespace Chraft.Net.Packets
@@ -21,7 +21,7 @@ namespace Chraft.Net.Packets
 			byte sizeZ = (byte)(stream.ReadByte() + 1);
 
 			int o = sizeX * sizeY * sizeZ;
-            Chunk = new Chunk(null, UniversalCoords.FromWorld(posX, posY, posZ));
+            Chunk = new Chunk(null, UniversalCoords.FromAbsWorld(posX, posY, posZ));
 
 		    int len = stream.ReadInt();
 			byte[] data = new byte[o * 5 / 2];

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -83,7 +83,7 @@ namespace Chraft.Entity.Mobs
                     // Drop wool when sheared
                     sbyte count = (sbyte)Server.Rand.Next(2, 4);
                     if (count > 0)
-                        Server.DropItem(World, UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, count, (short)Data.WoolColor));
+                        Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, count, (short)Data.WoolColor));
                     Data.Sheared = true;
 
                     SendMetadataUpdate();
@@ -105,7 +105,7 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             if (!this.Data.Sheared)
-                Server.DropItem(World, UniversalCoords.FromWorld(this.Position.X, this.Position.Y, this.Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(this.Position.X, this.Position.Y, this.Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
         }
     }
 }

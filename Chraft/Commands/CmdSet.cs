@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -42,7 +42,7 @@ namespace Chraft.Commands
                 {
                     for (int z = start.WorldZ; z <= end.WorldZ; z++)
                     {
-                        client.Owner.World.SetBlockAndData(UniversalCoords.FromWorld(x,y,z), (byte)item.Type, (byte)item.Durability);
+                        client.Owner.World.SetBlockAndData(UniversalCoords.FromAbsWorld(x,y,z), (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }
