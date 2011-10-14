@@ -42,7 +42,6 @@ namespace Chraft.Net
         double _beginInAirY = -1;
         double _lastGroundY = -1;
         bool _onGround = false;
-
         public bool OnGround
         {
             get
@@ -230,7 +229,16 @@ namespace Chraft.Net
         public static void HandlePacketCreativeInventoryAction(Client client, CreativeInventoryActionPacket packet)
         {
             if (client.Owner.GameMode == 1)
-                client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+
+                if (packet.ItemID == -1 && packet.Damage == 0 && packet.Quantity == 0) // We are adding an item to our mouse cursor from the quick bar
+                {
+                    //may need to do something here
+                    return;
+                } 
+                else
+                {
+                    client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                }
             else
                 client.Kick("Invalid action: CreativeInventoryAction");
         }
@@ -701,7 +709,7 @@ namespace Chraft.Net
 
         public void StopUpdateChunks()
         {
-            if(_UpdateChunksToken != null)
+            if (_UpdateChunksToken != null)
                 _UpdateChunksToken.Cancel();
         }
 
