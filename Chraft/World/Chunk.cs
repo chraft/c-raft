@@ -823,7 +823,7 @@ namespace Chraft.World
                 byte blockId = (byte)GetType(blockX, blockY, blockZ);
                 byte data = GetData(blockX, blockY, blockZ);
 
-                SendPacketToAllNearbyPlayers(new BlockChangePacket
+                World.Server.SendPacketToNearbyPlayers(World, Coords, new BlockChangePacket 
                 {X = Coords.WorldX + blockX, Y = (sbyte) blockY, Z = Coords.WorldZ + blockZ, Data = data, Type = blockId});
                 
             }
@@ -847,44 +847,15 @@ namespace Chraft.World
                     blocks[count] = index;
                     ++count;
                 }
-                SendPacketToAllNearbyPlayers(new MultiBlockChangePacket { CoordsArray = blocks, Metadata = data, Types = types, ChunkCoords = Coords});
+                World.Server.SendPacketToNearbyPlayers(World, Coords, new MultiBlockChangePacket { CoordsArray = blocks, Metadata = data, Types = types, ChunkCoords = Coords });
             }
             else
             {
-                SendPacketToAllNearbyPlayers(new MapChunkPacket { Chunk = this });
+                World.Server.SendPacketToNearbyPlayers(World, Coords, new MapChunkPacket { Chunk = this });
             }
 
             BlocksUpdating.Clear();
             base.UpdateBlocksToNearbyPlayers(state);
-        }
-
-        private void SendPacketToAllNearbyPlayers(Packet packet)
-        {
-            Dictionary<int, Client> nearbyClients = new Dictionary<int, Client>();
-            int radius = Settings.Default.SightRadius;
-
-            int chunkX = Coords.ChunkX;
-            int chunkZ = Coords.ChunkZ;
-
-            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
-            {
-                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
-                {
-                    Chunk c = World.GetChunkFromChunk(x, z, false, false);
-
-                    if (c != null)
-                    {
-                        foreach (Client client in c.GetClients())
-                        {
-                            if (!nearbyClients.ContainsKey(client.Owner.SessionID))
-                            {
-                                nearbyClients.Add(client.Owner.SessionID, client);
-                                client.SendPacket(packet);
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }
