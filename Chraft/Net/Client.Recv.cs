@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -237,7 +237,12 @@ namespace Chraft.Net
                 } 
                 else
                 {
-                    client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                    if (packet.Slot != -1)// mouse cursor mode
+                    {
+                        client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                    }
+                    
+                   
                 }
             else
                 client.Kick("Invalid action: CreativeInventoryAction");

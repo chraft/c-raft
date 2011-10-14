@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Chraft.Entity;
 using Chraft.Plugins.Events;
 using Chraft.World;
@@ -134,10 +135,11 @@ namespace Chraft.Net
 
         private void CommandProc(string raw, string[] tokens)
         {
+            var cleanedTokens = tokens.Skip(1).ToArray();
             ClientCommand cmd;
             try
             {
-                cmd = _Player.Server.ClientCommandHandler.Find(tokens[0]) as ClientCommand;
+                cmd = _Player.Server.ClientCommandHandler.Find(raw) as ClientCommand;
             }
             catch (CommandNotFoundException e)
             {
@@ -147,29 +149,19 @@ namespace Chraft.Net
             try
             {
                 //Event
-                ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, tokens);
+                ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, cleanedTokens);
                 _Player.Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
                 if (e.EventCanceled) return;
-                tokens = e.Tokens;
+                cleanedTokens = e.Tokens;
                 //End Event
 
-                cmd.Use(this, tokens);
+                cmd.Use(this, cleanedTokens);
             }
             catch (Exception e)
             {
                 SendMessage("There was an error while executing the command.");
                 _Player.Server.Logger.Log(e);
             }
-        }
-
-        public void SetHealth(string[] tokens)
-        {
-            if (tokens.Length < 1)
-            {
-                _Player.SetHealth(20);
-                return;
-            }
-            _Player.SetHealth(short.Parse(tokens[1]));
         }
     }
 }

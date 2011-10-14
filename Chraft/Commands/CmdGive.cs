@@ -20,7 +20,7 @@ namespace Chraft.Commands
             uint amount = 0;
             List<Client> who = new List<Client>();
 
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 client.SendMessage("§cPlease specify a target and an item or just an item to give it to yourself.");
                 return;
@@ -28,79 +28,79 @@ namespace Chraft.Commands
 
             if (tokens[1].Contains(':'))
             {
-                itemName = tokens[1].Split(':')[0].Trim();
-                short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
+                itemName = tokens[0].Split(':')[0].Trim();
+                short.TryParse(tokens[0].Split(':')[0].Trim(), out metaData);
                 item = client.Owner.Server.Items[itemName];
                 item.Durability = metaData;
             }
             else
             {
-                item = client.Owner.Server.Items[tokens[1]];
+                item = client.Owner.Server.Items[tokens[0]];
             }
 
-            if (tokens.Length == 2)
+            if (tokens.Length == 1)
             {
                 // Trying to give something to yourself
                 who.Add(client);
             }
-            else if (tokens.Length == 3)
+            else if (tokens.Length == 2)
             {
                 // Trying to give yourself an item with amount specified
-                if (uint.TryParse(tokens[2], out amount))
+                if (uint.TryParse(tokens[1], out amount))
                 {
                     if (!ItemStack.IsVoid(item))
                         who.Add(client);
                     else
                     {
-                        if (tokens[2].Contains(':'))
+                        if (tokens[1].Contains(':'))
                         {
-                            itemName = tokens[2].Split(':')[0].Trim();
-                            short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                            itemName = tokens[1].Split(':')[0].Trim();
+                            short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
                             item = client.Owner.Server.Items[itemName];
                             item.Durability = metaData;
                         }
 
                         else
                         {
-                            item = client.Owner.Server.Items[tokens[2]];
+                            item = client.Owner.Server.Items[tokens[1]];
                         }
-                        who.AddRange(client.Owner.Server.GetClients(tokens[1]));
+                        who.AddRange(client.Owner.Server.GetClients(tokens[0]));
                     }
 
                 }
                 else
                 {
                     // OR trying to give something to a player(s)
-                    who.AddRange(client.Owner.Server.GetClients(tokens[1]));
+                    who.AddRange(client.Owner.Server.GetClients(tokens[0]));
                     if (tokens[2].Contains(':'))
                     {
-                        itemName = tokens[2].Split(':')[0].Trim();
-                        short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                        itemName = tokens[1].Split(':')[0].Trim();
+                        short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
                         item = client.Owner.Server.Items[itemName];
                         item.Durability = metaData;
                     }
                     else
                     {
-                        item = client.Owner.Server.Items[tokens[2]];
+                        item = client.Owner.Server.Items[tokens[1]];
                     }
                 }  
             }
             else
             {
                 // Trying to give item to other player with amount specified
-                if (uint.TryParse(tokens[3], out amount))
+                if (uint.TryParse(tokens[2], out amount))
                 {
-                    who.AddRange(client.Owner.Server.GetClients(tokens[1]));
-                    if (tokens[2].Contains(':'))
+                    who.AddRange(client.Owner.Server.GetClients(tokens[0]));
+                    if (tokens[1].Contains(':'))
                     {
-                        itemName = tokens[2].Split(':')[0].Trim();
-                        short.TryParse(tokens[2].Split(':')[1].Trim(), out metaData);
+                        itemName = tokens[1].Split(':')[0].Trim();
+                        short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
                         item = client.Owner.Server.Items[itemName];
                         item.Durability = metaData;
                     }
                     else
                     {
-                        item = client.Owner.Server.Items[tokens[2]];
+                        item = client.Owner.Server.Items[tokens[1]];
                     }
                 }
 

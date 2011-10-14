@@ -13,11 +13,11 @@ namespace Chraft.Commands.Debug
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length == 1)
+            if (tokens.Length == 0)
             {
                 client.SendMessage(String.Format("§7Your position: X={0:0.00},Y={1:0.00},Z={2:0.00}, Yaw={3:0.00}, Pitch={4:0.00}", client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z, client.Owner.Yaw, client.Owner.Pitch));
             }
-            else if (tokens[1] == "yaw")
+            else if (tokens[0] == "yaw")
             {
                 Vector3 z1 = client.Owner.Position.ToVector() + Vector3.ZAxis;
                 Vector3 posToZ1 = (client.Owner.Position.ToVector() - z1);
@@ -29,7 +29,7 @@ namespace Chraft.Commands.Debug
 
         public void Help(Client client)
         {
-            throw new NotImplementedException();
+            
         }
 
         public string Name

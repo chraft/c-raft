@@ -18,7 +18,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length == 1)
+            if (tokens.Length == 0)
             {
                 client.SendMessage("Use " + ChatColor.Teal + "/help build" + ChatColor.White + " for a list of building commands.");
                 client.SendMessage("Use " + ChatColor.Teal + "/help mod" + ChatColor.White + " for a list of moderation commands.");
@@ -26,10 +26,10 @@ namespace Chraft.Commands
                 client.SendMessage("Use " + ChatColor.Teal + "/help other" + ChatColor.White + " for a list of other commands.");
                 client.SendMessage("Use " + ChatColor.Teal + "/help short" + ChatColor.White + " for a list of shortcuts.");
             }
-            else if (tokens.Length > 1)
+            else if (tokens.Length > 0)
             {
                 string message;
-                switch (tokens[1].ToLower())
+                switch (tokens[0].ToLower())
                 {
                     case "build":
                         message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Build && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
@@ -86,7 +86,7 @@ namespace Chraft.Commands
                         ClientCommand cmd;
                         try
                         {
-                            cmd = ClientCommandHandler.Find(tokens[1]) as ClientCommand;
+                            cmd = ClientCommandHandler.Find(tokens[0]) as ClientCommand;
                         }
                         catch (CommandNotFoundException e) { client.SendMessage(e.Message); return; }
                         try
@@ -114,12 +114,12 @@ namespace Chraft.Commands
 
         public void Help(Client client)
         {
-            client.SendMessage("WOW, really?  Wow... just wow.");
+            client.SendMessage("helps");
         }
 
         public void Use(Server server, string[] tokens)
         {
-            if (tokens.Length == 1)
+            if (tokens.Length == 0)
             {
 
                 server.Logger.Log(Logger.LogLevel.Info, "Use /help build for a list of building commands.");
@@ -128,20 +128,13 @@ namespace Chraft.Commands
                 server.Logger.Log(Logger.LogLevel.Info, "Use /help other for a list of other commands.");
                 server.Logger.Log(Logger.LogLevel.Info, "Use /help short for a list of shortcuts.");
             }
-            else if (tokens.Length > 1)
+            else if (tokens.Length > 0)
             {
                 string message;
-                switch (tokens[1].ToLower())
+                switch (tokens[0].ToLower())
                 {
                     case "build":
-                        message = "";
-                        foreach (ServerCommand c in ServerCommandHandler.GetCommands())
-                        {
-                            if (c.Type == CommandType.Build)
-                            {
-                                message += ", " + c.Name;
-                            }
-                        }
+                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -151,14 +144,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "mod":
-                        message = "";
-                        foreach (ServerCommand c in ServerCommandHandler.GetCommands())
-                        {
-                            if (c.Type == CommandType.Build)
-                            {
-                                message += ", " + c.Name;
-                            }
-                        }
+                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -169,14 +155,7 @@ namespace Chraft.Commands
                         break;
                     case "information":
                     case "info":
-                        message = "";
-                        foreach (ServerCommand c in ServerCommandHandler.GetCommands())
-                        {
-                            if (c.Type == CommandType.Build)
-                            {
-                                message += ", " + c.Name;
-                            }
-                        }
+                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -186,14 +165,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "other":
-                        message = "";
-                        foreach (ServerCommand c in ServerCommandHandler.GetCommands())
-                        {
-                            if (c.Type == CommandType.Build)
-                            {
-                                message += ", " + c.Name;
-                            }
-                        }
+                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -203,14 +175,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "short":
-                        message = "";
-                        foreach (ServerCommand c in ServerCommandHandler.GetCommands())
-                        {
-                            if (!string.IsNullOrEmpty(c.Shortcut))
-                            {
-                                message += ", " + c.Shortcut;
-                            }
-                        }
+                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -243,7 +208,7 @@ namespace Chraft.Commands
 
         public void Help(Server server)
         {
-            server.Logger.Log(Logger.LogLevel.Info, "WOW, really?  Wow... just wow.");
+            server.Logger.Log(Logger.LogLevel.Info, "helps");
         }
     }
 }

@@ -12,13 +12,13 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 client.SendMessage("You must specify a player to mute");
                 return;
             }
 
-            Client[] matchedClients = client.Owner.Server.GetClients(tokens[1]).ToArray();
+            Client[] matchedClients = client.Owner.Server.GetClients(tokens[0]).ToArray();
             Client clientToMute = null;
             if (matchedClients.Length < 1)
             {
@@ -36,7 +36,7 @@ namespace Chraft.Commands
                 int exactMatchClient = -1;
                 for (int i = 0; i < matchedClients.Length; i++)
                 {
-                    if (matchedClients[i].Owner.DisplayName.ToLower() == tokens[1].ToLower())
+                    if (matchedClients[i].Owner.DisplayName.ToLower() == tokens[0].ToLower())
                         exactMatchClient = i;
                 }
 

@@ -14,12 +14,7 @@ namespace Chraft.Commands
         public ServerCommandHandler ServerCommandHandler { get; set; }
         public void Use(Client client, string[] tokens)
         {
-            string message = "";
-            for (int i = 1; i < tokens.Length; i++)
-            {
-                message += tokens[i] + " ";
-            }
-            client.Owner.Server.Broadcast(message);
+            client.Owner.Server.Broadcast(tokens.Aggregate("", (current, t) => current + (t + " ")));
         }
         public void Help(Client client)
         {

@@ -14,20 +14,20 @@ namespace Chraft.Commands
         public void Use(Client client, string[] tokens)
         {
             int newTime = -1;
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 client.SendMessage("You must specify an explicit time, day, or night.");
                 return;
             }
-            if (int.TryParse(tokens[1], out newTime) && newTime >= 0 && newTime <= 24000)
+            if (int.TryParse(tokens[0], out newTime) && newTime >= 0 && newTime <= 24000)
             {
                 client.Owner.World.Time = newTime;
             }
-            else if (tokens[1].ToLower() == "day")
+            else if (tokens[0].ToLower() == "day")
             {
                 client.Owner.World.Time = 0;
             }
-            else if (tokens[1].ToLower() == "night")
+            else if (tokens[0].ToLower() == "night")
             {
                 client.Owner.World.Time = 12000;
             }

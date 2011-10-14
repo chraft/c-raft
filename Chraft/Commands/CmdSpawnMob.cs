@@ -16,10 +16,10 @@ namespace Chraft.Commands
         {
             MobType type;
             int amount = 1;
-            if(tokens.Length > 2)amount = parseint(tokens[2]);
+            if(tokens.Length > 1)amount = parseint(tokens[1]);
             try
             {
-                type = (MobType) Enum.Parse(typeof(MobType), tokens[1], true);
+                type = (MobType) Enum.Parse(typeof(MobType), tokens[0], true);
             }
             catch (Exception e) { client.Logger.Log(e); type = MobType.Sheep; }
             for (int i = 0; i < amount; i++)

@@ -24,7 +24,7 @@ namespace Chraft.Commands
             UniversalCoords start = client.SelectionStart.Value;
             UniversalCoords end = client.SelectionEnd.Value;
 
-            ItemStack item = client.Owner.Server.Items[tokens[1]];
+            ItemStack item = client.Owner.Server.Items[tokens[0]];
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");

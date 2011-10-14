@@ -13,12 +13,12 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 SetHealth(client, 20);
                 return;
             }
-            SetHealth(client, short.Parse(tokens[1]));
+            SetHealth(client, short.Parse(tokens[0]));
         }
         private void SetHealth(Client client, short health)
         {

@@ -168,6 +168,7 @@ namespace Chraft.Net
             if (e.EventCanceled) return;
             reason = e.Message;
             //End Event
+            Save();
             SendPacket(new DisconnectPacket
             {
                 Reason = reason
@@ -176,6 +177,7 @@ namespace Chraft.Net
 
         public void Disconnected(object sender, SocketAsyncEventArgs e)
         {
+            Save();
             // Just wait a bit since it's possible that we close the socket before the packet reached the client
             Thread.Sleep(200);
             Stop();

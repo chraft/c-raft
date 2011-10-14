@@ -13,7 +13,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 client.SendMessage("§cPlease specify a target.");
                 return;
@@ -62,7 +62,7 @@ namespace Chraft.Commands
 
         public void Use(Client client, string[] tokens)
         {
-            if (tokens.Length < 2)
+            if (tokens.Length < 1)
             {
                 client.SendMessage("§cPlease specify a target.");
                 return;

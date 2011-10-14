@@ -94,12 +94,12 @@ namespace Chraft.Interfaces
 					}
 					else if (e.RightClick)
 					{	// Right-click in void: drop item
-						Owner.Server.DropItem(Owner.Client, new ItemStack(Cursor.Type, 1, Cursor.Durability));
+						Owner.Server.DropItem(Owner, new ItemStack(Cursor.Type, 1, Cursor.Durability));
 						Cursor.Count--;
 					}
 					else
 					{	// Left-click in void: drop stack
-						Owner.Server.DropItem(Owner.Client, Cursor);
+						Owner.Server.DropItem(Owner, Cursor);
 						Cursor = ItemStack.Void;
 					}
 					return;
