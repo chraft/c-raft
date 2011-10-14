@@ -4,6 +4,6 @@ namespace Chraft.WorldGen
 {
     public interface IChunkGenerator
     {
-        Chunk ProvideChunk(int x, int z, Chunk chunk, bool recalculate);
+        void ProvideChunk(int x, int z, Chunk chunk, bool recalculate);
     }
 }

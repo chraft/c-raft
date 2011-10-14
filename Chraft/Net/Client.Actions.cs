@@ -39,7 +39,7 @@ namespace Chraft.Net
             {
                 if (Point1 == null || Point2 == null)
                     return null;
-                return UniversalCoords.FromWorld(Point1.Value.WorldX < Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
+                return UniversalCoords.FromAbsWorld(Point1.Value.WorldX < Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
                     Point1.Value.WorldY < Point2.Value.WorldY ? Point1.Value.WorldY : Point2.Value.WorldY,
                     Point1.Value.WorldZ < Point2.Value.WorldZ ? Point1.Value.WorldZ : Point2.Value.WorldZ);
             }
@@ -54,7 +54,7 @@ namespace Chraft.Net
             {
                 if (Point1 == null || Point2 == null)
                     return null;
-                return UniversalCoords.FromWorld(Point1.Value.WorldX > Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
+                return UniversalCoords.FromAbsWorld(Point1.Value.WorldX > Point2.Value.WorldX ? Point1.Value.WorldX : Point2.Value.WorldX,
                     Point1.Value.WorldY > Point2.Value.WorldY ? Point1.Value.WorldY : Point2.Value.WorldY,
                     Point1.Value.WorldZ > Point2.Value.WorldZ ? Point1.Value.WorldZ : Point2.Value.WorldZ);
             }

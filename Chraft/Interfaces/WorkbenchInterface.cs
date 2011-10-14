@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +50,7 @@ namespace Chraft.Interfaces
             }
             else
             {
-                base.DropAll(UniversalCoords.FromWorld((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z));
+                base.DropAll(UniversalCoords.FromAbsWorld((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z));
             }
         }
 	}

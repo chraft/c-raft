@@ -15,6 +15,7 @@ namespace Chraft.Entity
         public int EntityId { get; private set; }
         public WorldManager World { get; set; }
   
+        public bool NoClip { get; set; }
         public BoundingBox BoundingBox { get; set; }
   
         /// <summary>
@@ -31,6 +32,16 @@ namespace Chraft.Entity
         {
             return null;
         }
+        
+        public bool HasCollided { get; set; }
+        public bool HasCollidedHorizontally { get; set; }
+        public bool HasCollidedVertically { get; set; }
+        public bool OnGround { get; set; }
+        
+        public float Height { get; set; }
+        public float Width { get; set; }
+        
+        public Vector3 Velocity;
         
         short _health;
         /// <summary>
@@ -60,15 +71,31 @@ namespace Chraft.Entity
         public sbyte PackedYaw { get { return (sbyte)(this.Yaw / 360.0 * 256.0 % 256.0); } }
 
         public Server Server { get; private set; }
-        public int TimeInWorld;
+        public int TicksInWorld;
         //public Location Position { get; set; }
-        public AbsWorldCoords Position { get; set; }
+        private AbsWorldCoords _position;
+        public AbsWorldCoords Position 
+        { 
+            get
+            {
+                return _position;
+            }
+            set
+            {
+                _position = value;
+                // Set the bounding box based on the new position
+                double halfWidth = this.Width / 2.0;
+                this.BoundingBox = new BoundingBox(new AbsWorldCoords(_position.X - halfWidth, _position.Y, _position.Z - halfWidth), new AbsWorldCoords(_position.X + halfWidth, _position.Y + Height, _position.Z + halfWidth));
+            }
+        }
 
         public EntityBase(Server server, int entityId)
         {
             this.Server = server;
             this.EntityId = entityId;
-            this.TimeInWorld = 0;
+            this.TicksInWorld = 0;
+            this.Width = 0.6f;
+            this.Height = 1.8f;
         }
 
         protected void EnsureServer(Server server)
@@ -80,9 +107,30 @@ namespace Chraft.Entity
         
         public virtual void Update()
         {
-            
+            this.TicksInWorld++;
         }
-
+  
+        public virtual void ApplyVelocity(Vector3 velocity)
+        {
+            if (this.NoClip)
+            {
+                this.BoundingBox = this.BoundingBox + velocity;
+                _position = new AbsWorldCoords(this.Position.ToVector() + velocity);
+                return;
+            }
+            
+            // TODO: if sneaking and onground prevent falling off edges
+            
+            this.BoundingBox.OffsetWithClipping(ref velocity, this.World.GetCollidingBoundingBoxes(this, this.BoundingBox + velocity));
+            
+            // Set the new position to the centre point of the base of the BoundingBox
+            _position = new AbsWorldCoords((this.BoundingBox.Minimum.X + this.BoundingBox.Maximum.X) / 2.0, this.BoundingBox.Minimum.Y, (this.BoundingBox.Minimum.Z + this.BoundingBox.Maximum.Z) / 2.0);
+            
+            // TODO: notify blocks of collisions + play sounds
+            
+            // TODO: check for proximity to fire
+        }
+                    
         /// <summary>
         /// Move less than four blocks to the given destination and update all affected clients.
         /// </summary>
@@ -145,8 +193,8 @@ namespace Chraft.Entity
         /// <param name="pitch">Target pitch, absolute.</param>
         public void RotateTo(float yaw, float pitch)
         {
-            this.Yaw = yaw;
-            this.Pitch = pitch;
+            this.Yaw = yaw % 360.0f;
+            this.Pitch = pitch % 360.0f;
 
             OnRotateTo();
         }

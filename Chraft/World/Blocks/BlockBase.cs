@@ -28,6 +28,8 @@ namespace Chraft.World.Blocks
             World = world;
             Chunk = World.GetBlockChunk(Coords);
         }
+        
+        public static readonly StructBlock Empty;
     }
 
     public abstract class BlockBase : IBlockBase
@@ -36,7 +38,15 @@ namespace Chraft.World.Blocks
         /// String representation of the block name
         /// </summary>
         public string Name { get; protected set; }
-
+  
+        /// <summary>
+        /// Gets or sets the block bounds offset, i.e. the MinXYZ/MaxXYZ to apply to the block XYZ to determine the blocks bounding box.
+        /// </summary>
+        /// <value>
+        /// The block bounds offset.
+        /// </value>
+        public BoundingBox BlockBoundsOffset { get; protected set; }
+                    
         /// <summary>
         /// Block type
         /// </summary>
@@ -46,6 +56,14 @@ namespace Chraft.World.Blocks
         /// Can we move through the block
         /// </summary>
         public bool IsAir { get; protected set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the block is collidable.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if block is collidable; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsCollidable { get; protected set; }
 
         /// <summary>
         /// Is the block liquid
@@ -69,7 +87,7 @@ namespace Chraft.World.Blocks
         {
             get { return (Opacity == 0xf); }
         }
-
+  
         /// <summary>
         /// Requires single hit to destroy
         /// </summary>
@@ -103,7 +121,6 @@ namespace Chraft.World.Blocks
         /// </summary>
         public byte Luminance { get; protected set; }
 
-
         public List<ItemStack> LootTable { get; protected set; }
 
         /// <summary>
@@ -133,7 +150,6 @@ namespace Chraft.World.Blocks
         {
             Destroy(null, block);
         }
-
 
         /// <summary>
         /// Destroy the block
@@ -187,13 +203,13 @@ namespace Chraft.World.Blocks
         {
             List<UniversalCoords> blocks = new List<UniversalCoords>(6);
             if (block.Coords.WorldY < 127)
-                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
+                blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
             if (block.Coords.WorldY > 0)
-                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX - 1, block.Coords.WorldY, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX + 1, block.Coords.WorldY, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ - 1));
-            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ + 1));
+                blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX - 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX + 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ - 1));
+            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ + 1));
             byte blockId = 0;
             byte blockMeta = 0;
             foreach (var coords in blocks)
@@ -404,7 +420,7 @@ namespace Chraft.World.Blocks
             if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
                 foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
-                    UniversalCoords playerCoords = UniversalCoords.FromWorld(c.Owner.Position.X, c.Owner.Position.Y, c.Owner.Position.Z);
+                    UniversalCoords playerCoords = UniversalCoords.FromAbsWorld(c.Owner.Position.X, c.Owner.Position.Y, c.Owner.Position.Z);
                     
                     if (playerCoords.WorldX == block.Coords.WorldX && playerCoords.WorldZ == block.Coords.WorldZ &&
                        (playerCoords.WorldY == block.Coords.WorldY || playerCoords.WorldY + 1 == block.Coords.WorldY))
@@ -414,6 +430,20 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-
+        /// <summary>
+        /// Gets the collision bounding box for the provided location.
+        /// </summary>
+        /// <returns>
+        /// The collision bounding box.
+        /// </returns>
+        /// <param name='coords'>
+        /// Coords.
+        /// </param>
+        public BoundingBox GetCollisionBoundingBox(StructBlock block)
+        {
+            UniversalCoords coords = block.Coords;
+            return new BoundingBox(coords.WorldX + this.BlockBoundsOffset.Minimum.X, coords.WorldY + this.BlockBoundsOffset.Minimum.Y, coords.WorldZ + this.BlockBoundsOffset.Minimum.Z,
+                                   coords.WorldX + this.BlockBoundsOffset.Maximum.X, coords.WorldY + this.BlockBoundsOffset.Maximum.Y, coords.WorldZ + this.BlockBoundsOffset.Maximum.Z);
+        }
     }
 }

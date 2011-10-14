@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,7 +29,7 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             var killedByMob = killedBy as Mob;
-            UniversalCoords coords = UniversalCoords.FromWorld(Position.X, Position.Y, Position.Z);
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
             if (killedByMob.Type == MobType.Skeleton)
             {
                 // If killed by a skeleton drop a music disc

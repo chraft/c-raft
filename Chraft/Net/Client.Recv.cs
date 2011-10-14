@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -42,7 +42,6 @@ namespace Chraft.Net
         double _beginInAirY = -1;
         double _lastGroundY = -1;
         bool _onGround = false;
-
         public bool OnGround
         {
             get
@@ -56,7 +55,7 @@ namespace Chraft.Net
                     _onGround = value;
 
                     // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId(UniversalCoords.FromWorld(_Player.Position.X, _Player.Position.Y, _Player.Position.Z));
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId(UniversalCoords.FromAbsWorld(_Player.Position.X, _Player.Position.Y, _Player.Position.Z));
 
                     if (!_onGround)
                     {
@@ -230,7 +229,16 @@ namespace Chraft.Net
         public static void HandlePacketCreativeInventoryAction(Client client, CreativeInventoryActionPacket packet)
         {
             if (client.Owner.GameMode == 1)
-                client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+
+                if (packet.ItemID == -1 && packet.Damage == 0 && packet.Quantity == 0) // We are adding an item to our mouse cursor from the quick bar
+                {
+                    //may need to do something here
+                    return;
+                } 
+                else
+                {
+                    client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                }
             else
                 client.Kick("Invalid action: CreativeInventoryAction");
         }
@@ -388,7 +396,7 @@ namespace Chraft.Net
             if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            UniversalCoords packetCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords packetCoords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
 
             BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(packetCoords); // Get block being built against.
             byte adjacentBlockData = player.World.GetBlockData(packetCoords);
@@ -545,7 +553,7 @@ namespace Chraft.Net
                             player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
                         }
 
-                        player.World.Update(UniversalCoords.FromWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
+                        player.World.Update(UniversalCoords.FromAbsWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
                     }
                     break;
             }
@@ -572,7 +580,7 @@ namespace Chraft.Net
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
 
-            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
 
             if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
@@ -618,7 +626,7 @@ namespace Chraft.Net
         {
             Player player = client.Owner;
 
-            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
 
             byte type = player.World.GetBlockId(coords);
             byte data = player.World.GetBlockData(coords);
@@ -701,7 +709,7 @@ namespace Chraft.Net
 
         public void StopUpdateChunks()
         {
-            if(_UpdateChunksToken != null)
+            if (_UpdateChunksToken != null)
                 _UpdateChunksToken.Cancel();
         }
 
