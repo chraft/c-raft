@@ -9,13 +9,14 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
-    class BlockWallSign : BlockBase
+    class BlockWallSign : BlockSignBase
     {
         public BlockWallSign()
         {
             Name = "WallSign";
             Type = BlockData.Blocks.Wall_Sign;
             IsAir = true;
+            IsSolid = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }

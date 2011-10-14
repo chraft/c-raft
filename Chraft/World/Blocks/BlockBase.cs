@@ -261,11 +261,16 @@ namespace Chraft.World.Blocks
         /// <param name="face">side of the target block</param>
         public virtual void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            if (!CanBePlacedOn(entity, block, targetBlock, face))
+            if (!CanBePlacedOn(entity, block, targetBlock, face) || !RaisePlaceEvent(entity, block))
+            {
+                // Revert the change since the client has already graphically placed the block
+                if(entity is Player)
+                {
+                    Player player = entity as Player;
+                    player.Server.SendPacketToNearbyPlayers(player.World, player.Position, new BlockChangePacket{Data = targetBlock.MetaData, Type = targetBlock.Type, X = targetBlock.Coords.WorldX, Y = (sbyte)targetBlock.Coords.WorldY, Z = targetBlock.Coords.WorldZ});
+                }
                 return;
-
-            if (!RaisePlaceEvent(entity, block))
-                return;
+            }
 
             UpdateOnPlace(block);
             RemoveItem(entity);

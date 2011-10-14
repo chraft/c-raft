@@ -34,6 +34,8 @@ namespace Chraft.World
         public Logger Logger { get { return Server.Logger; } }
         public string Name { get { return Settings.Default.DefaultWorldName; } }
         public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
+        public string SignsFolder { get { return Folder + Path.DirectorySeparatorChar + "Signs"; } }
+
         public WeatherManager Weather { get; private set; }
 
         private readonly ChunkSet _Chunks;
@@ -110,6 +112,18 @@ namespace Chraft.World
                 return chunk;
 
             return load ? LoadChunk(UniversalCoords.FromAbsWorld(worldX, 0, worldZ), create, recalculate) : null;
+        }
+
+        public Chunk GetChunkFromAbs(double absX, double absZ, bool create, bool load, bool recalculate = true)
+        {
+            int worldX = (int) Math.Floor(absX);
+            int worldZ = (int)Math.Floor(absZ);
+
+            Chunk chunk;
+            if ((chunk = Chunks[worldX >> 4, worldZ >> 4]) != null)
+                return chunk;
+
+            return load ? LoadChunk(UniversalCoords.FromWorld(worldX, 0, worldZ), create, recalculate) : null;
         }
         
         public IEnumerable<EntityBase> GetEntitiesWithinBoundingBoxExcludingEntity(EntityBase entity, BoundingBox boundingBox)
@@ -419,25 +433,6 @@ namespace Chraft.World
             }
         }
 #endif
-
-        public Chunk GetChunkFromPosition(int x, int z)
-        {
-            return Chunks[x, z];
-        }
-
-        public byte this[int x, int y, int z]
-        {
-            get
-            {
-                Chunk WorkChunk = GetChunkFromPosition(x, z);
-                return (WorkChunk[x & 0xf, y, z & 0xf]);
-            }
-            set
-            {
-                Chunk WorkChunk = GetChunkFromPosition(x, z);
-                WorkChunk[x & 0xf, y, z & 0xf] = value;
-            }
-        }
 
         public void Dispose()
         {
