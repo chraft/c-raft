@@ -456,16 +456,16 @@ namespace Chraft
         }
 
         public AutoResetEvent NetworkSignal = new AutoResetEvent(true);
-        private int _AsyncAccepts = 0;
-        private Task _ReadClientsPackets;
-        private Task _SendClientPackets;
-        private Task _DisposeClients;
+        private int _asyncAccepts = 0;
+        private Task _readClientsPackets;
+        private Task _sendClientPackets;
+        private Task _disposeClients;
 
         private void RunNetwork()
         {
             while (NetworkSignal.WaitOne())
             {
-                int accepts = Interlocked.CompareExchange(ref _AsyncAccepts, 1, 0);
+                int accepts = Interlocked.CompareExchange(ref _asyncAccepts, 1, 0);
 
                 if (accepts == 0)
                 {
@@ -474,23 +474,20 @@ namespace Chraft
                     _Listener.AcceptAsync(_AcceptEventArgs);
                 }
 
-                if (RecvClientQueue.Count > 0 && (_ReadClientsPackets == null || _ReadClientsPackets.IsCompleted))
+                if (RecvClientQueue.Count > 0 && (_readClientsPackets == null || _readClientsPackets.IsCompleted))
                 {
                     //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting ProcessReadQueue");
-                    _ReadClientsPackets = new Task(ProcessReadQueue);
-                    _ReadClientsPackets.Start();
+                    _readClientsPackets = Task.Factory.StartNew(ProcessReadQueue);
                 }
 
-                if(ClientsToDispose.Count > 0 && (_DisposeClients == null || _DisposeClients.IsCompleted))
+                if(ClientsToDispose.Count > 0 && (_disposeClients == null || _disposeClients.IsCompleted))
                 {
-                    _DisposeClients = new Task(DisposeClients);
-                    _DisposeClients.Start();
+                    _disposeClients = Task.Factory.StartNew(DisposeClients);
                 }
 
-                if(SendClientQueue.Count > 0 && (_SendClientPackets == null || _SendClientPackets.IsCompleted))
+                if(SendClientQueue.Count > 0 && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
                 {
-                    _SendClientPackets = new Task(ProcessSendQueue);
-                    _SendClientPackets.Start();
+                    _sendClientPackets = Task.Factory.StartNew(ProcessSendQueue);
                 }
             }
         }
@@ -534,7 +531,7 @@ namespace Chraft
                 e.AcceptSocket.Close();
             }
 
-            Interlocked.Exchange(ref _AsyncAccepts, 0);
+            Interlocked.Exchange(ref _asyncAccepts, 0);
             NetworkSignal.Set();
         }
 

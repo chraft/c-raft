@@ -707,11 +707,11 @@ namespace Chraft.Net
             client.CheckAndUpdateChunks(packet.X, packet.Z);
         }
 
-        private double _LastX;
-        private double _LastZ;
-        private int _MovementsArrived;
-        private Task _UpdateChunks;
-        private CancellationTokenSource _UpdateChunksToken;
+        private double _lastX;
+        private double _lastZ;
+        private int _movementsArrived;
+        private Task _updateChunks;
+        private CancellationTokenSource _updateChunksToken;
 
         public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
@@ -745,30 +745,29 @@ namespace Chraft.Net
 
         public void StopUpdateChunks()
         {
-            if (_UpdateChunksToken != null)
-                _UpdateChunksToken.Cancel();
+            if (_updateChunksToken != null)
+                _updateChunksToken.Cancel();
         }
 
         public void ScheduleUpdateChunks()
         {
-            _UpdateChunksToken = new CancellationTokenSource();
-            var token = _UpdateChunksToken.Token;
-            _UpdateChunks = new Task(() => _Player.UpdateChunks(Settings.Default.SightRadius, token), token);
-            _UpdateChunks.Start();
+            _updateChunksToken = new CancellationTokenSource();
+            var token = _updateChunksToken.Token;
+            _updateChunks = Task.Factory.StartNew(() => _Player.UpdateChunks(Settings.Default.SightRadius, token), token);
         }
 
         private void CheckAndUpdateChunks(double packetX, double packetZ)
         {
-            ++_MovementsArrived;
+            ++_movementsArrived;
 
-            if (_MovementsArrived % 8 == 0)
+            if (_movementsArrived % 8 == 0)
             {
-                double distance = Math.Pow(Math.Abs(packetX - _LastX), 2.0) + Math.Pow(Math.Abs(packetZ - _LastZ), 2.0);
-                _MovementsArrived = 0;
-                if (distance > 16 && (_UpdateChunks == null || _UpdateChunks.IsCompleted))
+                double distance = Math.Pow(Math.Abs(packetX - _lastX), 2.0) + Math.Pow(Math.Abs(packetZ - _lastZ), 2.0);
+                _movementsArrived = 0;
+                if (distance > 16 && (_updateChunks == null || _updateChunks.IsCompleted))
                 {
-                    _LastX = packetX;
-                    _LastZ = packetZ;
+                    _lastX = packetX;
+                    _lastZ = packetZ;
                     ScheduleUpdateChunks();
                 }
             }

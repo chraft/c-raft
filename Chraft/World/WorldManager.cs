@@ -44,19 +44,19 @@ namespace Chraft.World
         public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
 
         public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
-        private Task _PhysicsSimulationTask;
+        private Task _physicsSimulationTask;
         private Task _entityUpdateTask;
 
         public ConcurrentQueue<ChunkBase> ChunksToSave;
 
-        private CancellationTokenSource _SaveToken;
+        private CancellationTokenSource _saveToken;
         public bool NeedsFullSave;
         public bool FullSaving;
 
-        private Task _GrowStuffTask;
-        private Task _CollectTask;
-        private Task _SaveTask;
-        private Task _Profile;
+        private Task _growStuffTask;
+        private Task _collectTask;
+        private Task _saveTask;
+        private Task _profile;
 
         private int _Time;
         private Chunk[] _ChunksCache;
@@ -288,11 +288,10 @@ namespace Chraft.World
         private void FullSave()
         {
             // Wait until the task has been canceled
-            _SaveTask.Wait();
+            _saveTask.Wait();
 
             int count = ChunksToSave.Count;
-            _SaveTask = new Task(() => SaveProc(count, CancellationToken.None));
-            _SaveTask.Start();
+            _saveTask = Task.Factory.StartNew(() => SaveProc(count, CancellationToken.None));
             NeedsFullSave = false;
             FullSaving = false;
         }
@@ -352,72 +351,65 @@ namespace Chraft.World
             if (WorldTicks % 10 == 0)
             {
                 // Triggered once every half second
-                Task pulse = new Task(Server.DoPulse);
-                pulse.Start();
+                Task.Factory.StartNew(Server.DoPulse);
             }
 
             if (NeedsFullSave)
             {
                 FullSaving = true;
-                if(_SaveTask != null && !_SaveTask.IsCompleted)
-                    _SaveToken.Cancel();
+                if(_saveTask != null && !_saveTask.IsCompleted)
+                    _saveToken.Cancel();
 
                 Task.Factory.StartNew(FullSave);
             }
             else if(WorldTicks % 20 == 0 && !FullSaving && ChunksToSave.Count > 0)
             {
-                if(_SaveTask == null || _SaveTask.IsCompleted)
+                if(_saveTask == null || _saveTask.IsCompleted)
                 {
-                    _SaveToken = new CancellationTokenSource();
-                    var token = _SaveToken.Token;
-                    _SaveTask = new Task(() => SaveProc(20, token), token);
-                    _SaveTask.Start();
+                    _saveToken = new CancellationTokenSource();
+                    var token = _saveToken.Token;
+                    _saveTask = Task.Factory.StartNew(() => SaveProc(20, token), token);
                 }
             }
            
             // Every 5 seconds
             if(WorldTicks % 100 == 0)
             {
-                if(_CollectTask == null || _CollectTask.IsCompleted)
+                if(_collectTask == null || _collectTask.IsCompleted)
                 {
-                    _CollectTask = new Task(CollectProc);
-                    _CollectTask.Start();
+                    _collectTask = Task.Factory.StartNew(CollectProc);
                 }
             }
 
             // Every 10 seconds
             if (WorldTicks % 200 == 0)
             {
-                if (_GrowStuffTask == null || _GrowStuffTask.IsCompleted)
+                if (_growStuffTask == null || _growStuffTask.IsCompleted)
                 {
-                    _GrowStuffTask = new Task(GrowProc);
-                    _GrowStuffTask.Start();
+                    _growStuffTask = Task.Factory.StartNew(GrowProc);
                 }
             }
    
             // Every Tick (50ms)
-            if (_PhysicsSimulationTask == null || _PhysicsSimulationTask.IsCompleted)
+            if (_physicsSimulationTask == null || _physicsSimulationTask.IsCompleted)
             {
-                _PhysicsSimulationTask = new Task(PhysicsProc);
-                _PhysicsSimulationTask.Start();
+                _physicsSimulationTask = Task.Factory.StartNew(PhysicsProc);
             }
 
 #if PROFILE
             // Must wait at least one second between calls to perf counter
             if (WorldTicks % 20 == 0)
             {
-                if(_Profile == null || _Profile.IsCompleted)
+                if(_profile == null || _profile.IsCompleted)
                 {
-                   _Profile = new Task(Profile);
-                   _Profile.Start();
+                    _profile = Task.Factory.StartNew(Profile);
                 }
             }
 #endif
 
             if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
             {
-                _entityUpdateTask = new Task(EntityProc);
-                _entityUpdateTask.Start();
+                _entityUpdateTask = Task.Factory.StartNew(EntityProc);
             }
         }
         

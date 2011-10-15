@@ -101,7 +101,7 @@ namespace Chraft.Net
 
             _SendSocketEvent.Completed += new EventHandler<SocketAsyncEventArgs>(Send_Completed);
 
-            new Task(Recv_Start).Start();
+            Task.Factory.StartNew(Recv_Start);
         }
 
         /*internal void AssociateInterface(Interface iface)
