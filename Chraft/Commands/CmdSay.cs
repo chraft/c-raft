@@ -12,7 +12,7 @@ namespace Chraft.Commands
 
         public ClientCommandHandler ClientCommandHandler { get; set; }
         public ServerCommandHandler ServerCommandHandler { get; set; }
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             client.Owner.Server.Broadcast(tokens.Aggregate("", (current, t) => current + (t + " ")));
         }
@@ -41,7 +41,7 @@ namespace Chraft.Commands
             get { return "chraft.say"; }
         }
 
-        public void Use(Server server, string[] tokens)
+        public void Use(Server server, string commandName, string[] tokens)
         {
             string message = "";
             //for loop that starts at one so that we do not include "say".

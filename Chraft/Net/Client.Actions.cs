@@ -130,16 +130,16 @@ namespace Chraft.Net
             }
             Logger.Log(Logger.LogLevel.Info, _Player.DisplayName + " issued server command: " + command);
             _Player.Server.Broadcast(_Player.DisplayName + " executed command " + command, this);
-            CommandProc(command, Chat.Tokenize(command));
+            CommandProc(baseCommand, command, Chat.Tokenize(command));
         }
 
-        private void CommandProc(string raw, string[] tokens)
+        private void CommandProc(string commandName, string raw, string[] tokens)
         {
             var cleanedTokens = tokens.Skip(1).ToArray();
             ClientCommand cmd;
             try
             {
-                cmd = _Player.Server.ClientCommandHandler.Find(raw) as ClientCommand;
+                cmd = _Player.Server.ClientCommandHandler.Find(commandName) as ClientCommand;
             }
             catch (CommandNotFoundException e)
             {
@@ -155,7 +155,7 @@ namespace Chraft.Net
                 cleanedTokens = e.Tokens;
                 //End Event
 
-                cmd.Use(this, cleanedTokens);
+                cmd.Use(this, commandName, cleanedTokens);
             }
             catch (Exception e)
             {

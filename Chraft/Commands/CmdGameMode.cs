@@ -10,7 +10,7 @@ namespace Chraft.Commands
 
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             switch (tokens.Length)
             {

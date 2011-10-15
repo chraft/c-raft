@@ -8,7 +8,7 @@ namespace Chraft.Commands
     public interface ServerCommand : Command
     {
         ServerCommandHandler ServerCommandHandler { get; set; }
-        void Use(Server server, string[] tokens);
+        void Use(Server server, string commandName, string[] tokens);
         void Help(Server server);
     }
 }

@@ -9,7 +9,7 @@ namespace Chraft.Commands
     public interface ClientCommand : Command
     {
         ClientCommandHandler ClientCommandHandler { get; set; }
-        void Use(Client client, string[] tokens);
+        void Use(Client client,string commandName, string[] tokens);
         void Help(Client client);
     }
 }

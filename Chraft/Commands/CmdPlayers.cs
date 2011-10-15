@@ -10,7 +10,7 @@ namespace Chraft.Commands
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             client.SendMessage("Online Players: " + client.Owner.Server.Clients.Count);
             foreach (Client c in client.Owner.Server.GetAuthenticatedClients())

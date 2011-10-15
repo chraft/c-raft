@@ -11,7 +11,7 @@ namespace Chraft.Commands
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             int newTime = -1;
             if (tokens.Length < 1)

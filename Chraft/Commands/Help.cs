@@ -16,7 +16,7 @@ namespace Chraft.Commands
         public CommandType Type { get { return CommandType.Information; } }
         public string Permission{get { return "chraft.help"; }}
 
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             if (tokens.Length == 0)
             {
@@ -117,7 +117,7 @@ namespace Chraft.Commands
             client.SendMessage("helps");
         }
 
-        public void Use(Server server, string[] tokens)
+        public void Use(Server server, string commandName, string[] tokens)
         {
             if (tokens.Length == 0)
             {
@@ -188,7 +188,7 @@ namespace Chraft.Commands
                         ServerCommand cmd;
                         try
                         {
-                            cmd = ServerCommandHandler.Find(tokens[1]) as ServerCommand;
+                            cmd = ServerCommandHandler.Find(tokens[0]) as ServerCommand;
                         }
                         catch (CommandNotFoundException e) { server.Logger.Log(Logger.LogLevel.Info, e.Message); return; }
                         try

@@ -31,7 +31,7 @@ namespace Chraft.Commands
             get { return "chraft.stop"; }
         }
 
-        public void Use(Server server, string[] tokens)
+        public void Use(Server server, string commandName, string[] tokens)
         {
             server.Broadcast("The server is shutting down.");
             server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
@@ -49,7 +49,7 @@ namespace Chraft.Commands
         {
             server.Logger.Log(Logger.LogLevel.Info, "Shuts down the server.");
         }
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             client.Owner.Server.Broadcast("The server is shutting down.");
             client.Owner.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");

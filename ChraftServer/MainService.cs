@@ -92,7 +92,7 @@ namespace ChraftServer
                             //TODO: Clean this up
                             break;
                         }
-                        cmd.Use(Server, inputParts);
+                        cmd.Use(Server, inputParts[0], inputParts);
                     }
                     catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }
                     catch (Exception e)

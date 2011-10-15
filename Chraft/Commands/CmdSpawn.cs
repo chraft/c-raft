@@ -11,7 +11,7 @@ namespace Chraft.Commands
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string[] tokens)
+        public void Use(Client client, string commandName, string[] tokens)
         {
             client.Owner.TeleportTo(UniversalCoords.ToAbsWorld(client.Owner.World.Spawn));
         }

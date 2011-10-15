@@ -32,7 +32,7 @@ namespace Chraft.World
         {
             _minimum = Vector3.Origin;
             _maximum = Vector3.Origin;
-            System.Diagnostics.Debug.Assert(minimum <= maximum, "Minimum must be less than or equal to Maximum");
+           // System.Diagnostics.Debug.Assert(minimum <= maximum, "Minimum must be less than or equal to Maximum");
             this.Minimum = minimum;
             this.Maximum = maximum;
         }

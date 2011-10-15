@@ -128,7 +128,7 @@ namespace Chraft.Net
         {
             if (Running)
             {
-                if ((DateTime.Now - LastClientResponse).TotalSeconds > 60)
+                if ((DateTime.Now - LastClientResponse).TotalSeconds > 5)
                 {
                     // Client hasn't sent or responded to a keepalive within 60secs
                     this.Stop();
