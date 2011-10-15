@@ -140,7 +140,6 @@
     <Compile Include="Net\StreamRole.cs" />
     <Compile Include="NibbleArray.cs" />
     <Compile Include="Permissions.cs" />
-    <Compile Include="Player.cs" />
     <Compile Include="Plugins\Events\Args\BlockEventArgs.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\Listener\BlockListener.cs" />
@@ -378,6 +377,8 @@
     <Compile Include="World\WorldManager.cs" />
     <Compile Include="World\BoundingBox.cs" />
     <Compile Include="World\Direction.cs" />
+    <Compile Include="Entity\LivingEntity.cs" />
+    <Compile Include="Entity\Player.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

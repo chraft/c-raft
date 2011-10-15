@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using Chraft.Net.Packets;
 using Chraft.Persistence;
 using Chraft.World;
+using Chraft.Entity;
 
 
 namespace Chraft.Interfaces

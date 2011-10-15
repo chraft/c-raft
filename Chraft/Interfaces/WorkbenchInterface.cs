@@ -6,6 +6,7 @@ using Chraft.Interfaces.Recipes;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.World;
+using Chraft.Entity;
 
 namespace Chraft.Interfaces
 {

@@ -12,7 +12,7 @@ namespace Chraft.Entity
 		public short ItemId { get; set; }
 		public sbyte Count { get; set; }
 		public short Durability { get; set; }
-
+              
 		public ItemEntity(Server server, int entityId)
 			: base(server, entityId)
 		{

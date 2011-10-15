@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using Chraft.Net;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
+using Chraft.Entity;
 
 namespace Chraft.Interfaces
 {

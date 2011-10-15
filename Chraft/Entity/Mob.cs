@@ -10,7 +10,7 @@ using Chraft.Utils;
 
 namespace Chraft.Entity
 {
-	public abstract partial class Mob : EntityBase
+	public abstract partial class Mob : LivingEntity
 	{
         public abstract string Name { get; }
 

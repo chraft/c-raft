@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Chraft.Commands;
 using Chraft.Net;
+using Chraft.Entity;
 
 
 namespace Chraft.Utils
