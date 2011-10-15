@@ -164,7 +164,7 @@ namespace Chraft.Entity
                 Vector3 coordsOffset = new Vector3(absWorldCoords.X - (double)coords.WorldX, absWorldCoords.Y - (double)coords.WorldY, absWorldCoords.Z - (double)coords.WorldZ);
                 
                 double adjustment = double.MaxValue;
-                Direction? moveDirection;
+                Direction? moveDirection = null;
                 
                 // Calculate the smallest distance needed to move the entity out of the block
                 coords.ForAdjacent((aCoord, direction) => {
