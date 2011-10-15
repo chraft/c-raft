@@ -20,11 +20,6 @@ namespace Chraft.Entity
                
             this.Height = 0.25f;
             this.Width = 0.25f;
-            
-            // Produce a random Velocity for new item
-//            Velocity.X = (float)(Server.Rand.NextDouble() * 0.2 - 0.1);
-//            Velocity.Y = 0.2;
-//            Velocity.Z = (float)(Server.Rand.NextDouble() * 0.2 - 0.1);   
 		}
   
         protected override void DoUpdate()
@@ -33,11 +28,23 @@ namespace Chraft.Entity
             
             Velocity.Y -= 0.04;
             
-            // TODO: push item out of blocks
+            PushOutOfBlocks(new AbsWorldCoords(this.Position.X, (this.BoundingBox.Minimum.Y + this.BoundingBox.Maximum.Y) / 2.0, this.Position.Z));
             
             ApplyVelocity(this.Velocity);
             
+            double friction = 0.98;
+            if (OnGround)
+            {
+                friction = 0.58;
+                
+                // TODO: adjust based on Block friction
+            }
+            Velocity.X *= friction;
             Velocity.Y *= 0.98;
+            Velocity.Z *= friction;
+            
+            if (OnGround)
+                Velocity.Y *= -0.5;
         }   
 	}
 }

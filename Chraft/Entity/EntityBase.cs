@@ -153,6 +153,92 @@ namespace Chraft.Entity
             
         }
         
+        protected virtual void PushOutOfBlocks(AbsWorldCoords absWorldCoords)
+        {
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(absWorldCoords);
+            
+            BlockBase blockClass = BlockHelper.Instance(this.World.GetBlockId(coords));
+            if (blockClass.IsOpaque && blockClass.IsSolid)
+            {
+                // The offset within World (int) coords
+                Vector3 coordsOffset = new Vector3(absWorldCoords.X - (double)coords.WorldX, absWorldCoords.Y - (double)coords.WorldY, absWorldCoords.Z - (double)coords.WorldZ);
+                
+                double adjustment = double.MaxValue;
+                Direction? moveDirection;
+                
+                // Calculate the smallest distance needed to move the entity out of the block
+                coords.ForAdjacent((aCoord, direction) => {
+                    var adjacentBlockClass = BlockHelper.Instance(this.World.GetBlockId(aCoord));
+                    
+                    if (!(adjacentBlockClass.IsOpaque && adjacentBlockClass.IsSolid))
+                    {
+                        switch (direction)
+                        {
+                            case Direction.South:
+                                if (coordsOffset.X < adjustment)
+                                {
+                                    moveDirection = Direction.South;
+                                    adjustment = coordsOffset.X;
+                                }
+                                break;
+                            case Direction.North:
+                                if (1.0 - coordsOffset.X < adjustment)
+                                {
+                                    moveDirection = Direction.North;
+                                    adjustment = 1.0 - coordsOffset.X;
+                                }
+                                break;
+                            case Direction.Down:
+                                if (coordsOffset.Y < adjustment)
+                                {
+                                    moveDirection = Direction.Down;
+                                    adjustment = coordsOffset.Y;
+                                }
+                                break;
+                            case Direction.Up:
+                                if (1.0 - coordsOffset.Y < adjustment)
+                                {
+                                    moveDirection = Direction.Up;
+                                    adjustment = 1.0 - coordsOffset.Y;
+                                }
+                                break;                                
+                            case Direction.East:
+                                if (coordsOffset.Z < adjustment)
+                                {
+                                    moveDirection = Direction.East;
+                                    adjustment = coordsOffset.Z;
+                                }
+                                break;
+                            case Direction.West:
+                                if (coordsOffset.Z < adjustment)
+                                {
+                                    moveDirection = Direction.West;
+                                    adjustment = 1.0 - coordsOffset.Z;
+                                }
+                                break;
+                        }
+                    }
+                });
+                
+                double motion = this.Server.Rand.NextDouble() * 0.2 + 0.1;
+                if (moveDirection.HasValue)
+                {
+                    if (moveDirection.Value == Direction.South)
+                        this.Velocity.X = -motion;
+                    else if (moveDirection.Value == Direction.North)
+                        this.Velocity.X = motion;
+                    else if (moveDirection.Value == Direction.Down)
+                        this.Velocity.Y = -motion;
+                    else if (moveDirection.Value == Direction.Up)
+                        this.Velocity.Y = motion;
+                    else if (moveDirection.Value == Direction.East)
+                        this.Velocity.Z = -motion;
+                    else if (moveDirection.Value == Direction.West)
+                        this.Velocity.Z = motion;
+                }
+            }
+        }
+        
         /// <summary>
         /// Applies the specified velocity to this entity.
         /// </summary>

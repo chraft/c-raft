@@ -64,7 +64,25 @@ namespace Chraft.World
             BlockPackedCoords = 0;
             ChunkPackedCoords = packedChunk;
         }
-
+  
+        /// <summary>
+        /// Execute the action for each adjacent coordinate in the order: South, North, Down, Up, East, West.
+        /// </summary>
+        /// <param name='action'>
+        /// Action.
+        /// </param>
+        public void ForAdjacent(Action<UniversalCoords, Direction> action)
+        {
+            action(UniversalCoords.FromWorld(this.WorldX - 1, this.WorldY, this.WorldZ), Direction.South);
+            action(UniversalCoords.FromWorld(this.WorldX + 1, this.WorldY, this.WorldZ), Direction.North);
+            if (this.BlockY > 0)
+                action(UniversalCoords.FromWorld(this.WorldX, this.WorldY - 1, this.WorldZ), Direction.Down);
+            if (this.BlockY < 127)
+                action(UniversalCoords.FromWorld(this.WorldX, this.WorldY + 1, this.WorldZ), Direction.Up);
+            action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ - 1), Direction.East);
+            action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ + 1), Direction.West);
+        }
+                    
         public static UniversalCoords FromWorld(int worldX, int worldY, int worldZ)
         {
             return new UniversalCoords(worldX, worldY, worldZ);
@@ -73,6 +91,11 @@ namespace Chraft.World
         public static UniversalCoords FromAbsWorld(double worldX, double worldY, double worldZ)
         {
             return new UniversalCoords((int)Math.Floor(worldX), (int)Math.Floor(worldY), (int)Math.Floor(worldZ));
+        }
+        
+        public static UniversalCoords FromAbsWorld(AbsWorldCoords absWorldCoords)
+        {
+            return FromAbsWorld(absWorldCoords.X, absWorldCoords.Y, absWorldCoords.Z);
         }
 
         public static UniversalCoords FromBlock(int chunkX, int chunkZ, int blockX, int blockY, int blockZ)
