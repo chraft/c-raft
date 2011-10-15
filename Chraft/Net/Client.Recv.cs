@@ -234,15 +234,15 @@ namespace Chraft.Net
                 {
                     //may need to do something here
                     return;
-                } 
+                }
                 else
                 {
                     if (packet.Slot != -1)// mouse cursor mode
                     {
                         client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
                     }
-                    
-                   
+
+
                 }
             else
                 client.Kick("Invalid action: CreativeInventoryAction");
@@ -281,7 +281,7 @@ namespace Chraft.Net
 
         public static void HandleTransactionPacket(Client client, TransactionPacket packet)
         {
-           //todo-something?
+            //todo-something?
         }
 
         #region Use
@@ -736,10 +736,10 @@ namespace Chraft.Net
             BlockData.Blocks blockId = (BlockData.Blocks)client.Owner.World.GetBlockId(packet.X, packet.Y, packet.Z);
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
-            if(blockId == BlockData.Blocks.Sign_Post)
+            if (blockId == BlockData.Blocks.Sign_Post)
             {
-               BlockSignPost sign = (BlockSignPost)BlockHelper.Instance((byte) blockId);
-               sign.SaveText(coords, client.Owner, packet.Lines);
+                BlockSignPost sign = (BlockSignPost)BlockHelper.Instance((byte)blockId);
+                sign.SaveText(coords, client.Owner, packet.Lines);
             }
         }
 
@@ -794,7 +794,6 @@ namespace Chraft.Net
         public static void HandlePacketHandshake(Client client, HandshakePacket packet)
         {
             client.Owner.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
-            client.Owner.DisplayName = client.Owner.Username;
             client.SendHandshake();
         }
 

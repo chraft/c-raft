@@ -14,6 +14,7 @@ namespace Chraft.Net
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()
         {
+            if (string.IsNullOrEmpty(_Player.Username) && string.IsNullOrEmpty(_Player.DisplayName)) { return; } //we are the server ping
             if (!File.Exists(DataFile))
                 return;
 
@@ -52,6 +53,7 @@ namespace Chraft.Net
 
         private void Save()
         {
+            if (string.IsNullOrEmpty(_Player.Username) && string.IsNullOrEmpty(_Player.DisplayName)) { return;} //we are the server ping
             if (!Directory.Exists(Folder))
                 Directory.CreateDirectory(Folder);
 
@@ -70,7 +72,7 @@ namespace Chraft.Net
                         Yaw = _Player.Yaw,
                         Pitch = _Player.Pitch,
                         GameMode = _Player.GameMode,
-                        DisplayName = _Player.DisplayName,
+                        DisplayName = string.IsNullOrEmpty(_Player.DisplayName) ? _Player.Username : _Player.DisplayName ,
                         Health = _Player.Health,
                         Food = _Player.Food,
                         FoodSaturation = _Player.FoodSaturation
