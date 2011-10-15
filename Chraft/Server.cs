@@ -476,7 +476,6 @@ namespace Chraft
 
                 if (RecvClientQueue.Count > 0 && (_readClientsPackets == null || _readClientsPackets.IsCompleted))
                 {
-                    //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting ProcessReadQueue");
                     _readClientsPackets = Task.Factory.StartNew(ProcessReadQueue);
                 }
 

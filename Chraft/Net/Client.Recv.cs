@@ -177,7 +177,7 @@ namespace Chraft.Net
             try
             {
                 bool pending = _Socket.ReceiveAsync(_RecvSocketEvent);
-
+                _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
                 if (!pending)
                     Recv_Process(_RecvSocketEvent);
             }

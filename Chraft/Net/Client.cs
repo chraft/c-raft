@@ -47,6 +47,8 @@ namespace Chraft.Net
 
         private object _DisposeLock = new object();
 
+        private DateTime _nextActivityCheck;
+
         public Player Owner
         {
             get { return _Player; }
@@ -77,6 +79,7 @@ namespace Chraft.Net
             _CurrentBuffer = new ByteQueue();
             _ProcessedBuffer = new ByteQueue();
             _FragPackets = new ByteQueue();
+            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5.0);
             //PacketHandler = new PacketHandler(Server, socket);
         }
 
@@ -128,7 +131,7 @@ namespace Chraft.Net
         {
             if (Running)
             {
-                if ((DateTime.Now - LastClientResponse).TotalSeconds > 5)
+                if ((DateTime.Now - LastClientResponse).TotalSeconds > 60)
                 {
                     // Client hasn't sent or responded to a keepalive within 60secs
                     this.Stop();
@@ -140,20 +143,20 @@ namespace Chraft.Net
             }
         }
 
+        public void CheckAlive()
+        {
+            if(DateTime.Now > _nextActivityCheck)
+                Stop();
+        }
+
         /// <summary>
         /// Stop reading packets from the client, and kill the keep-alive timer.
         /// </summary>
         public void Stop()
         {
-            _Player.Ready = false;
             MarkToDispose();
             DisposeRecvSystem();
             DisposeSendSystem();
-            if (KeepAliveTimer != null)
-            {
-                KeepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                KeepAliveTimer = null;
-            }
         }
 
         /// <summary>
@@ -200,7 +203,9 @@ namespace Chraft.Net
 
             if(_Player.LoggedIn)
                 Save();
+
             _Player.LoggedIn = false;
+            _Player.Ready = false;
 
             _Player.Server.RemoveClient(this);
             _Player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _Player.Server.Clients.Count);
@@ -210,6 +215,12 @@ namespace Chraft.Net
                 Chunk chunk = _Player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
                 if (chunk != null)
                     chunk.RemoveClient(this);
+            }
+
+            if (KeepAliveTimer != null)
+            {
+                KeepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                KeepAliveTimer = null;
             }
 
             RecvBufferPool.ReleaseBuffer(_RecvBuffer);

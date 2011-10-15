@@ -272,6 +272,8 @@ namespace Chraft.World
 
         private void CollectProc()
         {
+            CheckAliveClients();
+
             Chunk[] chunks = GetChunks();
             foreach (Chunk c in chunks)
             {
@@ -283,6 +285,11 @@ namespace Chraft.World
                 c.Save();
                 Chunks.Remove(c);
             }
+        }
+
+        public void CheckAliveClients()
+        {
+            Parallel.ForEach(Server.GetAuthenticatedClients(), (c) => c.CheckAlive());
         }
 
         private void FullSave()

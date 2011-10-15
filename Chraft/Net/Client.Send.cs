@@ -50,6 +50,8 @@ namespace Chraft.Net
 
             bool pending = _Socket.SendAsync(_SendSocketEvent);
 
+            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+
             if (!pending)
                 Send_Completed(null, _SendSocketEvent);
         }
