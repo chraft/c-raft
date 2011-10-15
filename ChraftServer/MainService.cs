@@ -63,7 +63,6 @@ namespace ChraftServer
         public void Run(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledException_Handler;
-
             //Configure service current directory and managers
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -83,6 +82,7 @@ namespace ChraftServer
                 {
                     string input = Console.ReadLine();
                     if (Server == null) return;
+                    if (input == null) return;
                     string[] inputParts = input.Split();
                     try
                     {

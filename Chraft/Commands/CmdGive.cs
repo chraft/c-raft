@@ -26,7 +26,7 @@ namespace Chraft.Commands
                 return;
             }
 
-            if (tokens[1].Contains(':'))
+            if (tokens[0].Contains(':'))
             {
                 itemName = tokens[0].Split(':')[0].Trim();
                 short.TryParse(tokens[0].Split(':')[0].Trim(), out metaData);
@@ -72,7 +72,7 @@ namespace Chraft.Commands
                 {
                     // OR trying to give something to a player(s)
                     who.AddRange(client.Owner.Server.GetClients(tokens[0]));
-                    if (tokens[2].Contains(':'))
+                    if (tokens[1].Contains(':'))
                     {
                         itemName = tokens[1].Split(':')[0].Trim();
                         short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);

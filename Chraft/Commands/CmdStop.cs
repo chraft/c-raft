@@ -35,10 +35,6 @@ namespace Chraft.Commands
         {
             server.Broadcast("The server is shutting down.");
             server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
-            foreach (var client in server.GetClients())
-            {
-                client.Kick("Server is shutting down");
-            }
             Thread.Sleep(5000);
             server.Stop();
             Thread.Sleep(10);
@@ -53,10 +49,6 @@ namespace Chraft.Commands
         {
             client.Owner.Server.Broadcast("The server is shutting down.");
             client.Owner.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
-            foreach (var cl in client.Owner.Server.GetClients())
-            {
-                cl.Kick("Server is shutting down");
-            }
             Thread.Sleep(5000);
             client.Owner.Server.Stop();
             Thread.Sleep(10);
