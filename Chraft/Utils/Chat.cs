@@ -6,6 +6,27 @@ using System.Text.RegularExpressions;
 
 namespace Chraft.Utils
 {
+    //Cheat enum since enums can't be strings.
+    public static class ChatColor
+    {
+        public static string Black = "§0",
+        DarkBlue = " §1",
+        DarkGreen = " §2",
+        DarkTeal = " §3",
+        DarkRed = " §4",
+        Purple = " §5",
+        Gold = " §6",
+        Gray = " §7",
+        DarkGray = " §8",
+        Blue = " §9",
+        BrightGreen = " §a",
+        Teal = " §b",
+        Red = " §c",
+        Pink = " §d",
+        Yellow = " §e",
+        White = " §f";
+    }
+    
     internal static class Chat
     {
         internal const string DISALLOWED = @"[^0-9a-zA-Z""!-/:-@\[-_{-~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜø£Ø×ƒáíóúñÑªº¿®¬½¼¡«»§ ]";
@@ -27,24 +48,4 @@ namespace Chraft.Utils
 			return command.Split(new[] { ' ' });
 		}
 	}
-
-    public enum Colors
-    {
-        Black = 0x0,
-        DarkBlue = 0x1,
-        DarkGreen = 0x2,
-        DarkAqua = 0x3,
-        DarkRed = 0x4,
-        DarkPurple = 0x5,
-        Gold = 0x6,
-        Gray = 0x7,
-        DarkGray = 0x8,
-        Blue = 0x9,
-        Green = 0xA,
-        Aqua = 0xB,
-        Red = 0xC,
-        LightPurple = 0xD,
-        Yellow = 0xE,
-        White = 0xF
-    }
 }

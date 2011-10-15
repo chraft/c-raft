@@ -15,30 +15,9 @@ using Chraft.Utils;
 using Chraft.World;
 using Chraft.Net;
 
-namespace Chraft
+namespace Chraft.Entity
 {
-    //Cheat enum since enums can't be strings.
-    public static class ChatColor
-    {
-        public static string Black = "§0",
-        DarkBlue = "§1",
-        DarkGreen = "§2",
-        DarkTeal = "§3",
-        DarkRed = "§4",
-        Purple = "§5",
-        Gold = "§6",
-        Gray = "§7",
-        DarkGray = "§8",
-        Blue = "§9",
-        BrightGreen = "§a",
-        Teal = "§b",
-        Red = "§c",
-        Pink = "§d",
-        Yellow = "§e",
-        White = "§f";
-    }
-
-    public class Player : EntityBase
+    public class Player : LivingEntity
     {
         public ConcurrentDictionary<int, Chunk> LoadedChunks = new ConcurrentDictionary<int, Chunk>();
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
