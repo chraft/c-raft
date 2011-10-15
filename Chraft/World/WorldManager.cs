@@ -403,6 +403,11 @@ namespace Chraft.World
                 _physicsSimulationTask = Task.Factory.StartNew(PhysicsProc);
             }
 
+            if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
+            {
+                _entityUpdateTask = Task.Factory.StartNew(EntityProc);
+            }
+
 #if PROFILE
             // Must wait at least one second between calls to perf counter
             if (WorldTicks % 20 == 0)
@@ -413,11 +418,6 @@ namespace Chraft.World
                 }
             }
 #endif
-
-            if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
-            {
-                _entityUpdateTask = Task.Factory.StartNew(EntityProc);
-            }
         }
         
 #if PROFILE
