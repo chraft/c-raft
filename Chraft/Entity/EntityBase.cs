@@ -287,6 +287,8 @@ namespace Chraft.Entity
             // TODO: notify blocks of collisions + play sounds
             BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
             
+            Vector3 thisPosition = this.Position.ToVector();
+            
             // Notify blocks of collisions with an entity
             UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
             UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
@@ -303,8 +305,51 @@ namespace Chraft.Entity
                             {
                                 var blockClass = BlockHelper.Instance(block.Type);
                                 
-                                // TODO: calculate the face based on this.Position -> x,y,z
-                                blockClass.Touch(this, block, BlockFace.North);
+                                #region Calculate closest face of block (precedence, x, z, y)
+                                Vector3 v = thisPosition - new Vector3(x, y, z);
+                                
+                                double vx = Math.Abs(v.X);
+                                double vy = Math.Abs(v.Y);
+                                double vz = Math.Abs(v.Z);
+                                
+                                BlockFace face = BlockFace.North;
+                                
+                                if (vx <= vy && vx <= vz)
+                                {
+                                    if (v.X > 0.0)
+                                    {
+                                        face = BlockFace.North;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.South;
+                                    }
+                                }
+                                else if (vz <= vx && vz <= vy)
+                                {
+                                    if (v.Z > 0.0)
+                                    {
+                                        face = BlockFace.West;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.East;
+                                    }
+                                }
+                                else if (vy <= vx && vy <= vz)
+                                {
+                                    if (v.Y > 0.0)
+                                    {
+                                        face = BlockFace.Up;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.Down;
+                                    }
+                                }
+                                #endregion
+                                
+                                blockClass.Touch(this, block, face);
                             }
                         }
                     }

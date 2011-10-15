@@ -30,6 +30,11 @@ namespace Chraft.World.Blocks
         }
         
         public static readonly StructBlock Empty;
+        
+        public override string ToString()
+        {
+            return string.Format("Type {0}, Coords {1}", this.Type, this.Coords);
+        }
     }
 
     public abstract class BlockBase : IBlockBase

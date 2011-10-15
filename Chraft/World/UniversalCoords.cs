@@ -82,6 +82,11 @@ namespace Chraft.World
             action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ - 1), Direction.East);
             action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ + 1), Direction.West);
         }
+        
+        public override string ToString()
+        {
+            return string.Format("[UniversalCoords: WorldX={0}, WorldY={1}, WorldZ={2}]", WorldX, WorldY, WorldZ);
+        }
                     
         public static UniversalCoords FromWorld(int worldX, int worldY, int worldZ)
         {
