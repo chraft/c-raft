@@ -24,7 +24,7 @@ namespace Chraft.World.Blocks
         {
             if (face == BlockFace.Down)
                 return;
-            byte blockId = targetBlock.World.GetBlockId(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
+            byte blockId = targetBlock.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
             // We can place the dead bush only on the sand
             if (blockId != (byte)BlockData.Blocks.Sand)
                 return;

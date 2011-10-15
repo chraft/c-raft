@@ -700,22 +700,22 @@ namespace Chraft.World
 
         public void ForAdjacent(UniversalCoords coords, ForEachBlock predicate)
         {
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX - 1, coords.WorldY, coords.WorldZ));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX + 1, coords.WorldY, coords.WorldZ));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY, coords.WorldZ - 1));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY, coords.WorldZ + 1));
+            predicate(UniversalCoords.FromWorld(coords.WorldX - 1, coords.WorldY, coords.WorldZ));
+            predicate(UniversalCoords.FromWorld(coords.WorldX + 1, coords.WorldY, coords.WorldZ));
+            predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY, coords.WorldZ - 1));
+            predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY, coords.WorldZ + 1));
             if (coords.BlockY > 0)
-                predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ));
+                predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ));
             if (coords.BlockY < 127)
-                predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ));
+                predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ));
         }
 
         public void ForNSEW(UniversalCoords coords, ForEachBlock predicate)
         {
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX - 1, coords.WorldY, coords.WorldZ));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX + 1, coords.WorldY, coords.WorldZ));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY, coords.WorldZ - 1));
-            predicate(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY, coords.WorldZ + 1));
+            predicate(UniversalCoords.FromWorld(coords.WorldX - 1, coords.WorldY, coords.WorldZ));
+            predicate(UniversalCoords.FromWorld(coords.WorldX + 1, coords.WorldY, coords.WorldZ));
+            predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY, coords.WorldZ - 1));
+            predicate(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY, coords.WorldZ + 1));
         }
 
         public bool IsAdjacentTo(UniversalCoords coords, byte block)
@@ -744,7 +744,7 @@ namespace Chraft.World
             if (GetType(coords) == BlockData.Blocks.Cactus)
                 return;
 
-            if (GetType(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY - 3, coords.WorldZ)) == BlockData.Blocks.Cactus)
+            if (GetType(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 3, coords.WorldZ)) == BlockData.Blocks.Cactus)
                 return;
 
             if (!IsNSEWTo(coords, (byte)BlockData.Blocks.Air))
@@ -773,7 +773,7 @@ namespace Chraft.World
 
         private void GrowDirt(UniversalCoords coords)
         {
-            if (coords.WorldY >= 127 || IsAir(UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ)))
+            if (coords.WorldY >= 127 || IsAir(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ)))
                 return;
 
             if (World.Server.Rand.Next(30) != 0)
@@ -784,7 +784,7 @@ namespace Chraft.World
 
         private void SpawnMob(UniversalCoords coords)
         {
-            UniversalCoords oneUp = UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
+            UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
             if (GetType(coords) != BlockData.Blocks.Air)
                 return;
 

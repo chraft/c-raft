@@ -58,7 +58,7 @@ namespace Chraft.World.Blocks
             if (block.Coords.WorldY == 127)
                 return false;
 
-            UniversalCoords oneUp = UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             byte blockId = block.World.GetBlockId(oneUp);
             if (blockId != (byte)BlockData.Blocks.Air)
                 return false;
@@ -67,7 +67,7 @@ namespace Chraft.World.Blocks
             int cactusHeightBelow = 0;
             for (int i = block.Coords.WorldY - 1; i >= 0; i--)
             {
-                if (block.World.GetBlockId(UniversalCoords.FromAbsWorld(block.Coords.WorldX, i, block.Coords.WorldZ)) != (byte)BlockData.Blocks.Cactus)
+                if (block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, i, block.Coords.WorldZ)) != (byte)BlockData.Blocks.Cactus)
                     break;
                 cactusHeightBelow++;
             }
@@ -94,7 +94,7 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block))
                 return;
 
-            UniversalCoords oneUp = UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
 
             if (block.MetaData < 0xe) // 14
             {

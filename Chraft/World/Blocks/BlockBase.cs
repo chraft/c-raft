@@ -204,13 +204,13 @@ namespace Chraft.World.Blocks
         {
             List<UniversalCoords> blocks = new List<UniversalCoords>(6);
             if (block.Coords.WorldY < 127)
-                blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
+                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
             if (block.Coords.WorldY > 0)
-                blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX - 1, block.Coords.WorldY, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX + 1, block.Coords.WorldY, block.Coords.WorldZ));
-            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ - 1));
-            blocks.Add(UniversalCoords.FromAbsWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ + 1));
+                blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX - 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX + 1, block.Coords.WorldY, block.Coords.WorldZ));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ - 1));
+            blocks.Add(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY, block.Coords.WorldZ + 1));
             byte blockId = 0;
             byte blockMeta = 0;
             foreach (var coords in blocks)

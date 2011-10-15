@@ -49,7 +49,7 @@ namespace Chraft.World.Blocks.Physics
             }
             else
             {
-                UniversalCoords aboveBlockCoords = UniversalCoords.FromAbsWorld(currentBlockCoords.WorldX,
+                UniversalCoords aboveBlockCoords = UniversalCoords.FromWorld(currentBlockCoords.WorldX,
                                                                              currentBlockCoords.WorldY + 1,
                                                                              currentBlockCoords.WorldZ);
                 StructBlock aboveBlock = new StructBlock(aboveBlockCoords, BlockId, 0, World);

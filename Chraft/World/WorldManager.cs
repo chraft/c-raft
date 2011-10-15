@@ -111,7 +111,7 @@ namespace Chraft.World
             if ((chunk = Chunks[worldX >> 4, worldZ >> 4]) != null)
                 return chunk;
 
-            return load ? LoadChunk(UniversalCoords.FromAbsWorld(worldX, 0, worldZ), create, recalculate) : null;
+            return load ? LoadChunk(UniversalCoords.FromWorld(worldX, 0, worldZ), create, recalculate) : null;
         }
 
         public Chunk GetChunkFromAbs(double absX, double absZ, bool create, bool load, bool recalculate = true)
@@ -137,8 +137,8 @@ namespace Chraft.World
         {
             List<BoundingBox > collidingBoundingBoxes = new List<BoundingBox>();
 
-            UniversalCoords minimumBlockXYZ = UniversalCoords.FromAbsWorld((int)Math.Floor(boundingBox.Minimum.X), (int)Math.Floor(boundingBox.Minimum.Y), (int)Math.Floor(boundingBox.Minimum.Z));
-            UniversalCoords maximumBlockXYZ = UniversalCoords.FromAbsWorld((int)Math.Floor(boundingBox.Maximum.X + 1.0D), (int)Math.Floor(boundingBox.Maximum.Y + 1.0D), (int)Math.Floor(boundingBox.Maximum.Z + 1.0D));
+            UniversalCoords minimumBlockXYZ = UniversalCoords.FromAbsWorld(boundingBox.Minimum.X, boundingBox.Minimum.Y, boundingBox.Minimum.Z);
+            UniversalCoords maximumBlockXYZ = UniversalCoords.FromAbsWorld(boundingBox.Maximum.X + 1.0D, boundingBox.Maximum.Y + 1.0D, boundingBox.Maximum.Z + 1.0D);
 
             for (int x = minimumBlockXYZ.WorldX; x < maximumBlockXYZ.WorldX; x++)
             {
@@ -259,12 +259,12 @@ namespace Chraft.World
 
         private void InitializeSpawn()
         {
-            Spawn = UniversalCoords.FromAbsWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
+            Spawn = UniversalCoords.FromWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
             for (int i = 127; i > 0; i--)
             {
                 if (GetBlockOrLoad(Spawn.WorldX, i, Spawn.WorldZ) != 0)
                 {
-                    Spawn = UniversalCoords.FromAbsWorld(Spawn.WorldX, i + 4, Spawn.WorldZ);
+                    Spawn = UniversalCoords.FromWorld(Spawn.WorldX, i + 4, Spawn.WorldZ);
                     break;
                 }
             }
@@ -695,7 +695,7 @@ namespace Chraft.World
         private void UpdatePhysics(UniversalCoords coords, bool updateClients = true)
         {
             BlockData.Blocks type = (BlockData.Blocks)GetBlockId(coords);
-            UniversalCoords oneDown = UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
+            UniversalCoords oneDown = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
 
             if (type == BlockData.Blocks.Water)
             {
@@ -720,7 +720,7 @@ namespace Chraft.World
 
             if (type == BlockData.Blocks.Air)
             {
-                UniversalCoords oneUp = UniversalCoords.FromAbsWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
+                UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                 if (coords.WorldY < 127 && (GetBlockId(oneUp) == (byte)BlockData.Blocks.Water || GetBlockId(oneUp) == (byte)BlockData.Blocks.Still_Water))
                 {
                     SetBlockAndData(coords, (byte)BlockData.Blocks.Water, 0);
@@ -824,7 +824,7 @@ namespace Chraft.World
                     break;
             }
 
-            return UniversalCoords.FromAbsWorld(bx, by, bz);
+            return UniversalCoords.FromWorld(bx, by, bz);
         }
     }
 }

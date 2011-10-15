@@ -405,7 +405,7 @@ namespace Chraft.Net
             if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            UniversalCoords packetCoords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords packetCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
             BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(packetCoords); // Get block being built against.
             byte adjacentBlockData = player.World.GetBlockData(packetCoords);
@@ -562,7 +562,7 @@ namespace Chraft.Net
                             player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
                         }
 
-                        player.World.Update(UniversalCoords.FromAbsWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
+                        player.World.Update(UniversalCoords.FromWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
                     }
                     break;
             }
@@ -589,7 +589,7 @@ namespace Chraft.Net
             //  if (!Permissions.CanPlayerBuild(Username)) return;
             // Using activeslot provides current item info wtihout having to maintain ActiveItem
 
-            UniversalCoords coords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
             if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
@@ -635,7 +635,7 @@ namespace Chraft.Net
         {
             Player player = client.Owner;
 
-            UniversalCoords coords = UniversalCoords.FromAbsWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
             byte type = player.World.GetBlockId(coords);
             byte data = player.World.GetBlockData(coords);
