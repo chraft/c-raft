@@ -285,6 +285,32 @@ namespace Chraft.Entity
             #endregion
             
             // TODO: notify blocks of collisions + play sounds
+            BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
+            
+            // Notify blocks of collisions with an entity
+            UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
+            UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
+            if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
+            {
+                for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
+                {
+                    for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
+                    {
+                        for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
+                        {
+                            var block = this.World.GetBlock(x, y, z);
+                            if (block.Type > 0)
+                            {
+                                var blockClass = BlockHelper.Instance(block.Type);
+                                
+                                // TODO: calculate the face based on this.Position -> x,y,z
+                                blockClass.Touch(this, block, BlockFace.North);
+                            }
+                        }
+                    }
+                }
+            }
+            
             
             // TODO: check for proximity to fire
         }
