@@ -196,13 +196,13 @@ namespace Chraft.World
                     // If the collision is on the same X or Z axis, then adjust the Y movement
                     if (collision.IsVectorWithinXZ(offsetBB.Minimum) || collision.IsVectorWithinXZ(offsetBB.Maximum))
                     {
-                        if (motion.Y > 0.0d && collision.Maximum.Y <= offsetBB.Minimum.Y)
+                        if (motion.Y > 0.0d && offsetBB.Maximum.Y <= collision.Minimum.Y)
                         {
-                            motion.Y = Math.Min(motion.Y, offsetBB.Minimum.Y - collision.Maximum.Y);
+                            motion.Y = Math.Min(motion.Y, collision.Minimum.Y - offsetBB.Maximum.Y);
                         }
-                        else if (motion.Y < 0.0d && collision.Minimum.Y >= offsetBB.Maximum.Y)
+                        else if (motion.Y < 0.0d && offsetBB.Minimum.Y >= collision.Maximum.Y)
                         {
-                            motion.Y = Math.Max(motion.Y, offsetBB.Maximum.Y - collision.Minimum.Y);
+                            motion.Y = Math.Max(motion.Y, collision.Maximum.Y - offsetBB.Minimum.Y);
                         }
                     }
                 }
@@ -218,13 +218,13 @@ namespace Chraft.World
                     // If the collision is on the same Y or Z axis, then adjust the X movement
                     if (collision.IsVectorWithinYZ(offsetBB.Minimum) || collision.IsVectorWithinYZ(offsetBB.Maximum))
                     {
-                        if (motion.X > 0.0d && collision.Maximum.X <= offsetBB.Minimum.X)
+                        if (motion.X > 0.0d && offsetBB.Maximum.X <= collision.Minimum.X)
                         {
-                            motion.X = Math.Min(motion.X, offsetBB.Minimum.X - collision.Maximum.X);
+                            motion.X = Math.Min(motion.X, collision.Minimum.X - offsetBB.Maximum.X);
                         }
-                        else if (motion.X < 0.0d && collision.Minimum.X >= offsetBB.Maximum.X)
+                        else if (motion.X < 0.0d && offsetBB.Minimum.X >= collision.Maximum.X)
                         {
-                            motion.X = Math.Max(motion.X, offsetBB.Maximum.X - collision.Minimum.X);
+                            motion.X = Math.Max(motion.X, collision.Maximum.X - offsetBB.Minimum.X);
                         }
                     }
                 }
@@ -240,13 +240,13 @@ namespace Chraft.World
                     // If the collision is on the same Y or Z axis, then adjust the X movement
                     if (collision.IsVectorWithinXY(offsetBB.Minimum) || collision.IsVectorWithinXY(offsetBB.Maximum))
                     {
-                        if (motion.Z > 0.0d && collision.Maximum.Z <= offsetBB.Minimum.Z)
+                        if (motion.Z > 0.0d && offsetBB.Maximum.Z <= collision.Minimum.Z)
                         {
-                            motion.Z = Math.Min(motion.Z, offsetBB.Minimum.Z - collision.Maximum.Z);
+                            motion.Z = Math.Min(motion.Z, collision.Minimum.Z - offsetBB.Maximum.Z);
                         }
-                        else if (motion.Z < 0.0d && collision.Minimum.Z >= offsetBB.Maximum.Z)
+                        else if (motion.Z < 0.0d && offsetBB.Minimum.Z >= collision.Maximum.Z)
                         {
-                            motion.Z = Math.Max(motion.Z, offsetBB.Maximum.Z - collision.Minimum.Z);
+                            motion.Z = Math.Max(motion.Z, collision.Maximum.Z - offsetBB.Minimum.Z);
                         }
                     }
                 }

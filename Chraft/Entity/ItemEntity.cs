@@ -22,20 +22,22 @@ namespace Chraft.Entity
             this.Width = 0.25f;
             
             // Produce a random Velocity for new item
-            Velocity.X = (float)(Server.Rand.Next() * 0.2 - 0.1);
-            Velocity.Y = 0.2;
-            Velocity.Z = (float)(Server.Rand.Next() * 0.2 - 0.1);   
+//            Velocity.X = (float)(Server.Rand.NextDouble() * 0.2 - 0.1);
+//            Velocity.Y = 0.2;
+//            Velocity.Z = (float)(Server.Rand.NextDouble() * 0.2 - 0.1);   
 		}
   
-        public override void Update()
+        protected override void DoUpdate()
         {
-            base.Update();
+            base.DoUpdate();
             
             Velocity.Y -= 0.04;
             
             // TODO: push item out of blocks
             
             ApplyVelocity(this.Velocity);
+            
+            Velocity.Y *= 0.98;
         }   
 	}
 }

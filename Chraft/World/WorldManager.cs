@@ -156,7 +156,7 @@ namespace Chraft.World
                             if (blockBox.IntersectsWith(boundingBox))
                             {
                                 collidingBoundingBoxes.Add(blockBox);
-                            }   
+                            }
                         }
                     }
                 }

@@ -63,7 +63,7 @@ namespace Chraft.World.Blocks
         /// <value>
         /// <c>true</c> if block is collidable; otherwise, <c>false</c>.
         /// </value>
-        public bool IsCollidable { get; protected set; }
+        public bool IsCollidable { get { return IsSolid; } }
 
         /// <summary>
         /// Is the block liquid
@@ -140,6 +140,7 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 0;
             LootTable = new List<ItemStack>();
             Luminance = 0;
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
         /// <summary>
