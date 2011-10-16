@@ -32,7 +32,7 @@ namespace Chraft.Net
 
             //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());
 
-            _Player.Server.NetworkSignal.Set();
+            _player.Server.NetworkSignal.Set();
         }
 
         public void Send_Async(byte[] data)
@@ -44,16 +44,16 @@ namespace Chraft.Net
             }
 
             if (data[0] == (byte)PacketType.Disconnect)
-                _SendSocketEvent.Completed += Disconnected;
+                _sendSocketEvent.Completed += Disconnected;
 
-            _SendSocketEvent.SetBuffer(data, 0, data.Length);
+            _sendSocketEvent.SetBuffer(data, 0, data.Length);
 
-            bool pending = _Socket.SendAsync(_SendSocketEvent);
+            bool pending = _socket.SendAsync(_sendSocketEvent);
 
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
 
             if (!pending)
-                Send_Completed(null, _SendSocketEvent);
+                Send_Completed(null, _sendSocketEvent);
         }
 
         public void Send_Sync(byte[] data)
@@ -63,7 +63,7 @@ namespace Chraft.Net
                 DisposeSendSystem();
                 return;
             }
-            _Socket.Send(data, data.Length, 0);
+            _socket.Send(data, data.Length, 0);
         }
 
         public void Send_Start(Packet packet = null)
@@ -151,19 +151,19 @@ namespace Chraft.Net
 
         internal void SendPulse()
         {
-            if(_Player.LoggedIn)
+            if(_player.LoggedIn)
             {
                 SendPacket(new TimeUpdatePacket
                 {
-                    Time = _Player.World.Time
+                    Time = _player.World.Time
                 });
-                _Player.SynchronizeEntities();
+                _player.SynchronizeEntities();
             }
         }
 
         internal void SendBlock(int x, int y, int z, byte type, byte data)
         {
-            if (_Player.LoggedIn)
+            if (_player.LoggedIn)
             {
                 SendPacket(new BlockChangePacket
                 {
@@ -193,9 +193,9 @@ namespace Chraft.Net
                 {
                     for (int dz = 0; dz < w; dz++)
                     {
-                        byte? type = _Player.World.GetBlockOrNull(x + dx, y + dy, z + dz);
+                        byte? type = _player.World.GetBlockOrNull(x + dx, y + dy, z + dz);
                         if (type != null)
-                            SendBlock(x + dx, y + dy, z + dz, type.Value, _Player.World.GetBlockData(x + dx, y + dy, z + dz));
+                            SendBlock(x + dx, y + dy, z + dz, type.Value, _player.World.GetBlockData(x + dx, y + dy, z + dz));
                     }
                 }
             }
@@ -203,7 +203,7 @@ namespace Chraft.Net
 
         private void SendMotd()
         {
-            string MOTD = Settings.Default.MOTD.Replace("%u", _Player.DisplayName);
+            string MOTD = Settings.Default.MOTD.Replace("%u", _player.DisplayName);
             SendMessage(MOTD);
         }
 
@@ -214,10 +214,10 @@ namespace Chraft.Net
         {
             SendPacket(new LoginRequestPacket
             {
-                ProtocolOrEntityId = _Player.SessionID,
-                Dimension = _Player.World.Dimension,
+                ProtocolOrEntityId = _player.SessionID,
+                Dimension = _player.World.Dimension,
                 Username = "",
-                MapSeed = _Player.World.Seed,
+                MapSeed = _player.World.Seed,
                 WorldHeight = 128,
                 MaxPlayers = 50,
                 Unknown = 2
@@ -228,7 +228,7 @@ namespace Chraft.Net
         {
             SendPacket(new TimeUpdatePacket
             {
-                Time = _Player.World.Time
+                Time = _player.World.Time
             });
         }
 
@@ -236,11 +236,11 @@ namespace Chraft.Net
         {
             SendPacket(new PlayerPositionRotationPacket
             {
-                X = _Player.Position.X,
-                Y = _Player.Position.Y + Player.EyeGroundOffset,
-                Z = _Player.Position.Z,
-                Yaw = (float)_Player.Yaw,
-                Pitch = (float)_Player.Pitch,
+                X = _player.Position.X,
+                Y = _player.Position.Y + Player.EyeGroundOffset,
+                Z = _player.Position.Z,
+                Yaw = (float)_player.Yaw,
+                Pitch = (float)_player.Pitch,
                 Stance = Stance,
                 OnGround = false
             });
@@ -250,9 +250,9 @@ namespace Chraft.Net
         {
             SendPacket(new SpawnPositionPacket
             {
-                X = _Player.World.Spawn.WorldX,
-                Y = _Player.World.Spawn.WorldY,
-                Z = _Player.World.Spawn.WorldZ
+                X = _player.World.Spawn.WorldX,
+                Y = _player.World.Spawn.WorldY,
+                Z = _player.World.Spawn.WorldZ
             });
         }
 
@@ -261,7 +261,7 @@ namespace Chraft.Net
             SendPacket(new HandshakePacket
             {
 
-                UsernameOrHash = (_Player.Server.UseOfficalAuthentication ? _Player.Server.ServerHash : "-")
+                UsernameOrHash = (_player.Server.UseOfficalAuthentication ? _player.Server.ServerHash : "-")
                 //UsernameOrHash = "-" // No authentication
                 //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
             });
@@ -269,20 +269,20 @@ namespace Chraft.Net
 
         public void SendLoginSequence()
         {
-            _Player.Permissions = _Player.PermHandler.LoadClientPermission(this);
+            _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
             StartKeepAliveTimer();
             SendLoginRequest();
             SendSpawnPosition();
             SendInitialTime();
             // This must be sent sync otherwise we will fall through them
-            _Player.UpdateChunks(2, true, CancellationToken.None);
+            _player.UpdateChunks(2, true, CancellationToken.None);
             SendInitialPosition();
             SendInitialTime();
             SetGameMode();
-            _Player.InitializeInventory();
-            _Player.InitializeHealth();
-            _Player.OnJoined();
+            _player.InitializeInventory();
+            _player.InitializeHealth();
+            _player.OnJoined();
             SendMotd();
         }
 

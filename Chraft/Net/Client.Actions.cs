@@ -69,12 +69,12 @@ namespace Chraft.Net
         {
             //Event
             ClientPreChatEventArgs e1 = new ClientPreChatEventArgs(this, clean);
-            _Player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_CHAT, e1);
+            _player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_CHAT, e1);
             if (e1.EventCanceled) return;
             clean = e1.Message;
             //End Event
 
-            if (_Player.IsMuted)
+            if (_player.IsMuted)
             {
                 SendMessage("You have been muted");
                 return;
@@ -84,13 +84,13 @@ namespace Chraft.Net
             {
                 //Event
                 ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
-                _Player.Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
+                _player.Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
                 if (e2.EventCanceled) return;
                 clean = e2.Message;
                 //End Event
 
-                _Player.Server.Broadcast(Chat.Format(_Player.DisplayName, clean));
-                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", _Player.DisplayName, clean);
+                _player.Server.Broadcast(Chat.Format(_player.DisplayName, clean));
+                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", _player.DisplayName, clean);
             }
         }
 
@@ -114,7 +114,7 @@ namespace Chraft.Net
         {
             //Event
             ClientPreCommandEventArgs e = new ClientPreCommandEventArgs(this, command);
-            _Player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_COMMAND, e);
+            _player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_COMMAND, e);
             if (e.EventCanceled) return;
             command = e.Command;
             //End Event
@@ -123,13 +123,13 @@ namespace Chraft.Net
             string baseCommand = command;
             if (argsPos != -1)
                 baseCommand = command.Substring(0, command.IndexOf(" "));
-            if (!_Player.CanUseCommand(baseCommand))
+            if (!_player.CanUseCommand(baseCommand))
             {
                 SendMessage("You do not have permission to use that command");
                 return;
             }
-            Logger.Log(Logger.LogLevel.Info, _Player.DisplayName + " issued server command: " + command);
-            _Player.Server.Broadcast(_Player.DisplayName + " executed command " + command, this);
+            Logger.Log(Logger.LogLevel.Info, _player.DisplayName + " issued server command: " + command);
+            _player.Server.Broadcast(_player.DisplayName + " executed command " + command, this);
             CommandProc(baseCommand, command, Chat.Tokenize(command));
         }
 
@@ -139,7 +139,7 @@ namespace Chraft.Net
             ClientCommand cmd;
             try
             {
-                cmd = _Player.Server.ClientCommandHandler.Find(commandName) as ClientCommand;
+                cmd = _player.Server.ClientCommandHandler.Find(commandName) as ClientCommand;
             }
             catch (CommandNotFoundException e)
             {
@@ -150,7 +150,7 @@ namespace Chraft.Net
             {
                 //Event
                 ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, cleanedTokens);
-                _Player.Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
+                _player.Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
                 if (e.EventCanceled) return;
                 cleanedTokens = e.Tokens;
                 //End Event
@@ -160,7 +160,7 @@ namespace Chraft.Net
             catch (Exception e)
             {
                 SendMessage("There was an error while executing the command.");
-                _Player.Server.Logger.Log(e);
+                _player.Server.Logger.Log(e);
             }
         }
     }

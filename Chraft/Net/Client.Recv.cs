@@ -55,11 +55,11 @@ namespace Chraft.Net
                     _onGround = value;
 
                     // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)_Player.World.GetBlockId(UniversalCoords.FromAbsWorld(_Player.Position.X, _Player.Position.Y, _Player.Position.Z));
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)_player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
 
                     if (!_onGround)
                     {
-                        _beginInAirY = _Player.Position.Y;
+                        _beginInAirY = _player.Position.Y;
                         _inAirStartTime = DateTime.Now;
 #if DEBUG
                         this.SendMessage("In air");
@@ -73,18 +73,18 @@ namespace Chraft.Net
 
                         double blockCount = 0;
 
-                        if (_lastGroundY < _Player.Position.Y)
+                        if (_lastGroundY < _player.Position.Y)
                         {
                             // We have climbed (using _lastGroundY gives us a more accurate value than using _beginInAirY when climbing)
-                            blockCount = (_lastGroundY - _Player.Position.Y);
+                            blockCount = (_lastGroundY - _player.Position.Y);
                         }
                         else
                         {
                             // We have fallen
                             double startY = Math.Max(_lastGroundY, _beginInAirY);
-                            blockCount = (startY - _Player.Position.Y);
+                            blockCount = (startY - _player.Position.Y);
                         }
-                        _lastGroundY = _Player.Position.Y;
+                        _lastGroundY = _player.Position.Y;
 
                         if (blockCount != 0)
                         {
@@ -103,7 +103,7 @@ namespace Chraft.Net
                                 while (BlockHelper.Instance((byte)block).IsLiquid)
                                 {
                                     waterCount++;
-                                    block = (BlockData.Blocks)_Player.World.GetBlockId((int)_Player.Position.X, (int)_Player.Position.Y + waterCount, (int)_Player.Position.Z);
+                                    block = (BlockData.Blocks)_player.World.GetBlockId((int)_player.Position.X, (int)_player.Position.Y + waterCount, (int)_player.Position.Z);
                                 }
 
                                 fallDamage -= waterCount * 16;
@@ -114,7 +114,7 @@ namespace Chraft.Net
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
                                     DamageClient(DamageCause.Fall, roundedValue);
 
-                                    if (_Player.Health <= 0)
+                                    if (_player.Health <= 0)
                                     {
                                         // Make sure that we don't think we have fallen onto the respawn
                                         _lastGroundY = -1;
@@ -156,12 +156,12 @@ namespace Chraft.Net
         {
             lock (_QueueSwapLock)
             {
-                ByteQueue temp = _CurrentBuffer;
-                _CurrentBuffer = _ProcessedBuffer;
-                _ProcessedBuffer = temp;
+                ByteQueue temp = _currentBuffer;
+                _currentBuffer = _processedBuffer;
+                _processedBuffer = temp;
             }
 
-            return _ProcessedBuffer;
+            return _processedBuffer;
         }
 
         private void Recv_Start()
@@ -176,14 +176,14 @@ namespace Chraft.Net
 
             try
             {
-                bool pending = _Socket.ReceiveAsync(_RecvSocketEvent);
+                bool pending = _socket.ReceiveAsync(_recvSocketEvent);
                 _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
                 if (!pending)
-                    Recv_Process(_RecvSocketEvent);
+                    Recv_Process(_recvSocketEvent);
             }
             catch (Exception e)
             {
-                _Player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
+                _player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
                 MarkToDispose();
                 DisposeRecvSystem();
             }
@@ -195,14 +195,14 @@ namespace Chraft.Net
             if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
             {
                 lock (_QueueSwapLock)
-                    _CurrentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
+                    _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
                 int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
 
                 if ((newValue - 1) == 0)
                     Server.RecvClientQueue.Enqueue(this);
 
-                _Player.Server.NetworkSignal.Set();
+                _player.Server.NetworkSignal.Set();
 
                 Recv_Start();
             }
@@ -753,7 +753,7 @@ namespace Chraft.Net
         {
             _updateChunksToken = new CancellationTokenSource();
             var token = _updateChunksToken.Token;
-            _updateChunks = Task.Factory.StartNew(() => _Player.UpdateChunks(Settings.Default.SightRadius, token), token);
+            _updateChunks = Task.Factory.StartNew(() => _player.UpdateChunks(Settings.Default.SightRadius, token), token);
         }
 
         private void CheckAndUpdateChunks(double packetX, double packetZ)
