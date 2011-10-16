@@ -10,23 +10,23 @@ namespace Chraft.Net
     {
         private static XmlSerializer Xml = new XmlSerializer(typeof(ClientSurrogate));
         internal string Folder { get { return Settings.Default.PlayersFolder; } }
-        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + _Player.Username + ".xml"; } }
+        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + _player.Username + ".xml"; } }
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()
         {
-            if (string.IsNullOrEmpty(_Player.Username) && string.IsNullOrEmpty(_Player.DisplayName)) { return; } //we are the server ping
+            if (string.IsNullOrEmpty(_player.Username) && string.IsNullOrEmpty(_player.DisplayName)) { return; } //we are the server ping
             if (!File.Exists(DataFile))
                 return;
 
             ClientSurrogate client;
             using (FileStream rx = File.OpenRead(DataFile))
                 client = (ClientSurrogate)Xml.Deserialize(rx);
-            _Player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y + 1, client.Z);
-            _Player.Yaw = client.Yaw;
-            _Player.Pitch = client.Pitch;
+            _player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y + 1, client.Z);
+            _player.Yaw = client.Yaw;
+            _player.Pitch = client.Pitch;
             if (client.Inventory != null)
             {
-                _Player.Inventory = new Inventory {Handle = 0};
+                _player.Inventory = new Inventory {Handle = 0};
                 ItemStack[] slots = new ItemStack[client.Inventory.SlotCount];
 
                 for (short i = 0; i < client.Inventory.SlotCount; i++)
@@ -40,20 +40,20 @@ namespace Chraft.Net
                         slots[i].Slot = i;
                     }
                     // Using the default indexer on Inventory ensures all event handlers are correctly hooked up
-                    _Player.Inventory[i] = slots[i];
+                    _player.Inventory[i] = slots[i];
                 }
-                _Player.Inventory.Associate(_Player);
+                _player.Inventory.Associate(_player);
             }
-            _Player.GameMode = client.GameMode;
-            _Player.Health = client.Health;
-            _Player.Food = client.Food;
-            _Player.FoodSaturation = client.FoodSaturation;
-            _Player.DisplayName = client.DisplayName;
+            _player.GameMode = client.GameMode;
+            _player.Health = client.Health;
+            _player.Food = client.Food;
+            _player.FoodSaturation = client.FoodSaturation;
+            _player.DisplayName = client.DisplayName;
         }
 
         private void Save()
         {
-            if (string.IsNullOrEmpty(_Player.Username) && string.IsNullOrEmpty(_Player.DisplayName)) { return;} //we are the server ping
+            if (string.IsNullOrEmpty(_player.Username) && string.IsNullOrEmpty(_player.DisplayName)) { return;} //we are the server ping
             if (!Directory.Exists(Folder))
                 Directory.CreateDirectory(Folder);
 
@@ -65,17 +65,17 @@ namespace Chraft.Net
                 {
                     Xml.Serialize(tx, new ClientSurrogate
                     {
-                        Inventory = _Player.Inventory,
-                        X = _Player.Position.X,
-                        Y = _Player.Position.Y,
-                        Z = _Player.Position.Z,
-                        Yaw = _Player.Yaw,
-                        Pitch = _Player.Pitch,
-                        GameMode = _Player.GameMode,
-                        DisplayName = string.IsNullOrEmpty(_Player.DisplayName) ? _Player.Username : _Player.DisplayName ,
-                        Health = _Player.Health,
-                        Food = _Player.Food,
-                        FoodSaturation = _Player.FoodSaturation
+                        Inventory = _player.Inventory,
+                        X = _player.Position.X,
+                        Y = _player.Position.Y,
+                        Z = _player.Position.Z,
+                        Yaw = _player.Yaw,
+                        Pitch = _player.Pitch,
+                        GameMode = _player.GameMode,
+                        DisplayName = string.IsNullOrEmpty(_player.DisplayName) ? _player.Username : _player.DisplayName ,
+                        Health = _player.Health,
+                        Food = _player.Food,
+                        FoodSaturation = _player.FoodSaturation
                     });
                     tx.Flush();
                     tx.Close();
