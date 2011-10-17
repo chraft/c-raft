@@ -237,7 +237,7 @@ namespace Chraft.Net
             SendPacket(new PlayerPositionRotationPacket
             {
                 X = _Player.Position.X,
-                Y = _Player.Position.Y + Player.EyeGroundOffset,
+                Y = _Player.Position.Y + this._Player.EyeHeight,
                 Z = _Player.Position.Z,
                 Yaw = (float)_Player.Yaw,
                 Pitch = (float)_Player.Pitch,

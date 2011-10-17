@@ -335,6 +335,82 @@ namespace Chraft.World
                    boundingBox.Maximum.Z > Minimum.Z && boundingBox.Minimum.Z < Maximum.Z;
         }
         
+        public RayTraceHit RayTraceIntersection(Vector3 startSegment, Vector3 endSegment)
+        {
+            // Plane intersection
+            
+            Vector3? northIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.XAxis);
+            Vector3? southIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.XAxis);
+            Vector3? topIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.YAxis);
+            Vector3? bottomIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.YAxis);
+            Vector3? westIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.ZAxis);
+            Vector3? eastIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.ZAxis);
+            
+            // Check each intersection to be sure it lies within the other axis as well
+            if (northIntersection.HasValue && !this.IsVectorWithinYZ(northIntersection.Value))
+            {
+                northIntersection = null;
+            }
+            if (southIntersection.HasValue && !this.IsVectorWithinYZ(southIntersection.Value))
+            {
+                southIntersection = null;
+            }
+            if (topIntersection.HasValue && !this.IsVectorWithinXZ(topIntersection.Value))
+            {
+                topIntersection = null;
+            }
+            if (bottomIntersection.HasValue && !this.IsVectorWithinXZ(bottomIntersection.Value))
+            {
+                bottomIntersection = null;
+            }
+            if (westIntersection.HasValue && !this.IsVectorWithinXY(westIntersection.Value))
+            {
+                westIntersection = null;
+            }
+            if (eastIntersection.HasValue && !this.IsVectorWithinXY(eastIntersection.Value))
+            {
+                eastIntersection = null;
+            }
+            
+            Vector3? rayHitPoint = null;
+            BlockFace faceHit = BlockFace.Self;
+            if (northIntersection != null)
+            {
+                rayHitPoint = northIntersection;
+                faceHit = BlockFace.North;
+            }
+            if (southIntersection != null && (rayHitPoint == null || startSegment.DistanceSquared(southIntersection.Value) < startSegment.DistanceSquared(rayHitPoint.Value)))
+            {
+                rayHitPoint = southIntersection;
+                faceHit = BlockFace.South;
+            }
+            if (topIntersection != null && (rayHitPoint == null || startSegment.DistanceSquared(topIntersection.Value) < startSegment.DistanceSquared(rayHitPoint.Value)))
+            {
+                rayHitPoint = topIntersection;
+                faceHit = BlockFace.Up;
+            }
+            if (bottomIntersection != null && (rayHitPoint == null || startSegment.DistanceSquared(bottomIntersection.Value) < startSegment.DistanceSquared(rayHitPoint.Value)))
+            {
+                rayHitPoint = bottomIntersection;
+                faceHit = BlockFace.Down;
+            }
+            if (westIntersection != null && (rayHitPoint == null || startSegment.DistanceSquared(westIntersection.Value) < startSegment.DistanceSquared(rayHitPoint.Value)))
+            {
+                rayHitPoint = westIntersection;
+                faceHit = BlockFace.West;
+            }
+            if (eastIntersection != null && (rayHitPoint == null || startSegment.DistanceSquared(eastIntersection.Value) < startSegment.DistanceSquared(rayHitPoint.Value)))
+            {
+                rayHitPoint = eastIntersection;
+                faceHit = BlockFace.East;
+            }
+            
+            if (rayHitPoint != null)
+                return new RayTraceHit(rayHitPoint.Value, faceHit);
+            else
+                return null;
+        }
+        
         #endregion
         
         public override string ToString()

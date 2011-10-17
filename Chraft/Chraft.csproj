@@ -379,6 +379,8 @@
     <Compile Include="World\Direction.cs" />
     <Compile Include="Entity\LivingEntity.cs" />
     <Compile Include="Entity\Player.cs" />
+    <Compile Include="World\RayTraceHit.cs" />
+    <Compile Include="Commands\Debug\DbgRayTrace.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

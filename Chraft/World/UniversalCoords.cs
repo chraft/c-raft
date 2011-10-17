@@ -66,6 +66,45 @@ namespace Chraft.World
         }
   
         /// <summary>
+        /// Determines whether a specified instance of <see cref="UniversalCoords"/> is equal to another specified <see cref="UniversalCoords"/>.
+        /// </summary>
+        /// <param name='left'>
+        /// The first <see cref="UniversalCoords"/> to compare.
+        /// </param>
+        /// <param name='right'>
+        /// The second <see cref="UniversalCoords"/> to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <c>left</c> and <c>right</c> are equal; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool operator ==(UniversalCoords left, UniversalCoords right)
+        {
+            return left.WorldX == right.WorldX && left.WorldY == right.WorldY && left.BlockZ == right.WorldZ;
+        }
+        
+        /// <summary>
+        /// Determines whether a specified instance of <see cref="UniversalCoords"/> is not equal to another specified <see cref="UniversalCoords"/>.
+        /// </summary>
+        /// <param name='left'>
+        /// The first <see cref="UniversalCoords"/> to compare.
+        /// </param>
+        /// <param name='right'>
+        /// The second <see cref="UniversalCoords"/> to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <c>left</c> and <c>right</c> are not equal; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool operator !=(UniversalCoords left, UniversalCoords right)
+        {
+            return !(left == right);
+        }
+  
+        /// <summary>
+        /// The empty UniversalCoords (0,0,0).
+        /// </summary>
+        public static UniversalCoords Empty;
+  
+        /// <summary>
         /// Execute the action for each adjacent coordinate in the order: South, North, Down, Up, East, West.
         /// </summary>
         /// <param name='action'>
@@ -85,7 +124,7 @@ namespace Chraft.World
         
         public override string ToString()
         {
-            return string.Format("[UniversalCoords: WorldX={0}, WorldY={1}, WorldZ={2}]", WorldX, WorldY, WorldZ);
+            return string.Format("[WorldX={0}, WorldY={1}, WorldZ={2}]", WorldX, WorldY, WorldZ);
         }
                     
         public static UniversalCoords FromWorld(int worldX, int worldY, int worldZ)

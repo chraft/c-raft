@@ -54,8 +54,11 @@ namespace Chraft.Entity
         /// Is the client muted from chat
         /// </summary>
         public bool IsMuted { get; set; }
-
-        public const double EyeGroundOffset = 1.6200000047683716;
+  
+        public override float EyeHeight 
+        {
+            get { return 1.62f; }
+        }
 
         public bool Ready { get; set; }
 
@@ -76,7 +79,7 @@ namespace Chraft.Entity
             World = Server.GetDefaultWorld();
             Position = new AbsWorldCoords(
                 World.Spawn.WorldX,
-                World.Spawn.WorldY + EyeGroundOffset,
+                World.Spawn.WorldY + this.EyeHeight,
                 World.Spawn.WorldZ);
         }
         public void InitializeInventory()
@@ -166,7 +169,7 @@ namespace Chraft.Entity
                     c.SendPacket(new PlayerPositionRotationPacket
                     {
                         X = absCoords.X,
-                        Y = absCoords.Y + Player.EyeGroundOffset,
+                        Y = absCoords.Y + this.EyeHeight,
                         Z = absCoords.Z,
                         Yaw = (float)this.Yaw,
                         Pitch = (float)this.Pitch,
@@ -274,7 +277,7 @@ namespace Chraft.Entity
 
             Position = new AbsWorldCoords(
                 World.Spawn.WorldX,
-                World.Spawn.WorldY + EyeGroundOffset,
+                World.Spawn.WorldY + this.EyeHeight,
                 World.Spawn.WorldZ);
 
             _Client.StopUpdateChunks();

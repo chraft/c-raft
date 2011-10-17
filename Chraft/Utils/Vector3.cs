@@ -773,7 +773,105 @@ namespace Chraft.Utils
         {
             return Interpolate(this, other, control);
         }
-
+  
+        const double cSmallNumber = 0.00000007; // the small number is used to avoid division overflows
+        
+        /// <summary>
+        /// Finds the intersection point for the line segment on plane.
+        /// </summary>
+        /// <returns>
+        /// The point where the line segment intersects with plane, null if the line segment does not intersect the plane.
+        /// </returns>
+        /// <param name='v1'>
+        /// The start of the segment
+        /// </param>
+        /// <param name='v2'>
+        /// The end of the segment
+        /// </param>
+        /// <param name='planePoint'>
+        /// A point on the plane.
+        /// </param>
+        /// <param name='planeNormal'>
+        /// The plane normal (e.g. Vector3.XAxis represents the normal for north facing plane)
+        /// </param>
+        /// <Acknowledgement>Adapted from "http://softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm#Line-Plane%20Intersection"</Acknowledgement>
+        public static Vector3? IntersectPointForSegmentAndPlane(Vector3 v1, Vector3 v2, Vector3 planePoint, Vector3 planeNormal)
+        {
+            // v1->v2 represent a line/ray/segment
+            Vector3 u = v2 - v1;
+            Vector3 w = v1 - planePoint;
+            
+            double D = planeNormal.DotProduct(u);
+            double N = -(planeNormal.DotProduct(w));
+            
+            if (Math.Abs(D) < cSmallNumber) // segment is parallel to plane
+            {
+                // if N == 0 the line segment is contained in the plane
+                // else no intersection
+                return null;
+            }
+            
+            // Not parallel so compute the intersect param
+            double sI = N / D;
+            if (sI < 0.0 || sI > 1.0) // no intersection
+                return null;
+                
+            return v1 + sI * u; // compute segement intersect point
+        }
+        
+        /// <summary>
+        /// Finds the intersection point for the line segment on plane.
+        /// </summary>
+        /// <returns>
+        /// The point where the line segment intersects with plane, null if the line segment does not intersect the plane.
+        /// </returns>
+        /// <param name='segmentEnd'>
+        /// The end of the segment
+        /// </param>
+        /// <param name='planePoint'>
+        /// A point on the plane.
+        /// </param>
+        /// <param name='planeNormal'>
+        /// The plane normal (e.g. Vector3.XAxis represents the normal for north facing plane)
+        /// </param>
+        public Vector3? IntersectPointForSegmentAndPlane(Vector3 segmentEnd, Vector3 planePoint, Vector3 planeNormal)
+        {
+            return IntersectPointForSegmentAndPlane(this, segmentEnd, planePoint, planeNormal);
+        }
+              
+        /// <summary>
+        /// Find the distance squared between two vectors.
+        /// </summary>
+        /// <returns>
+        /// The distance squared.
+        /// </returns>
+        /// <param name='v1'>
+        /// The Vector3 to find the distance from
+        /// </param>
+        /// <param name='v2'>
+        /// The Vector3 to find the distance to
+        /// </param>
+        public static double DistanceSquared(Vector3 v1, Vector3 v2)
+        {
+            return (v1.X - v2.X) * (v1.X - v2.X) +
+                   (v1.Y - v2.Y) * (v1.Y - v2.Y) +
+                   (v1.Z - v2.Z) * (v1.Z - v2.Z);
+        }
+        
+        /// <summary>
+        /// Find the distance squared between two vectors.
+        /// </summary>
+        /// <returns>
+        /// The distance squared.
+        /// </returns>
+        /// <param name='other'>
+        /// The Vector3 to find the distance to
+        /// </param>
+        public double DistanceSquared(Vector3 other)
+        {
+            return Vector3.DistanceSquared(this, other);
+        }
+                                
         /// <summary>
         /// Find the distance between two Vectors
         /// Pythagoras theorem on two Vectors
@@ -789,9 +887,7 @@ namespace Chraft.Utils
             (
                 Math.Sqrt
                 (
-                    (v1.X - v2.X) * (v1.X - v2.X) +
-                    (v1.Y - v2.Y) * (v1.Y - v2.Y) +
-                    (v1.Z - v2.Z) * (v1.Z - v2.Z)
+                    Vector3.DistanceSquared(v1, v2)
                 )
             );
         }

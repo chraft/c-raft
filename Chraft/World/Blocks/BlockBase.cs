@@ -6,6 +6,7 @@ using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
+using Chraft.Utils;
 
 namespace Chraft.World.Blocks
 {
@@ -26,7 +27,11 @@ namespace Chraft.World.Blocks
             Coords = coords;
             MetaData = metaData;
             World = world;
-            Chunk = World.GetBlockChunk(Coords);
+            Chunk = null;
+            if (World != null)
+            {
+                Chunk = World.GetBlockChunk(Coords);
+            }
         }
         
         public static readonly StructBlock Empty;
@@ -455,6 +460,21 @@ namespace Chraft.World.Blocks
             UniversalCoords coords = block.Coords;
             return new BoundingBox(coords.WorldX + this.BlockBoundsOffset.Minimum.X, coords.WorldY + this.BlockBoundsOffset.Minimum.Y, coords.WorldZ + this.BlockBoundsOffset.Minimum.Z,
                                    coords.WorldX + this.BlockBoundsOffset.Maximum.X, coords.WorldY + this.BlockBoundsOffset.Maximum.Y, coords.WorldZ + this.BlockBoundsOffset.Maximum.Z);
+        }
+        
+        public RayTraceHitBlock RayTraceIntersection(StructBlock block, Vector3 start, Vector3 end)
+        {
+            BoundingBox boundingBox = GetCollisionBoundingBox(block);
+            
+            RayTraceHit rayTraceHit = boundingBox.RayTraceIntersection(start, end);
+            if (rayTraceHit != null)
+            {
+                return new RayTraceHitBlock(block.Coords, rayTraceHit.FaceHit, rayTraceHit.Hit);
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

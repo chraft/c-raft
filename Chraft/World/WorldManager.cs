@@ -633,7 +633,45 @@ namespace Chraft.World
                 return null;
             return Chunks[worldX >> 4, worldZ >> 4][worldX & 0xF, worldY, worldZ & 0xF];
         }
-
+  
+        public RayTraceHitBlock RayTraceBlocks(AbsWorldCoords rayStart, AbsWorldCoords rayEnd)
+        {
+            UniversalCoords startCoord = UniversalCoords.FromAbsWorld(rayStart);
+            UniversalCoords endCoord = UniversalCoords.FromAbsWorld(rayEnd);
+            
+            // Interpolate along the ray looking for block collisions
+            UniversalCoords previousPoint = UniversalCoords.Empty;
+            UniversalCoords currentPoint = startCoord;
+            
+            Vector3 rayStartVec = rayStart.ToVector();
+            Vector3 rayEndVec = rayEnd.ToVector();
+            double step = 1.0 / rayStartVec.Distance(rayEndVec); // This makes step the correct size to check the coord of each block along the ray once - none missed
+            for (double t = 0.0; t <= 1.0; t += step)
+            {
+                Vector3 interpolatedVec = rayStartVec.Interpolate(rayEndVec, t, false);
+                
+                currentPoint = UniversalCoords.FromAbsWorld(interpolatedVec.X, interpolatedVec.Y, interpolatedVec.Z);
+                
+                // Note: This check is not required - tests show that the step size created above will mean each block is only checked once.
+                //if (currentPoint == previousPoint)
+                //    continue;
+                
+                byte blockType = this.GetBlockId(currentPoint); // only get the block type first to save time
+                if (blockType > 0)
+                {
+                    StructBlock block = new StructBlock(currentPoint, blockType, this.GetBlockData(currentPoint), this);
+                    BlockBase blockClass = BlockHelper.Instance(block.Type);
+                    RayTraceHitBlock blockRayTrace = blockClass.RayTraceIntersection(block, rayStartVec, rayEndVec);
+                    if (blockRayTrace != null)
+                    {
+                        return blockRayTrace;
+                    }
+                }
+                previousPoint = currentPoint;
+            }
+            return null;
+        }
+                    
         public long GetSeed()
         {
             return Settings.Default.WorldSeed.GetHashCode();
