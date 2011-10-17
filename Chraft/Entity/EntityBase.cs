@@ -79,9 +79,14 @@ namespace Chraft.Entity
         public sbyte PackedYaw { get { return (sbyte)(this.Yaw / 360.0 * 256.0 % 256.0); } }
 
         public Server Server { get; private set; }
+        
         public int TicksInWorld;
         public int StartTick;
+        /// <summary>
+        /// The update frequency for this entity in ticks.
+        /// </summary>
         public int UpdateFrequency;
+        
         //public Location Position { get; set; }
         private AbsWorldCoords _position;
         public AbsWorldCoords Position 
@@ -128,8 +133,9 @@ namespace Chraft.Entity
                 this.StartTick = this.World.WorldTicks;
             
             int loopCount = 0;
+            int currentWorldTick = this.World.WorldTicks;
             // This loop allows the entity to catchup to the current world tick in case lagging
-            while (this.World.WorldTicks - this.StartTick >= this.TicksInWorld)
+            while (currentWorldTick - this.StartTick >= this.TicksInWorld)
             {
                 this.TicksInWorld++;
                 if (this.TicksInWorld % this.UpdateFrequency == 0)
@@ -141,7 +147,7 @@ namespace Chraft.Entity
             
             if (loopCount > EntityBase.LagWarningThreshold)
             {
-                Console.WriteLine("WARNING! Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
+                Server.Logger.Log(Logger.LogLevel.Warning, "Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
             }
         }
         
