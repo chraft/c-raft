@@ -29,7 +29,7 @@ namespace Chraft.Commands
             if (tokens[0].Contains(':'))
             {
                 itemName = tokens[0].Split(':')[0].Trim();
-                short.TryParse(tokens[0].Split(':')[0].Trim(), out metaData);
+                short.TryParse(tokens[0].Split(':')[1].Trim(), out metaData);
                 item = client.Owner.Server.Items[itemName];
                 item.Durability = metaData;
             }
