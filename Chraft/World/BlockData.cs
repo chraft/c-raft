@@ -493,8 +493,8 @@ namespace Chraft.World
             Trapdoor = 96,
             SilverfishStone = 97,
             StoneBrick = 98,
-            RedMushroomCap = 99,
-            BrownMushroomCap = 100,
+            BrownMushroomCap = 99,
+            RedMushroomCap = 100,
             IronBars = 101,
             GlassPane = 102,
             Melon = 103,
@@ -510,7 +510,6 @@ namespace Chraft.World
             NetherBrickFence = 113,
             NetherBrickStairs = 114,
             NetherWart = 115
-
         }
 
         public enum Items : short

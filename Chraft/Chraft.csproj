@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -259,6 +259,8 @@
     <Compile Include="World\Blocks\Physics\BlockBasePhysics.cs" />
     <Compile Include="World\Blocks\Physics\FallingSand.cs" />
     <Compile Include="World\Blocks\Physics\FallingGravel.cs" />
+    <Compile Include="World\Blocks\BlockRedMushroomCap.cs" />
+    <Compile Include="World\Blocks\BlockBrownMushroomCap.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />

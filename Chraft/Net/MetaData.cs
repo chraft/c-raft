@@ -263,5 +263,20 @@ namespace Chraft.Net
             TwoLeft,
             OneLeft
         }
+
+        public enum HugeMushroom : byte
+        {
+            Porous = 0x0,
+            TopNorthWest,
+            TopNorth,
+            TopNorthEast,
+            TopWest,
+            Top,
+            TopEast,
+            TopSouthWest,
+            TopSouth,
+            TopSouthEast,
+            NorthWeastSouthEast
+        }
     }
 }

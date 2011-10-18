@@ -509,6 +509,21 @@ namespace Chraft.Net
                         player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Crops, 0x00);
                     }
                     break;
+                case BlockData.Items.Ink_Sack:
+                    if (pMetaData != 15)
+                        return;
+                    StructBlock mushroomBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
+                    if (adjacentBlockType == BlockData.Blocks.Red_Mushroom)
+                    {
+                        BlockRedMushroom mushroom = (BlockRedMushroom)BlockHelper.Instance((byte)BlockData.Blocks.Red_Mushroom);
+                        mushroom.Fertilize(player, mushroomBlock);
+                    }
+                    else if (adjacentBlockType == BlockData.Blocks.Brown_Mushroom)
+                    {
+                        BlockBrownMushroom mushroom = (BlockBrownMushroom)BlockHelper.Instance((byte)BlockData.Blocks.Brown_Mushroom);
+                        mushroom.Fertilize(player, mushroomBlock);
+                    }
+                    break;
                 case BlockData.Items.Reeds:
                     StructBlock block = new StructBlock(coordsFromFace, (byte)BlockData.Blocks.Reed, 0x00, player.World);
                     StructBlock targetBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
