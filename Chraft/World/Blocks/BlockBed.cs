@@ -17,6 +17,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Bed;
             BurnEfficiency = 300;
             LootTable.Add(new ItemStack((short)BlockData.Items.Bed, 1));
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5625, 1);
         }
     }
 }

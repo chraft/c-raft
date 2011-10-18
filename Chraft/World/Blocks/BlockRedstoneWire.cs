@@ -18,6 +18,7 @@ namespace Chraft.World.Blocks
             IsSingleHit = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Redstone, 1));
             Opacity = 0x0;
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.0625, 1);
         }
     }
 }

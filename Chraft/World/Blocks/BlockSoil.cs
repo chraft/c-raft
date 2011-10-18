@@ -18,6 +18,7 @@ namespace Chraft.World.Blocks
             IsFertile = true;
             IsPlowed = true;
             LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.9375, 1);
         }
 
     }

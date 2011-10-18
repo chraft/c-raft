@@ -16,6 +16,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Slab;
             IsSolid = true;
             LootTable.Add(new ItemStack((short)Type, 1));
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5, 1);
         }
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)

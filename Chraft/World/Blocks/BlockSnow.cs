@@ -17,6 +17,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             Opacity = 0x0;
             IsSolid = true;
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
 
         protected override void  DropItems(EntityBase entity, StructBlock block)

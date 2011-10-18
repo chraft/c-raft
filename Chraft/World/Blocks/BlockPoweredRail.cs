@@ -17,6 +17,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             Opacity = 0x0;
             LootTable.Add(new ItemStack((short)Type, 1));
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
     }
 }

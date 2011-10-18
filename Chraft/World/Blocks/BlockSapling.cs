@@ -19,6 +19,7 @@ namespace Chraft.World.Blocks
             IsSingleHit = true;
             BurnEfficiency = 100;
             Opacity = 0x0;
+            BlockBoundsOffset = new BoundingBox(0.1, 0, 0.1, 0.9, 0.8, 0.9);
         }
 
 

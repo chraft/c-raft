@@ -18,6 +18,7 @@ namespace Chraft.World.Blocks
             IsSingleHit = true;
             LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
+            BlockBoundsOffset = new BoundingBox(0.3, 0, 0.3, 0.7, 0.6, 0.7);
         }
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)

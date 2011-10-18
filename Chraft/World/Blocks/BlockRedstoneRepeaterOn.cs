@@ -18,6 +18,7 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Redstone_Repeater, 1));
             Luminance = 0x7;
+            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
     }
 }
