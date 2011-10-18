@@ -405,16 +405,19 @@ namespace Chraft.Net
             if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            UniversalCoords packetCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            BlockData.Blocks adjacentBlockType = (BlockData.Blocks)player.World.GetBlockId(packetCoords); // Get block being built against.
-            byte adjacentBlockData = player.World.GetBlockData(packetCoords);
+            BlockData.Blocks baseBlockType = (BlockData.Blocks)player.World.GetBlockId(baseBlockCoords); // Get block being built against.
+            byte baseBlockData = player.World.GetBlockData(baseBlockCoords);
+            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, baseBlockData, player.World);
 
             // Placed Item Info
             short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
             short pMetaData = player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
 
-            UniversalCoords coordsFromFace = player.World.FromFace(packetCoords, packet.Face);
+            UniversalCoords newBlockCoords = player.World.FromFace(baseBlockCoords, packet.Face);
+            StructBlock newBlock;
+            byte newBlockId = 0;
 
             switch (packet.Face)
             {
@@ -422,7 +425,7 @@ namespace Chraft.Net
                     return; // TODO: Process buckets, food, etc.
             }
 
-            switch (adjacentBlockType)
+            switch (baseBlockType)
             {
                 case BlockData.Blocks.Air:
                 case BlockData.Blocks.Water:
@@ -439,155 +442,55 @@ namespace Chraft.Net
                 case BlockData.Items.Iron_Hoe:
                 case BlockData.Items.Stone_Hoe:
                 case BlockData.Items.Wooden_Hoe:
-                    if (adjacentBlockType == BlockData.Blocks.Dirt || adjacentBlockType == BlockData.Blocks.Grass)
+                    if (baseBlockType == BlockData.Blocks.Dirt || baseBlockType == BlockData.Blocks.Grass)
                     {
                         // Think the client has a Notch bug where hoe's durability is not updated properly.
-                        player.World.SetBlockAndData(packetCoords, (byte)BlockData.Blocks.Soil, 0x00);
+                        BlockHelper.Instance((byte)BlockData.Blocks.Soil).Spawn(baseBlock);
                     }
-                    break;
-
-                case BlockData.Items.Sign:
-
-                    if (packet.Face == BlockFace.Up) // Floor Sign
-                    {
-                        // Get the direction the player is facing.
-                        switch (client.Owner.FacingDirection(8))
-                        {
-                            case "N":
-                                pMetaData = (byte)MetaData.SignPost.North;
-                                break;
-                            case "NE":
-                                pMetaData = (byte)MetaData.SignPost.Northeast;
-                                break;
-                            case "E":
-                                pMetaData = (byte)MetaData.SignPost.East;
-                                break;
-                            case "SE":
-                                pMetaData = (byte)MetaData.SignPost.Southeast;
-                                break;
-                            case "S":
-                                pMetaData = (byte)MetaData.SignPost.South;
-                                break;
-                            case "SW":
-                                pMetaData = (byte)MetaData.SignPost.Southwest;
-                                break;
-                            case "W":
-                                pMetaData = (byte)MetaData.SignPost.West;
-                                break;
-                            case "NW":
-                                pMetaData = (byte)MetaData.SignPost.Northwest;
-                                break;
-                            default:
-                                return;
-                        }
-
-                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Sign_Post, (byte)pMetaData);
-                    }
-                    else // Wall Sign
-                    {
-                        switch (packet.Face)
-                        {
-                            case BlockFace.East: pMetaData = (byte)MetaData.SignWall.East;
-                                break;
-                            case BlockFace.West: pMetaData = (byte)MetaData.SignWall.West;
-                                break;
-                            case BlockFace.North: pMetaData = (byte)MetaData.SignWall.North;
-                                break;
-                            case BlockFace.South: pMetaData = (byte)MetaData.SignWall.South;
-                                break;
-                            case BlockFace.Down:
-                                return;
-                        }
-
-                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wall_Sign, (byte)pMetaData);
-                    }
-                    break;
-
-                case BlockData.Items.Seeds:
-                    if (adjacentBlockType == BlockData.Blocks.Soil && packet.Face == BlockFace.Down)
-                    {
-                        player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Crops, 0x00);
-                    }
-                    break;
+                    return;
                 case BlockData.Items.Ink_Sack:
                     if (pMetaData != 15)
                         return;
-                    StructBlock mushroomBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
-                    if (adjacentBlockType == BlockData.Blocks.Red_Mushroom)
+                    if (baseBlockType == BlockData.Blocks.Red_Mushroom || baseBlockType == BlockData.Blocks.Brown_Mushroom)
                     {
-                        BlockRedMushroom mushroom = (BlockRedMushroom)BlockHelper.Instance((byte)BlockData.Blocks.Red_Mushroom);
-                        mushroom.Fertilize(player, mushroomBlock);
+                        BlockBaseMushroom baseMushroom = (BlockBaseMushroom)BlockHelper.Instance((byte) baseBlockType);
+                        baseMushroom.Fertilize(player, baseBlock);
                     }
-                    else if (adjacentBlockType == BlockData.Blocks.Brown_Mushroom)
-                    {
-                        BlockBrownMushroom mushroom = (BlockBrownMushroom)BlockHelper.Instance((byte)BlockData.Blocks.Brown_Mushroom);
-                        mushroom.Fertilize(player, mushroomBlock);
-                    }
-                    break;
-                case BlockData.Items.Reeds:
-                    StructBlock block = new StructBlock(coordsFromFace, (byte)BlockData.Blocks.Reed, 0x00, player.World);
-                    StructBlock targetBlock = new StructBlock(packetCoords, (byte)adjacentBlockType, adjacentBlockData, player.World);
-                    BlockHelper.Instance((byte)BlockData.Blocks.Reed).Place(block, targetBlock, packet.Face);
-                    break;
-                case BlockData.Items.Redstone:
-                    player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Redstone_Wire, 0x00);
-                    break;
-
+                    return;
                 case BlockData.Items.Minecart:
                 case BlockData.Items.Boat:
                 case BlockData.Items.Storage_Minecart:
                 case BlockData.Items.Powered_Minecart:
                     // TODO: Create new object
                     break;
-
+                case BlockData.Items.Sign:
+                    if (packet.Face == BlockFace.Up)
+                        newBlockId = (byte)BlockData.Blocks.Sign_Post;
+                    else
+                        newBlockId = (byte)BlockData.Blocks.Wall_Sign;
+                    break;
+                case BlockData.Items.Seeds:
+                    newBlockId = (byte)BlockData.Blocks.Crops;
+                    break;
+                case BlockData.Items.Reeds:
+                    newBlockId = (byte)BlockData.Blocks.Reed;
+                    break;
+                case BlockData.Items.Redstone:
+                    newBlockId = (byte)BlockData.Blocks.Redstone_Wire;
+                    break;
                 case BlockData.Items.Iron_Door:
+                    newBlockId = (byte) BlockData.Blocks.Iron_Door;
+                    break;
                 case BlockData.Items.Wooden_Door:
-                    {
-                        byte blockId = player.World.GetBlockId(coordsFromFace.WorldX, coordsFromFace.WorldY + 1,
-                                                               coordsFromFace.WorldZ);
-                        if (!BlockHelper.Instance(blockId).IsAir)
-                            return;
-
-                        switch (client.Owner.FacingDirection(4)) // Built on floor, set by facing dir
-                        {
-                            case "N":
-                                pMetaData = (byte)MetaData.Door.Northwest;
-                                break;
-                            case "W":
-                                pMetaData = (byte)MetaData.Door.Southwest;
-                                break;
-                            case "S":
-                                pMetaData = (byte)MetaData.Door.Southeast;
-                                break;
-                            case "E":
-                                pMetaData = (byte)MetaData.Door.Northeast;
-                                break;
-                            default:
-                                return;
-                        }
-
-                        if ((BlockData.Items)pType == BlockData.Items.Iron_Door)
-                        {
-                            player.World.SetBlockAndData(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ, (byte)BlockData.Blocks.Iron_Door, (byte)MetaData.Door.IsTopHalf);
-                            player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Iron_Door, (byte)pMetaData);
-                        }
-                        else
-                        {
-                            player.World.SetBlockAndData(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ, (byte)BlockData.Blocks.Wooden_Door, (byte)MetaData.Door.IsTopHalf);
-                            player.World.SetBlockAndData(coordsFromFace, (byte)BlockData.Blocks.Wooden_Door, (byte)pMetaData);
-                        }
-
-                        player.World.Update(UniversalCoords.FromWorld(coordsFromFace.WorldX, coordsFromFace.WorldY + 1, coordsFromFace.WorldZ));
-                    }
+                    newBlockId = (byte)BlockData.Blocks.Wooden_Door;
                     break;
             }
-            if (player.GameMode == 0)
-            {
-                if (!player.Inventory.DamageItem(player.Inventory.ActiveSlot)) // If item isn't durable, remove it.
-                    player.Inventory.RemoveItem(player.Inventory.ActiveSlot);
-            }
 
-            player.World.Update(coordsFromFace);
+            if (newBlockId != 0)
+            {
+                newBlock = new StructBlock(newBlockCoords, newBlockId, 0, player.World);
+                BlockHelper.Instance(newBlockId).Place(player, newBlock, baseBlock, packet.Face);
+            }
         }
 
         public static void HandlePacketPlayerBlockPlacement(Client client, PlayerBlockPlacementPacket packet)

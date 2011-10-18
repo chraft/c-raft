@@ -8,15 +8,12 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
-    class BlockIronDoor : BlockBase
+    class BlockIronDoor : BlockBaseDoor
     {
         public BlockIronDoor()
         {
             Name = "IronDoor";
             Type = BlockData.Blocks.Iron_Door;
-            Opacity = 0x0;
-            IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
         }
     }
 }

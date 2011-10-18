@@ -9,28 +9,16 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
-    class BlockRedMushroom : BlockBase
+    class BlockRedMushroom : BlockBaseMushroom
     {
         public BlockRedMushroom()
         {
             Name = "RedMushroom";
             Type = BlockData.Blocks.Red_Mushroom;
-            IsAir = true;
             LootTable.Add(new ItemStack((short)Type, 1));
-            Opacity = 0x0;
-            BlockBoundsOffset = new BoundingBox(0.3, 0, 0.3, 0.7, 0.4, 0.7);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
-        {
-            if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
-                targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
-                targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
-                Destroy(targetBlock);
-            base.NotifyDestroy(entity, sourceBlock, targetBlock);
-        }
-
-        public void Fertilize(EntityBase entity, StructBlock block)
+        public override void Fertilize(EntityBase entity, StructBlock block)
         {
             byte blockBelow = block.World.GetBlockId(block.Coords.WorldX, block.Coords.WorldY - 1,
                                                      block.Coords.WorldZ);

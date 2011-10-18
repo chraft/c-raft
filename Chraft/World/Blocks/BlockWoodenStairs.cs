@@ -22,12 +22,12 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            Player player = entity as Player;
-            if (player == null)
+            LivingEntity living = entity as LivingEntity;
+            if (living == null)
                 return;
 
             // TODO: Bugged - should depend on the player's Yaw/Pitch
-            switch (player.FacingDirection(4))
+            switch (living.FacingDirection(4))
             {
                 case "N":
                     block.MetaData = (byte)MetaData.Stairs.South;

@@ -23,10 +23,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            Player player = (entity as Player);
-            if (player == null)
-                return;
-            if (face == BlockFace.Down)
+            LivingEntity living = (entity as LivingEntity);
+            if (living == null)
                 return;
 
             switch (face)

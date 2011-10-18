@@ -9,15 +9,12 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockWoodenDoor : BlockBase
+    class BlockWoodenDoor : BlockBaseDoor
     {
         public BlockWoodenDoor()
         {
             Name = "WoodenDoor";
             Type = BlockData.Blocks.Wooden_Door;
-            Opacity = 0x0;
-            IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Wooden_Door, 1));
         }
     }
 }

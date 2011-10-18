@@ -22,8 +22,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
-            Player player = (entity as Player);
-            if (player == null)
+            LivingEntity living = (entity as LivingEntity);
+            if (living == null)
                 return;
 
             switch (face) //Bugged, as the client has a mind of its own for facing
@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks
                     block.MetaData = (byte)MetaData.Furnace.South;
                     break;
                 default:
-                    switch (player.FacingDirection(4)) // Built on floor, set by facing dir
+                    switch (living.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
                             block.MetaData = (byte)MetaData.Furnace.North;

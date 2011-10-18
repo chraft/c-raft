@@ -156,6 +156,8 @@
     <Compile Include="WorldGen\MathHelper.cs" />
     <Compile Include="WorldGen\Noises.cs" />
     <Compile Include="World\AbsWorldCoords.cs" />
+    <Compile Include="World\Blocks\Base\BlockBaseDoor.cs" />
+    <Compile Include="World\Blocks\Base\BlockBaseMushroom.cs" />
     <Compile Include="World\Blocks\BlockAir.cs" />
     <Compile Include="World\Blocks\BlockBase.cs" />
     <Compile Include="World\Blocks\BlockBed.cs" />

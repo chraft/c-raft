@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Net;
 using Chraft.Net.Packets;
 
 
@@ -26,6 +27,38 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
+            LivingEntity living = (entity as LivingEntity);
+            if (living == null)
+                return;
+            switch (living.FacingDirection(8))
+            {
+                case "N":
+                    block.MetaData = (byte)MetaData.SignPost.North;
+                    break;
+                case "NE":
+                    block.MetaData = (byte)MetaData.SignPost.Northeast;
+                    break;
+                case "E":
+                    block.MetaData = (byte)MetaData.SignPost.East;
+                    break;
+                case "SE":
+                    block.MetaData = (byte)MetaData.SignPost.Southeast;
+                    break;
+                case "S":
+                    block.MetaData = (byte)MetaData.SignPost.South;
+                    break;
+                case "SW":
+                    block.MetaData = (byte)MetaData.SignPost.Southwest;
+                    break;
+                case "W":
+                    block.MetaData = (byte)MetaData.SignPost.West;
+                    break;
+                case "NW":
+                    block.MetaData = (byte)MetaData.SignPost.Northwest;
+                    break;
+                default:
+                    return;
+            }
             base.Place(entity, block, targetBlock, face);
         }
 
