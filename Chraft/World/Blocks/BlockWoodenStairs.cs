@@ -27,7 +27,7 @@ namespace Chraft.World.Blocks
                 return;
 
             // TODO: Bugged - should depend on the player's Yaw/Pitch
-            switch (player.Client.FacingDirection(4))
+            switch (player.FacingDirection(4))
             {
                 case "N":
                     block.MetaData = (byte)MetaData.Stairs.South;

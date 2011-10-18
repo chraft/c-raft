@@ -381,37 +381,5 @@ namespace Chraft.Net
             if (_Player.Health == 0)
                 _Player.HandleDeath(hitBy);
         }
-
-        public string FacingDirection(byte points)
-        {
-
-            byte rotation = (byte)(_Player.Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
-
-            if (points == 8)
-            {
-                if (rotation < 17 || rotation > 240)
-                    return "E";
-                if (rotation < 49)
-                    return "SE";
-                if (rotation < 81)
-                    return "S";
-                if (rotation < 113)
-                    return "SW";
-                if (rotation > 208)
-                    return "NE";
-                if (rotation > 176)
-                    return "N";
-                if (rotation > 144)
-                    return "NW";
-                return "W";
-            }
-            if (rotation < 32 || rotation > 224)
-                return "E";
-            if (rotation < 76)
-                return "S";
-            if (rotation > 140)
-                return "N";
-            return "W";
-        }
     }
 }

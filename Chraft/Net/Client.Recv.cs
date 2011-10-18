@@ -451,7 +451,7 @@ namespace Chraft.Net
                     if (packet.Face == BlockFace.Up) // Floor Sign
                     {
                         // Get the direction the player is facing.
-                        switch (client.FacingDirection(8))
+                        switch (client.Owner.FacingDirection(8))
                         {
                             case "N":
                                 pMetaData = (byte)MetaData.SignPost.North;
@@ -548,7 +548,7 @@ namespace Chraft.Net
                         if (!BlockHelper.Instance(blockId).IsAir)
                             return;
 
-                        switch (client.FacingDirection(4)) // Built on floor, set by facing dir
+                        switch (client.Owner.FacingDirection(4)) // Built on floor, set by facing dir
                         {
                             case "N":
                                 pMetaData = (byte)MetaData.Door.Northwest;

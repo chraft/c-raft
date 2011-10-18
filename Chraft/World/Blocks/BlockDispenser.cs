@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks
                     block.MetaData = (byte)MetaData.Furnace.South;
                     break;
                 default:
-                    switch (player.Client.FacingDirection(4)) // Built on floor, set by facing dir
+                    switch (player.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
                             block.MetaData = (byte)MetaData.Furnace.North;
