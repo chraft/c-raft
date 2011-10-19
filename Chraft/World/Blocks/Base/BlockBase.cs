@@ -431,15 +431,20 @@ namespace Chraft.World.Blocks
                 originalBlock != (byte)BlockData.Blocks.Still_Lava)
                 return false;
 
-            // We can't place the solid blocks on the player position (both feets and head)
-            // TODO: Improve collision detection. Now the player can be partially in the block when it is placed
             if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
-                foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
+                foreach (EntityBase entity in block.World.Server.GetNearbyEntities(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
-                    UniversalCoords playerCoords = UniversalCoords.FromAbsWorld(c.Owner.Position.X, c.Owner.Position.Y, c.Owner.Position.Z);
-                    
-                    if (playerCoords.WorldX == block.Coords.WorldX && playerCoords.WorldZ == block.Coords.WorldZ &&
-                       (playerCoords.WorldY == block.Coords.WorldY || playerCoords.WorldY + 1 == block.Coords.WorldY))
+                    LivingEntity living = entity as LivingEntity;
+                    if (living == null)
+                        continue;
+
+                    UniversalCoords livingCoords = UniversalCoords.FromAbsWorld(living.Position.X, living.Position.Y, living.Position.Z);
+
+                    if (livingCoords.WorldX == block.Coords.WorldX && livingCoords.WorldZ == block.Coords.WorldZ &&
+                       (livingCoords.WorldY == block.Coords.WorldY || livingCoords.WorldY + 1 == block.Coords.WorldY))
+                        return false;
+
+                    if (living.BoundingBox.IntersectsWith(GetCollisionBoundingBox(block)))
                         return false;
                 }
 
