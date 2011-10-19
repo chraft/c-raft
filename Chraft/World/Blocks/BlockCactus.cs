@@ -18,6 +18,7 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             Opacity = 0x0;
             LootTable.Add(new ItemStack((short)Type, 1));
+            BlockBoundsOffset = new BoundingBox(0.0625, 0, 0.0625, 0.9375, 0.9375, 0.9375);
         }
 
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
@@ -106,11 +107,22 @@ namespace Chraft.World.Blocks
             block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
         {
-            base.DropItems(entity, block);
-
-            // TODO: If the top block is a cactus as well - destroy it
+            if (!entity.Server.GetEntities().Contains(entity))
+                return;
+            if (entity is ItemEntity)
+            {
+                entity.Server.RemoveEntity(entity);
+            } else if (entity is Mob)
+            {
+                Mob mob = entity as Mob;
+                mob.DamageMob();
+            } else if (entity is Player)
+            {
+                Player p = entity as Player;
+                p.Client.DamageClient(DamageCause.Contact, 1);
+            }
         }
     }
 }
