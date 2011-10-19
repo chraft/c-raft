@@ -14,29 +14,46 @@ namespace Chraft.Commands
 
         public void Use(Client client, string commandName, string[] tokens)
         {
-            MobType type;
+            MobType type = MobType.Sheep;
             int amount = 1;
-            if(tokens.Length > 1)amount = parseint(tokens[1]);
-            try
+            bool validMob = false;
+
+            if (tokens.Length > 1)
+                Int32.TryParse(tokens[1], out amount);
+
+            if (tokens.Length > 0)
             {
-                type = (MobType) Enum.Parse(typeof(MobType), tokens[0], true);
+                int mobId;
+                Int32.TryParse(tokens[0], out mobId);
+                string mobName = Enum.GetName(typeof(MobType), mobId);
+                if (mobId == 0)
+                {
+                    if (mobId.ToString() != tokens[0])
+                    {
+                        Enum.TryParse(tokens[0], true, out type);
+                        validMob = true;
+                    }
+                } else if (!string.IsNullOrEmpty(mobName))
+                {
+                    type = (MobType)Enum.Parse(typeof(MobType), mobName);
+                    validMob = true;
+                }
             }
-            catch (Exception e) { client.Logger.Log(e); type = MobType.Sheep; }
+            else
+                validMob = true;
+
+            if (amount < 1 || !validMob)
+            {
+                Help(client);
+                return;
+            }
+
             for (int i = 0; i < amount; i++)
             {
                 client.Owner.World.SpawnMob(UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), type);
             }
         }
-        private int parseint(string s)
-        {
-            int r;
-            try
-            {
-                r = int.Parse(s);
-            }
-            catch { r = 1; }
-            return r;
-        }
+
         public void Help(Client client)
         {
             client.SendMessage("/spawnmob <Mob> [Amount] - Spawns a mob at your position.");
