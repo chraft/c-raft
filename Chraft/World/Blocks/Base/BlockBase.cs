@@ -438,12 +438,6 @@ namespace Chraft.World.Blocks
                     if (living == null)
                         continue;
 
-                    UniversalCoords livingCoords = UniversalCoords.FromAbsWorld(living.Position.X, living.Position.Y, living.Position.Z);
-
-                    if (livingCoords.WorldX == block.Coords.WorldX && livingCoords.WorldZ == block.Coords.WorldZ &&
-                       (livingCoords.WorldY == block.Coords.WorldY || livingCoords.WorldY + 1 == block.Coords.WorldY))
-                        return false;
-
                     if (living.BoundingBox.IntersectsWith(GetCollisionBoundingBox(block)))
                         return false;
                 }
