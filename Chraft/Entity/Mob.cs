@@ -61,7 +61,6 @@ namespace Chraft.Entity
             this.Data = data;
             this.Type = type;
             this.World = world;
-            this.Health = this.MaxHealth;
 		}
 
         protected void SendMetadataUpdate()

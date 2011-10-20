@@ -1,17 +1,25 @@
 using System;
+using Chraft.Utils;
 using Chraft.World;
 
 namespace Chraft.Entity
 {
     public abstract class LivingEntity : EntityBase
     {
-        public override short MaxHealth
+
+        short _health;
+        /// <summary>
+        /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
+        /// </summary>
+        public virtual short Health
         {
-            get
-            {
-                return 20;
-            }
+            get { return _health; }
+            set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
         }
+        /// <summary>
+        /// MaxHealth for this entity represented as "halves of a heart".
+        /// </summary>
+        public virtual short MaxHealth { get { return 20; } }
         
         public virtual float EyeHeight
         {
@@ -21,7 +29,7 @@ namespace Chraft.Entity
         public LivingEntity(Server server, int entityId)
          : base(server, entityId)
         {
-            this.Health = 20;
+            this.Health = MaxHealth;
         }
         
         /// <summary>
@@ -69,6 +77,8 @@ namespace Chraft.Entity
                 return "N";
             return "W";
         }
+
+
     }
 }
 

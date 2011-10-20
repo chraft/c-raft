@@ -15,9 +15,7 @@ namespace Chraft.Entity
               
 		public ItemEntity(Server server, int entityId)
 			: base(server, entityId)
-		{
-            this.Health = 5;
-               
+		{              
             this.Height = 0.25f;
             this.Width = 0.25f;
 		}

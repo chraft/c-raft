@@ -51,19 +51,7 @@ namespace Chraft.Entity
         
         public Vector3 Velocity;
         
-        short _health;
-        /// <summary>
-        /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
-        /// </summary>
-        public virtual short Health
-        {
-            get { return _health; }
-            set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
-        }
-        /// <summary>
-        /// MaxHealth for this entity represented as "halves of a heart".
-        /// </summary>
-        public virtual short MaxHealth { get { return 20; } }
+
         /// <summary>
         /// Rotation around the X-axis
         /// </summary>
@@ -433,7 +421,8 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                c.SendMoveBy(this, x, y, z);
+                if (!c.Owner.Equals(this))
+                    c.SendMoveBy(this, x, y, z);
             }
         }
 
@@ -455,7 +444,8 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
             {
-                c.SendTeleportTo(this);
+                if (!c.Equals(this))
+                    c.SendTeleportTo(this);
             }
         }
 
@@ -476,7 +466,8 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                c.SendRotateBy(this, PackedYaw, PackedPitch);
+                if (!c.Owner.Equals(this))
+                    c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
 
@@ -515,7 +506,8 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
+                if (!c.Owner.Equals(this))
+                    c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
         }
 

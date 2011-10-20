@@ -149,54 +149,19 @@ namespace Chraft.Entity
             UpdateEntities();
         }
 
-        public override void OnMoveTo(sbyte x, sbyte y, sbyte z)
-        {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                if(!c.Owner.Equals(this))
-                    c.SendMoveBy(this, x, y, z);
-            }
-        }
-
         public override void OnTeleportTo(AbsWorldCoords absCoords)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
-            {
-                if (!Equals(this))
-                    c.SendTeleportTo(this);
-                else
-                {
-                    c.SendPacket(new PlayerPositionRotationPacket
-                    {
-                        X = absCoords.X,
-                        Y = absCoords.Y + this.EyeHeight,
-                        Z = absCoords.Z,
-                        Yaw = (float)this.Yaw,
-                        Pitch = (float)this.Pitch,
-                        Stance = c.Stance,
-                        OnGround = false
-                    }
-                    );
-                }
-            }
-        }
-
-        public override void OnRotateTo()
-        {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                if (!c.Owner.Equals(this))
-                    c.SendRotateBy(this, PackedYaw, PackedPitch);
-            }
-        }
-
-        public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
-        {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                if (!c.Owner.Equals(this))
-                    c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
-            }
+            base.OnTeleportTo(absCoords);
+            Client.SendPacket(new PlayerPositionRotationPacket
+                                  {
+                                      X = absCoords.X,
+                                      Y = absCoords.Y + this.EyeHeight,
+                                      Z = absCoords.Z,
+                                      Yaw = (float) this.Yaw,
+                                      Pitch = (float) this.Pitch,
+                                      Stance = Client.Stance,
+                                      OnGround = false
+                                  });
         }
 
         public void UpdateEntities()
@@ -437,10 +402,6 @@ namespace Chraft.Entity
 
         public void SetHealth(short health)
         {
-            if (health > 20)
-            {
-                health = 20;
-            }
             this.Health = health;
             _Client.SendPacket(new UpdateHealthPacket
             {
