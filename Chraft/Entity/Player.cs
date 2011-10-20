@@ -419,7 +419,7 @@ namespace Chraft.Entity
 
         #region Permission related commands
         //Check if the player has permissions to use the command from a command object
-        public bool CanUseCommand(Command command)
+        public bool CanUseCommand(ICommand command)
         {
             return PermHandler.HasPermission(this, command);
         }

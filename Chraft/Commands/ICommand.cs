@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chraft.Commands
 {
-    public interface Command
+    public interface ICommand
     {
         string Name { get; }
         string Shortcut { get; }

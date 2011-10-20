@@ -1,14 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Chraft.Commands;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.World;
 
-namespace Chraft.Commands
+namespace Chraft.Plugins.Commands
 {
-    public class CmdSpawnMob : ClientCommand
+    public class CmdSpawnMob : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

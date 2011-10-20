@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Chraft.Commands;
 using Chraft.Net;
 using Chraft.Net.Packets;
 
-namespace Chraft.Commands
+namespace Chraft.Plugins.Commands
 {
-    public class CmdSetHealth : ClientCommand
+    public class CmdSetHealth : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

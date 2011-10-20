@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Chraft.Net;
 
+[assembly: InternalsVisibleTo("ChraftServer")]
 namespace Chraft.Commands
 {
-    public class CmdStop : ServerCommand, ClientCommand
+   
+    internal class CmdStop : IServerCommand, IClientCommand
     {
         public ServerCommandHandler ServerCommandHandler { get; set; }
         public ClientCommandHandler ClientCommandHandler { get; set; }

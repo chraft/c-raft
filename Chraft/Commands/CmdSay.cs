@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Chraft.Net;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Commands
 {
-    public class CmdSay : ClientCommand, ServerCommand
+    internal class CmdSay : IClientCommand, IServerCommand
     {
 
         public ClientCommandHandler ClientCommandHandler { get; set; }

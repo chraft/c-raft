@@ -215,8 +215,7 @@ namespace Chraft
             Logger.Log(Logger.LogLevel.Info, "Starting C#raft...");
 
 
-            Worlds = new List<WorldManager>();
-            Worlds.Add(new WorldManager(this));
+            Worlds = new List<WorldManager> {new WorldManager(this)};
 
             PluginManager.LoadDefaultAssemblies();
 
@@ -869,7 +868,7 @@ namespace Chraft
                 Irc.Stop();
         }
 
-        internal void OnCommand(Client client, ClientCommand cmd, string[] tokens)
+        internal void OnCommand(Client client, IClientCommand cmd, string[] tokens)
         {
             if (Command != null)
                 Command.Invoke(client, new CommandEventArgs(client, cmd, tokens));

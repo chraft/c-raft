@@ -8,10 +8,10 @@ namespace Chraft.Commands
 {
     public class ClientCommandHandler : CommandHandler
     {
-        private List<ClientCommand> commands;
+        private List<IClientCommand> commands;
         public ClientCommandHandler()
         {
-            commands = new List<ClientCommand>();
+            commands = new List<IClientCommand>();
             Init();
         }
         /// <summary>
@@ -22,19 +22,19 @@ namespace Chraft.Commands
         /// </summary>
         /// <param name="Command">The name of the command to find.</param>
         /// <returns>A command with the given name.</returns>
-        public Command Find(string Command)
+        public ICommand Find(string Command)
         {
-            foreach (ClientCommand cmd in commands)
+            foreach (IClientCommand cmd in commands)
             {
                 if (cmd.Name == Command)
                 {
                     return cmd;
                 }
             }
-            ClientCommand Cmd;
+            IClientCommand Cmd;
             try
             {
-                Cmd = FindShort(Command) as ClientCommand;
+                Cmd = FindShort(Command) as IClientCommand;
             }
             catch (CommandNotFoundException e){ throw e; }
             if (Cmd == null) throw new CommandNotFoundException("The specified command was not found!");
@@ -48,9 +48,9 @@ namespace Chraft.Commands
         /// </summary>
         /// <param name="Shortcut">The shortcut of the command to find.</param>
         /// <returns>A command with the given shortcut.</returns>
-        public Command FindShort(string Shortcut)
+        public ICommand FindShort(string Shortcut)
         {
-            foreach (ClientCommand cmd in commands)
+            foreach (IClientCommand cmd in commands)
             {
                 if (cmd.Shortcut == Shortcut)
                 {
@@ -64,12 +64,12 @@ namespace Chraft.Commands
         /// Exceptions:
         /// <exception cref="CommandAlreadyExistsException">CommandAlreadyExistsException</exception>
         /// </summary>
-        /// <param name="command">The <see cref="ClientCommand">Command</see> to register.</param>
-        public void RegisterCommand(Command command)
+        /// <param name="command">The <see cref="IClientCommand">Command</see> to register.</param>
+        public void RegisterCommand(ICommand command)
         {
-            if (command is ClientCommand)
+            if (command is IClientCommand)
             {
-                foreach (ClientCommand cmd in commands)
+                foreach (IClientCommand cmd in commands)
                 {
                     if (cmd.Name == command.Name)
                     {
@@ -80,7 +80,7 @@ namespace Chraft.Commands
                         throw new CommandAlreadyExistsException("A command with the same shortcut already exists!");
                     }
                 }
-                ClientCommand Cmd = command as ClientCommand;
+                IClientCommand Cmd = command as IClientCommand;
                 Cmd.ClientCommandHandler = this;
                 commands.Add(Cmd);
             }
@@ -92,14 +92,14 @@ namespace Chraft.Commands
         /// Exceptions:
         /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
         /// </summary>
-        /// <param name="command">The <see cref="ClientCommand">Command</see> to remove.</param>
-        public void UnregisterCommand(Command command)
+        /// <param name="command">The <see cref="IClientCommand">Command</see> to remove.</param>
+        public void UnregisterCommand(ICommand command)
         {
-            if (command is ClientCommand)
+            if (command is IClientCommand)
             {
                 if (commands.Contains(command))
                 {
-                    commands.Remove(command as ClientCommand);
+                    commands.Remove(command as IClientCommand);
                 }
                 else
                 {
@@ -110,18 +110,18 @@ namespace Chraft.Commands
         /// <summary>
         /// Gets an array of all of the commands registerd.
         /// </summary>
-        /// <returns>Array of <see cref="ClientCommand"/></returns>
-        public Command[] GetCommands()
+        /// <returns>Array of <see cref="IClientCommand"/></returns>
+        public ICommand[] GetCommands()
         {
             return commands.ToArray();
         }
         private void Init()
         {
             foreach (Type t in from t in Assembly.GetExecutingAssembly().GetTypes()
-                               where t.GetInterfaces().Contains(typeof(ClientCommand)) && !t.IsAbstract
+                               where t.GetInterfaces().Contains(typeof(IClientCommand)) && !t.IsAbstract
                                select t)
             {
-                RegisterCommand((ClientCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
+                RegisterCommand((IClientCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
             }
         }
     }

@@ -7,10 +7,10 @@ namespace Chraft.Commands
 {
     public interface CommandHandler
     {
-        Command Find(string Command);
-        Command FindShort(string Shortcut);
-        void RegisterCommand(Command command);
-        void UnregisterCommand(Command command);
-        Command[] GetCommands();
+        ICommand Find(string Command);
+        ICommand FindShort(string Shortcut);
+        void RegisterCommand(ICommand command);
+        void UnregisterCommand(ICommand command);
+        ICommand[] GetCommands();
     }
 }

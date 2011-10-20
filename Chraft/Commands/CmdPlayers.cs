@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Net;
+﻿using Chraft.Net;
 
 namespace Chraft.Commands
 {
-    public class CmdPlayers : ClientCommand
+    internal class CmdPlayers : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using Chraft.Commands;
 using Chraft.Net;
 
-namespace Chraft.Commands
+namespace Chraft.Plugins.Commands
 {
-    public class CmdMute : ClientCommand
+    public class CmdMute : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

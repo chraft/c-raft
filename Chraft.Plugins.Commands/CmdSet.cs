@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Chraft.Commands;
 using Chraft.Net;
 using Chraft.World;
 using Chraft.Interfaces;
 
-namespace Chraft.Commands
+namespace Chraft.Plugins.Commands
 {
-    public class CmdSet : ClientCommand
+    public class CmdSet : IClientCommand
     {
 
         public ClientCommandHandler ClientCommandHandler { get; set; }

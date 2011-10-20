@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Chraft.Net;
 using Chraft.World;
 
 namespace Chraft.Commands
 {
-    public class CmdTp : ClientCommand
+    internal class CmdTp : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
@@ -55,7 +52,7 @@ namespace Chraft.Commands
             get { return "chraft.tp"; }
         }
     }
-    public class CmdSummon : ClientCommand
+    internal class CmdSummon : IClientCommand
     {
 
         public ClientCommandHandler ClientCommandHandler { get; set; }

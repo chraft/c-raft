@@ -5,7 +5,7 @@ using Chraft.Net.Packets;
 
 namespace Chraft.Commands
 {
-    public class CmdGameMode : ClientCommand
+    internal class CmdGameMode : IClientCommand
     {
 
         public ClientCommandHandler ClientCommandHandler { get; set; }

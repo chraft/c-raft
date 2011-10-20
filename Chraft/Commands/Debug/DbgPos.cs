@@ -7,7 +7,7 @@ using Chraft.Utils;
 
 namespace Chraft.Commands.Debug
 {
-    public class DbgPos : ClientCommand
+    public class DbgPos : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

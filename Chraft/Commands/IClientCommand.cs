@@ -6,7 +6,7 @@ using Chraft.Net;
 
 namespace Chraft.Commands
 {
-    public interface ClientCommand : Command
+    public interface IClientCommand : ICommand
     {
         ClientCommandHandler ClientCommandHandler { get; set; }
         void Use(Client client,string commandName, string[] tokens);

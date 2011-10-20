@@ -37,9 +37,9 @@ namespace Chraft.Plugins.Events.Args
     }
     public class ClientCommandEventArgs : ClientEventArgs
     {
-        public virtual ClientCommand Command { get; private set; }
+        public virtual IClientCommand Command { get; private set; }
         public virtual string[] Tokens{get; set;}
-        public ClientCommandEventArgs(Client Client, ClientCommand cmd, string[] tokens)
+        public ClientCommandEventArgs(Client Client, IClientCommand cmd, string[] tokens)
             : base(Client)
         {
             this.Command = cmd;

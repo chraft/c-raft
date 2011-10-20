@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chraft.Commands
 {
-    public interface ServerCommand : Command
+    public interface IServerCommand : ICommand
     {
         ServerCommandHandler ServerCommandHandler { get; set; }
         void Use(Server server, string commandName, string[] tokens);

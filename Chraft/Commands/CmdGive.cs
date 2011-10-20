@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Chraft.Interfaces;
 using Chraft.Net;
 
 namespace Chraft.Commands
 {
-    public class CmdGive : ClientCommand
+    internal class CmdGive : IClientCommand
     {
 
         public ClientCommandHandler ClientCommandHandler { get; set; }

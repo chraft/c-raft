@@ -136,10 +136,10 @@ namespace Chraft.Net
         private void CommandProc(string commandName, string raw, string[] tokens)
         {
             var cleanedTokens = tokens.Skip(1).ToArray();
-            ClientCommand cmd;
+            IClientCommand cmd;
             try
             {
-                cmd = _player.Server.ClientCommandHandler.Find(commandName) as ClientCommand;
+                cmd = _player.Server.ClientCommandHandler.Find(commandName) as IClientCommand;
             }
             catch (CommandNotFoundException e)
             {

@@ -8,11 +8,11 @@ namespace Chraft.Commands
 {
     public class ServerCommandHandler : CommandHandler
     {
-        private List<ServerCommand> Commands;
+        private List<IServerCommand> Commands;
 
         public ServerCommandHandler()
         {
-            Commands = new List<ServerCommand>();
+            Commands = new List<IServerCommand>();
             Init();
         }
         /// <summary>
@@ -23,19 +23,19 @@ namespace Chraft.Commands
         /// </summary>
         /// <param name="Command">The name of the command to find.</param>
         /// <returns>A command with the given name.</returns>
-        public Command Find(string Command)
+        public ICommand Find(string Command)
         {
-            foreach (ServerCommand cmd in Commands)
+            foreach (IServerCommand cmd in Commands)
             {
                 if (cmd.Name == Command)
                 {
                     return cmd;
                 }
             }
-            ServerCommand Cmd;
+            IServerCommand Cmd;
             try
             {
-                Cmd = FindShort(Command) as ServerCommand;
+                Cmd = FindShort(Command) as IServerCommand;
                 return Cmd;
             }
             catch { }
@@ -49,9 +49,9 @@ namespace Chraft.Commands
         /// </summary>
         /// <param name="Shortcut">The shortcut of the command to find.</param>
         /// <returns>A command with the given shortcut.</returns>
-        public Command FindShort(string Shortcut)
+        public ICommand FindShort(string Shortcut)
         {
-            foreach (ServerCommand cmd in Commands)
+            foreach (IServerCommand cmd in Commands)
             {
                 if (cmd.Shortcut == Shortcut)
                 {
@@ -65,12 +65,12 @@ namespace Chraft.Commands
         /// Exceptions:
         /// <exception cref="CommandAlreadyExistsException">CommandAlreadyExistsException</exception>
         /// </summary>
-        /// <param name="command">The <see cref="ServerCommand">Command</see> to register.</param>
-        public void RegisterCommand(Command command)
+        /// <param name="command">The <see cref="IServerCommand">Command</see> to register.</param>
+        public void RegisterCommand(ICommand command)
         {
-            if (command is ServerCommand)
+            if (command is IServerCommand)
             {
-                foreach (ServerCommand cmd in Commands)
+                foreach (IServerCommand cmd in Commands)
                 {
                     if (cmd.Name == command.Name)
                     {
@@ -81,7 +81,7 @@ namespace Chraft.Commands
                         throw new CommandAlreadyExistsException("A command with the same shortcut already exists!");
                     }
                 }
-                ServerCommand Cmd = command as ServerCommand;
+                IServerCommand Cmd = command as IServerCommand;
                 Cmd.ServerCommandHandler = this;
                 Commands.Add(Cmd);
             }
@@ -92,14 +92,14 @@ namespace Chraft.Commands
         /// Exceptions:
         /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
         /// </summary>
-        /// <param name="command">The <see cref="ServerCommand">Command</see> to remove.</param>
-        public void UnregisterCommand(Command command)
+        /// <param name="command">The <see cref="IServerCommand">Command</see> to remove.</param>
+        public void UnregisterCommand(ICommand command)
         {
-            if (command is ServerCommand)
+            if (command is IServerCommand)
             {
                 if (Commands.Contains(command))
                 {
-                    Commands.Remove(command as ServerCommand);
+                    Commands.Remove(command as IServerCommand);
                 }
                 else
                 {
@@ -110,18 +110,18 @@ namespace Chraft.Commands
         /// <summary>
         /// Gets an array of all of the commands registerd.
         /// </summary>
-        /// <returns>Array of <see cref="ServerCommand"/></returns>
-        public Command[] GetCommands()
+        /// <returns>Array of <see cref="IServerCommand"/></returns>
+        public ICommand[] GetCommands()
         {
             return Commands.ToArray();
         }
         private void Init()
         {
             foreach (Type t in from t in Assembly.GetExecutingAssembly().GetTypes()
-                               where t.GetInterfaces().Contains(typeof(ServerCommand)) && !t.IsAbstract
+                               where t.GetInterfaces().Contains(typeof(IServerCommand)) && !t.IsAbstract
                                select t)
             {
-                RegisterCommand((ServerCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
+                RegisterCommand((IServerCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
             }
         }
     }

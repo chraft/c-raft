@@ -86,7 +86,7 @@ namespace ChraftServer
                     string[] inputParts = input.Split();
                     try
                     {
-                        var cmd = Server.ServerCommandHandler.Find(inputParts[0]) as ServerCommand;
+                        var cmd = Server.ServerCommandHandler.Find(inputParts[0]) as IServerCommand;
                         if (cmd is CmdStop)
                         {
                             //TODO: Clean this up

@@ -23,7 +23,7 @@ namespace Chraft.Plugins
         /// <summary>
         /// A Dictionary of all plugin commands.
         /// </summary>
-        private Dictionary<Command, IPlugin> PluginCommands = new Dictionary<Command, IPlugin>();
+        private Dictionary<ICommand, IPlugin> PluginCommands = new Dictionary<ICommand, IPlugin>();
 
         /// <summary>
         /// The folder searched at runtime for available plugins.
@@ -68,11 +68,9 @@ namespace Chraft.Plugins
         internal void LoadDefaultAssemblies()
         {
             LoadAssembly(Assembly.GetExecutingAssembly());
-            if (Directory.Exists(Folder))
-            {
-                foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
-                    LoadAssembly(f);
-            }
+            if (!Directory.Exists(Folder)) return;
+            foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
+                LoadAssembly(f);
         }
 
         /// <summary>
@@ -175,18 +173,7 @@ namespace Chraft.Plugins
         public EventListener[] GetRegisterdEvents(IPlugin plugin)
         {
             //Use a list because of having to set a limit on an array at init.
-            List<EventListener> events = new List<EventListener>();
-            foreach (ChraftEventHandler e in PluginHooks)
-            {
-                foreach (EventListener el in e.Plugins)
-                {
-                    if (el.Plugin == plugin)
-                    {
-                        events.Add(el);
-                    }
-                }
-            }
-            return events.ToArray();
+            return (from e in PluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
         }
         /// <summary>
         /// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
@@ -207,18 +194,7 @@ namespace Chraft.Plugins
         {
             PluginHooks.Find(Event).CallEvent(Event, args);
         }
-        /// <summary>
-        /// Used while I convert the event system from the string format to the new enum format.
-        /// </summary>
-        /// <param name="Event">The Event to be called</param>
-        /// <param name="args">The Event Args.</param>
-        //TODO: Convert all calls to CallEvent(string, ChraftEventArgs) to the new format.
-        [Obsolete("Use CallEvent(Event Event, ChraftEventArgs args)", true)]
-        public void CallEvent(string Event, ChraftEventArgs args)
-        {
-            //Temporary fix.
-            CallEvent((Event)Enum.Parse(typeof(Event), Event, true), args);
-        }
+       
         /// <summary>
         /// Subscribes to an event.
         /// </summary>
@@ -324,9 +300,9 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="cmd">The command to register.  ClientCommand or ServerCommand.</param>
         /// <param name="Plugin">The plugin to associate the command with.</param>
-        public void RegisterCommand(Command cmd, IPlugin Plugin)
+        public void RegisterCommand(ICommand cmd, IPlugin Plugin)
         {
-            if (cmd is ClientCommand)
+            if (cmd is IClientCommand)
             {
                 try
                 {
@@ -344,7 +320,7 @@ namespace Chraft.Plugins
                     Plugin.Server.Logger.Log(e);
                 }
             }
-            else if (cmd is ServerCommand)
+            else if (cmd is IServerCommand)
             {
                 try
                 {
@@ -368,7 +344,7 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="commands">The List of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
         /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(List<Command> commands, IPlugin Plugin)
+        public void RegisterCommands(List<ICommand> commands, IPlugin Plugin)
         {
             RegisterCommands(commands.ToArray(), Plugin); //No use in copying the same code from RegisterCommands.
         }
@@ -377,9 +353,9 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="commands">The Array of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
         /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(Command[] commands, IPlugin Plugin)
+        public void RegisterCommands(ICommand[] commands, IPlugin Plugin)
         {
-            foreach (Command c in commands)
+            foreach (ICommand c in commands)
             {
                 RegisterCommand(c, Plugin);
             }
@@ -389,7 +365,7 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="cmd">The command to unregister.</param>
         /// <param name="Plugin">The plugin that the command is associated with.</param>
-        public void UnregisterCommand(Command cmd, IPlugin Plugin)
+        public void UnregisterCommand(ICommand cmd, IPlugin Plugin)
         {
             //Event
             CommandRemovedEventArgs e = new CommandRemovedEventArgs(Plugin, cmd);
@@ -407,8 +383,8 @@ namespace Chraft.Plugins
             }
             try
             {
-                if (cmd is ClientCommand) Plugin.Server.ClientCommandHandler.UnregisterCommand(cmd);
-                else if (cmd is ServerCommand) Plugin.Server.ServerCommandHandler.UnregisterCommand(cmd);
+                if (cmd is IClientCommand) Plugin.Server.ClientCommandHandler.UnregisterCommand(cmd);
+                else if (cmd is IServerCommand) Plugin.Server.ServerCommandHandler.UnregisterCommand(cmd);
             }
             catch (CommandNotFoundException ex) { Plugin.Server.Logger.Log(ex); }
         }
@@ -417,9 +393,9 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="commands">The Array of commands to unregister.</param>
         /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(Command[] commands, IPlugin Plugin)
+        public void UnregisterCommands(ICommand[] commands, IPlugin Plugin)
         {
-            foreach (Command c in commands)
+            foreach (ICommand c in commands)
             {
                 UnregisterCommand(c, Plugin);
             }
@@ -429,7 +405,7 @@ namespace Chraft.Plugins
         /// </summary>
         /// <param name="commands">The List of commands to unregister.</param>
         /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(List<Command> commands, IPlugin Plugin)
+        public void UnregisterCommands(List<ICommand> commands, IPlugin Plugin)
         {
             UnregisterCommands(commands.ToArray(), Plugin);
         }

@@ -40,10 +40,10 @@ namespace Chraft.Plugins.Events.Args
     /// </summary>
     public class ServerCommandEventArgs : ServerEventArgs
     {
-        public ServerCommand Command { get; set; }
+        public IServerCommand Command { get; set; }
         public string[] Tokens { get; set; }
 
-        public ServerCommandEventArgs(Server server, ServerCommand command, string[] tokens)
+        public ServerCommandEventArgs(Server server, IServerCommand command, string[] tokens)
             : base(server)
         {
             Command = command;

@@ -28,9 +28,9 @@ namespace Chraft.Plugins.Events.Args
     /// </summary>
     public class PluginCommandEventArgs : PluginEventArgs
     {
-        public virtual Command Command { get; protected set; }
+        public virtual ICommand Command { get; protected set; }
 
-        public PluginCommandEventArgs(IPlugin p, Command c)
+        public PluginCommandEventArgs(IPlugin p, ICommand c)
             : base(p)
         {
             Command = c;
@@ -57,13 +57,13 @@ namespace Chraft.Plugins.Events.Args
     public class CommandAddedEventArgs : PluginCommandEventArgs
     {
 
-        public CommandAddedEventArgs(IPlugin p, Command c) : base(p, c) { }
+        public CommandAddedEventArgs(IPlugin p, ICommand c) : base(p, c) { }
     }
     /// <summary>
     /// EventArgs for when a command is removed.
     /// </summary>
     public class CommandRemovedEventArgs : PluginCommandEventArgs
     {
-        public CommandRemovedEventArgs(IPlugin p, Command c) : base(p, c) { }
+        public CommandRemovedEventArgs(IPlugin p, ICommand c) : base(p, c) { }
     }
 }

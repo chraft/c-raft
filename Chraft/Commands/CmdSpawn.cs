@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Net;
+﻿using Chraft.Net;
 using Chraft.World;
 
 namespace Chraft.Commands
 {
-    public class CmdSpawn : ClientCommand
+    internal class CmdSpawn : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

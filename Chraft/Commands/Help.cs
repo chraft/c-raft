@@ -7,7 +7,7 @@ using Chraft.Utils;
 
 namespace Chraft.Commands
 {
-    public class CmdHelp : ClientCommand, ServerCommand
+    public class CmdHelp : IClientCommand, IServerCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
         public ServerCommandHandler ServerCommandHandler { get; set; }
@@ -32,7 +32,7 @@ namespace Chraft.Commands
                 switch (tokens[0].ToLower())
                 {
                     case "build":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Build && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Build && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -42,7 +42,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "mod":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Mod && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Mod && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -53,7 +53,7 @@ namespace Chraft.Commands
                         break;
                     case "information":
                     case "info":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Information && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Information && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -63,7 +63,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "other":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Other && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IClientCommand c in ClientCommandHandler.GetCommands() where c.Type == CommandType.Other && client.Owner.CanUseCommand(c) select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -73,7 +73,7 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     case "short":
-                        message = (from ClientCommand c in ClientCommandHandler.GetCommands() where client.Owner.CanUseCommand(c) && !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
+                        message = (from IClientCommand c in ClientCommandHandler.GetCommands() where client.Owner.CanUseCommand(c) && !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
                         if (message == "")
                         {
                             client.SendMessage(ChatColor.Red + "There are no commands of this type that you can use.");
@@ -83,10 +83,10 @@ namespace Chraft.Commands
                         client.SendMessage(message);
                         break;
                     default:
-                        ClientCommand cmd;
+                        IClientCommand cmd;
                         try
                         {
-                            cmd = ClientCommandHandler.Find(tokens[0]) as ClientCommand;
+                            cmd = ClientCommandHandler.Find(tokens[0]) as IClientCommand;
                         }
                         catch (CommandNotFoundException e) { client.SendMessage(e.Message); return; }
                         try
@@ -134,7 +134,7 @@ namespace Chraft.Commands
                 switch (tokens[0].ToLower())
                 {
                     case "build":
-                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -144,7 +144,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "mod":
-                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -155,7 +155,7 @@ namespace Chraft.Commands
                         break;
                     case "information":
                     case "info":
-                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -165,7 +165,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "other":
-                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
+                        message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -175,7 +175,7 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     case "short":
-                        message = (from ServerCommand c in ServerCommandHandler.GetCommands() where !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
+                        message = (from IServerCommand c in ServerCommandHandler.GetCommands() where !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
                         if (message == "")
                         {
                             server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
@@ -185,10 +185,10 @@ namespace Chraft.Commands
                         server.Logger.Log(Logger.LogLevel.Info, message);
                         break;
                     default:
-                        ServerCommand cmd;
+                        IServerCommand cmd;
                         try
                         {
-                            cmd = ServerCommandHandler.Find(tokens[0]) as ServerCommand;
+                            cmd = ServerCommandHandler.Find(tokens[0]) as IServerCommand;
                         }
                         catch (CommandNotFoundException e) { server.Logger.Log(Logger.LogLevel.Info, e.Message); return; }
                         try

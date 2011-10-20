@@ -8,7 +8,7 @@ using Chraft.World;
 
 namespace Chraft.Commands.Debug
 {
-    public class DbgRayTrace : ClientCommand
+    public class DbgRayTrace : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

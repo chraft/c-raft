@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Chraft.Commands;
 using Chraft.Net;
 using Chraft.World;
 
-namespace Chraft.Commands
+namespace Chraft.Plugins.Commands
 {
-    public class CmdPos1 : ClientCommand
+    public class CmdPos1 : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
@@ -42,7 +39,7 @@ namespace Chraft.Commands
             get { return "chraft.pos1"; }
         }
     }
-    public class CmdPos2 : ClientCommand
+    public class CmdPos2 : IClientCommand
     {
         public ClientCommandHandler ClientCommandHandler { get; set; }
 

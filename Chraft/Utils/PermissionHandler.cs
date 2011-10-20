@@ -139,7 +139,7 @@ namespace Chraft.Utils
             return finalList;
         }
 
-        public bool HasPermission(Player player, Command command)
+        public bool HasPermission(Player player, ICommand command)
         {
             return player.Permissions.AllowedPermissions.Contains(command.Permission.ToLower()) && !player.Permissions.DeniedPermissions.Contains(command.Permission.ToLower());
         }
