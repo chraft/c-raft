@@ -280,7 +280,7 @@ namespace Chraft.Plugins
         /// Unregisters a List of EventListener.
         /// </summary>
         /// <param name="Listeners">The List of EventListener.</param>
-        public void UnegisterEvents(List<EventListener> Listeners)
+        public void UnregisterEvents(List<EventListener> Listeners)
         {
             UnregisterEvents(Listeners.ToArray());
         }
