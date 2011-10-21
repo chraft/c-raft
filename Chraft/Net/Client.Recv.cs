@@ -62,13 +62,13 @@ namespace Chraft.Net
                         _beginInAirY = _player.Position.Y;
                         _inAirStartTime = DateTime.Now;
 #if DEBUG
-                        this.SendMessage("In air");
+                        //this.SendMessage("In air");
 #endif
                     }
                     else
                     {
 #if DEBUG
-                        this.SendMessage("On ground");
+                        //this.SendMessage("On ground");
 #endif
 
                         double blockCount = 0;
@@ -91,7 +91,7 @@ namespace Chraft.Net
                             if (blockCount > 0.5)
                             {
 #if DEBUG
-                                this.SendMessage(String.Format("Fell {0} blocks", blockCount));
+                                //this.SendMessage(String.Format("Fell {0} blocks", blockCount));
 #endif
                                 double fallDamage = (blockCount - 3);// (we don't devide by two because DamageClient uses whole numbers i.e. 20 = 10 health)
 
@@ -124,7 +124,7 @@ namespace Chraft.Net
                             else if (blockCount < -0.5)
                             {
 #if DEBUG
-                                this.SendMessage(String.Format("Climbed {0} blocks", blockCount * -1));
+                                //this.SendMessage(String.Format("Climbed {0} blocks", blockCount * -1));
 #endif
                             }
                         }
