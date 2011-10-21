@@ -634,7 +634,7 @@ namespace Chraft.World
             return Chunks[worldX >> 4, worldZ >> 4][worldX & 0xF, worldY, worldZ & 0xF];
         }
   
-        private RayTraceHitBlock RayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
+        private RayTraceHitBlock DoRayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
         {
             byte blockType = this.GetBlockId(coords); // only get the block type first to save time
             if (blockType > 0)
@@ -650,12 +650,23 @@ namespace Chraft.World
             return null;
         }
   
+        /// <summary>
+        /// Ray traces the blocks along the ray. This method takes approx 0.1ms per 50-60 metres.
+        /// </summary>
+        /// <returns>
+        /// The first block hit
+        /// </returns>
+        /// <param name='rayStart'>
+        /// Ray start.
+        /// </param>
+        /// <param name='rayEnd'>
+        /// Ray end.
+        /// </param>
         public RayTraceHitBlock RayTraceBlocks(AbsWorldCoords rayStart, AbsWorldCoords rayEnd)
         {
             UniversalCoords startCoord = UniversalCoords.FromAbsWorld(rayStart);
             UniversalCoords endCoord = UniversalCoords.FromAbsWorld(rayEnd);
             
-            // Step along the ray looking for block collisions
             UniversalCoords previousPoint = UniversalCoords.Empty;
             UniversalCoords currentPoint = startCoord;
             
@@ -675,49 +686,46 @@ namespace Chraft.World
             int blockCheckCount = 0;
             try
             {
+                // Step along the ray looking for block collisions
                 while (true)
                 {
                     #region Check adjacent blocks if necessary (to prevent skipping over the corner of one)
-                    int xDiff = currentPoint.WorldX - previousPoint.WorldX;
-                    int yDiff = currentPoint.WorldY - previousPoint.WorldY;
-                    int zDiff = currentPoint.WorldZ - previousPoint.WorldZ;
-                    
-                    bool xChanged = xDiff != 0;
-                    bool yChanged = yDiff != 0;
-                    bool zChanged = zDiff != 0;
+                    bool xChanged = currentPoint.WorldX - previousPoint.WorldX != 0;
+                    bool yChanged = currentPoint.WorldY - previousPoint.WorldY != 0;
+                    bool zChanged = currentPoint.WorldZ - previousPoint.WorldZ != 0;
                     
                     // When we change a coord, need to check which adjacent block also needs to be checked (to prevent missing blocks when jumping over their corners)
                     if (xChanged && yChanged && zChanged)
                     {
                         // -X,Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,-Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,Y,-Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         
                         // -X,Y,-Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // -X,-Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,-Y,-Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                     }
@@ -725,12 +733,12 @@ namespace Chraft.World
                     {
                         // -X,Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,Y,-Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                     }
@@ -738,12 +746,12 @@ namespace Chraft.World
                     {
                         // -X,Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,-Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                     }
@@ -751,12 +759,12 @@ namespace Chraft.World
                     {
                         // X,Y,-Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                         // X,-Y,Z
                         blockCheckCount++;
-                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        blockTrace = DoRayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
                         if (blockTrace != null)
                             return blockTrace;
                     }
@@ -764,7 +772,7 @@ namespace Chraft.World
                     
                     // Check the currentPoint
                     blockCheckCount++;
-                    blockTrace = RayTraceBlock(currentPoint, rayStartVec, rayEndVec);
+                    blockTrace = DoRayTraceBlock(currentPoint, rayStartVec, rayEndVec);
                     if (blockTrace != null)
                         return blockTrace;
                     
@@ -774,7 +782,7 @@ namespace Chraft.World
                         break;
                     }
                     
-                    // Get the next coord
+                    #region Get the next coordinate
                     previousPoint = currentPoint;
                     do
                     {
@@ -790,6 +798,7 @@ namespace Chraft.World
                         //Console.WriteLine("Went past endCoord: {0}, {1}", startCoord, endCoord);
                         break;
                     }
+                    #endregion
                 }
             }
             finally
