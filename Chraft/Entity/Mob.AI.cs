@@ -8,8 +8,6 @@ using Chraft.World;
 namespace Chraft.Entity {
     partial class Mob {
 
-        public Vector3 Velocity = new Vector3(0, 0, 0); // What direction are we going.
-
         // Behaviour junk
         private bool AIWaiting;
         public bool Hunter; // Is this mob capable of tracking clients?
