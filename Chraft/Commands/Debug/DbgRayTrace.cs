@@ -16,20 +16,24 @@ namespace Chraft.Commands.Debug
         {
             Vector3 facing = new Vector3(client.Owner.Yaw, client.Owner.Pitch);
                 
-                
             Vector3 start = new Vector3(client.Owner.Position.X, client.Owner.Position.Y + client.Owner.EyeHeight, client.Owner.Position.Z);
-            Vector3 end = facing * 120 + start;
+            Vector3 end = facing * 100 + start;
+            if (end.Y < 0)
+            {
+                end = end * (Math.Abs(end.Y) / start.Y);
+                end.Y = 0;
+            }
 
             if (tokens.Length == 0)
             {
-                // Ray trace out 50 blocks along client facing direction
+                // Ray trace out along client facing direction
                 RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
                 
                 if (hit == null)
                     client.SendMessage(String.Format("No block targetted within {0} metres", start.Distance(end)));
                 else
                 {
-                    client.SendMessage(hit.ToString());
+                    client.SendMessage(String.Format("{0} metres to {1}", start.Distance(hit.Hit), hit.ToString()));
                 }
             }
             else if (tokens[0] == "destroy") // destroy the targetted block
@@ -39,6 +43,15 @@ namespace Chraft.Commands.Debug
                 if (hit != null)
                 {
                     client.Owner.World.SetBlockAndData(hit.TargetBlock, 0, 0);
+                }
+            }
+            else if (tokens[0] == "pink") // make the targetted block pink wool
+            {
+                RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
+                
+                if (hit != null)
+                {
+                    client.Owner.World.SetBlockAndData(hit.TargetBlock, 35, 6);
                 }
             }
             else if (tokens[0] == "perf") // performance check
@@ -53,7 +66,7 @@ namespace Chraft.Commands.Debug
                 DateTime endTime = DateTime.Now;
                 if (hit != null)
                 {
-                    client.SendMessage(String.Format("Time to ray trace {0} metres:", start.Distance(hit.Hit)));
+                    client.SendMessage(String.Format("Time to ray trace {0} metres (with hit):", start.Distance(hit.Hit)));
                 }
                 else
                 {
