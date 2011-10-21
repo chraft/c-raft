@@ -171,6 +171,12 @@ namespace Chraft.Net
                 DisposeRecvSystem();
                 return;
             }
+            
+            if(!_socket.Connected)
+            {
+                Stop();
+                return;
+            }
 
             //Logger.Log(Chraft.Logger.LogLevel.Info, "Start receiving");
 
@@ -184,8 +190,7 @@ namespace Chraft.Net
             catch (Exception e)
             {
                 _player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
-                MarkToDispose();
-                DisposeRecvSystem();
+                Stop();
             }
 
         }
@@ -206,12 +211,25 @@ namespace Chraft.Net
 
                 Recv_Start();
             }
+            else
+            {
+                MarkToDispose();
+                DisposeRecvSystem();
+                _nextActivityCheck = DateTime.MinValue;
+            }
         }
 
         private void Recv_Completed(object sender, SocketAsyncEventArgs e)
         {
             if (!Running)
                 DisposeRecvSystem();
+            else if(e.SocketError != SocketError.Success || e.BytesTransferred == 0)
+            {
+                MarkToDispose();
+                DisposeRecvSystem();
+                _nextActivityCheck = DateTime.MinValue;
+                //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
+            }
             else
                 Recv_Process(e);
         }

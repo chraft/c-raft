@@ -133,7 +133,7 @@ namespace Chraft.Entity
                 loopCount++;
             }
             
-            if (loopCount > EntityBase.LagWarningThreshold)
+            if (loopCount > LagWarningThreshold)
             {
                 Server.Logger.Log(Logger.LogLevel.Warning, "Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
             }

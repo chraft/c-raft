@@ -77,9 +77,14 @@ namespace Chraft
         public ServerCommandHandler ServerCommandHandler { get; private set; }
 
         /// <summary>
-        /// Gets a thread-safe list of clients.  Use GetClients for a thread-safe version.
+        /// Gets a thread-safe dictionary of clients.  Use GetClients for an array version.
         /// </summary>
         public ConcurrentDictionary<int, Client> Clients { get; private set; }
+
+        /// <summary>
+        /// Gets a thread-safe dictionary of authenticated clients.  Use GetAuthenticatedClients for an array version.
+        /// </summary>
+        public ConcurrentDictionary<int, Client> AuthClients { get; private set; }
 
         /// <summary>
         /// Gets a thread-unsafe list of worlds.  Use GetWorlds for a thread-safe version.
@@ -94,7 +99,7 @@ namespace Chraft
         /// <summary>
         /// Thread safe list of all entities on the server.
         /// </summary>
-        private readonly List<EntityBase> _Entities = new List<EntityBase>();
+        private readonly ConcurrentDictionary<int, EntityBase> _Entities = new ConcurrentDictionary<int, EntityBase>();
 
         /// <summary>
         /// Gets the server Logger instance for console and file logging.
@@ -136,6 +141,7 @@ namespace Chraft
             ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
             Clients = new ConcurrentDictionary<int, Client>();
+            AuthClients = new ConcurrentDictionary<int, Client>();
             Rand = new Random();
             Logger = new Logger(this, Settings.Default.LogFile);
             PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
@@ -238,7 +244,7 @@ namespace Chraft
         {
             while (Running)
             {
-                foreach (var client in this.GetAuthenticatedClients())
+                foreach (var client in GetAuthenticatedClients())
                 {
                     this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Owner.Username, Online = client.Owner.Ready, Ping = (short)client.Ping });
                     Thread.Sleep(50);
@@ -432,7 +438,7 @@ namespace Chraft
 
             int fromProcessed = length - fromFrag; 
             
-            processedBuffer.Dequeue(data, 0, fromProcessed);
+            processedBuffer.Dequeue(data, fromFrag, fromProcessed);
 
             return data;
         }
@@ -469,21 +475,20 @@ namespace Chraft
                 if (accepts == 0)
                 {
                     //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting async accept");
-                    _AcceptEventArgs.AcceptSocket = null;
                     _Listener.AcceptAsync(_AcceptEventArgs);
                 }
 
-                if (RecvClientQueue.Count > 0 && (_readClientsPackets == null || _readClientsPackets.IsCompleted))
+                if (!RecvClientQueue.IsEmpty && (_readClientsPackets == null || _readClientsPackets.IsCompleted))
                 {
                     _readClientsPackets = Task.Factory.StartNew(ProcessReadQueue);
                 }
 
-                if(ClientsToDispose.Count > 0 && (_disposeClients == null || _disposeClients.IsCompleted))
+                if(!ClientsToDispose.IsEmpty && (_disposeClients == null || _disposeClients.IsCompleted))
                 {
                     _disposeClients = Task.Factory.StartNew(DisposeClients);
                 }
 
-                if(SendClientQueue.Count > 0 && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
+                if(!SendClientQueue.IsEmpty && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
                 {
                     _sendClientPackets = Task.Factory.StartNew(ProcessSendQueue);
                 }
@@ -493,7 +498,7 @@ namespace Chraft
         private void DisposeClients()
         {
             int count = ClientsToDispose.Count;
-            while (ClientsToDispose.Count > 0)
+            while (!ClientsToDispose.IsEmpty)
             {
                 Client client;
                 if (!ClientsToDispose.TryDequeue(out client))
@@ -526,9 +531,11 @@ namespace Chraft
             }
             else
             {
+                if(e.AcceptSocket.Connected)
+                    e.AcceptSocket.Shutdown(SocketShutdown.Both);
                 e.AcceptSocket.Close();
             }
-
+            _AcceptEventArgs.AcceptSocket = null;
             Interlocked.Exchange(ref _asyncAccepts, 0);
             NetworkSignal.Set();
         }
@@ -581,6 +588,12 @@ namespace Chraft
         /// <param name="excludeClient">The client to excluded; usually the sender.</param>
         public void Broadcast(Packet packet, Client excludeClient = null)
         {
+            Client[] clients = GetClients();
+
+            if(clients.Length == 0)
+                return;
+
+            packet.SetShared(Logger, clients.Length);
             foreach (Client c in GetClients())
             {
                 if (excludeClient == null || c.Owner.EntityId != excludeClient.Owner.EntityId)
@@ -594,11 +607,17 @@ namespace Chraft
         /// <param name="packet"></param>
         public void BroadcastToAuthenticated(Packet packet)
         {
-            System.Threading.Tasks.Parallel.ForEach(this.GetAuthenticatedClients(), (client) => client.SendPacket(packet));
+            Client[] authClients = GetAuthenticatedClients();
+
+            if (authClients.Length == 0)
+                return;
+
+            packet.SetShared(Logger, authClients.Length);
+            System.Threading.Tasks.Parallel.ForEach(authClients, (client) => client.SendPacket(packet));
         }
 
-        private Client[] _ClientsCache;
-        private int _ClientListChanges;
+        private Client[] _clientsCache;
+        private int _clientDictChanges;
 
         /// <summary>
         /// Gets a thread-safe array of connected clients.
@@ -606,17 +625,23 @@ namespace Chraft
         /// <returns>A thread-safe array of connected clients.</returns>
         public Client[] GetClients()
         {
-            int changes = Interlocked.Exchange(ref _ClientListChanges, 0);
-            if (_ClientsCache == null || changes > 0)
-             _ClientsCache =  Clients.Values.ToArray();
+            int changes = Interlocked.Exchange(ref _clientDictChanges, 0);
+            if (_clientsCache == null || changes > 0)
+                _clientsCache = Clients.Values.ToArray();
 
-            return _ClientsCache;
+            return _clientsCache;
         }
 
-        // TODO: cache this thing?
-        public IEnumerable<Client> GetAuthenticatedClients()
+        private Client[] _authClientsCache;
+        private int _authClientDictChanges;
+
+        public Client[] GetAuthenticatedClients()
         {
-            return GetClients().Where((client) => !String.IsNullOrEmpty(client.Owner.Username));
+            int changes = Interlocked.Exchange(ref _authClientDictChanges, 0);
+            if (_authClientsCache == null || changes > 0)
+                _authClientsCache = AuthClients.Values.ToArray();
+
+            return _authClientsCache;
         }
 
 
@@ -627,16 +652,21 @@ namespace Chraft
                    select c;
         }
 
+        private EntityBase[] _entityCache;
+        private int _entityDictChanges;
+
         /// <summary>
         /// Gets a thread-safe array of all entities, including clients.
         /// </summary>
         /// <returns>A thread-safe array of all active entities.</returns>
         public EntityBase[] GetEntities()
         {
-            lock (_Entities)
-            {
-                return _Entities.ToArray();
-            }
+            int changes = Interlocked.Exchange(ref _entityDictChanges, 0);
+
+            if(_entityCache == null || changes > 0)
+                _entityCache = _Entities.Values.ToArray();
+
+            return _entityCache;
         }
 
         /// <summary>
@@ -644,10 +674,8 @@ namespace Chraft
         /// </summary>
         public void RemoveEntity(EntityBase e)
         {
-            lock (_Entities)
-            {
-                _Entities.Remove(e);
-            }
+            _Entities.TryRemove(e.EntityId, out e);
+            Interlocked.Increment(ref _entityDictChanges);
         }
 
         /// <summary>
@@ -655,22 +683,35 @@ namespace Chraft
         /// </summary>
         public void AddEntity(EntityBase e)
         {
-            lock (_Entities)
-            {
-                _Entities.Add(e);
-            }
+            _Entities.TryAdd(e.EntityId, e);
+            Interlocked.Increment(ref _entityDictChanges);
         }
 
         public void AddClient(Client client)
         {
             Clients.TryAdd(client.Owner.SessionID, client);
-            Interlocked.Increment(ref _ClientListChanges);
+            Interlocked.Increment(ref _clientDictChanges);
         }
 
         public void RemoveClient(Client client)
         {
             Clients.TryRemove(client.Owner.SessionID, out client);
-            Interlocked.Increment(ref _ClientListChanges);
+            Interlocked.Increment(ref _clientDictChanges);
+        }
+
+        public void AddAuthenticatedClient(Client client)
+        {
+            AuthClients.TryAdd(client.Owner.SessionID, client);
+            Interlocked.Increment(ref _authClientDictChanges);
+        }
+
+        public void RemoveAuthenticatedClient(Client client)
+        {
+            Client removed;
+            AuthClients.TryRemove(client.Owner.SessionID, out removed);    
+            Interlocked.Increment(ref _authClientDictChanges);
+
+            RemoveClient(client);
         }
 
         // TODO: This should be removed in favor of the one below
@@ -682,7 +723,13 @@ namespace Chraft
         /// <param name="packet">The packet to send</param>
         public void SendPacketToNearbyPlayers(WorldManager world, AbsWorldCoords absCoords, Packet packet)
         {
-            Parallel.ForEach(this.GetNearbyPlayers(world, absCoords), (client) =>
+            Client[] nearbyClients = GetNearbyPlayers(world, absCoords).ToArray();
+
+            if (nearbyClients.Length == 0)
+                return;
+
+            packet.SetShared(Logger, nearbyClients.Length);
+            Parallel.ForEach(nearbyClients, (client) =>
             {
                 client.SendPacket(packet);
             });
@@ -696,7 +743,14 @@ namespace Chraft
         /// <param name="packet">The packet to send</param>
         public void SendPacketToNearbyPlayers(WorldManager world, UniversalCoords coords, Packet packet)
         {
-            Parallel.ForEach(this.GetNearbyPlayers(world, coords), (client) =>
+            Client[] nearbyClients = GetNearbyPlayers(world, coords).ToArray();
+
+            if (nearbyClients.Length == 0)
+                return;
+
+            packet.SetShared(Logger, nearbyClients.Length);
+
+            Parallel.ForEach(nearbyClients, (client) =>
             {
                 client.SendPacket(packet);
             });
@@ -752,6 +806,28 @@ namespace Chraft
             foreach (EntityBase e in GetEntities())
             {
                 if (e.World == world && Math.Abs(coords.X - e.Position.X) <= radius && Math.Abs(coords.Y - e.Position.Y) <= radius && Math.Abs(coords.Z - e.Position.Z) <= radius)
+                    yield return e;
+            }
+        }
+
+        /// <summary>
+        /// Yields an enumerable of nearby entities, including players.  Thread-safe.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="x">The center X coordinate.</param>
+        /// <param name="y">The center Y coordinate.</param>
+        /// <param name="z">The center Z coordinate.</param>
+        /// <returns>A lazy enumerable of nearby entities.</returns>
+        public IEnumerable<EntityBase> GetNearbyEntities(WorldManager world, UniversalCoords coords)
+        {
+            int radius = Settings.Default.SightRadius;
+
+            foreach (EntityBase e in GetEntities())
+            {
+                int entityChunkX = (int)Math.Floor(e.Position.X) >> 4;
+                int entityChunkZ = (int)Math.Floor(e.Position.Z) >> 4;
+
+                if (e.World == world && Math.Abs(coords.ChunkX - entityChunkX) <= radius && Math.Abs(coords.ChunkZ - entityChunkZ) <= radius)
                     yield return e;
             }
         }

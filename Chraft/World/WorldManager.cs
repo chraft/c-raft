@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
 using Chraft.Properties;
 using System.IO;
@@ -289,7 +290,7 @@ namespace Chraft.World
 
         public void CheckAliveClients()
         {
-            Parallel.ForEach(Server.GetAuthenticatedClients(), (c) => c.CheckAlive());
+            Parallel.ForEach(Server.GetClients(), (c) => c.CheckAlive());
         }
 
         private void FullSave()

@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -194,16 +197,18 @@ namespace Chraft.Net
 
             _player.LoggedIn = false;
             _player.Ready = false;
-
-            _player.Server.RemoveClient(this);
-            _player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _player.Server.Clients.Count);
-            _player.Server.RemoveEntity(_player);
+            Running = false;
+            
             foreach (int packedCoords in _player.LoadedChunks.Keys)
             {
                 Chunk chunk = _player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
                 if (chunk != null)
                     chunk.RemoveClient(this);
             }
+
+            _player.Server.RemoveClient(this);
+            _player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _player.Server.Clients.Count);
+            _player.Server.RemoveEntity(_player);
 
             if (_keepAliveTimer != null)
             {
@@ -216,9 +221,9 @@ namespace Chraft.Net
             RecvSocketEventPool.Push(_recvSocketEvent);
 
             if (_socket.Connected)
-                _socket.Close();
-
-            GC.Collect();
+                _socket.Shutdown(SocketShutdown.Both);                          
+            _socket.Close();
+            //GC.Collect();
         }
 
         public void MarkToDispose()
