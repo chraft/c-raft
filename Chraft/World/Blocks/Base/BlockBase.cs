@@ -324,17 +324,14 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been destroyed</param>
         protected virtual void PlaySoundOnDestroy(StructBlock block)
         {
-            foreach (Client cl in block.World.Server.GetNearbyPlayers(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
+            block.World.Server.SendPacketToNearbyPlayers(block.World, block.Coords, new SoundEffectPacket
             {
-                cl.SendPacket(new SoundEffectPacket
-                {
-                    EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
-                    X = block.Coords.WorldX,
-                    Y = (byte)block.Coords.WorldY,
-                    Z = block.Coords.WorldZ,
-                    SoundData = block.Type
-                });
-            }
+                EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
+                X = block.Coords.WorldX,
+                Y = (byte)block.Coords.WorldY,
+                Z = block.Coords.WorldZ,
+                SoundData = block.Type
+            });
         }
 
         /// <summary>

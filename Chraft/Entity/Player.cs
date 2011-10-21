@@ -279,8 +279,9 @@ namespace Chraft.Entity
         }
 
         public void SynchronizeEntities()
-        { 
-            foreach (EntityBase e in Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+        {
+            AbsWorldCoords absCoords = new AbsWorldCoords(Position.X, Position.Y, Position.Z);
+            foreach (EntityBase e in Server.GetNearbyEntities(World, absCoords))
             {
                 if (e.Equals(this))
                     continue;

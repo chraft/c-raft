@@ -15,7 +15,7 @@ namespace Chraft.Net
 {
     public partial class Client 
     {
-        public ConcurrentQueue<Packet> packetsToBeSent = new ConcurrentQueue<Packet>();
+        public ConcurrentQueue<Packet> PacketsToBeSent = new ConcurrentQueue<Packet>();
 
         private int _TimesEnqueuedForSend;
         public void SendPacket(Packet packet)
@@ -23,7 +23,10 @@ namespace Chraft.Net
             if (!Running)
                 return;
 
-            packetsToBeSent.Enqueue(packet);
+            if (packet.Logger == null)
+                packet.Logger = _player.Server.Logger;
+
+            PacketsToBeSent.Enqueue(packet);
 
             int newValue = Interlocked.Increment(ref _TimesEnqueuedForSend);
 
@@ -37,7 +40,7 @@ namespace Chraft.Net
 
         public void Send_Async(byte[] data)
         {
-            if (!Running)
+            if (!Running || !_socket.Connected)
             {
                 DisposeSendSystem();
                 return;
@@ -58,19 +61,32 @@ namespace Chraft.Net
 
         public void Send_Sync(byte[] data)
         {
-            if (!Running)
+            if (!Running || !_socket.Connected)
             {
                 DisposeSendSystem();
                 return;
             }
-            _socket.Send(data, data.Length, 0);
+            try
+            {
+                _socket.Send(data, data.Length, 0);
+                _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+            }
+            catch (Exception)
+            {
+                Stop();
+
+            }
+            
         }
 
         public void Send_Start(Packet packet = null)
         {
-            if(!Running)
+            if (!Running || !_socket.Connected)
             {
                 DisposeSendSystem();
+
+                if(packet != null)
+                    packet.Release();
                 return;
             }
 
@@ -79,25 +95,32 @@ namespace Chraft.Net
                 byte[] data;
                 if (packet == null)
                 {
-                    if (packetsToBeSent.Count > 0)
+                    if (PacketsToBeSent.Count > 0)
                     {
-                        if (!packetsToBeSent.TryDequeue(out packet))
+                        if (!PacketsToBeSent.TryDequeue(out packet))
                         {
                             Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
                             return;
                         }
 
-                        packet.Write();
+                        if (!packet.Shared)
+                            packet.Write();
+                                                   
                         data = packet.GetBuffer();
-
+                        
                         if (packet.Async)
+                        {
                             Send_Async(data);
+                            packet.Release();
+                        }
                         else
                         {
                             Send_Sync(data);
-                            while (Running && packetsToBeSent.Count > 0)
+                            packet.Release();
+                            packet = null;
+                            while (Running && PacketsToBeSent.Count > 0)
                             {
-                                if (!packetsToBeSent.TryDequeue(out packet))
+                                if (!PacketsToBeSent.TryDequeue(out packet))
                                 {
                                     Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
                                     return;
@@ -106,10 +129,13 @@ namespace Chraft.Net
                                 if (packet.Async)
                                     break;
 
-                                packet.Write();
+                                if (!packet.Shared)
+                                    packet.Write();
+
                                 data = packet.GetBuffer();
 
                                 Send_Sync(data);
+                                packet.Release();
                                 packet = null;
                             }
 
@@ -124,16 +150,23 @@ namespace Chraft.Net
                 }
                 else
                 {
-                    packet.Write();
+                    if (!packet.Shared)
+                        packet.Write();
+                    
                     data = packet.GetBuffer();
+                    
                     Send_Async(data);
+                    packet.Release();
                 }
             }
             catch (Exception e)
             {
                 MarkToDispose();
                 DisposeSendSystem();
-                Logger.Log(Logger.LogLevel.Error, e.Message);
+                if(packet != null)
+                    Logger.Log(Logger.LogLevel.Error, "Sending packet: {0}", packet.ToString());
+                Logger.Log(Logger.LogLevel.Error, e.ToString());
+
                 // TODO: log something?
             }
             
@@ -145,7 +178,13 @@ namespace Chraft.Net
                 e.Completed -= Disconnected;
             if (!Running)
                 DisposeSendSystem();
-            else if(e.SocketError == SocketError.Success)
+            else if(e.SocketError != SocketError.Success)
+            {
+                MarkToDispose();
+                DisposeSendSystem();
+                _nextActivityCheck = DateTime.MinValue;
+            }
+            else
                 Send_Start();
         }
 
@@ -157,7 +196,7 @@ namespace Chraft.Net
                 {
                     Time = _player.World.Time
                 });
-                _player.SynchronizeEntities();
+                //_player.SynchronizeEntities();
             }
         }
 
@@ -269,6 +308,7 @@ namespace Chraft.Net
 
         public void SendLoginSequence()
         {
+            _player.Server.AddAuthenticatedClient(this);
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
             StartKeepAliveTimer();
