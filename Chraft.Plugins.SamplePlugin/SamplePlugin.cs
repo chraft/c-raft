@@ -40,6 +40,7 @@ namespace Chraft.Plugins.SamplePlugin
         public void Initialize()
         {
             playerListener = new SamplePluginPlayerListener(this);
+            entitiyListener = new SamplePluginEntitiyListener(this);
         }
 
         public void Associate(Server server, PluginManager pluginManager)
@@ -50,6 +51,7 @@ namespace Chraft.Plugins.SamplePlugin
 
         public void OnEnabled()
         {
+            IsPluginEnabled = true;
             PluginManager.RegisterEvent(Event.PLAYER_CHAT, playerListener, this);
             PluginManager.RegisterEvent(Event.PLAYER_DIED, playerListener, this);
             PluginManager.RegisterEvent(Event.ENTITY_SPAWN, entitiyListener, this);
@@ -58,6 +60,7 @@ namespace Chraft.Plugins.SamplePlugin
 
         public void OnDisabled()
         {
+            IsPluginEnabled = false;
             PluginManager.UnregisterEvent(Event.PLAYER_CHAT, playerListener, this);
             PluginManager.UnregisterEvent(Event.PLAYER_DIED, playerListener, this);
             PluginManager.UnregisterEvent(Event.ENTITY_SPAWN, entitiyListener, this);
