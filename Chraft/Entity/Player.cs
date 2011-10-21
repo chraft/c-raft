@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Chraft.Commands;
-using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
@@ -54,8 +52,8 @@ namespace Chraft.Entity
         /// Is the client muted from chat
         /// </summary>
         public bool IsMuted { get; set; }
-  
-        public override float EyeHeight 
+
+        public override float EyeHeight
         {
             get { return 1.62f; }
         }
@@ -64,7 +62,8 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
-        public Player(Server server, int sessionId) : base(server, sessionId)
+        public Player(Server server, int sessionId)
+            : base(server, sessionId)
         {
             EnsureServer(server);
             Inventory = null;
@@ -117,9 +116,9 @@ namespace Chraft.Entity
 
             _Client.SendPacket(new UpdateHealthPacket
             {
-                Health = this.Health,
-                Food = this.Food,
-                FoodSaturation = this.FoodSaturation,
+                Health = Health,
+                Food = Food,
+                FoodSaturation = FoodSaturation,
             });
         }
 
@@ -155,10 +154,10 @@ namespace Chraft.Entity
             Client.SendPacket(new PlayerPositionRotationPacket
                                   {
                                       X = absCoords.X,
-                                      Y = absCoords.Y + this.EyeHeight,
+                                      Y = absCoords.Y + EyeHeight,
                                       Z = absCoords.Z,
-                                      Yaw = (float) this.Yaw,
-                                      Pitch = (float) this.Pitch,
+                                      Yaw = (float)Yaw,
+                                      Pitch = (float)Pitch,
                                       Stance = Client.Stance,
                                       OnGround = false
                                   });
@@ -166,7 +165,7 @@ namespace Chraft.Entity
 
         public void UpdateEntities()
         {
-            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z));
+            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)).ToList();
 
             foreach (EntityBase e in nearbyEntities)
             {
@@ -174,14 +173,12 @@ namespace Chraft.Entity
                     continue;
                 if (!LoadedEntities.Contains(e))
                     _Client.SendCreateEntity(e);
-                if (this.Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
+                if (Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
                     PickupItem((ItemEntity)e);
             }
 
-            foreach (EntityBase e in LoadedEntities)
+            foreach (EntityBase e in LoadedEntities.Where(e => !nearbyEntities.Contains(e)))
             {
-                if (nearbyEntities.Contains(e))
-                    continue;
                 _Client.SendDestroyEntity(e);
             }
 
@@ -194,9 +191,17 @@ namespace Chraft.Entity
         /// <param name="hitBy">Who killed the current Client.</param>
         public void HandleDeath(EntityBase hitBy = null, string deathBy = "")
         {
+            //Event
+            ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, hitBy);
+            Client.Owner.Server.PluginManager.CallEvent(Event.PLAYER_DIED, clientDeath);
+            if (clientDeath.EventCanceled) { return; }
+            hitBy = clientDeath.KilledBy;
+            //End Event
+
+
             // TODO: Add config option for none/global/local death messages
             // ...Or maybe make messages a plugin?
-            string deathMessage;
+            string deathMessage = string.Empty;
 
             if (hitBy == null && deathBy == "") // Generic message
             {
@@ -204,16 +209,16 @@ namespace Chraft.Entity
             }
             else if (hitBy is Player)
             {
-                Player p = (Player)hitBy;
-                deathBy = "by " + DisplayName.ToString() + " using" + Server.Items.ItemName(Inventory.Slots[Inventory.ActiveSlot].Type);
+                var p = (Player)hitBy;
+                deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory.Slots[Inventory.ActiveSlot].Type);
             }
             else if (hitBy is Mob)
             {
-                Mob m = (Mob)hitBy;
+                var m = (Mob)hitBy;
                 deathBy = "by " + m.Type;
             }
 
-            deathMessage = this.DisplayName.ToString() + " was killed " + deathBy;
+            deathMessage = DisplayName + " was killed " + deathBy;
 
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
@@ -224,7 +229,7 @@ namespace Chraft.Entity
 
                 c.SendPacket(new EntityStatusPacket // Death Action
                 {
-                    EntityId = this.EntityId,
+                    EntityId = EntityId,
                     EntityStatus = 3
                 });
             }
@@ -275,7 +280,7 @@ namespace Chraft.Entity
                 });
             }
 
-            Inventory.AddItem(item.ItemId, (sbyte)item.Count, item.Durability);
+            Inventory.AddItem(item.ItemId, item.Count, item.Durability);
         }
 
         public void SynchronizeEntities()
@@ -353,7 +358,7 @@ namespace Chraft.Entity
                     return;
                 int x = UniversalCoords.FromPackedChunkToX(c);
                 int z = UniversalCoords.FromPackedChunkToZ(c);
-                
+
                 Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
                 //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
                 chunk.AddClient(_Client);
@@ -391,10 +396,14 @@ namespace Chraft.Entity
             LoggedIn = true;
             string DisplayMessage = DisplayName + " has logged in";
             //Event
-            ClientJoinedEventArgs e = new ClientJoinedEventArgs(_Client);
+            ClientJoinedEventArgs e = new ClientJoinedEventArgs(Client);
             Server.PluginManager.CallEvent(Event.PLAYER_JOINED, e);
             //We kick the player because it would not work to use return.
-            if (e.EventCanceled) _Client.Kick("");
+            if (e.EventCanceled)
+            {
+                _Client.Kick("");
+                return; //return here so we do not display message
+            }
             DisplayMessage = e.BrodcastMessage;
             //End Event
             Server.Broadcast(DisplayMessage);
@@ -403,12 +412,12 @@ namespace Chraft.Entity
 
         public void SetHealth(short health)
         {
-            this.Health = health;
+            Health = health;
             _Client.SendPacket(new UpdateHealthPacket
             {
-                Health = this.Health,
-                Food = this.Food,
-                FoodSaturation = this.FoodSaturation,
+                Health = Health,
+                Food = Food,
+                FoodSaturation = FoodSaturation,
             });
         }
 
@@ -425,7 +434,7 @@ namespace Chraft.Entity
             return PermHandler.HasPermission(this, command);
         }
 
-        //
+        
         public bool CanUseCommand(string command)
         {
             return PermHandler.HasPermission(Username, command);
@@ -436,6 +445,7 @@ namespace Chraft.Entity
         {
             return PermHandler.GetPlayerPrefix(this);
         }
+
         //returns the players suffix
         public string GetPlayerSuffix()
         {

@@ -170,9 +170,8 @@ namespace Chraft.World.Blocks
         public virtual void Destroy(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
-            if (eventArgs.EventCanceled)
-                return;
-
+            if (eventArgs.EventCanceled) return;
+            
             PlaySoundOnDestroy(block);
 
             UpdateOnDestroy(block);
@@ -311,7 +310,6 @@ namespace Chraft.World.Blocks
         {
             BlockPlaceEventArgs e = new BlockPlaceEventArgs(this, entity);
             block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BLOCK_PLACE, e);
-
             // Destruction made not by the living can not be interrupted?
             if (entity == null)
                 return true;

@@ -2,7 +2,7 @@
 
 namespace Chraft.Plugins.Listener
 {
-    public class PluginListener : ChraftListener
+    public class PluginListener : IChraftListener
     {
         public virtual void OnPluginEnabled(PluginEnabledEventArgs e) { }
         public virtual void OnPluginDisabled(PluginDisabledEventArgs e) { }

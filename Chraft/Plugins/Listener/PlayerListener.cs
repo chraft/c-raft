@@ -6,7 +6,7 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Listener
 {
-    public class PlayerListener : ChraftListener
+    public class PlayerListener : IChraftListener
     {
         public virtual void OnPlayerJoined(ClientJoinedEventArgs e) { }
         public virtual void OnPlayerLeft(ClientLeftEventArgs e) { }

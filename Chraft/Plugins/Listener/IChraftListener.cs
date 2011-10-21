@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chraft.Plugins.Listener
 {
-    public interface ChraftListener
+    public interface IChraftListener
     {
     }
 }
