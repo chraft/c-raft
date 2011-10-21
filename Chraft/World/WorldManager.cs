@@ -634,40 +634,167 @@ namespace Chraft.World
             return Chunks[worldX >> 4, worldZ >> 4][worldX & 0xF, worldY, worldZ & 0xF];
         }
   
+        private RayTraceHitBlock RayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
+        {
+            byte blockType = this.GetBlockId(coords); // only get the block type first to save time
+            if (blockType > 0)
+            {
+                StructBlock block = new StructBlock(coords, blockType, this.GetBlockData(coords), this);
+                BlockBase blockClass = BlockHelper.Instance(block.Type);
+                RayTraceHitBlock blockRayTrace = blockClass.RayTraceIntersection(block, rayStart, rayEnd);
+                if (blockRayTrace != null)
+                {
+                    return blockRayTrace;
+                }
+            }
+            return null;
+        }
+  
         public RayTraceHitBlock RayTraceBlocks(AbsWorldCoords rayStart, AbsWorldCoords rayEnd)
         {
             UniversalCoords startCoord = UniversalCoords.FromAbsWorld(rayStart);
             UniversalCoords endCoord = UniversalCoords.FromAbsWorld(rayEnd);
             
-            // Interpolate along the ray looking for block collisions
+            // Step along the ray looking for block collisions
             UniversalCoords previousPoint = UniversalCoords.Empty;
             UniversalCoords currentPoint = startCoord;
             
             Vector3 rayStartVec = rayStart.ToVector();
             Vector3 rayEndVec = rayEnd.ToVector();
-            double step = 1.0 / rayStartVec.Distance(rayEndVec); // This makes step the correct size to check the coord of each block along the ray once - none missed
-            for (double t = 0.0; t <= 1.0; t += step)
+            
+            Vector3 stepVector = (rayEndVec - rayStartVec).Normalize();
+            
+            bool xDirectionPositive = stepVector.X > 0;
+            bool yDirectionPositive = stepVector.Y > 0;
+            bool zDirectionPositive = stepVector.Z > 0;
+            
+            Vector3 currentVec = rayStartVec;
+            previousPoint = currentPoint;
+            
+            RayTraceHitBlock blockTrace = null;
+            int blockCheckCount = 0;
+            try
             {
-                Vector3 interpolatedVec = rayStartVec.Interpolate(rayEndVec, t, false);
-                
-                currentPoint = UniversalCoords.FromAbsWorld(interpolatedVec.X, interpolatedVec.Y, interpolatedVec.Z);
-                
-                // Note: This check is not required - tests show that the step size created above will mean each block is only checked once.
-                //if (currentPoint == previousPoint)
-                //    continue;
-                
-                byte blockType = this.GetBlockId(currentPoint); // only get the block type first to save time
-                if (blockType > 0)
+                while (true)
                 {
-                    StructBlock block = new StructBlock(currentPoint, blockType, this.GetBlockData(currentPoint), this);
-                    BlockBase blockClass = BlockHelper.Instance(block.Type);
-                    RayTraceHitBlock blockRayTrace = blockClass.RayTraceIntersection(block, rayStartVec, rayEndVec);
-                    if (blockRayTrace != null)
+                    #region Check adjacent blocks if necessary (to prevent skipping over the corner of one)
+                    int xDiff = currentPoint.WorldX - previousPoint.WorldX;
+                    int yDiff = currentPoint.WorldY - previousPoint.WorldY;
+                    int zDiff = currentPoint.WorldZ - previousPoint.WorldZ;
+                    
+                    bool xChanged = xDiff != 0;
+                    bool yChanged = yDiff != 0;
+                    bool zChanged = zDiff != 0;
+                    
+                    // When we change a coord, need to check which adjacent block also needs to be checked (to prevent missing blocks when jumping over their corners)
+                    if (xChanged && yChanged && zChanged)
                     {
-                        return blockRayTrace;
+                        // -X,Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,-Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,Y,-Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        
+                        // -X,Y,-Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // -X,-Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,-Y,-Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                    }
+                    else if (xChanged && zChanged)
+                    {
+                        // -X,Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,Y,-Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                    }
+                    else if (xChanged && yChanged)
+                    {
+                        // -X,Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(previousPoint.WorldX, currentPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,-Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                    }
+                    else if (zChanged && yChanged)
+                    {
+                        // X,Y,-Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, currentPoint.WorldY, previousPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                        // X,-Y,Z
+                        blockCheckCount++;
+                        blockTrace = RayTraceBlock(UniversalCoords.FromWorld(currentPoint.WorldX, previousPoint.WorldY, currentPoint.WorldZ), rayStartVec, rayEndVec);
+                        if (blockTrace != null)
+                            return blockTrace;
+                    }
+                    #endregion
+                    
+                    // Check the currentPoint
+                    blockCheckCount++;
+                    blockTrace = RayTraceBlock(currentPoint, rayStartVec, rayEndVec);
+                    if (blockTrace != null)
+                        return blockTrace;
+                    
+                    if (currentPoint == endCoord)
+                    {
+                        //Console.WriteLine("Reach endCoord with no hits");
+                        break;
+                    }
+                    
+                    // Get the next coord
+                    previousPoint = currentPoint;
+                    do
+                    {
+                        currentVec += stepVector;
+                        currentPoint = UniversalCoords.FromAbsWorld(currentVec.X, currentVec.Y, currentVec.Z);
+                    } while(previousPoint == currentPoint);
+                    
+                    // check we haven't gone past the endCoord
+                    if ((xDirectionPositive && currentPoint.WorldX > endCoord.WorldX) || (!xDirectionPositive && currentPoint.WorldX < endCoord.WorldX) ||
+                        (yDirectionPositive && currentPoint.WorldY > endCoord.WorldY) || (!yDirectionPositive && currentPoint.WorldY < endCoord.WorldY) ||
+                        (zDirectionPositive && currentPoint.WorldZ > endCoord.WorldZ) || (!zDirectionPositive && currentPoint.WorldZ < endCoord.WorldZ))
+                    {
+                        //Console.WriteLine("Went past endCoord: {0}, {1}", startCoord, endCoord);
+                        break;
                     }
                 }
-                previousPoint = currentPoint;
+            }
+            finally
+            {
+                //Console.WriteLine("Block check count {0}", blockCheckCount);
             }
             return null;
         }
