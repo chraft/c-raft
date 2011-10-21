@@ -38,7 +38,7 @@ namespace Chraft.Entity
         }
 
         /// <summary>
-        /// How far the mob can see (i.e. if aggressive a client will be hunted if seen within this range)
+        /// How far the mob can see (i.e. if aggressive a polayer will be hunted if seen within this range)
         /// </summary>
         public virtual int SightRange 
         {
