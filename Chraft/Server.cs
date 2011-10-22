@@ -833,6 +833,34 @@ namespace Chraft
                     yield return e;
             }
         }
+
+        public IEnumerable<EntityBase> GetNearbyLivings(WorldManager world, AbsWorldCoords coords)
+        {
+            int radius = Settings.Default.SightRadius << 4;
+            foreach (EntityBase entity in GetEntities())
+            {
+                if (!(entity is LivingEntity))
+                    continue;
+
+                if (entity.World == world && Math.Abs(coords.X - entity.Position.X) <= radius && Math.Abs(coords.Y - entity.Position.Y) <= radius && Math.Abs(coords.Z - entity.Position.Z) <= radius)
+                    yield return (entity as LivingEntity);
+            }
+        }
+
+        public IEnumerable<LivingEntity> GetNearbyLivings(WorldManager world, UniversalCoords coords)
+        {
+            int radius = Settings.Default.SightRadius;
+            foreach (EntityBase entity in GetEntities())
+            {
+                if (!(entity is LivingEntity))
+                    continue;
+                int entityChunkX = (int)Math.Floor(entity.Position.X) >> 4;
+                int entityChunkZ = (int)Math.Floor(entity.Position.Z) >> 4;
+
+                if (entity.World == world && Math.Abs(coords.ChunkX - entityChunkX) <= radius && Math.Abs(coords.ChunkZ - entityChunkZ) <= radius)
+                    yield return (entity as LivingEntity);
+            }
+        }
         
         /// <summary>
         /// Yields an enumerable of entities where their BoundingBox intersects with <paramref name="boundingBox"/>

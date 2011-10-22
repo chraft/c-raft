@@ -123,6 +123,29 @@ namespace Chraft.Entity
             });
         }
 
+        #region Suffocation/drowning
+        protected override void Suffocate(object state)
+        {
+            if (!LoggedIn)
+            {
+                StopSuffocationTimer();
+                return;
+            }
+            Console.WriteLine("Suffocation");
+            base.Suffocate(state);
+        }
+
+        protected override void Drown(object state)
+        {
+            if (!LoggedIn)
+            {
+                StopDrowningTimer();
+                return;
+            }
+            base.Drown(state);
+        }
+        #endregion
+
         #region Movement
 
         /// <summary>

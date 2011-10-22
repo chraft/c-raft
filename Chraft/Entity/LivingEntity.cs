@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -6,6 +7,7 @@ using Chraft.Plugins.Events;
 using Chraft.Plugins.Events.Args;
 using Chraft.Utils;
 using Chraft.World;
+using Chraft.World.Blocks;
 
 namespace Chraft.Entity
 {
@@ -36,7 +38,17 @@ namespace Chraft.Entity
         {
             get { return this.Height * 0.85f; }
         }
-  
+
+        protected Timer SuffocationTimer;
+        protected Timer DrowningTimer;
+
+        protected int TicksDrowning;
+        protected int TicksSuffocating;
+
+        public bool CanDrown { get; protected set; }
+
+        public bool CanSuffocate { get; protected set; }
+
         public bool IsDead { get; protected set; }
 
         public virtual bool IsEntityAlive { get { return !IsDead && Health > 0; } }
@@ -63,6 +75,8 @@ namespace Chraft.Entity
          : base(server, entityId)
         {
             this.Health = MaxHealth;
+            CanDrown = true;
+            CanSuffocate = true;
         }
         
         /// <summary>
@@ -118,6 +132,113 @@ namespace Chraft.Entity
                 return "N";
             return "W";
         }
+
+        #region Drowning/suffocation
+        public virtual void CheckDrowning()
+        {
+            if (!CanDrown || IsDead)
+                return;
+            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (BlockHelper.Instance(headBlockId).IsLiquid)
+            {
+                if (DrowningTimer == null)
+                {
+                    DrowningTimer = new Timer(Drown, null, 50, 50);
+                }
+            }
+        }
+
+        protected virtual void Drown(object state)
+        {
+            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (IsDead || !BlockHelper.Instance(headBlockId).IsLiquid || !CanDrown)
+            {
+                StopDrowningTimer();
+                return;
+            }
+
+            if (TicksDrowning >= 200 && TicksDrowning % 20 == 0) // 10+ Seconds underwater
+            {
+                Damage(DamageCause.Drowning, 2);
+            }
+            TicksDrowning++;
+        }
+
+        protected void StopDrowningTimer()
+        {
+            if (DrowningTimer != null)
+            {
+                DrowningTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                DrowningTimer = null;
+            }
+            TicksDrowning = 0;
+        }
+
+        public virtual void CheckSuffocation()
+        {
+            if (!CanSuffocate || IsDead)
+                return;
+            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (BlockHelper.Instance(headBlockId).IsOpaque)
+            {
+                if (SuffocationTimer == null)
+                {
+                    SuffocationTimer = new Timer(Suffocate, null, 0, 50);
+                }
+            }
+        }
+
+        protected virtual void Suffocate(object state)
+        {
+            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (IsDead || !BlockHelper.Instance(headBlockId).IsOpaque || !CanSuffocate)
+            {
+                StopSuffocationTimer();
+                return;
+            }
+
+            if (TicksSuffocating % 10 == 0)
+            {
+                Damage(DamageCause.Suffocation, 1);
+            }
+            TicksSuffocating++;
+        }
+
+        protected void StopSuffocationTimer()
+        {
+            if (SuffocationTimer != null)
+            {
+                SuffocationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                SuffocationTimer = null;
+            }
+            TicksSuffocating = 0;
+        }
+        #endregion
+
+        #region Movement
+        public override void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        {
+            base.OnMoveTo(x, y, z);
+            CheckDrowning();
+            CheckSuffocation();
+        }
+
+        public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        {
+            base.OnMoveRotateTo(x, y, z);
+            CheckDrowning();
+            CheckSuffocation();
+        }
+
+        public override void OnTeleportTo(AbsWorldCoords absCoords)
+        {
+            base.OnTeleportTo(absCoords);
+            CheckDrowning();
+            CheckSuffocation();
+        }
+
+
+        #endregion
 
         #region Attack and damage
 
