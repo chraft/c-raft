@@ -172,7 +172,7 @@ namespace Chraft.World.Blocks
             BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
             if (eventArgs.EventCanceled) return;
             
-            PlaySoundOnDestroy(block);
+            PlaySoundOnDestroy(entity, block);
 
             UpdateOnDestroy(block);
 
@@ -319,17 +319,24 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Plays the sound on block destruction
         /// </summary>
+        /// <param name="entity">entity that destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void PlaySoundOnDestroy(StructBlock block)
+        protected virtual void PlaySoundOnDestroy(EntityBase entity, StructBlock block)
         {
-            block.World.Server.SendPacketToNearbyPlayers(block.World, block.Coords, new SoundEffectPacket
+            foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, block.Coords))
             {
-                EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
-                X = block.Coords.WorldX,
-                Y = (byte)block.Coords.WorldY,
-                Z = block.Coords.WorldZ,
-                SoundData = block.Type
-            });
+                if (c.Owner == entity)
+                    continue;
+
+                c.SendPacket(new SoundEffectPacket
+                {
+                    EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
+                    X = block.Coords.WorldX,
+                    Y = (byte)block.Coords.WorldY,
+                    Z = block.Coords.WorldZ,
+                    SoundData = block.Type
+                });
+            }
         }
 
         /// <summary>
