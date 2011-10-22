@@ -15,6 +15,9 @@ namespace Chraft.Entity
         public abstract string Name { get; }
 
         short _health;
+        
+        public MetaData Data { get; internal set; }
+        
         /// <summary>
         /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
         /// </summary>
@@ -23,6 +26,7 @@ namespace Chraft.Entity
             get { return _health; }
             set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
         }
+        
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
@@ -31,6 +35,28 @@ namespace Chraft.Entity
         public virtual float EyeHeight
         {
             get { return this.Height * 0.85f; }
+        }
+  
+        public bool IsDead { get; protected set; }
+
+        public virtual bool IsEntityAlive { get { return !IsDead && Health > 0; } }
+                                                            
+        protected bool IsJumping { get; set; }
+    
+        public override bool Collidable
+        {
+            get
+            {
+                return !IsDead;
+            }
+        }
+        
+        public override bool Pushable
+        {
+            get
+            {
+                return !IsDead;
+            }
         }
     
         public LivingEntity(Server server, int entityId)
@@ -52,13 +78,21 @@ namespace Chraft.Entity
         {
             return this.World.RayTraceBlocks(new AbsWorldCoords(this.Position.X, this.Position.Y + this.EyeHeight, this.Position.Z), new AbsWorldCoords(entity.Position.X, entity.Position.Y + entity.EyeHeight, entity.Position.Z)) == null;
         }
-
-        public string FacingDirection(byte points)
+  
+        /// <summary>
+        /// Jump this instance.
+        /// </summary>
+        protected virtual void Jump()
+        {
+            this.Velocity.Y = 0.42;
+        } 
+      
+        public string FacingDirection(byte compassPoints)
         {
 
-            byte rotation = (byte)(Yaw * 256 / 360); // Gives rotation as 0 - 255, 0 being due E.
+            byte rotation = (byte)((Yaw * 256.0 / 360.0) % 256.0); // Gives rotation as 0 - 255, 0 being due E.
 
-            if (points == 8)
+            if (compassPoints == 8)
             {
                 if (rotation < 17 || rotation > 240)
                     return "E";
@@ -199,6 +233,57 @@ namespace Chraft.Entity
         }
 
         #endregion
+        
+        /// <summary>
+        /// Faces the entity.
+        /// </summary>
+        /// <param name='entity'>
+        /// Entity to face.
+        /// </param>
+        /// <param name='yawSpeed'>
+        /// Yaw speed.
+        /// </param>
+        /// <param name='pitchSpeed'>
+        /// Pitch speed.
+        /// </param>
+        public void FaceEntity(EntityBase entity, float yawSpeed, float pitchSpeed)
+        {
+            double xDistance = entity.Position.X - this.Position.X;
+            double zDistance = entity.Position.Z - this.Position.Z;
+            double yDistance;
+            if (entity is LivingEntity)
+            {
+                LivingEntity livingEntity = entity as LivingEntity;
+                yDistance = (this.Position.Y + (double)this.EyeHeight) - (livingEntity.Position.Y + (double)livingEntity.EyeHeight);
+            }
+            else
+            {
+                yDistance = (entity.BoundingBox.Minimum.Y + entity.BoundingBox.Maximum.Y) / 2.0 - (this.Position.Y + this.EyeHeight);
+            }
+            
+            double xzDistance = Math.Sqrt(xDistance * xDistance + zDistance * zDistance);
+            double destinationYaw = ((Math.Atan2(zDistance, xDistance) * 180.0) / Math.PI) - 90f;
+            double destinationPitch = -((Math.Atan2(yDistance, xzDistance) * 180) / Math.PI);
+            this.Pitch = -UpdateRotation(this.Pitch, destinationPitch, pitchSpeed);
+            this.Yaw = UpdateRotation(this.Yaw, destinationYaw, yawSpeed);
+        }
+        
+        private double UpdateRotation(double currentRotation, double destinationRotation, double rotationSpeed)
+        {
+            double rotationAmount;
+            // Clamp to within -180 to +180
+            for (rotationAmount = destinationRotation - currentRotation; rotationAmount < -180.0; rotationAmount += 360.0) { }
+            for (; rotationAmount >= 180.0; rotationAmount -= 360.0) { }
+            if (rotationAmount > rotationSpeed)
+            {
+                rotationAmount = rotationSpeed;
+            }
+            if (rotationAmount < -rotationSpeed)
+            {
+                rotationAmount = -rotationSpeed;
+            }
+            return currentRotation + rotationAmount;
+        }
     }
 }
 
