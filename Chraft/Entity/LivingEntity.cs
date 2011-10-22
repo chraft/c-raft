@@ -85,6 +85,8 @@ namespace Chraft.Entity
             return "W";
         }
 
+        #region Attack and damage
+
         public abstract void Attack(LivingEntity target);
 
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
@@ -115,22 +117,30 @@ namespace Chraft.Entity
                 HandleDeath(hitBy);
         }
 
-        /// <summary>
-        /// Perform any item drop logic during death
-        /// </summary>
-        protected virtual void DoDeath(EntityBase killedBy)
+        protected virtual void SendUpdateOnDamage()
         {
-            System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
-
-            removeTimer.Elapsed += delegate
+            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                removeTimer.Stop();
-                World.Server.RemoveEntity(this);
-                removeTimer.Dispose();
-            };
+                if (c.Owner == this)
+                    continue;
 
-            removeTimer.Start();
+                c.SendPacket(new AnimationPacket // Hurt Animation
+                {
+                    Animation = 2,
+                    PlayerId = this.EntityId
+                });
+
+                c.SendPacket(new EntityStatusPacket // Hurt Action
+                {
+                    EntityId = this.EntityId,
+                    EntityStatus = 2
+                });
+            }
         }
+
+        #endregion
+
+        #region Death
 
         public virtual void HandleDeath(EntityBase killedBy = null, string deathBy = "")
         {
@@ -171,28 +181,24 @@ namespace Chraft.Entity
             }
         }
 
-        protected virtual void SendUpdateOnDamage()
+        /// <summary>
+        /// Perform any item drop logic during death
+        /// </summary>
+        protected virtual void DoDeath(EntityBase killedBy)
         {
-            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
+
+            removeTimer.Elapsed += delegate
             {
-                if (c.Owner == this)
-                    continue;
+                removeTimer.Stop();
+                World.Server.RemoveEntity(this);
+                removeTimer.Dispose();
+            };
 
-                c.SendPacket(new AnimationPacket // Hurt Animation
-                {
-                    Animation = 2,
-                    PlayerId = this.EntityId
-                });
-
-                c.SendPacket(new EntityStatusPacket // Hurt Action
-                {
-                    EntityId = this.EntityId,
-                    EntityStatus = 2
-                });
-            }
+            removeTimer.Start();
         }
 
-
+        #endregion
     }
 }
 

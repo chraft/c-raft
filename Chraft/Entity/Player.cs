@@ -123,6 +123,8 @@ namespace Chraft.Entity
             });
         }
 
+        #region Movement
+
         /// <summary>
         /// Move less than four blocks to the given destination.
         /// </summary>
@@ -186,6 +188,43 @@ namespace Chraft.Entity
             LoadedEntities = new List<EntityBase>(nearbyEntities);
         }
 
+        #endregion
+
+        #region Attack & damage
+
+        public override void Attack(LivingEntity target)
+        {
+            if (target == null)
+                return;
+            short weaponDmg = GetWeaponDamage();
+            target.Damage(DamageCause.EntityAttack, weaponDmg, this);
+        }
+
+        /// <summary>
+        /// Updates nearby players when Client is hurt.
+        /// </summary>
+        /// <param name="cause"></param>
+        /// <param name="damageAmount"></param>
+        /// <param name="hitBy">The Client hurting the current Client.</param>
+        /// <param name="args">First argument should always be the damage amount.</param>
+        public override void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
+        {
+            if (GameMode == 1)
+                return;
+            base.Damage(cause, damageAmount, hitBy, args);
+        }
+
+        protected override void SendUpdateOnDamage()
+        {
+            Client.SendPacket(new UpdateHealthPacket
+            {
+                Health = Health,
+                Food = Food,
+                FoodSaturation = FoodSaturation,
+            });
+            base.SendUpdateOnDamage();
+        }
+
         public short GetWeaponDamage()
         {
             short damage = 1;
@@ -232,38 +271,10 @@ namespace Chraft.Entity
             return damage;
         }
 
-        public override void Attack(LivingEntity target)
-        {
-            if (target == null)
-                return;
-            short weaponDmg = GetWeaponDamage();
-            target.Damage(DamageCause.EntityAttack, weaponDmg, this);
-        }
 
-        /// <summary>
-        /// Updates nearby players when Client is hurt.
-        /// </summary>
-        /// <param name="cause"></param>
-        /// <param name="damageAmount"></param>
-        /// <param name="hitBy">The Client hurting the current Client.</param>
-        /// <param name="args">First argument should always be the damage amount.</param>
-        public override void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
-        {
-            if (GameMode == 1)
-                return;
-            base.Damage(cause, damageAmount, hitBy, args);
-        }
+        #endregion
 
-        protected override void SendUpdateOnDamage()
-        {
-            Client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
-            base.SendUpdateOnDamage();
-        }
+        #region Death
 
         /// <summary>
         /// Handles the death of the Client.
@@ -309,6 +320,8 @@ namespace Chraft.Entity
         {
             Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
         }
+
+        #endregion
 
         /// <summary>
         /// Handles the respawning of the Client, called from respawn packet.
