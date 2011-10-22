@@ -43,6 +43,10 @@ namespace Chraft.Net
 
         private DateTime _nextActivityCheck;
 
+        public Server Server;
+
+        internal int SessionID { get; private set; }
+
         public Player Owner
         {
             get { return _player; }
@@ -62,7 +66,7 @@ namespace Chraft.Net
         /// <summary>
         /// Instantiates a new Client object.
         /// </summary>
-        internal Client(Socket socket, Player player)
+        internal Client(int sessionId, Server server, Socket socket, Player player)
         {
             _socket = socket;
             _player = player;
@@ -71,6 +75,8 @@ namespace Chraft.Net
             _processedBuffer = new ByteQueue();
             _fragPackets = new ByteQueue();
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5.0);
+            SessionID = sessionId;
+            Server = server;
             //PacketHandler = new PacketHandler(Server, socket);
         }
 

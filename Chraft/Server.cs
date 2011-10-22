@@ -26,7 +26,8 @@ namespace Chraft
     public class Server
     {
 
-        private volatile int NextEntityId = 0;
+        private int NextEntityId;
+        private int NextSessionId;
         private bool Running = true;
         private Socket _Listener;
         private SocketAsyncEventArgs _AcceptEventArgs;
@@ -512,7 +513,8 @@ namespace Chraft
         {
             if (OnBeforeAccept(e.AcceptSocket))
             {
-                Client c = new Client(e.AcceptSocket, new Player(this, AllocateEntity()));
+                Interlocked.Increment(ref NextSessionId);
+                Client c = new Client(NextSessionId, this, e.AcceptSocket, new Player(this, AllocateEntity()));
                 //Event
                 ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(this, c);
                 PluginManager.CallEvent(Event.SERVER_ACCEPT, args);
@@ -551,7 +553,7 @@ namespace Chraft
         /// <returns>A new entity ID reserved for a new entity.</returns>
         public int AllocateEntity()
         {
-            return NextEntityId++;
+            return Interlocked.Increment(ref NextSessionId);
         }
 
         /// <summary>
@@ -689,26 +691,26 @@ namespace Chraft
 
         public void AddClient(Client client)
         {
-            Clients.TryAdd(client.Owner.SessionID, client);
+            Clients.TryAdd(client.SessionID, client);
             Interlocked.Increment(ref _clientDictChanges);
         }
 
         public void RemoveClient(Client client)
         {
-            Clients.TryRemove(client.Owner.SessionID, out client);
+            Clients.TryRemove(client.SessionID, out client);
             Interlocked.Increment(ref _clientDictChanges);
         }
 
         public void AddAuthenticatedClient(Client client)
         {
-            AuthClients.TryAdd(client.Owner.SessionID, client);
+            AuthClients.TryAdd(client.SessionID, client);
             Interlocked.Increment(ref _authClientDictChanges);
         }
 
         public void RemoveAuthenticatedClient(Client client)
         {
             Client removed;
-            AuthClients.TryRemove(client.Owner.SessionID, out removed);    
+            AuthClients.TryRemove(client.SessionID, out removed);    
             Interlocked.Increment(ref _authClientDictChanges);
 
             RemoveClient(client);

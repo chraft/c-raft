@@ -62,11 +62,10 @@ namespace ChraftTestClient
             
         }
 
-        public void Start(string ip, string port)
+        public void Start(IPEndPoint ipEnd)
         {
             _running = true;
 
-            IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ip), int.Parse(port));
             _socket.Connect(ipEnd);
 
             _socketAsyncArgs.Completed += RecvCompleted;

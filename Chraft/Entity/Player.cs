@@ -24,7 +24,6 @@ namespace Chraft.Entity
         public ClientPermission Permissions;
         public Interface CurrentInterface = null;
 
-        internal int SessionID { get; private set; }
         private Client _Client;
 
         public Client Client
@@ -62,13 +61,11 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
-        public Player(Server server, int sessionId)
-            : base(server, sessionId)
+        public Player(Server server, int entityId) : base(server, entityId)
         {
             EnsureServer(server);
             Inventory = null;
             DisplayName = Username;
-            SessionID = sessionId;
             InitializePosition();
             PermHandler = new PermissionHandler(server);
         }

@@ -253,7 +253,7 @@ namespace Chraft.Net
         {
             SendPacket(new LoginRequestPacket
             {
-                ProtocolOrEntityId = _player.SessionID,
+                ProtocolOrEntityId = _player.EntityId,
                 Dimension = _player.World.Dimension,
                 Username = "",
                 MapSeed = _player.World.Seed,

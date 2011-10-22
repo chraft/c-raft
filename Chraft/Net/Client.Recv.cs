@@ -222,8 +222,12 @@ namespace Chraft.Net
                 DisposeRecvSystem();
             else if(e.SocketError != SocketError.Success || e.BytesTransferred == 0)
             {
-                MarkToDispose();
-                DisposeRecvSystem();
+                Client client;
+                if (Server.AuthClients.TryGetValue(SessionID, out client))
+                {
+                    MarkToDispose();
+                    DisposeRecvSystem();
+                }
                 _nextActivityCheck = DateTime.MinValue;
                 //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
             }

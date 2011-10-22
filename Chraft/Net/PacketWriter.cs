@@ -151,12 +151,16 @@ namespace Chraft.Net
         public void Write(string data)
         {
             byte[] b;
+            int length = data.Length;
             if (_Strings != null && _Strings.Count > 0)
+            {
                 b = _Strings.Dequeue();
+                length = b.Length/2;
+            }
             else
                 b = ASCIIEncoding.BigEndianUnicode.GetBytes(data);
 
-            Write((short)data.Length);
+            Write((short)length);
             Write(b, 0, b.Length);
         }
 
