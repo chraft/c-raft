@@ -131,7 +131,6 @@ namespace Chraft.Entity
                 StopSuffocationTimer();
                 return;
             }
-            Console.WriteLine("Suffocation");
             base.Suffocate(state);
         }
 
