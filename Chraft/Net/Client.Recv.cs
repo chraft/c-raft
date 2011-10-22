@@ -327,7 +327,7 @@ namespace Chraft.Net
 
                     if (packet.LeftClick)
                     {
-                        player.Damage(DamageCause.EntityAttack, 0, handledPlayer);
+                        handledPlayer.Attack(player);
                     }
                     else
                     {
@@ -349,8 +349,7 @@ namespace Chraft.Net
 
                     if (packet.LeftClick)
                     {
-                        // TODO: Apply proper damage
-                        m.Damage(DamageCause.EntityAttack, 2, handledPlayer);
+                        handledPlayer.Attack(m);
                     }
                     else
                     {

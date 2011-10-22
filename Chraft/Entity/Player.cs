@@ -186,6 +186,60 @@ namespace Chraft.Entity
             LoadedEntities = new List<EntityBase>(nearbyEntities);
         }
 
+        public short GetWeaponDamage()
+        {
+            short damage = 1;
+            if (Inventory.ActiveItem.Type < 256)
+                return damage;
+            switch ((BlockData.Items)Inventory.ActiveItem.Type)
+            {
+                case BlockData.Items.Wooden_Spade:
+                case BlockData.Items.Gold_Spade:
+                    damage = 1;
+                    break;
+                case BlockData.Items.Wooden_Pickaxe:
+                case BlockData.Items.Gold_Pickaxe:
+                case BlockData.Items.Stone_Spade:
+                    damage = 2;
+                    break;
+                case BlockData.Items.Wooden_Axe:
+                case BlockData.Items.Gold_Axe:
+                case BlockData.Items.Stone_Pickaxe:
+                case BlockData.Items.Iron_Spade:
+                    damage = 3;
+                    break;
+                case BlockData.Items.Wooden_Sword:
+                case BlockData.Items.Gold_Sword:
+                case BlockData.Items.Stone_Axe:
+                case BlockData.Items.Iron_Pickaxe:
+                case BlockData.Items.Diamond_Spade:
+                    damage = 4;
+                    break;
+                case BlockData.Items.Stone_Sword:
+                case BlockData.Items.Iron_Axe:
+                case BlockData.Items.Diamond_Pickaxe:
+                    damage = 5;
+                    break;
+                case BlockData.Items.Iron_Sword:
+                case BlockData.Items.Diamond_Axe:
+                    damage = 6;
+                    break;
+                case BlockData.Items.Diamond_Sword:
+                    damage = 7;
+                    break;
+            }
+
+            return damage;
+        }
+
+        public override void Attack(LivingEntity target)
+        {
+            if (target == null)
+                return;
+            short weaponDmg = GetWeaponDamage();
+            target.Damage(DamageCause.EntityAttack, weaponDmg, this);
+        }
+
         /// <summary>
         /// Updates nearby players when Client is hurt.
         /// </summary>

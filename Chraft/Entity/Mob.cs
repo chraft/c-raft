@@ -87,6 +87,13 @@ namespace Chraft.Entity
             DoInteraction(client, item);
         }
 
+        public override void Attack(LivingEntity target)
+        {
+            if (target == null)
+                return;
+            target.Damage(DamageCause.EntityAttack, AttackStrength, this);
+        }
+
         public void Despawn()
         {
             Server.RemoveEntity(this);

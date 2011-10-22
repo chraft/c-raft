@@ -85,6 +85,8 @@ namespace Chraft.Entity
             return "W";
         }
 
+        public abstract void Attack(LivingEntity target);
+
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
             var hitByPlayer = hitBy as Player;
