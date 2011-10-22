@@ -51,6 +51,9 @@ namespace Chraft.Entity
         
         public Vector3 Velocity;
         
+        public virtual bool Collidable { get { return false; } }
+        
+        public virtual bool Pushable { get { return false; } }
 
         /// <summary>
         /// Rotation around the X-axis
