@@ -90,79 +90,22 @@ namespace Chraft.Entity
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
             var hitByPlayer = hitBy as Player;
-            var hitByMob = hitBy as Mob;
+
+            EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
+            Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, e);
+            if (e.EventCanceled) return;
+            damageAmount = e.Damage;
+            hitBy = e.DamagedBy;
+
+            // Debug
             if (hitByPlayer != null)
             {
-                //TODO: Make damage more customizable.  CSV anyone?
-                //TODO: Fix damage.
-                //Damage values taken from http://www.minecraftwiki.net/wiki/Damage#Dealing_Damage
-                short damage = 2;
                 ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
-                switch (itemHeld.Type)
-                {
-                    case 268:
-                    case 283:
-                        damage = 5;
-                        break;
-                    case 272:
-                        damage = 7;
-                        break;
-                    case 267:
-                        damage = 9;
-                        break;
-                    case 276:
-                        damage = 11;
-                        break;
-                    case 273:
-                        damage = 3;
-                        break;
-                    case 274:
-                        damage = 4;
-                        break;
-                    case 275:
-                        damage = 5;
-                        break;
-                }
-
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitByPlayer, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                hitByPlayer = e.DamagedBy;
-                //End Event
-
-                //Debug
-                hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
-                this.Health -= damage;
+                hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " + damageAmount + " damage.");
             }
-            else if (hitByMob != null)
-            {
-                // Hit by a Mob so apply its' attack strength as damage
-                short damage = hitByMob.AttackStrength;
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                //End Event
+            
+            Health -= damageAmount;
 
-                // TODO: Generic damage from falling/lava/fire?
-                this.Health -= damage;
-            }
-            else
-            {
-                short damage = 1;
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                //End Event
-
-                // TODO: Generic damage from falling/lava/fire?
-                this.Health -= damage;
-            }
 
             SendUpdateOnDamage();
 

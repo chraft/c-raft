@@ -252,45 +252,6 @@ namespace Chraft.Entity
             if (GameMode == 1)
                 return;
             base.Damage(cause, damageAmount, hitBy, args);
-
-            /*switch (cause)
-            {
-                case DamageCause.BlockExplosion:
-                    break;
-                case DamageCause.Contact:
-                    break;
-                case DamageCause.Drowning:
-                    break;
-                case DamageCause.EntityAttack:
-                    if (hitBy != null)
-                    {
-
-                    }
-                    break;
-                case DamageCause.EntityExplosion:
-                    break;
-                case DamageCause.Fall:
-                    Health -= Convert.ToInt16(damageAmount);
-                    break;
-                case DamageCause.Fire:
-                    break;
-                case DamageCause.FireBurn:
-                    break;
-                case DamageCause.Lava:
-                    break;
-                case DamageCause.Lightning:
-                    break;
-                case DamageCause.Projectile:
-                    break;
-                case DamageCause.Suffocation:
-                    break;
-                case DamageCause.Void:
-                    break;
-                default:
-                    Health -= 1;
-                    break;
-
-            }*/
         }
 
         protected override void SendUpdateOnDamage()
