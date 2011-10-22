@@ -37,6 +37,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.SendMessage = new System.Windows.Forms.Button();
+            this.ChatBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // clientsNumText
@@ -116,11 +118,31 @@
             this.label4.TabIndex = 8;
             this.label4.Text = "(leaving this empty will use local address)";
             // 
+            // SendMessage
+            // 
+            this.SendMessage.Location = new System.Drawing.Point(206, 189);
+            this.SendMessage.Name = "SendMessage";
+            this.SendMessage.Size = new System.Drawing.Size(75, 23);
+            this.SendMessage.TabIndex = 9;
+            this.SendMessage.Text = "Send";
+            this.SendMessage.UseVisualStyleBackColor = true;
+            this.SendMessage.Click += new System.EventHandler(this.SendMessage_Click);
+            // 
+            // ChatBox
+            // 
+            this.ChatBox.Location = new System.Drawing.Point(30, 191);
+            this.ChatBox.Name = "ChatBox";
+            this.ChatBox.Size = new System.Drawing.Size(148, 20);
+            this.ChatBox.TabIndex = 10;
+            this.ChatBox.Text = "Hi! :)";
+            // 
             // ClientsLauncher
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(437, 428);
+            this.Controls.Add(this.ChatBox);
+            this.Controls.Add(this.SendMessage);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
@@ -149,6 +171,8 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button SendMessage;
+        private System.Windows.Forms.TextBox ChatBox;
     }
 }
 

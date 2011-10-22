@@ -98,6 +98,10 @@ namespace ChraftTestClient
                 SendPacket(new PlayerPositionPacket{OnGround = true, X = Position.X, Y = Position.Y, Z = Position.Z});
             }
         }
+        public void SendMessage(string Message)
+        {
+            SendPacket(new ChatMessagePacket { Message = Message });
+        }
 
         public void Dispose()
         {
