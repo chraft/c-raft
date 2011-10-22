@@ -693,9 +693,9 @@ namespace Chraft.Net.Packets
             SetCapacity(23, PlayerName);
             Writer.Write(EntityId);
             Writer.Write(PlayerName);
-            Writer.Write((int)(X * 32));
-            Writer.Write((int)(Y * 32));
-            Writer.Write((int)(Z * 32));
+            Writer.Write((int)Math.Floor(X * 32.0));
+            Writer.Write((int)Math.Floor(Y * 32.0));
+            Writer.Write((int)Math.Floor(Z * 32.0));
             Writer.Write(Yaw);
             Writer.Write(Pitch);
             Writer.Write(CurrentItem);
@@ -1100,9 +1100,9 @@ namespace Chraft.Net.Packets
         {
             SetCapacity();
             Writer.Write(EntityId);
-            Writer.Write((int)(X * 32));
-            Writer.Write((int)(Y * 32));
-            Writer.Write((int)(Z * 32));
+            Writer.Write((int)Math.Floor(X * 32.0));
+            Writer.Write((int)Math.Floor(Y * 32.0));
+            Writer.Write((int)Math.Floor(Z * 32.0));
             Writer.Write(Yaw);
             Writer.Write(Pitch);
         }
