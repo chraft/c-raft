@@ -130,5 +130,13 @@ namespace ChraftTestClient
                 _testClients = null;
             }
         }
+
+        private void SendMessage_Click(object sender, EventArgs e)
+        {
+            foreach (TestClient test in _testClients)
+            {
+                test.SendMessage(ChatBox.Text);
+            }
+        }
     }
 }
