@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Entity;
@@ -21,7 +22,7 @@ namespace Chraft.Net
         public volatile bool Running = true;
         public PacketHandler PacketHandler { get; private set; }
         private Timer _keepAliveTimer;
-        private readonly Player _player = null;
+        private Player _player = null;
 
         public static SocketAsyncEventArgsPool SendSocketEventPool = new SocketAsyncEventArgsPool(10);
         public static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
@@ -47,6 +48,13 @@ namespace Chraft.Net
 
         internal int SessionID { get; private set; }
 
+        public bool Authenticated;
+
+        /// <summary>
+        /// The mixed-case, clean username of the client.
+        /// </summary>
+        public string Username { get; set; }
+
         public Player Owner
         {
             get { return _player; }
@@ -61,16 +69,14 @@ namespace Chraft.Net
         /// <summary>
         /// A reference to the server logger.
         /// </summary>
-        public Logger Logger { get { return _player.Server.Logger; } }
+        public Logger Logger { get { return Server.Logger; } }
 
         /// <summary>
         /// Instantiates a new Client object.
         /// </summary>
-        internal Client(int sessionId, Server server, Socket socket, Player player)
+        internal Client(int sessionId, Server server, Socket socket)
         {
             _socket = socket;
-            _player = player;
-            _player.Client = this;
             _currentBuffer = new ByteQueue();
             _processedBuffer = new ByteQueue();
             _fragPackets = new ByteQueue();
@@ -78,6 +84,13 @@ namespace Chraft.Net
             SessionID = sessionId;
             Server = server;
             //PacketHandler = new PacketHandler(Server, socket);
+        }
+
+        public bool CheckUsername(string username)
+        {
+            string usernameToCheck = Regex.Replace(username, Chat.DISALLOWED, "");
+            Logger.Log(Logger.LogLevel.Debug, "Username: {0}", usernameToCheck);
+            return usernameToCheck == Username;
         }
 
         private void SetGameMode()
@@ -164,11 +177,14 @@ namespace Chraft.Net
         {
             //Event
             ClientKickedEventArgs e = new ClientKickedEventArgs(this, reason);
-            _player.Server.PluginManager.CallEvent(Event.PLAYER_KICKED, e);
+            Server.PluginManager.CallEvent(Event.PLAYER_KICKED, e);
             if (e.EventCanceled) return;
             reason = e.Message;
             //End Event
-            Save();
+
+            if(Authenticated && _player.LoggedIn)
+                Save();
+
             SendPacket(new DisconnectPacket
             {
                 Reason = reason
@@ -177,7 +193,8 @@ namespace Chraft.Net
 
         public void Disconnected(object sender, SocketAsyncEventArgs e)
         {
-            Save();
+            if (Authenticated && _player.LoggedIn)
+                Save();
             // Just wait a bit since it's possible that we close the socket before the packet reached the client
             Thread.Sleep(200);
             Stop();
@@ -188,39 +205,50 @@ namespace Chraft.Net
         /// </summary>
         public void Dispose()
         {
-            _player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", _player.DisplayName);
-            string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
-            //Event
-            ClientLeftEventArgs e = new ClientLeftEventArgs(this);
-            _player.Server.PluginManager.CallEvent(Plugins.Events.Event.PLAYER_LEFT, e);
-            //You cant stop the player from leaving so dont try.
-            disconnectMsg = e.BrodcastMessage;
-            //End Event
-            _player.Server.Broadcast(disconnectMsg);
-
-            if(_player.LoggedIn)
-                Save();
-
-            _player.LoggedIn = false;
-            _player.Ready = false;
-            Running = false;
-            
-            foreach (int packedCoords in _player.LoadedChunks.Keys)
+            if (Authenticated)
             {
-                Chunk chunk = _player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
-                if (chunk != null)
-                    chunk.RemoveClient(this);
+                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", _player.DisplayName);
+                string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
+                //Event
+                ClientLeftEventArgs e = new ClientLeftEventArgs(this);
+                Server.PluginManager.CallEvent(Plugins.Events.Event.PLAYER_LEFT, e);
+                //You cant stop the player from leaving so dont try.
+                disconnectMsg = e.BrodcastMessage;
+                //End Event
+                _player.Server.Broadcast(disconnectMsg);
+
+                if (_player.LoggedIn)
+                    Save();
+
+                _player.LoggedIn = false;
+                _player.Ready = false;
+                Running = false;
+
+                foreach (int packedCoords in _player.LoadedChunks.Keys)
+                {
+                    Chunk chunk = _player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
+                    if (chunk != null)
+                        chunk.RemoveClient(this);
+                }
+
+
+                Server.RemoveAuthenticatedClient(this);
+
+                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _player.Server.Clients.Count);
+                Server.RemoveEntity(_player);
+
+                if (_keepAliveTimer != null)
+                {
+                    _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _keepAliveTimer = null;
+                }
+            }
+            else
+            {
+                Running = false;
+                Server.RemoveClient(this);
             }
 
-            _player.Server.RemoveClient(this);
-            _player.Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _player.Server.Clients.Count);
-            _player.Server.RemoveEntity(_player);
-
-            if (_keepAliveTimer != null)
-            {
-                _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                _keepAliveTimer = null;
-            }
 
             RecvBufferPool.ReleaseBuffer(_recvBuffer);
             SendSocketEventPool.Push(_sendSocketEvent);
@@ -229,6 +257,7 @@ namespace Chraft.Net
             if (_socket.Connected)
                 _socket.Shutdown(SocketShutdown.Both);                          
             _socket.Close();
+           
             //GC.Collect();
         }
 
@@ -254,7 +283,7 @@ namespace Chraft.Net
                     if (_recvSystemDisposed)
                     {
                         Server.ClientsToDispose.Enqueue(this);
-                        _player.Server.NetworkSignal.Set();
+                        Server.NetworkSignal.Set();
                     }
                 }
             }
@@ -270,7 +299,7 @@ namespace Chraft.Net
                     if (_sendSystemDisposed)
                     {
                         Server.ClientsToDispose.Enqueue(this);
-                        _player.Server.NetworkSignal.Set();
+                        Server.NetworkSignal.Set();
                     }
                 }
             }

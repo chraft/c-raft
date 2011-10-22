@@ -28,18 +28,13 @@ namespace Chraft.Entity
         public ClientPermission Permissions;
         public Interface CurrentInterface = null;
 
-        private Client _Client;
+        private Client _client;
 
         public Client Client
         {
-            get { return _Client; }
-            set { _Client = value; }
+            get { return _client; }
+            set { _client = value; }
         }
-
-        /// <summary>
-        /// The mixed-case, clean username of the client.
-        /// </summary>
-        public string Username { get; set; }
 
         /// <summary>
         /// The name that we display of the client
@@ -65,11 +60,12 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
-        public Player(Server server, int entityId) : base(server, entityId)
+        public Player(Server server, int entityId, Client client) : base(server, entityId)
         {
+            _client = client;
             EnsureServer(server);
             Inventory = null;
-            DisplayName = Username;
+            DisplayName = client.Username;
             InitializePosition();
             PermHandler = new PermissionHandler(server);
         }
@@ -115,7 +111,7 @@ namespace Chraft.Entity
             }
             FoodSaturation = 5.0f;
 
-            _Client.SendPacket(new UpdateHealthPacket
+            _client.SendPacket(new UpdateHealthPacket
             {
                 Health = Health,
                 Food = Food,
@@ -197,14 +193,14 @@ namespace Chraft.Entity
                 if (e.Equals(this))
                     continue;
                 if (!LoadedEntities.Contains(e))
-                    _Client.SendCreateEntity(e);
+                    _client.SendCreateEntity(e);
                 if (Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
                     PickupItem((ItemEntity)e);
             }
 
             foreach (EntityBase e in LoadedEntities.Where(e => !nearbyEntities.Contains(e)))
             {
-                _Client.SendDestroyEntity(e);
+                _client.SendDestroyEntity(e);
             }
 
             LoadedEntities = new List<EntityBase>(nearbyEntities);
@@ -327,7 +323,7 @@ namespace Chraft.Entity
             }
             else if (killedBy is Mob)
             {
-                var m = (Mob)killedBy;
+                var m = (Mob) killedBy;
                 deathBy = "by " + m.Type;
             }
 
@@ -358,16 +354,16 @@ namespace Chraft.Entity
                 World.Spawn.WorldY + this.EyeHeight,
                 World.Spawn.WorldZ);
 
-            _Client.StopUpdateChunks();
+            _client.StopUpdateChunks();
             UpdateChunks(1, CancellationToken.None, false);
-            _Client.SendPacket(new RespawnPacket { });
+            _client.SendPacket(new RespawnPacket { });
             UpdateEntities();
             //SendSpawnPosition();
-            _Client.SendInitialPosition();
-            _Client.SendInitialTime();
+            _client.SendInitialPosition();
+            _client.SendInitialTime();
             InitializeInventory();
             InitializeHealth();
-            _Client.ScheduleUpdateChunks();
+            _client.ScheduleUpdateChunks();
 
 
             Server.AddEntity(this);
@@ -399,7 +395,7 @@ namespace Chraft.Entity
                 if (e.Equals(this))
                     continue;
 
-                _Client.SendPacket(new EntityTeleportPacket
+                _client.SendPacket(new EntityTeleportPacket
                 {
                     EntityId = e.EntityId,
                     X = e.Position.X,
@@ -455,7 +451,7 @@ namespace Chraft.Entity
                     if (!LoadedChunks.ContainsKey(packedChunk))
                     {
                         toUpdate.Add(packedChunk);
-                        _Client.SendPreChunk(x, z, true, sync);
+                        _client.SendPreChunk(x, z, true, sync);
                     }
                 }
             }
@@ -469,11 +465,11 @@ namespace Chraft.Entity
 
                 Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
                 //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
-                chunk.AddClient(_Client);
+                chunk.AddClient(_client);
                 LoadedChunks.TryAdd(c, chunk);
-                _Client.SendChunk(chunk, sync);
+                _client.SendChunk(chunk, sync);
 
-                _Client.SendSignTexts(chunk);
+                _client.SendSignTexts(chunk);
             }
 
             if (remove)
@@ -483,20 +479,13 @@ namespace Chraft.Entity
                     if (token.IsCancellationRequested)
                         return;
 
-                    _Client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c), UniversalCoords.FromPackedChunkToZ(c), false, sync);
+                    _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c), UniversalCoords.FromPackedChunkToZ(c), false, sync);
                     Chunk chunk;
                     LoadedChunks.TryRemove(c, out chunk);
-                    chunk.RemoveClient(_Client);
+                    chunk.RemoveClient(_client);
                 }
             }
 
-        }
-
-        public bool CheckUsername(string username)
-        {
-            string usernameToCheck = Regex.Replace(username, Chat.DISALLOWED, "");
-            _Client.Logger.Log(Logger.LogLevel.Debug, "Username: {0}", usernameToCheck);
-            return usernameToCheck == Username;
         }
 
         public void OnJoined()
@@ -509,7 +498,7 @@ namespace Chraft.Entity
             //We kick the player because it would not work to use return.
             if (e.EventCanceled)
             {
-                _Client.Kick("");
+                _client.Kick("");
                 return; //return here so we do not display message
             }
             DisplayMessage = e.BrodcastMessage;
@@ -521,7 +510,7 @@ namespace Chraft.Entity
         public void SetHealth(short health)
         {
             Health = health;
-            _Client.SendPacket(new UpdateHealthPacket
+            _client.SendPacket(new UpdateHealthPacket
             {
                 Health = Health,
                 Food = Food,
@@ -545,7 +534,7 @@ namespace Chraft.Entity
         
         public bool CanUseCommand(string command)
         {
-            return PermHandler.HasPermission(Username, command);
+            return PermHandler.HasPermission(_client.Username, command);
         }
 
         //Returns the players prefix

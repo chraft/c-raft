@@ -247,7 +247,7 @@ namespace Chraft
             {
                 foreach (var client in GetAuthenticatedClients())
                 {
-                    this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Owner.Username, Online = client.Owner.Ready, Ping = (short)client.Ping });
+                    this.BroadcastToAuthenticated(new PlayerListItemPacket() { PlayerName = client.Username, Online = client.Owner.Ready, Ping = (short)client.Ping });
                     Thread.Sleep(50);
                 }
                 Thread.Sleep(1000);
@@ -514,7 +514,7 @@ namespace Chraft
             if (OnBeforeAccept(e.AcceptSocket))
             {
                 Interlocked.Increment(ref NextSessionId);
-                Client c = new Client(NextSessionId, this, e.AcceptSocket, new Player(this, AllocateEntity()));
+                Client c = new Client(NextSessionId, this, e.AcceptSocket);
                 //Event
                 ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(this, c);
                 PluginManager.CallEvent(Event.SERVER_ACCEPT, args);
@@ -526,7 +526,6 @@ namespace Chraft
                     AddClient(c);
                     Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Clients.Count);
                 }
-                AddEntity(c.Owner);
                 c.Start();
                 Logger.Log(Chraft.Logger.LogLevel.Info, "Starting client");
                 OnJoined(c);
@@ -650,7 +649,7 @@ namespace Chraft
         public IEnumerable<Client> GetClients(string name)
         {
             return from c in GetAuthenticatedClients()
-                   where c.Owner.Username.ToLower().Contains(name.ToLower()) || c.Owner.DisplayName.ToLower().Contains(name.ToLower())
+                   where c.Username.ToLower().Contains(name.ToLower()) || c.Owner.DisplayName.ToLower().Contains(name.ToLower())
                    select c;
         }
 

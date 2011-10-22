@@ -24,7 +24,7 @@ namespace Chraft.Net
                 return;
 
             if (packet.Logger == null)
-                packet.Logger = _player.Server.Logger;
+                packet.Logger = Server.Logger;
 
             PacketsToBeSent.Enqueue(packet);
 
@@ -35,7 +35,7 @@ namespace Chraft.Net
 
             //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());
 
-            _player.Server.NetworkSignal.Set();
+            Server.NetworkSignal.Set();
         }
 
         public void Send_Async(byte[] data)
@@ -53,6 +53,7 @@ namespace Chraft.Net
 
             bool pending = _socket.SendAsync(_sendSocketEvent);
 
+            if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
 
             if (!pending)
@@ -69,7 +70,9 @@ namespace Chraft.Net
             try
             {
                 _socket.Send(data, data.Length, 0);
-                _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+
+                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
             }
             catch (Exception)
             {
@@ -190,7 +193,7 @@ namespace Chraft.Net
 
         internal void SendPulse()
         {
-            if(_player.LoggedIn)
+            if(Authenticated && _player.LoggedIn)
             {
                 SendPacket(new TimeUpdatePacket
                 {
@@ -300,7 +303,7 @@ namespace Chraft.Net
             SendPacket(new HandshakePacket
             {
 
-                UsernameOrHash = (_player.Server.UseOfficalAuthentication ? _player.Server.ServerHash : "-")
+                UsernameOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
                 //UsernameOrHash = "-" // No authentication
                 //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
             });
@@ -308,7 +311,10 @@ namespace Chraft.Net
 
         public void SendLoginSequence()
         {
-            _player.Server.AddAuthenticatedClient(this);
+            _player = new Player(Server, Server.AllocateEntity(), this);
+            Server.AddEntity(_player);
+            Server.AddAuthenticatedClient(this);
+            Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
             StartKeepAliveTimer();
@@ -324,6 +330,8 @@ namespace Chraft.Net
             _player.InitializeHealth();
             _player.OnJoined();
             SendMotd();
+
+
         }
 
         #endregion
@@ -392,7 +400,6 @@ namespace Chraft.Net
             if (entity is Player)
             {
                 Player p = ((Player) entity);
-                Client c = p.Client;
 
                 SendPacket(new NamedEntitySpawnPacket
                 {
@@ -402,7 +409,7 @@ namespace Chraft.Net
                     Z = p.Position.Z,
                     Yaw = p.PackedYaw,
                     Pitch = p.PackedPitch,
-                    PlayerName = p.Username + p.EntityId,
+                    PlayerName = Username + p.EntityId,
                     CurrentItem = 0
                 });
                 for (short i = 0; i < 5; i++)

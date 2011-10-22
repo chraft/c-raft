@@ -34,7 +34,7 @@ namespace Chraft.Utils
             };
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Owner.Username.ToLower()).FirstOrDefault();
+            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
 
             //default group we grab the first with default attrbute defined
             var gperm = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
