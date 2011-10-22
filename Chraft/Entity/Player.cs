@@ -269,13 +269,13 @@ namespace Chraft.Entity
         /// Handles the death of the Client.
         /// </summary>
         /// <param name="hitBy">Who killed the current Client.</param>
-        public override void HandleDeath(EntityBase hitBy = null, string deathBy = "")
+        public override void HandleDeath(EntityBase killedBy = null, string deathBy = "")
         {
             //Event
-            ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, hitBy);
+            ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, killedBy);
             Client.Owner.Server.PluginManager.CallEvent(Event.PLAYER_DIED, clientDeath);
             if (clientDeath.EventCanceled) { return; }
-            hitBy = clientDeath.KilledBy;
+            killedBy = clientDeath.KilledBy;
             //End Event
 
 
@@ -283,46 +283,31 @@ namespace Chraft.Entity
             // ...Or maybe make messages a plugin?
             string deathMessage = string.Empty;
 
-            if (hitBy == null && deathBy == "") // Generic message
+            if (killedBy == null && deathBy == "") // Generic message
             {
                 deathBy = "mysteriously!";
             }
-            else if (hitBy is Player)
+            else if (killedBy is Player)
             {
-                var p = (Player)hitBy;
+                var p = (Player)killedBy;
                 deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory.Slots[Inventory.ActiveSlot].Type);
             }
-            else if (hitBy is Mob)
+            else if (killedBy is Mob)
             {
-                var m = (Mob)hitBy;
+                var m = (Mob)killedBy;
                 deathBy = "by " + m.Type;
             }
 
             deathMessage = DisplayName + " was killed " + deathBy;
 
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                c.SendMessage(deathMessage);
+            SendUpdateOnDeath(deathMessage);
 
-                if (c == _Client)
-                    continue;
-
-                c.SendPacket(new EntityStatusPacket // Death Action
-                {
-                    EntityId = EntityId,
-                    EntityStatus = 3
-                });
-            }
-
-            Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+            DoDeath(killedBy);
         }
 
         protected override void DoDeath(EntityBase killedBy)
         {
-        }
-
-        protected override void SendUpdateOnDeath()
-        {
+            Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
         }
 
         /// <summary>

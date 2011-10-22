@@ -23,8 +23,8 @@ namespace Chraft.Plugins.Events.Args
 
     public class EntityDeathEventArgs : EntityEventArgs 
     {
-        public Player KilledBy { get; set; }
-        public EntityDeathEventArgs(EntityBase entity, Player killedBy)
+        public EntityBase KilledBy { get; set; }
+        public EntityDeathEventArgs(EntityBase entity, EntityBase killedBy)
             : base(entity)
         {
             KilledBy = killedBy;

@@ -118,30 +118,8 @@ namespace Chraft.Entity
         /// <summary>
         /// Perform any item drop logic during death
         /// </summary>
-        protected abstract void DoDeath(EntityBase killedBy);
-
-        public virtual void HandleDeath(EntityBase killedBy = null, string deathBy = "")
+        protected virtual void DoDeath(EntityBase killedBy)
         {
-            var killedByPlayer = killedBy as Player;
-
-            //Event
-            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedByPlayer);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DEATH, e);
-            if (e.EventCanceled) return;
-            killedByPlayer = e.KilledBy;
-            //End Event
-
-            // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
-            //if (hitBy != null)
-            //{
-            //    // TODO: Stats/Achievement hook or something
-            //}
-
-            SendUpdateOnDeath();
-
-            // Spawn goodies / perform achievements etc..
-            DoDeath(killedBy);
-
             System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
 
             removeTimer.Elapsed += delegate
@@ -154,14 +132,43 @@ namespace Chraft.Entity
             removeTimer.Start();
         }
 
-        protected virtual void SendUpdateOnDeath()
+        public virtual void HandleDeath(EntityBase killedBy = null, string deathBy = "")
         {
-            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
-                new EntityStatusPacket // Death Action
+            //Event
+            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedBy);
+            Server.PluginManager.CallEvent(Event.ENTITY_DEATH, e);
+            if (e.EventCanceled) return;
+            killedBy = e.KilledBy;
+            //End Event
+
+            // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
+            //if (hitBy != null)
+            //{
+            //    // TODO: Stats/Achievement hook or something
+            //}
+
+            SendUpdateOnDeath();
+
+            // Spawn goodies / perform achievements etc..
+            DoDeath(killedBy);
+        }
+
+        protected virtual void SendUpdateOnDeath(string deathMessage = "")
+        {
+            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if (!string.IsNullOrEmpty(deathMessage))
+                    c.SendMessage(deathMessage);
+
+                if (c.Owner == this)
+                    continue;
+
+                c.SendPacket(new EntityStatusPacket // Death Action
                 {
                     EntityId = EntityId,
                     EntityStatus = 3
                 });
+            }
         }
 
         protected virtual void SendUpdateOnDamage()
