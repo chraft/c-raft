@@ -17,6 +17,10 @@ namespace Chraft.Entity
 {
     public class Player : LivingEntity
     {
+        public override string Name
+        {
+            get { return DisplayName; }
+        }
         public ConcurrentDictionary<int, Chunk> LoadedChunks = new ConcurrentDictionary<int, Chunk>();
         private List<EntityBase> LoadedEntities = new List<EntityBase>();
         public volatile bool LoggedIn = false;
@@ -183,10 +187,74 @@ namespace Chraft.Entity
         }
 
         /// <summary>
+        /// Updates nearby players when Client is hurt.
+        /// </summary>
+        /// <param name="cause"></param>
+        /// <param name="damageAmount"></param>
+        /// <param name="hitBy">The Client hurting the current Client.</param>
+        /// <param name="args">First argument should always be the damage amount.</param>
+        public override void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
+        {
+            if (GameMode == 1)
+                return;
+            base.Damage(cause, damageAmount, hitBy, args);
+
+            /*switch (cause)
+            {
+                case DamageCause.BlockExplosion:
+                    break;
+                case DamageCause.Contact:
+                    break;
+                case DamageCause.Drowning:
+                    break;
+                case DamageCause.EntityAttack:
+                    if (hitBy != null)
+                    {
+
+                    }
+                    break;
+                case DamageCause.EntityExplosion:
+                    break;
+                case DamageCause.Fall:
+                    Health -= Convert.ToInt16(damageAmount);
+                    break;
+                case DamageCause.Fire:
+                    break;
+                case DamageCause.FireBurn:
+                    break;
+                case DamageCause.Lava:
+                    break;
+                case DamageCause.Lightning:
+                    break;
+                case DamageCause.Projectile:
+                    break;
+                case DamageCause.Suffocation:
+                    break;
+                case DamageCause.Void:
+                    break;
+                default:
+                    Health -= 1;
+                    break;
+
+            }*/
+        }
+
+        protected override void SendUpdateOnDamage()
+        {
+            Client.SendPacket(new UpdateHealthPacket
+            {
+                Health = Health,
+                Food = Food,
+                FoodSaturation = FoodSaturation,
+            });
+            base.SendUpdateOnDamage();
+        }
+
+        /// <summary>
         /// Handles the death of the Client.
         /// </summary>
         /// <param name="hitBy">Who killed the current Client.</param>
-        public void HandleDeath(EntityBase hitBy = null, string deathBy = "")
+        public override void HandleDeath(EntityBase hitBy = null, string deathBy = "")
         {
             //Event
             ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, hitBy);
@@ -232,6 +300,14 @@ namespace Chraft.Entity
             }
 
             Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+        }
+
+        protected override void DoDeath(EntityBase killedBy)
+        {
+        }
+
+        protected override void SendUpdateOnDeath()
+        {
         }
 
         /// <summary>

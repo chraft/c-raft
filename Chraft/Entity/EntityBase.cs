@@ -531,6 +531,7 @@ namespace Chraft.Entity
         EntityExplosion,
         Void,
         Lightning,
+        Cactus,
         Custom
     }
 }
