@@ -13,7 +13,6 @@ namespace Chraft.Entity
 	public abstract partial class Mob : LivingEntity
 	{
         public MobType Type { get; set; }
-		public MetaData Data { get; internal set; }
 
         /// <summary>
         /// The amount of damage this Mob can inflict
