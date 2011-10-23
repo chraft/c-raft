@@ -617,7 +617,6 @@ namespace Chraft.Net
         {
             client.Owner.Ready = true;
             client.OnGround = packet.OnGround;
-            client.Owner.UpdateEntities();
         }
 
         public static void HandlePacketPlayerRotation(Client client, PlayerRotationPacket packet)

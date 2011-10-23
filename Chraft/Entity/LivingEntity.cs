@@ -346,6 +346,7 @@ namespace Chraft.Entity
             removeTimer.Elapsed += delegate
             {
                 removeTimer.Stop();
+                World.Server.SendRemoveEntityToNearbyPlayers(World, this);
                 World.Server.RemoveEntity(this);
                 removeTimer.Dispose();
             };

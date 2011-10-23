@@ -215,14 +215,12 @@ namespace Chraft.Net
                 //You cant stop the player from leaving so dont try.
                 disconnectMsg = e.BrodcastMessage;
                 //End Event
-                _player.Server.Broadcast(disconnectMsg);
 
                 if (_player.LoggedIn)
+                {
+                    _player.Server.BroadcastSync(disconnectMsg, this);
                     Save();
-
-                _player.LoggedIn = false;
-                _player.Ready = false;
-                Running = false;
+                }
 
                 foreach (int packedCoords in _player.LoadedChunks.Keys)
                 {
@@ -231,11 +229,27 @@ namespace Chraft.Net
                         chunk.RemoveClient(this);
                 }
 
-
                 Server.RemoveAuthenticatedClient(this);
 
-                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", _player.Server.Clients.Count);
+                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
                 Server.RemoveEntity(_player);
+
+                Client[] nearbyClients = Server.GetNearbyPlayers(_player.World, UniversalCoords.FromAbsWorld(_player.Position)).ToArray();
+
+                foreach (var client in nearbyClients)
+                {
+                    if (client != this)
+                    {
+                        DestroyEntityPacket de = new DestroyEntityPacket {EntityId = _player.EntityId};
+                        de.Write();
+                        byte[] data = de.GetBuffer();
+                        client.Send_Sync(data);
+                    }
+                }
+
+                _player.LoggedIn = false;
+                _player.Ready = false;
+                Running = false;
 
                 if (_keepAliveTimer != null)
                 {
@@ -245,8 +259,10 @@ namespace Chraft.Net
             }
             else
             {
+                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", Username);
                 Running = false;
                 Server.RemoveClient(this);
+                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
             }
 
 

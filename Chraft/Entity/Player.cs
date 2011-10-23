@@ -22,7 +22,7 @@ namespace Chraft.Entity
             get { return DisplayName; }
         }
         public ConcurrentDictionary<int, Chunk> LoadedChunks = new ConcurrentDictionary<int, Chunk>();
-        private List<EntityBase> LoadedEntities = new List<EntityBase>();
+        private ConcurrentDictionary<int, EntityBase> LoadedEntities = new ConcurrentDictionary<int, EntityBase>();
         public volatile bool LoggedIn = false;
         public PermissionHandler PermHandler;
         public ClientPermission Permissions;
@@ -186,24 +186,28 @@ namespace Chraft.Entity
 
         public void UpdateEntities()
         {
-            IEnumerable<EntityBase> nearbyEntities = Server.GetNearbyEntities(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)).ToList();
+            Dictionary<int, EntityBase> nearbyEntities = Server.GetNearbyEntitiesDict(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
 
-            foreach (EntityBase e in nearbyEntities)
+            foreach (EntityBase e in nearbyEntities.Values)
             {
                 if (e.Equals(this))
                     continue;
-                if (!LoadedEntities.Contains(e))
+                
+                if (!LoadedEntities.ContainsKey(e.EntityId))
+                {
                     _client.SendCreateEntity(e);
+                    LoadedEntities.TryAdd(e.EntityId, e);
+                }
                 if (Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
                     PickupItem((ItemEntity)e);
             }
 
-            foreach (EntityBase e in LoadedEntities.Where(e => !nearbyEntities.Contains(e)))
+            foreach (EntityBase e in LoadedEntities.Values.Where(e => !nearbyEntities.ContainsKey(e.EntityId)))
             {
+                EntityBase unused;
+                LoadedEntities.TryRemove(e.EntityId, out unused);
                 _client.SendDestroyEntity(e);
             }
-
-            LoadedEntities = new List<EntityBase>(nearbyEntities);
         }
 
         #endregion
@@ -347,6 +351,7 @@ namespace Chraft.Entity
         public void HandleRespawn()
         {
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
+            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(this);
 
             Position = new AbsWorldCoords(
@@ -365,24 +370,23 @@ namespace Chraft.Entity
             InitializeHealth();
             _client.ScheduleUpdateChunks();
 
-
             Server.AddEntity(this);
+            Server.SendEntityToNearbyPlayers(World, this);
         }
 
         private void PickupItem(ItemEntity item)
         {
-            if (!Server.GetEntities().Contains(item))
+            if (Server.GetEntityById(item.EntityId) == null)
                 return;
+
+            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(item);
 
-            foreach (Client c in Server.GetNearbyPlayers(item.World, new AbsWorldCoords(item.Position.X, item.Position.Y, item.Position.Z)))
+            Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position.X, item.Position.Y, item.Position.Z), new CollectItemPacket
             {
-                c.SendPacket(new CollectItemPacket
-                {
-                    EntityId = item.EntityId,
-                    PlayerId = EntityId
-                });
-            }
+                EntityId = item.EntityId,
+                PlayerId = EntityId
+            });
 
             Inventory.AddItem(item.ItemId, item.Count, item.Durability);
         }

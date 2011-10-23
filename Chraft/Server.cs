@@ -583,6 +583,38 @@ namespace Chraft
         }
 
         /// <summary>
+        /// Broadcasts a message to all clients, optionally excluding the sender.
+        /// </summary>
+        /// <param name="message">The message to be broadcasted.</param>
+        /// <param name="excludeClient">The client to excluded; usually the sender.</param>
+        public void BroadcastSync(string message, Client excludeClient = null, bool sendToIrc = true)
+        {
+            //Event
+            ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
+            PluginManager.CallEvent(Event.SERVER_BROADCAST, e);
+            if (e.EventCanceled) return;
+            message = e.Message;
+            excludeClient = e.ExcludeClient;
+            //End Event
+
+            foreach (Client c in GetClients())
+            {
+                if (c != excludeClient)
+                {
+                    ChatMessagePacket cm = new ChatMessagePacket { Message = message };
+                    cm.Write();
+                    byte[] data = cm.GetBuffer();
+                    c.Send_Sync(data);
+                }
+            }
+
+            if (sendToIrc && Irc != null)
+            {
+                Irc.WriteLine("PRIVMSG {0} :{1}", Settings.Default.IrcChannel, message.Replace('§', '\x3'));
+            }
+        }
+
+        /// <summary>
         /// Broadcasts a packet to all clients, optionally excluding the sender.
         /// </summary>
         /// <param name="packet">The packet to be broadcasted.</param>
@@ -715,6 +747,62 @@ namespace Chraft
             RemoveClient(client);
         }
 
+        public static Packet GetSpawnPacket(Server server, EntityBase entity)
+        {
+            Packet packet = null;
+            if (entity is Player)
+            {
+                Player p = ((Player)entity);
+
+                packet = new NamedEntitySpawnPacket
+                {
+                    EntityId = p.EntityId,
+                    X = p.Position.X,
+                    Y = p.Position.Y,
+                    Z = p.Position.Z,
+                    Yaw = p.PackedYaw,
+                    Pitch = p.PackedPitch,
+                    PlayerName = p.Client.Username + p.EntityId,
+                    CurrentItem = 0
+                };
+            }
+            else if (entity is ItemEntity)
+            {
+                ItemEntity item = (ItemEntity)entity;
+                packet = new SpawnItemPacket
+                {
+                    X = item.Position.X,
+                    Y = item.Position.Y,
+                    Z = item.Position.Z,
+                    Yaw = item.PackedYaw,
+                    Pitch = item.PackedPitch,
+                    EntityId = item.EntityId,
+                    ItemId = item.ItemId,
+                    Count = item.Count,
+                    Durability = item.Durability,
+                    Roll = 0
+                };
+            }
+            else if (entity is Mob)
+            {
+                Mob mob = (Mob)entity;
+                server.Logger.Log(Logger.LogLevel.Debug, ("ClientSpawn: Sending Mob " + mob.Type + " (" + mob.Position.X + ", " + mob.Position.Y + ", " + mob.Position.Z + ")"));
+                packet = new MobSpawnPacket
+                {
+                    X = mob.Position.X,
+                    Y = mob.Position.Y,
+                    Z = mob.Position.Z,
+                    Yaw = mob.PackedYaw,
+                    Pitch = mob.PackedPitch,
+                    EntityId = mob.EntityId,
+                    Type = mob.Type,
+                    Data = mob.Data
+                };
+            }
+
+            return packet;
+        }
+
         // TODO: This should be removed in favor of the one below
         /// <summary>
         /// Sends a packet in parallel to each nearby player.
@@ -740,23 +828,93 @@ namespace Chraft
         /// Sends a packet in parallel to each nearby player.
         /// </summary>
         /// <param name="world">The world containing the coordinates.</param>
-        /// <param name="absCoords>The center coordinates.</param>
+        /// <param name="coords">The center coordinates.</param>
         /// <param name="packet">The packet to send</param>
-        public void SendPacketToNearbyPlayers(WorldManager world, UniversalCoords coords, Packet packet)
+        public void SendPacketToNearbyPlayers(WorldManager world, UniversalCoords coords, Packet packet, Client excludedClient = null)
         {
             Client[] nearbyClients = GetNearbyPlayers(world, coords).ToArray();
 
-            if (nearbyClients.Length == 0)
+            if (nearbyClients.Length == 0 || (excludedClient != null && nearbyClients.Length == 1))
                 return;
 
-            packet.SetShared(Logger, nearbyClients.Length);
+            packet.SetShared(Logger, excludedClient == null ? nearbyClients.Length : nearbyClients.Length - 1);
 
             Parallel.ForEach(nearbyClients, (client) =>
             {
-                client.SendPacket(packet);
+                if(excludedClient != client)
+                    client.SendPacket(packet);
             });
         }
 
+        /// <summary>
+        /// Sends packets in parallel to each nearby player.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="coords">The center coordinates.</param>
+        /// <param name="packets">The list of packets to send</param>
+        public void SendPacketsToNearbyPlayers(WorldManager world, UniversalCoords coords, List<Packet> packets, Client excludedClient = null)
+        {
+            Client[] nearbyClients = GetNearbyPlayers(world, coords).ToArray();
+
+            if (nearbyClients.Length == 0 || (excludedClient != null && nearbyClients.Length == 1))
+                return;
+
+            foreach(Packet packet in packets)
+                packet.SetShared(Logger, excludedClient == null? nearbyClients.Length : nearbyClients.Length - 1);
+
+            Parallel.ForEach(nearbyClients, (client) =>
+            {
+                if (excludedClient != client)
+                {
+                    foreach (Packet packet in packets)
+                        client.SendPacket(packet);
+                }
+            });
+        }
+
+        public void SendEntityToNearbyPlayers(WorldManager world, EntityBase entity)
+        {
+            Packet packet;
+            if ((packet = GetSpawnPacket(this, entity)) != null)
+            {
+                if(packet is NamedEntitySpawnPacket)
+                {
+                    List<Packet> packets = new List<Packet>{packet};
+                    for (short i = 0; i < 5; i++)
+                    {
+                        packets.Add(new EntityEquipmentPacket
+                        {
+                            EntityId = entity.EntityId,
+                            Slot = i,
+                            ItemId = -1,
+                            Durability = 0
+                        });
+                    }
+
+                    SendPacketsToNearbyPlayers(world, UniversalCoords.FromAbsWorld(entity.Position), packets,
+                                          entity is Player ? ((Player)entity).Client : null);
+                }
+                else
+                    SendPacketToNearbyPlayers(world, UniversalCoords.FromAbsWorld(entity.Position), packet,
+                                          entity is Player ? ((Player) entity).Client : null);
+            }
+
+            else if (entity is TileEntity)
+            {
+
+            }
+            else
+            {
+                List<Packet> packets = new List<Packet> { new CreateEntityPacket { EntityId = entity.EntityId }, new EntityTeleportPacket { EntityId = entity.EntityId, Pitch = entity.PackedPitch, Yaw = entity.PackedYaw, X = entity.Position.X, Y = entity.Position.Y, Z = entity.Position.Z } };
+                SendPacketsToNearbyPlayers(world, UniversalCoords.FromAbsWorld(entity.Position), packets);
+            }
+
+        }
+
+        public void SendRemoveEntityToNearbyPlayers(WorldManager world, EntityBase entity)
+        {
+            SendPacketToNearbyPlayers(world, UniversalCoords.FromAbsWorld(entity.Position), new DestroyEntityPacket { EntityId = entity.EntityId }, entity is Player ? ((Player)entity).Client : null);
+        }
 
         // TODO: This should be removed in favor of the one below
         /// <summary>
@@ -831,6 +989,42 @@ namespace Chraft
                 if (e.World == world && Math.Abs(coords.ChunkX - entityChunkX) <= radius && Math.Abs(coords.ChunkZ - entityChunkZ) <= radius)
                     yield return e;
             }
+        }
+
+        /// <summary>
+        /// Yields an enumerable of nearby entities, including players.  Thread-safe.
+        /// </summary>
+        /// <param name="world">The world containing the coordinates.</param>
+        /// <param name="x">The center X coordinate.</param>
+        /// <param name="y">The center Y coordinate.</param>
+        /// <param name="z">The center Z coordinate.</param>
+        /// <returns>A lazy enumerable of nearby entities.</returns>
+        public Dictionary<int, EntityBase> GetNearbyEntitiesDict(WorldManager world, UniversalCoords coords)
+        {
+            int radius = Settings.Default.SightRadius;
+
+            Dictionary<int, EntityBase> dict = new Dictionary<int, EntityBase>();
+
+            foreach (EntityBase e in GetEntities())
+            {
+                int entityChunkX = (int)Math.Floor(e.Position.X) >> 4;
+                int entityChunkZ = (int)Math.Floor(e.Position.Z) >> 4;
+
+                if (e.World == world && Math.Abs(coords.ChunkX - entityChunkX) <= radius && Math.Abs(coords.ChunkZ - entityChunkZ) <= radius)
+                {
+                    dict.Add(e.EntityId, e);
+                }
+            }
+
+            return dict;
+        }
+
+        public EntityBase GetEntityById(int id)
+        {
+            EntityBase entity;
+            _Entities.TryGetValue(id, out entity);
+
+            return entity;
         }
 
         public IEnumerable<EntityBase> GetNearbyLivings(WorldManager world, AbsWorldCoords coords)

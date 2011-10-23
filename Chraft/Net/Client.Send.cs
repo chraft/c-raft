@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Net.Sockets;
 using Chraft.Entity;
 using Chraft.Net.Packets;
@@ -331,7 +333,8 @@ namespace Chraft.Net
             _player.OnJoined();
             SendMotd();
 
-
+            _player.UpdateEntities();
+            Server.SendEntityToNearbyPlayers(_player.World, _player);
         }
 
         #endregion
@@ -397,76 +400,33 @@ namespace Chraft.Net
 
         public void SendCreateEntity(EntityBase entity)
         {
-            if (entity is Player)
+            Packet packet;
+            if ((packet = Server.GetSpawnPacket(Server, entity)) != null)
             {
-                Player p = ((Player) entity);
-
-                SendPacket(new NamedEntitySpawnPacket
+                if (packet is NamedEntitySpawnPacket)
                 {
-                    EntityId = p.EntityId,
-                    X = p.Position.X,
-                    Y = p.Position.Y,
-                    Z = p.Position.Z,
-                    Yaw = p.PackedYaw,
-                    Pitch = p.PackedPitch,
-                    PlayerName = Username + p.EntityId,
-                    CurrentItem = 0
-                });
-                for (short i = 0; i < 5; i++)
-                {
-                    SendPacket(new EntityEquipmentPacket
+                    SendPacket(packet);
+                    for (short i = 0; i < 5; i++)
                     {
-                        EntityId = p.EntityId,
-                        Slot = i,
-                        ItemId = -1,
-                        Durability = 0
-                    });
+                        SendPacket(new EntityEquipmentPacket
+                        {
+                            EntityId = entity.EntityId,
+                            Slot = i,
+                            ItemId = -1,
+                            Durability = 0
+                        });
+                    }
                 }
             }
-            else if (entity is ItemEntity)
+            else if (entity is TileEntity)
             {
-                ItemEntity item = (ItemEntity)entity;
-                SendPacket(new SpawnItemPacket
-                {
-                    X = item.Position.X,
-                    Y = item.Position.Y,
-                    Z = item.Position.Z,
-                    Yaw = item.PackedYaw,
-                    Pitch = item.PackedPitch,
-                    EntityId = item.EntityId,
-                    ItemId = item.ItemId,
-                    Count = item.Count,
-                    Durability = item.Durability,
-                    Roll = 0
-                });
-            }
-            else if (entity is Mob)
-            {
-                
-                Mob mob = (Mob)entity;
-                Logger.Log(Logger.LogLevel.Debug, ("ClientSpawn: Sending Mob " + mob.Type + " (" + mob.Position.X + ", " + mob.Position.Y + ", " + mob.Position.Z + ")"));
-                SendPacket(new MobSpawnPacket
-                {
-                    X = mob.Position.X,
-                    Y = mob.Position.Y,
-                    Z = mob.Position.Z,
-                    Yaw = mob.PackedYaw,
-                    Pitch = mob.PackedPitch,
-                    EntityId = mob.EntityId,
-                    Type = mob.Type,
-                    Data = mob.Data
-                });
+
             }
             else
-                if (entity is TileEntity)
-                {
-                    
-                }
-                else
-                {
-                    SendEntity(entity);
-                    SendTeleportTo(entity);
-                }
+            {
+                SendEntity(entity);
+                SendTeleportTo(entity);
+            }               
         }
 
         internal void SendEntity(EntityBase entity)
