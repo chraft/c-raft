@@ -33,7 +33,7 @@ namespace Chraft.World.Blocks.Physics
 
             if (Position.Y <= 1)
             {
-                Stop();
+                Stop(true);
                 return;
             }
 
