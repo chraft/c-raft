@@ -6,7 +6,7 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Listener
 {
-    class PacketListener : ChraftListener
+    class PacketListener : IChraftListener
     {
         public virtual void OnPacketReceived(PacketRecevedEventArgs e) { }
         public virtual void OnPacketSent(PacketSentEventArgs e) { }

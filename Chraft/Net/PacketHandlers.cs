@@ -11,7 +11,6 @@ namespace Chraft.Net
 {
     public class PacketHandlers
     {
-
         private static PacketHandler[] m_Handlers;
 
         public static PacketHandler[] Handlers

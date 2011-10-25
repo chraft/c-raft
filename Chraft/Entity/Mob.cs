@@ -12,10 +12,7 @@ namespace Chraft.Entity
 {
 	public abstract partial class Mob : LivingEntity
 	{
-        public abstract string Name { get; }
-
         public MobType Type { get; set; }
-		public MetaData Data { get; internal set; }
 
         /// <summary>
         /// The amount of damage this Mob can inflict
@@ -40,7 +37,7 @@ namespace Chraft.Entity
         }
 
         /// <summary>
-        /// How far the mob can see (i.e. if aggressive a client will be hunted if seen within this range)
+        /// How far the mob can see (i.e. if aggressive a player will be hunted if seen within this range)
         /// </summary>
         public virtual int SightRange 
         {
@@ -73,103 +70,6 @@ namespace Chraft.Entity
                });
         }
 
-        public void DamageMob(EntityBase hitBy = null)
-        {
-            var hitByPlayer = hitBy as Player;
-            var hitByMob = hitBy as Mob;
-            if (hitByPlayer != null)
-            {
-                //TODO: Make damage more customizable.  CSV anyone?
-                //TODO: Fix damage.
-                //Damage values taken from http://www.minecraftwiki.net/wiki/Damage#Dealing_Damage
-                short damage = 2;
-                ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
-                switch (itemHeld.Type)
-                {
-                    case 268:
-                    case 283:
-                        damage = 5;
-                        break;
-                    case 272:
-                        damage = 7;
-                        break;
-                    case 267:
-                        damage = 9;
-                        break;
-                    case 276:
-                        damage = 11;
-                        break;
-                    case 273:
-                        damage = 3;
-                        break;
-                    case 274:
-                        damage = 4;
-                        break;
-                    case 275:
-                        damage = 5;
-                        break;
-                }
-
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, hitByPlayer, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                hitByPlayer = e.DamagedBy;
-                //End Event
-
-                //Debug
-                hitByPlayer.Client.SendMessage("You hit a " + this.Name + " with a " + itemHeld.Type.ToString() + " dealing " + damage.ToString() + " damage.");
-                this.Health -= damage;
-            }
-            else if (hitByMob != null)
-            {
-                // Hit by a Mob so apply its' attack strength as damage
-                short damage = hitByMob.AttackStrength;
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                //End Event
-
-                // TODO: Generic damage from falling/lava/fire?
-                this.Health -= damage;
-            }
-            else
-            {
-                short damage = 1;
-                //Event
-                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damage, null, DamageCause.EntityAttack);
-                Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DAMAGE, e);
-                if (e.EventCanceled) return;
-                damage = e.Damage;
-                //End Event
-
-                // TODO: Generic damage from falling/lava/fire?
-                this.Health -= damage;
-            }
-
-            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                c.SendPacket(new AnimationPacket // Hurt Animation
-                {
-                    Animation = 2,
-                    PlayerId = this.EntityId
-                });
-
-                c.SendPacket(new EntityStatusPacket // Hurt Action
-                {
-                    EntityId = this.EntityId,
-                    EntityStatus = 2
-                });
-            }
-
-            // TODO: Entity Knockback
-
-            if (this.Health <= 0) HandleDeath(hitByPlayer);
-        }
-
         protected virtual void DoInteraction(Client client, ItemStack item)
         {
         }
@@ -186,48 +86,11 @@ namespace Chraft.Entity
             DoInteraction(client, item);
         }
 
-        /// <summary>
-        /// Perform any item drop logic during death
-        /// </summary>
-        protected abstract void DoDeath(EntityBase killedBy);
-
-        public void HandleDeath(EntityBase killedBy = null)
+        public override void Attack(LivingEntity target)
         {
-            var killedByPlayer = killedBy as Player;
-            
-            //Event
-            EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedByPlayer);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_DEATH, e);
-            if (e.EventCanceled) return;
-            killedByPlayer = e.KilledBy;
-            //End Event
-            
-            // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
-            //if (hitBy != null)
-            //{
-            //    // TODO: Stats/Achievement hook or something
-            //}
-
-            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
-                new EntityStatusPacket // Death Action
-                {
-                    EntityId = EntityId,
-                    EntityStatus = 3
-                });
-
-            // Spawn goodies / perform achievements etc..
-            DoDeath(killedBy);
-
-            System.Timers.Timer removeTimer = new System.Timers.Timer(1000);
-
-            removeTimer.Elapsed += delegate
-            {
-                removeTimer.Stop();
-                World.Server.RemoveEntity(this);
-                removeTimer.Dispose();
-            };
-
-            removeTimer.Start();
+            if (target == null)
+                return;
+            target.Damage(DamageCause.EntityAttack, AttackStrength, this);
         }
 
         public void Despawn()

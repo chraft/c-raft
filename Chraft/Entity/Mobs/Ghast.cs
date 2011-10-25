@@ -13,6 +13,8 @@ namespace Chraft.Entity.Mobs
             get { return "Ghast"; }
         }
 
+        public override short MaxHealth { get { return 10; } }
+
         public override short AttackStrength
         {
             get

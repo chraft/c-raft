@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Chraft.Net.Packets;
 
 namespace Chraft.Net
 {
     public class PacketWriter
     {
-        private static Stack<PacketWriter> _Pool = new Stack<PacketWriter>();
+        private static ConcurrentStack<PacketWriter> _Pool = new ConcurrentStack<PacketWriter>();
 
         public StreamRole Role { get; private set; }
 
@@ -59,8 +61,8 @@ namespace Chraft.Net
 
             if (_Pool.Count > 0)
             {
-                pw = _Pool.Pop();
-
+                _Pool.TryPop(out pw);
+                    
                 if (pw != null)
                 {
                     pw._Capacity = capacity;
@@ -82,9 +84,10 @@ namespace Chraft.Net
             {
                 try
                 {
-                    using (StreamWriter op = new StreamWriter("neterr.log"))
+                    using (StreamWriter op = new StreamWriter("neterr.log", true))
                     {
                         op.WriteLine("{0}\tInstance pool contains writer", DateTime.Now);
+                        op.WriteLine();
                     }
                 }
                 catch
@@ -148,12 +151,16 @@ namespace Chraft.Net
         public void Write(string data)
         {
             byte[] b;
-            if (_Strings != null)
+            int length = data.Length;
+            if (_Strings != null && _Strings.Count > 0)
+            {
                 b = _Strings.Dequeue();
+                length = b.Length/2;
+            }
             else
                 b = ASCIIEncoding.BigEndianUnicode.GetBytes(data);
 
-            Write((short)data.Length);
+            Write((short)length);
             Write(b, 0, b.Length);
         }
 

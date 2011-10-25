@@ -23,10 +23,9 @@ namespace Chraft.World.Blocks.Physics
             EntityId = world.Server.AllocateEntity();
 
             CreateEntityPacket entity = new CreateEntityPacket { EntityId = EntityId };
-            foreach (var nearbyPlayer in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                nearbyPlayer.SendPacket(entity);
-            }
+            World.Server.SendPacketToNearbyPlayers(World,
+                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z),
+                                                   entity);
         }
 
         public virtual void Start()
@@ -42,10 +41,10 @@ namespace Chraft.World.Blocks.Physics
                                                  Y = Position.Y,
                                                  Z = Position.Z
                                              };
-            foreach (var nearbyPlayer in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                nearbyPlayer.SendPacket(obj);
-            }
+            World.Server.SendPacketToNearbyPlayers(World, 
+                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), 
+                                                   obj);
+            
             IsPlaying = true;
         }
 
@@ -59,10 +58,10 @@ namespace Chraft.World.Blocks.Physics
             BlockBasePhysics unused = null;
             World.PhysicsBlocks.TryRemove(EntityId, out unused);
             DestroyEntityPacket entity = new DestroyEntityPacket { EntityId = EntityId };
-            foreach (var nearbyPlayer in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
-            {
-                nearbyPlayer.SendPacket(entity);
-            }
+            World.Server.SendPacketToNearbyPlayers(World,
+                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z),
+                                                   entity);
+            
             OnStop();
         }
 

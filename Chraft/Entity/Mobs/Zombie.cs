@@ -18,7 +18,7 @@ namespace Chraft.Entity.Mobs
             get
             {
                 // Easy 1
-                // Medium 5
+                // Normal 5
                 // Hard 7
                 return 5; // 2.5 hearts
             }

@@ -13,6 +13,8 @@ namespace Chraft.Entity.Mobs
             get { return "Squid"; }
         }
 
+        public override short MaxHealth { get { return 10; } }
+
         internal Squid(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Squid, data)
         {

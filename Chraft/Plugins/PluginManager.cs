@@ -202,7 +202,7 @@ namespace Chraft.Plugins
         /// <param name="Listener">The listener to notify.</param>
         /// <param name="Plugin">The plugin to associate the listener with.</param>
         /// <returns>The resaulting EventListener</returns>
-        public EventListener RegisterEvent(Event Event, ChraftListener Listener, IPlugin Plugin)
+        public EventListener RegisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
         {
             EventListener el = new EventListener(Listener, Plugin, Event);
             RegisterEvent(el);
@@ -249,7 +249,7 @@ namespace Chraft.Plugins
         /// <param name="Event">The name of the event.</param>
         /// <param name="Listener">The listener.</param>
         /// <param name="Plugin">The plugin associated with the listener.</param>
-        public void UnregisterEvent(Event Event, ChraftListener Listener, IPlugin Plugin)
+        public void UnregisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
         {
             foreach (EventListener el in PluginHooks.Find(Event).Plugins)
             {

@@ -323,7 +323,7 @@
     <Compile Include="Plugins\Events\Args\ChraftEventArgs.cs" />
     <Compile Include="Plugins\Listener\EntityListener.cs" />
     <Compile Include="Plugins\Listener\WorldListener.cs" />
-    <Compile Include="Plugins\Listener\Listener.cs" />
+    <Compile Include="Plugins\Listener\IChraftListener.cs" />
     <Compile Include="Plugins\Listener\PacketListener.cs" />
     <Compile Include="Plugins\Listener\PlayerListener.cs" />
     <Compile Include="Plugins\Listener\PluginListener.cs" />

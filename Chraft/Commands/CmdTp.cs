@@ -15,7 +15,7 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Owner.Server.GetClients(tokens[1]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray();
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown player.");
@@ -64,7 +64,7 @@ namespace Chraft.Commands
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Owner.Server.GetClients(tokens[1]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray();
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown payer.");

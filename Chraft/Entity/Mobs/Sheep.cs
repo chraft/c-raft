@@ -16,6 +16,8 @@ namespace Chraft.Entity.Mobs
             get { return "Sheep"; }
         }
 
+        public override short MaxHealth { get { return 10; } }
+
         static ProportionValue<WoolColor>[] _woolColor = new[]{
                 ProportionValue.Create(0.8184, WoolColor.White), // 81.84% chance for White
                 ProportionValue.Create(0.05, WoolColor.Silver),  // 5% chance for light gray

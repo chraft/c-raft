@@ -114,14 +114,10 @@ namespace Chraft.World.Blocks
             if (entity is ItemEntity)
             {
                 entity.Server.RemoveEntity(entity);
-            } else if (entity is Mob)
+            } else if (entity is LivingEntity)
             {
-                Mob mob = entity as Mob;
-                mob.DamageMob();
-            } else if (entity is Player)
-            {
-                Player p = entity as Player;
-                p.Client.DamageClient(DamageCause.Contact, 1);
+                LivingEntity living = entity as LivingEntity;
+                living.Damage(DamageCause.Cactus, 1);
             }
         }
     }

@@ -6,7 +6,7 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Listener
 {
-    public class BlockListener : ChraftListener
+    public class BlockListener : IChraftListener
     {
         public virtual void OnDestroy(BlockDestroyEventArgs e) { }
         public virtual void OnPlace(BlockPlaceEventArgs e) { }

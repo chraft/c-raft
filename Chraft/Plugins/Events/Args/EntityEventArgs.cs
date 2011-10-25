@@ -23,8 +23,8 @@ namespace Chraft.Plugins.Events.Args
 
     public class EntityDeathEventArgs : EntityEventArgs 
     {
-        public Player KilledBy { get; set; }
-        public EntityDeathEventArgs(EntityBase entity, Player killedBy)
+        public EntityBase KilledBy { get; set; }
+        public EntityDeathEventArgs(EntityBase entity, EntityBase killedBy)
             : base(entity)
         {
             KilledBy = killedBy;
@@ -55,10 +55,10 @@ namespace Chraft.Plugins.Events.Args
     public class EntityDamageEventArgs : EntityEventArgs
     {
         public short Damage { get; set; }
-        public Player DamagedBy { get; set; }
+        public EntityBase DamagedBy { get; set; }
         public DamageCause Cause { get; set; }
 
-        public EntityDamageEventArgs(EntityBase entity, short damage, Player damagedBy, DamageCause cause)
+        public EntityDamageEventArgs(EntityBase entity, short damage, EntityBase damagedBy, DamageCause cause)
             : base(entity)
         {
             Damage = damage;
