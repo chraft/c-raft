@@ -21,10 +21,7 @@ namespace Chraft.Interfaces.Recipes
             foreach (SmeltingRecipe r in recipes)
             {
                 if (r.Ingredient.StacksWith(ingredient))
-                {
-                    Console.WriteLine("Matches smelting recipe: " + r.Result.Type + " " + r.Result.Count);
                     return r;
-                }
             }
             return null;
         }

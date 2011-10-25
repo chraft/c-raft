@@ -25,6 +25,12 @@ namespace Chraft.World.Blocks
             // You can not place the furnace that is already burning.
         }
 
+        protected override void UpdateOnDestroy(StructBlock block)
+        {
+            FurnaceInterface.StopBurning(block.World, block.Coords);
+            base.UpdateOnDestroy(block);
+        }
+
         protected override void DropItems(EntityBase entity, StructBlock block)
         {
             Player player = entity as Player;
