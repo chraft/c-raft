@@ -76,11 +76,12 @@ namespace Chraft.WorldGen
             GenerateTerrain(chunk, data, x, z);
             GenerateFlora(chunk, data, x, z);
             chunk.SetAllBlocks(data);
+            watch.Stop();
             if(recalculate)
                 chunk.Recalculate();
-            watch.Stop();
+           
 
-            Console.WriteLine("Chunk {0} {1}", x, z);
+            Console.WriteLine("Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
 
             
             //chunk.Save();
@@ -422,6 +423,7 @@ namespace Chraft.WorldGen
         private void GenerateOuterLayer(int x, int y, int z, int firstBlockHeight, BIOME_TYPE type, Chunk c, byte[] data)
         {
             double heightPercentage = (firstBlockHeight - y) / 128.0;
+            short currentIndex = (short)(x << 11 | z << 7 | y);
 
             switch (type)
             {
@@ -430,24 +432,24 @@ namespace Chraft.WorldGen
                     // Beach
                     if (y >= 60 && y <= 66)
                     {
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Sand;
+                        data[currentIndex] = (byte)BlockData.Blocks.Sand;
                         break;
                     }
 
                     if (heightPercentage == 0.0 && y > 66)
                     {
                         // Grass on top
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Grass;
+                        data[currentIndex] = (byte)BlockData.Blocks.Grass;
                     }
                     else if (heightPercentage > 0.2)
                     {
                         // Stone
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+                        data[currentIndex] = (byte)BlockData.Blocks.Stone;
                     }
                     else
                     {
                         // Dirt
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Dirt;
+                        data[currentIndex] = (byte)BlockData.Blocks.Dirt;
                     }
 
                     GenerateRiver(c, x, y, z, heightPercentage, type, data);
@@ -458,7 +460,7 @@ namespace Chraft.WorldGen
                     if (heightPercentage == 0.0 && y > 65)
                     {
                         // Snow on top
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Snow;
+                        data[currentIndex] = (byte)BlockData.Blocks.Snow;
                         // Grass under the snow
                         data[x << 11 | z << 7 | y - 1] = (byte)BlockData.Blocks.Grass;
                     }
@@ -466,18 +468,18 @@ namespace Chraft.WorldGen
                     else if (heightPercentage > 0.2)
                     {
                         // Stone
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+                        data[currentIndex] = (byte)BlockData.Blocks.Stone;
                     }
                     else if (data[x << 11 | z << 7 | (y + 1)] == (byte)BlockData.Blocks.Air)
                     {
                         // Grass under the snow
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Grass;
+                        data[currentIndex] = (byte)BlockData.Blocks.Grass;
                         data[x << 11 | z << 7 | (y + 1)] = (byte)BlockData.Blocks.Snow;
                     }
                     else
                     {
                         // Dirt
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Dirt;
+                        data[currentIndex] = (byte)BlockData.Blocks.Dirt;
                     }
 
                     GenerateRiver(c, x, y, z, heightPercentage, type, data);
@@ -492,7 +494,7 @@ namespace Chraft.WorldGen
                     else*/
                     if (y < 80)
                     {
-                        data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Sand;
+                        data[currentIndex] = (byte)BlockData.Blocks.Sand;
                     }
 
                     break;
@@ -507,22 +509,24 @@ namespace Chraft.WorldGen
                 return;
 
             double lakeIntens = CalcLakeIntensity(x + c.Coords.ChunkX * 16, z + c.Coords.ChunkZ * 16);
+            short currentIndex = (short)(x << 11 | z << 7 | y);
 
-            if (lakeIntens < 0.2 && heightPercentage < 0.015)
+            if (lakeIntens < 0.2)
             {
-                data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Air;
-            }
-            else if (lakeIntens < 0.2 && heightPercentage >= 0.015 && heightPercentage < 0.05)
-            {
-                if (type == BIOME_TYPE.SNOW)
+                if(heightPercentage < 0.001)
+                    data[currentIndex] = (byte)BlockData.Blocks.Air;
+                else if(heightPercentage < 0.04)
                 {
-                    // To be sure that there's no snow above us
-                    data[x << 11 | z << 7 | y + 1] = (byte)BlockData.Blocks.Air;
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Ice;
-                }
-                else
-                {
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Still_Water;
+                    if (type == BIOME_TYPE.SNOW)
+                    {
+                        // To be sure that there's no snow above us
+                        data[x << 11 | z << 7 | y + 1] = (byte)BlockData.Blocks.Air;
+                        data[currentIndex] = (byte)BlockData.Blocks.Ice;
+                    }
+                    else
+                    {
+                        data[currentIndex] = (byte)BlockData.Blocks.Still_Water;
+                    }
                 }
             }
         }
@@ -530,7 +534,7 @@ namespace Chraft.WorldGen
         protected double CalcLakeIntensity(double x, double z)
         {
             double result = 0.0;
-            result += _Gen3.fBm(x * 0.01, 0.01, 0.01 * z, 3, 2.1836171, 0.9631);
+            result += _Gen3.fBm(x * 0.004, 0, 0.004 * z, 4, 2.1836171, 0.7631);
             return Math.Sqrt(Math.Abs(result));
         }
 

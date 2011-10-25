@@ -6,7 +6,7 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Listener
 {
-    public class WorldListener : ChraftListener
+    public class WorldListener : IChraftListener
     {
         public virtual void OnWorldLoaded(WorldLoadEventArgs e) { }
         public virtual void OnWorldUnloaded(WorldUnloadEventArgs e) { }

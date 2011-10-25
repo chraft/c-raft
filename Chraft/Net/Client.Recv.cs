@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Chraft.Net;
 using Chraft.Net.Packets;
-using Chraft.Plugins.Events;
-using Chraft.Plugins.Events.Args;
 using Chraft.World;
 using Chraft.Entity;
 using System.Text.RegularExpressions;
@@ -112,7 +109,7 @@ namespace Chraft.Net
                                 if (fallDamage > 0)
                                 {
                                     var roundedValue = Convert.ToInt16(Math.Round(fallDamage, 1));
-                                    DamageClient(DamageCause.Fall, roundedValue);
+                                    Owner.Damage(DamageCause.Fall, roundedValue);
 
                                     if (_player.Health <= 0)
                                     {
@@ -171,21 +168,28 @@ namespace Chraft.Net
                 DisposeRecvSystem();
                 return;
             }
+            
+            if(!_socket.Connected)
+            {
+                Stop();
+                return;
+            }
 
             //Logger.Log(Chraft.Logger.LogLevel.Info, "Start receiving");
 
             try
             {
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
-                _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+
+                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
                 if (!pending)
                     Recv_Process(_recvSocketEvent);
             }
             catch (Exception e)
             {
                 _player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
-                MarkToDispose();
-                DisposeRecvSystem();
+                Stop();
             }
 
         }
@@ -202,9 +206,15 @@ namespace Chraft.Net
                 if ((newValue - 1) == 0)
                     Server.RecvClientQueue.Enqueue(this);
 
-                _player.Server.NetworkSignal.Set();
+                Server.NetworkSignal.Set();
 
                 Recv_Start();
+            }
+            else
+            {
+                MarkToDispose();
+                DisposeRecvSystem();
+                _nextActivityCheck = DateTime.MinValue;
             }
         }
 
@@ -212,6 +222,17 @@ namespace Chraft.Net
         {
             if (!Running)
                 DisposeRecvSystem();
+            else if(e.SocketError != SocketError.Success || e.BytesTransferred == 0)
+            {
+                Client client;
+                if (Server.AuthClients.TryGetValue(SessionID, out client))
+                {
+                    MarkToDispose();
+                    DisposeRecvSystem();
+                }
+                _nextActivityCheck = DateTime.MinValue;
+                //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
+            }
             else
                 Recv_Process(e);
         }
@@ -308,8 +329,7 @@ namespace Chraft.Net
 
                     if (packet.LeftClick)
                     {
-                        if (player.Health > 0)
-                            player.Client.DamageClient(DamageCause.EntityAttack, 0, handledPlayer);
+                        handledPlayer.Attack(player);
                     }
                     else
                     {
@@ -331,8 +351,7 @@ namespace Chraft.Net
 
                     if (packet.LeftClick)
                     {
-                        if (m.Health > 0)
-                            m.DamageMob(handledPlayer);
+                        handledPlayer.Attack(m);
                     }
                     else
                     {
@@ -697,9 +716,9 @@ namespace Chraft.Net
         public static void HandlePacketServerListPing(Client client, ServerListPingPacket packet)
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
-            var clientCount = client.Owner.Server.GetAuthenticatedClients().Count();
+            var clientCount = client.Server.GetAuthenticatedClients().Count();
             //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers) });
-            client.Kick(String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers));
+            client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, Chraft.Properties.Settings.Default.MaxPlayers));
         }
 
         public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)
@@ -710,23 +729,23 @@ namespace Chraft.Net
 
         public static void HandlePacketHandshake(Client client, HandshakePacket packet)
         {
-            client.Owner.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
+            client.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
             client.SendHandshake();
         }
 
         public static void HandlePacketLoginRequest(Client client, LoginRequestPacket packet)
         {
-            if (!client.Owner.CheckUsername(packet.Username))
+            if (!client.CheckUsername(packet.Username))
                 client.Kick("Inconsistent username");
             else if (packet.ProtocolOrEntityId < ProtocolVersion)
                 client.Kick("Outdated client");
             else
             {
-                if (client.Owner.Server.UseOfficalAuthentication)
+                if (client.Server.UseOfficalAuthentication)
                 {
                     try
                     {
-                        string authenticated = Http.GetHttpResponse(new Uri(String.Format("http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}", packet.Username, client.Owner.Server.ServerHash)));
+                        string authenticated = Http.GetHttpResponse(new Uri(String.Format("http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}", packet.Username, client.Server.ServerHash)));
                         if (authenticated != "YES")
                         {
                             client.Kick("Authentication failed");

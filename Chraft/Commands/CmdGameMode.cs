@@ -2,6 +2,7 @@
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Utils;
 
 namespace Chraft.Commands
 {
@@ -18,23 +19,26 @@ namespace Chraft.Commands
                     ChangeGameMode(client, client.Owner.GameMode == 0 ? 1 : 0);
                     break;
                 case 2:
-                    if (Int32.Parse(tokens[1]) != 0) 
-                        if(Int32.Parse(tokens[1]) != 1)
+                    if (Int32.Parse(tokens[1]) != 0)
                     {
-                        Help(client);
-                        break;
+                        if (Int32.Parse(tokens[1]) != 1)
+                        {
+                            Help(client);
+                            break;
+                        }
                     }
                     Client c = client.Owner.Server.GetClients(tokens[0]).FirstOrDefault();
                     if (c != null)
                     {
                         if (c.Owner.GameMode == Convert.ToByte(tokens[1]))
                         {
-                            client.SendMessage("§Player is already in that mode");
-                            return;
+                            client.SendMessage(ChatColor.Red + "Player is already in that mode");
+                            break;
                         }
                         ChangeGameMode(client, Int32.Parse(tokens[1]));
+                        break;
                     }
-                    client.SendMessage(string.Format("§cPlayer {0} not found", tokens[0]));
+                    client.SendMessage(string.Format(ChatColor.Red + "Player {0} not found", tokens[0]));
                     break;
                 default:
                     Help(client);

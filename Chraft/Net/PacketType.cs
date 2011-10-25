@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Chraft.Net
+﻿namespace Chraft.Net
 {
     public enum PacketType : byte
     {
@@ -16,7 +11,7 @@ namespace Chraft.Net
         SpawnPosition = 0x06,               //   <--
         UseEntity = 0x07,                   //   -->
         UpdateHealth = 0x08,                //   <--
-		CreativeInventoryAction = 0x6B,     //   <--
+        CreativeInventoryAction = 0x6B,     //   <--
         Respawn = 0x09,                     //   <->
         Player = 0x0A,                      //   -->
         PlayerPosition = 0x0B,              //   -->

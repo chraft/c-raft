@@ -9,7 +9,6 @@ namespace Chraft.World
 {
 	public class ChunkSet
 	{
-		private readonly object _ChunksWriteLock = new object();
         private readonly ConcurrentDictionary<int, Chunk> Chunks = new ConcurrentDictionary<int, Chunk>();
 
         public ICollection<int> Keys { get { return Chunks.Keys; } }

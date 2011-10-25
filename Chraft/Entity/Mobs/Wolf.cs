@@ -100,7 +100,7 @@ namespace Chraft.Entity.Mobs
                     if (this.BonesUntilTamed <= 0)
                     {
                         this.Data.IsTamed = true;
-                        this.Data.TamedBy = client.Owner.Username;
+                        this.Data.TamedBy = client.Username;
                         this.Health = this.MaxHealth;
                         // TODO: begin following this.Data.TamedBy
                         SendMetadataUpdate();

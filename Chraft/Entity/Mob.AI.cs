@@ -10,8 +10,8 @@ namespace Chraft.Entity {
 
         // Behaviour junk
         private bool AIWaiting;
-        public bool Hunter; // Is this mob capable of tracking clients?
-        public bool Hunting; // Is this mob currently tracking a client?
+        public bool Hunter; // Is this mob capable of tracking entities?
+        public bool Hunting; // Is this mob currently tracking an entity?
 
         public void Update()
         {
@@ -85,16 +85,18 @@ namespace Chraft.Entity {
 
         public void UpdatePosition() {
             this.Position = new AbsWorldCoords(this.Position.ToVector() + Velocity);
-            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z))) {
-                c.SendPacket(new EntityTeleportPacket {
-                    EntityId = this.EntityId,
-                    X = this.Position.X,
-                    Y = this.Position.Y,
-                    Z = this.Position.Z,
-                    Yaw = this.PackedYaw,
-                    Pitch = this.PackedPitch
-                });
-            }
+            EntityTeleportPacket et = new EntityTeleportPacket
+            {
+                EntityId = this.EntityId,
+                X = this.Position.X,
+                Y = this.Position.Y,
+                Z = this.Position.Z,
+                Yaw = this.PackedYaw,
+                Pitch = this.PackedPitch
+            };
+            World.Server.SendPacketToNearbyPlayers(World,
+                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), 
+                                                   et);
         }
     }
 }

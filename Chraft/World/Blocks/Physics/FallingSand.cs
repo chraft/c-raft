@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Utils;
 
@@ -54,6 +55,14 @@ namespace Chraft.World.Blocks.Physics
                                                                              currentBlockCoords.WorldZ);
                 StructBlock aboveBlock = new StructBlock(aboveBlockCoords, BlockId, 0, World);
                 BlockHelper.Instance(BlockId).Spawn(aboveBlock);
+
+                foreach (LivingEntity living in World.Server.GetNearbyLivings(World, aboveBlockCoords))
+                {
+                    if (Math.Abs(living.Position.X - aboveBlockCoords.WorldX) < 2 &&
+                        Math.Abs(living.Position.Z - aboveBlockCoords.WorldZ) < 2 &&
+                        Math.Abs(living.Position.Y + living.Height - aboveBlockCoords.WorldY) < 2)
+                        living.CheckSuffocation();
+                }
             }
             base.OnStop();
         }

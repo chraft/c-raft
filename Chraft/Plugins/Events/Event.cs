@@ -101,13 +101,13 @@ namespace Chraft.Plugins.Events
         /// All Listeners are in the Chraft.Plugins.Listener namespace.</param>
         /// <param name="Plugin">The IPlugin that the listener is attached to.</param>
         /// <param name="Event">The name of the event to listen for.</param>
-        public EventListener(ChraftListener Listener, IPlugin Plugin, Event Event)
+        public EventListener(IChraftListener Listener, IPlugin Plugin, Event Event)
         {
             this.Listener = Listener;
             this.Event = Event;
             this.Plugin = Plugin;
         }
-        public ChraftListener Listener;
+        public IChraftListener Listener;
         public IPlugin Plugin;
         public Event Event;
     }

@@ -51,6 +51,9 @@ namespace Chraft.Entity
         
         public Vector3 Velocity;
         
+        public virtual bool Collidable { get { return false; } }
+        
+        public virtual bool Pushable { get { return false; } }
 
         /// <summary>
         /// Rotation around the X-axis
@@ -133,7 +136,7 @@ namespace Chraft.Entity
                 loopCount++;
             }
             
-            if (loopCount > EntityBase.LagWarningThreshold)
+            if (loopCount > LagWarningThreshold)
             {
                 Server.Logger.Log(Logger.LogLevel.Warning, "Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
             }
@@ -409,9 +412,17 @@ namespace Chraft.Entity
             newPosition = e.NewPosition;
             //End Event
 
-            sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
-            sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
-            sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
+            sbyte oldPacketPosX = (sbyte)Math.Floor(Position.X * 32.0);
+            sbyte oldPacketPosY = (sbyte)Math.Floor(Position.Y * 32.0);
+            sbyte oldPacketPosZ = (sbyte)Math.Floor(Position.Z * 32.0);
+
+            sbyte newPacketPosX = (sbyte)Math.Floor(newPosition.X * 32.0);
+            sbyte newPacketPosY = (sbyte)Math.Floor(newPosition.Y * 32.0);
+            sbyte newPacketPosZ = (sbyte)Math.Floor(newPosition.Z * 32.0);
+
+            sbyte dx = (sbyte)(newPacketPosX - oldPacketPosX);
+            sbyte dy = (sbyte)(newPacketPosY - oldPacketPosY);
+            sbyte dz = (sbyte)(newPacketPosZ - oldPacketPosZ);
             Position = newPosition; // TODO: this doesn't prevent changing the Position by more than 4 blocks
 
             OnMoveTo(dx, dy, dz);
@@ -491,9 +502,18 @@ namespace Chraft.Entity
             newPosition = e.NewPosition;
             //End Event
 
-            sbyte dx = (sbyte)(32 * (newPosition.X - Position.X));
-            sbyte dy = (sbyte)(32 * (newPosition.Y - Position.Y));
-            sbyte dz = (sbyte)(32 * (newPosition.Z - Position.Z));
+            sbyte oldPacketPosX = (sbyte)Math.Floor(Position.X * 32.0);
+            sbyte oldPacketPosY = (sbyte)Math.Floor(Position.Y * 32.0);
+            sbyte oldPacketPosZ = (sbyte)Math.Floor(Position.Z * 32.0);
+
+            sbyte newPacketPosX = (sbyte)Math.Floor(newPosition.X * 32.0);
+            sbyte newPacketPosY = (sbyte)Math.Floor(newPosition.Y * 32.0);
+            sbyte newPacketPosZ = (sbyte)Math.Floor(newPosition.Z * 32.0);
+
+            sbyte dx = (sbyte)(newPacketPosX - oldPacketPosX);
+            sbyte dy = (sbyte)(newPacketPosY - oldPacketPosY);
+            sbyte dz = (sbyte)(newPacketPosZ - oldPacketPosZ);
+
             Position = newPosition;
             this.Yaw = yaw;
             this.Pitch = pitch;
@@ -531,6 +551,7 @@ namespace Chraft.Entity
         EntityExplosion,
         Void,
         Lightning,
+        Cactus,
         Custom
     }
 }

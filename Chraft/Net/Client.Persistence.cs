@@ -10,11 +10,11 @@ namespace Chraft.Net
     {
         private static XmlSerializer Xml = new XmlSerializer(typeof(ClientSurrogate));
         internal string Folder { get { return Settings.Default.PlayersFolder; } }
-        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + _player.Username + ".xml"; } }
+        internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + Username + ".xml"; } }
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()
         {
-            if (string.IsNullOrEmpty(_player.Username) && string.IsNullOrEmpty(_player.DisplayName)) { return; } //we are the server ping
+            if (string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(_player.DisplayName)) { return; } //we are the server ping
             if (!File.Exists(DataFile))
                 return;
 
@@ -53,7 +53,7 @@ namespace Chraft.Net
 
         private void Save()
         {
-            if (string.IsNullOrEmpty(_player.Username) && string.IsNullOrEmpty(_player.DisplayName)) { return;} //we are the server ping
+            if (string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(_player.DisplayName)) { return;} //we are the server ping
             if (!Directory.Exists(Folder))
                 Directory.CreateDirectory(Folder);
 
@@ -72,7 +72,7 @@ namespace Chraft.Net
                         Yaw = _player.Yaw,
                         Pitch = _player.Pitch,
                         GameMode = _player.GameMode,
-                        DisplayName = string.IsNullOrEmpty(_player.DisplayName) ? _player.Username : _player.DisplayName ,
+                        DisplayName = string.IsNullOrEmpty(_player.DisplayName) ? Username : _player.DisplayName ,
                         Health = _player.Health,
                         Food = _player.Food,
                         FoodSaturation = _player.FoodSaturation

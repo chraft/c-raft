@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Chraft.Net;
+using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
 using Chraft.Properties;
 using System.IO;
@@ -21,10 +22,10 @@ namespace Chraft.World
 {
     public partial class WorldManager : IDisposable
     {
-        private Timer GlobalTick;
-        private IChunkGenerator Generator;
+        private Timer _globalTick;
+        private IChunkGenerator _generator;
         public object ChunkGenLock = new object();
-        private ChunkProvider _ChunkProvider;
+        private ChunkProvider _chunkProvider;
 
         public sbyte Dimension { get { return 0; } }
         public long Seed { get; private set; }
@@ -38,8 +39,8 @@ namespace Chraft.World
 
         public WeatherManager Weather { get; private set; }
 
-        private readonly ChunkSet _Chunks;
-        private ChunkSet Chunks { get { return _Chunks; } }
+        private readonly ChunkSet _chunks;
+        private ChunkSet Chunks { get { return _chunks; } }
 
         public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
 
@@ -58,23 +59,23 @@ namespace Chraft.World
         private Task _saveTask;
         private Task _profile;
 
-        private int _Time;
-        private Chunk[] _ChunksCache;
+        private int _time;
+        private Chunk[] _chunksCache;
         /// <summary>
         /// In units of 0.05 seconds (between 0 and 23999)
         /// </summary>
         public int Time
         {
             get { 
-                int time = _Time;
+                int time = _time;
                 
                 return time; }
             set {
-                _Time = value;             
+                _time = value;             
                 }
         }
 
-        private int _WorldTicks = 0;
+        private int _worldTicks;
         
         /// <summary>
         /// The current World Tick independant of the world's current Time (1 tick = 0.05 secs with a max value of 4,294,967,295 gives approx. 6.9 years of ticks)
@@ -83,7 +84,7 @@ namespace Chraft.World
         {
             get
             {
-                return _WorldTicks;
+                return _worldTicks;
             }
         }
 
@@ -179,7 +180,7 @@ namespace Chraft.World
 
         public WorldManager(Server server)
         {          
-            _Chunks = new ChunkSet();
+            _chunks = new ChunkSet();
             Server = server;
             ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             ChunksToSave = new ConcurrentQueue<ChunkBase>();
@@ -196,8 +197,8 @@ namespace Chraft.World
             if (e.EventCanceled) return false;
             //End Event
 
-            _ChunkProvider = new ChunkProvider(this);
-            Generator = _ChunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
+            _chunkProvider = new ChunkProvider(this);
+            _generator = _chunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
             PhysicsBlocks = new ConcurrentDictionary<int, BlockBasePhysics>();
 
             InitializeSpawn();
@@ -240,7 +241,7 @@ namespace Chraft.World
                 if (chunk.Load())
                     AddChunk(chunk);
                 else if (create)
-                    Generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
+                    _generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
                 else
                     chunk = null;
 
@@ -254,7 +255,7 @@ namespace Chraft.World
         private void InitializeThreads()
         {
             Running = true;
-            GlobalTick = new Timer(GlobalTickProc, null, 50, 50);
+            _globalTick = new Timer(GlobalTickProc, null, 50, 50);
         }
 
         private void InitializeSpawn()
@@ -289,7 +290,7 @@ namespace Chraft.World
 
         public void CheckAliveClients()
         {
-            Parallel.ForEach(Server.GetAuthenticatedClients(), (c) => c.CheckAlive());
+            Parallel.ForEach(Server.GetClients(), c => c.CheckAlive());
         }
 
         private void FullSave()
@@ -338,20 +339,19 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
-        public static int ligthUpdateCounter = 0;
+        public static int LightUpdateCounter;
 
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count
-            Interlocked.Increment(ref _WorldTicks);
+            Interlocked.Increment(ref _worldTicks);
 
-            int time;
-            time = Interlocked.Increment(ref _Time);
+            int time = Interlocked.Increment(ref _time);
 
             if (time == 24000)
             {	// A day has passed.
                 // MUST interface directly with _Time to bypass the write lock, which we hold.
-                _Time = time = 0;
+                _time = 0;
             }
 
             // Using this.WorldTick here as it is independant of this.Time. "this.Time" can be changed outside of the WorldManager.
@@ -436,7 +436,7 @@ namespace Chraft.World
         public void Dispose()
         {
             this.Running = false;
-            this.GlobalTick.Change(Timeout.Infinite, Timeout.Infinite);
+            this._globalTick.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         public byte GetBlockOrLoad(int x, int y, int z)
@@ -447,10 +447,10 @@ namespace Chraft.World
         public Chunk[] GetChunks()
         {
             int changes = Interlocked.Exchange(ref Chunks.Changes, 0);
-            if(_ChunksCache == null || changes > 0)
-                _ChunksCache = Chunks.Values.ToArray();
+            if(_chunksCache == null || changes > 0)
+                _chunksCache = Chunks.Values.ToArray();
 
-            return _ChunksCache;
+            return _chunksCache;
         }
 
         private void GrowProc()
@@ -667,7 +667,7 @@ namespace Chraft.World
             UniversalCoords startCoord = UniversalCoords.FromAbsWorld(rayStart);
             UniversalCoords endCoord = UniversalCoords.FromAbsWorld(rayEnd);
             
-            UniversalCoords previousPoint = UniversalCoords.Empty;
+            UniversalCoords previousPoint;
             UniversalCoords currentPoint = startCoord;
             
             Vector3 rayStartVec = rayStart.ToVector();
@@ -859,10 +859,7 @@ namespace Chraft.World
                 chunk.BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
 
             UpdatePhysics(coords);
-            chunk.ForAdjacent(coords, delegate(UniversalCoords uc)
-            {
-                UpdatePhysics(uc);
-            });
+            chunk.ForAdjacent(coords, uc => UpdatePhysics(uc));
         }
 
         private void UpdatePhysics(UniversalCoords coords, bool updateClients = true)
