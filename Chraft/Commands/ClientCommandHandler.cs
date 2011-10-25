@@ -24,12 +24,9 @@ namespace Chraft.Commands
         /// <returns>A command with the given name.</returns>
         public ICommand Find(string Command)
         {
-            foreach (IClientCommand cmd in commands)
+            foreach (IClientCommand cmd in commands.Where(cmd => cmd.Name.ToLower() == Command.ToLower()))
             {
-                if (cmd.Name == Command)
-                {
-                    return cmd;
-                }
+                return cmd;
             }
             IClientCommand Cmd;
             try
@@ -52,7 +49,7 @@ namespace Chraft.Commands
         {
             foreach (IClientCommand cmd in commands)
             {
-                if (cmd.Shortcut == Shortcut)
+                if (cmd.Shortcut.ToLower() == Shortcut.ToLower())
                 {
                     return cmd;
                 }
