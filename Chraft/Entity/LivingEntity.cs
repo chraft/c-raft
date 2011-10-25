@@ -248,26 +248,23 @@ namespace Chraft.Entity
 
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
-            var hitByPlayer = hitBy as Player;
 
             EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
-            Server.PluginManager.CallEvent(Event.ENTITY_DAMAGE, e);
+            Server.PluginManager.CallEvent(Event.EntityDamage, e);
             if (e.EventCanceled) return;
             damageAmount = e.Damage;
             hitBy = e.DamagedBy;
-
             // Debug
-            if (hitByPlayer != null)
+            if (hitBy is Player)
             {
+                var hitByPlayer = hitBy as Player;
                 ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
                 hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " + damageAmount + " damage.");
             }
             
             Health -= damageAmount;
-
-
             SendUpdateOnDamage();
-
+            
             // TODO: Entity Knockback
 
             if (Health <= 0)
@@ -303,7 +300,7 @@ namespace Chraft.Entity
         {
             //Event
             EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedBy);
-            Server.PluginManager.CallEvent(Event.ENTITY_DEATH, e);
+            Server.PluginManager.CallEvent(Event.EntityDeath, e);
             if (e.EventCanceled) return;
             killedBy = e.KilledBy;
             //End Event

@@ -222,7 +222,7 @@ namespace Chraft
             Logger.Log(Logger.LogLevel.Info, "Starting C#raft...");
 
 
-            Worlds = new List<WorldManager> {new WorldManager(this)};
+            Worlds = new List<WorldManager> { new WorldManager(this) };
 
             PluginManager.LoadDefaultAssemblies();
 
@@ -266,7 +266,7 @@ namespace Chraft
 
             //Event
             WorldCreatedEventArgs e = new WorldCreatedEventArgs(world);
-            PluginManager.CallEvent(Event.WORLD_CREATE, e);
+            PluginManager.CallEvent(Event.WorldCreate, e);
             if (e.EventCanceled) return null;
             //End Event
 
@@ -306,7 +306,7 @@ namespace Chraft
                 if (!SendClientQueue.TryDequeue(out client))
                     return;
 
-                if(!client.Running)
+                if (!client.Running)
                 {
                     client.DisposeSendSystem();
                     return;
@@ -326,14 +326,14 @@ namespace Chraft
                 if (!RecvClientQueue.TryDequeue(out client))
                     return;
 
-                if(!client.Running)
+                if (!client.Running)
                     return;
-                
+
                 Interlocked.Exchange(ref client.TimesEnqueuedForRecv, 0);
                 ByteQueue bufferToProcess = client.GetBufferToProcess();
 
                 int length = client.FragPackets.Size + bufferToProcess.Size;
-                while(length > 0)
+                while (length > 0)
                 {
                     byte packetType = 0;
 
@@ -346,17 +346,17 @@ namespace Chraft
 
                     PacketHandler handler = PacketHandlers.GetHandler((PacketType)packetType);
 
-                    if(handler == null)
+                    if (handler == null)
                     {
                         byte[] unhandledPacketData = GetBufferToBeRead(bufferToProcess, client, length);
-                        
+
                         // TODO: handle this case, writing on the console a warning and/or writing it plus the bytes on a log
                         client.Logger.Log(Chraft.Logger.LogLevel.Caution, "Unhandled packet arrived, id: {0}", unhandledPacketData[0]);
 
                         client.Logger.Log(Chraft.Logger.LogLevel.Warning, "Data:\r\n {0}", BitConverter.ToString(unhandledPacketData, 1));
                         length = 0;
                     }
-                    else if(handler.Length == 0)
+                    else if (handler.Length == 0)
                     {
                         byte[] data = GetBufferToBeRead(bufferToProcess, client, length);
 
@@ -380,7 +380,7 @@ namespace Chraft
                         }
                         else
                             EnqueueFragment(client, data);
-                        
+
                     }
                     else if (length >= handler.Length)
                     {
@@ -437,8 +437,8 @@ namespace Chraft
 
             client.FragPackets.Dequeue(data, 0, fromFrag);
 
-            int fromProcessed = length - fromFrag; 
-            
+            int fromProcessed = length - fromFrag;
+
             processedBuffer.Dequeue(data, fromFrag, fromProcessed);
 
             return data;
@@ -484,12 +484,12 @@ namespace Chraft
                     _readClientsPackets = Task.Factory.StartNew(ProcessReadQueue);
                 }
 
-                if(!ClientsToDispose.IsEmpty && (_disposeClients == null || _disposeClients.IsCompleted))
+                if (!ClientsToDispose.IsEmpty && (_disposeClients == null || _disposeClients.IsCompleted))
                 {
                     _disposeClients = Task.Factory.StartNew(DisposeClients);
                 }
 
-                if(!SendClientQueue.IsEmpty && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
+                if (!SendClientQueue.IsEmpty && (_sendClientPackets == null || _sendClientPackets.IsCompleted))
                 {
                     _sendClientPackets = Task.Factory.StartNew(ProcessSendQueue);
                 }
@@ -517,7 +517,7 @@ namespace Chraft
                 Client c = new Client(NextSessionId, this, e.AcceptSocket);
                 //Event
                 ClientAcceptedEventArgs args = new ClientAcceptedEventArgs(this, c);
-                PluginManager.CallEvent(Event.SERVER_ACCEPT, args);
+                PluginManager.CallEvent(Event.ServerAccept, args);
                 //Do not check for EventCanceled because that could make this unstable.
                 //End Event
 
@@ -532,7 +532,7 @@ namespace Chraft
             }
             else
             {
-                if(e.AcceptSocket.Connected)
+                if (e.AcceptSocket.Connected)
                     e.AcceptSocket.Shutdown(SocketShutdown.Both);
                 e.AcceptSocket.Close();
             }
@@ -543,7 +543,7 @@ namespace Chraft
 
         private void Accept_Completion(object sender, SocketAsyncEventArgs e)
         {
-            Accept_Process(e); 
+            Accept_Process(e);
         }
 
         /// <summary>
@@ -564,7 +564,7 @@ namespace Chraft
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
-            PluginManager.CallEvent(Event.SERVER_BROADCAST, e);
+            PluginManager.CallEvent(Event.ServerBroadcast, e);
             if (e.EventCanceled) return;
             message = e.Message;
             excludeClient = e.ExcludeClient;
@@ -591,7 +591,7 @@ namespace Chraft
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
-            PluginManager.CallEvent(Event.SERVER_BROADCAST, e);
+            PluginManager.CallEvent(Event.ServerBroadcast, e);
             if (e.EventCanceled) return;
             message = e.Message;
             excludeClient = e.ExcludeClient;
@@ -623,7 +623,7 @@ namespace Chraft
         {
             Client[] clients = GetClients();
 
-            if(clients.Length == 0)
+            if (clients.Length == 0)
                 return;
 
             packet.SetShared(Logger, clients.Length);
@@ -696,7 +696,7 @@ namespace Chraft
         {
             int changes = Interlocked.Exchange(ref _entityDictChanges, 0);
 
-            if(_entityCache == null || changes > 0)
+            if (_entityCache == null || changes > 0)
                 _entityCache = _Entities.Values.ToArray();
 
             return _entityCache;
@@ -741,7 +741,7 @@ namespace Chraft
         public void RemoveAuthenticatedClient(Client client)
         {
             Client removed;
-            AuthClients.TryRemove(client.SessionID, out removed);    
+            AuthClients.TryRemove(client.SessionID, out removed);
             Interlocked.Increment(ref _authClientDictChanges);
 
             RemoveClient(client);
@@ -841,7 +841,7 @@ namespace Chraft
 
             Parallel.ForEach(nearbyClients, (client) =>
             {
-                if(excludedClient != client)
+                if (excludedClient != client)
                     client.SendPacket(packet);
             });
         }
@@ -859,8 +859,8 @@ namespace Chraft
             if (nearbyClients.Length == 0 || (excludedClient != null && nearbyClients.Length == 1))
                 return;
 
-            foreach(Packet packet in packets)
-                packet.SetShared(Logger, excludedClient == null? nearbyClients.Length : nearbyClients.Length - 1);
+            foreach (Packet packet in packets)
+                packet.SetShared(Logger, excludedClient == null ? nearbyClients.Length : nearbyClients.Length - 1);
 
             Parallel.ForEach(nearbyClients, (client) =>
             {
@@ -877,9 +877,9 @@ namespace Chraft
             Packet packet;
             if ((packet = GetSpawnPacket(this, entity)) != null)
             {
-                if(packet is NamedEntitySpawnPacket)
+                if (packet is NamedEntitySpawnPacket)
                 {
-                    List<Packet> packets = new List<Packet>{packet};
+                    List<Packet> packets = new List<Packet> { packet };
                     for (short i = 0; i < 5; i++)
                     {
                         packets.Add(new EntityEquipmentPacket
@@ -896,7 +896,7 @@ namespace Chraft
                 }
                 else
                     SendPacketToNearbyPlayers(world, UniversalCoords.FromAbsWorld(entity.Position), packet,
-                                          entity is Player ? ((Player) entity).Client : null);
+                                          entity is Player ? ((Player)entity).Client : null);
             }
 
             else if (entity is TileEntity)
@@ -944,8 +944,8 @@ namespace Chraft
             int radius = Settings.Default.SightRadius;
             foreach (Client c in GetAuthenticatedClients())
             {
-                int playerChunkX = (int) Math.Floor(c.Owner.Position.X) >> 4;
-                int playerChunkZ = (int) Math.Floor(c.Owner.Position.Z) >> 4;
+                int playerChunkX = (int)Math.Floor(c.Owner.Position.X) >> 4;
+                int playerChunkZ = (int)Math.Floor(c.Owner.Position.Z) >> 4;
                 if (c.Owner.World == world && Math.Abs(coords.ChunkX - playerChunkX) <= radius && Math.Abs(coords.ChunkZ - playerChunkZ) <= radius)
                     yield return c;
             }
@@ -1054,7 +1054,7 @@ namespace Chraft
                     yield return (entity as LivingEntity);
             }
         }
-        
+
         /// <summary>
         /// Yields an enumerable of entities where their BoundingBox intersects with <paramref name="boundingBox"/>
         /// </summary>
@@ -1157,14 +1157,19 @@ namespace Chraft
         /// </summary>
         public void Stop()
         {
+            Logger.Log(Logger.LogLevel.Info, "Shutting down server");
             foreach (Client c in GetClients())
                 c.Kick("Server is shutting down.");
             foreach (WorldManager w in GetWorlds())
                 w.Dispose();
             Running = false;
-           
+
             if (Irc != null)
                 Irc.Stop();
+
+            Logger.Log(Logger.LogLevel.Info, "Server stopped, press enter to exit");
+            Console.ReadLine();
+            Environment.Exit(0);
         }
 
         internal void OnCommand(Client client, IClientCommand cmd, string[] tokens)

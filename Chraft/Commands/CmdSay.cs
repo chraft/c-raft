@@ -49,7 +49,7 @@ namespace Chraft.Commands
 
             //Event
             ServerChatEventArgs e = new ServerChatEventArgs(server, message);
-            server.PluginManager.CallEvent(Plugins.Events.Event.SERVER_CHAT, e);
+            server.PluginManager.CallEvent(Plugins.Events.Event.ServerChat, e);
             if (e.EventCanceled) return;
             message = e.Message;
             //End Event

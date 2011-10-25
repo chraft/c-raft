@@ -7,12 +7,12 @@ using Chraft.Plugins.Listener;
 
 namespace Chraft.Plugins.Events
 {
-    public class EntityEvent : ChraftEventHandler
+    public class EntityEvent : IChraftEventHandler
     {
         public EntityEvent()
         {
-            events.AddRange(new Event[]{Event.ENTITY_ATTACK, Event.ENTITY_DAMAGE, Event.ENTITY_DEATH,
-                Event.ENTITY_MOVE, Event.ENTITY_SPAWN});
+            events.AddRange(new Event[]{Event.EntityAttack, Event.EntityDamage, Event.EntityDeath,
+                Event.EntityMove, Event.EntitySpawn});
         }
         public EventType Type
         {
@@ -28,27 +28,27 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.ENTITY_ATTACK:
+                case Event.EntityAttack:
                     OnAttack(e as EntityAttackEventArgs);
                     break;
-                case Event.ENTITY_DAMAGE:
+                case Event.EntityDamage:
                     OnDamaged(e as EntityDamageEventArgs);
                     break;
-                case Event.ENTITY_DEATH:
+                case Event.EntityDeath:
                     OnDeath(e as EntityDeathEventArgs);
                     break;
-                case Event.ENTITY_MOVE:
+                case Event.EntityMove:
                     OnMove(e as EntityMoveEventArgs);
                     break;
-                case Event.ENTITY_SPAWN:
+                case Event.EntitySpawn:
                     OnSpawn(e as EntitySpawnEventArgs);
                     break;
             }
         }
 
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
 
         #region LocalHooks
@@ -56,7 +56,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.ENTITY_DEATH)
+                if (el.Event == Event.EntityDeath)
                 {
                     EntityListener l = el.Listener as EntityListener;
                     l.OnDeath(e);
@@ -67,7 +67,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.ENTITY_SPAWN)
+                if (el.Event == Event.EntitySpawn)
                 {
                     EntityListener l = el.Listener as EntityListener;
                     l.OnSpawn(e);
@@ -78,7 +78,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.ENTITY_MOVE)
+                if (el.Event == Event.EntityMove)
                 {
                     EntityListener l = el.Listener as EntityListener;
                     l.OnMove(e);
@@ -89,7 +89,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.ENTITY_DAMAGE)
+                if (el.Event == Event.EntityDamage)
                 {
                     EntityListener l = el.Listener as EntityListener;
                     l.OnDamaged(e);
@@ -100,7 +100,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.ENTITY_ATTACK)
+                if (el.Event == Event.EntityAttack)
                 {
                     EntityListener l = el.Listener as EntityListener;
                     l.OnAttack(e);

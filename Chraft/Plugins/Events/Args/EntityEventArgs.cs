@@ -68,10 +68,10 @@ namespace Chraft.Plugins.Events.Args
     }
     public class EntityAttackEventArgs : EntityEventArgs
     {
-        public int Damage { get; set; }
+        public short Damage { get; set; }
         public EntityBase EntityToAttack { get; set; }
 
-        public EntityAttackEventArgs(EntityBase entity, int damage, EntityBase entityToAttack)
+        public EntityAttackEventArgs(EntityBase entity, short damage, EntityBase entityToAttack)
             : base(entity)
         {
             Damage = damage;

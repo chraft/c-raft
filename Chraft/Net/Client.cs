@@ -177,7 +177,7 @@ namespace Chraft.Net
         {
             //Event
             ClientKickedEventArgs e = new ClientKickedEventArgs(this, reason);
-            Server.PluginManager.CallEvent(Event.PLAYER_KICKED, e);
+            Server.PluginManager.CallEvent(Event.PlayerKicked, e);
             if (e.EventCanceled) return;
             reason = e.Message;
             //End Event
@@ -211,7 +211,7 @@ namespace Chraft.Net
                 string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
                 //Event
                 ClientLeftEventArgs e = new ClientLeftEventArgs(this);
-                Server.PluginManager.CallEvent(Plugins.Events.Event.PLAYER_LEFT, e);
+                Server.PluginManager.CallEvent(Plugins.Events.Event.PlayerLeft, e);
                 //You cant stop the player from leaving so dont try.
                 disconnectMsg = e.BrodcastMessage;
                 //End Event

@@ -41,6 +41,7 @@ namespace Chraft.Plugins
         /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
         internal PluginManager(Server server, string folder)
         {
+            if (!Directory.Exists(folder)){Directory.CreateDirectory(folder);}
             Folder = folder;
             Server = server;
             PluginHooks.Add(new ClientEvent());
@@ -103,7 +104,7 @@ namespace Chraft.Plugins
         {
             //Event
             PluginEnabledEventArgs e = new PluginEnabledEventArgs(plugin);
-            CallEvent(Event.PLUGIN_ENABLED, e);
+            CallEvent(Event.PluginEnabled, e);
             if (e.EventCanceled) return;
             //End Event
 
@@ -138,7 +139,7 @@ namespace Chraft.Plugins
         {
             //Event
             PluginDisabledEventArgs args = new PluginDisabledEventArgs(plugin);
-            CallEvent(Event.PLUGIN_DISABLED, args);
+            CallEvent(Event.PluginDisabled, args);
             if (args.EventCanceled) return;
             //End Event
 
@@ -308,7 +309,7 @@ namespace Chraft.Plugins
                 {
                     //Event
                     CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
-                    CallEvent(Event.COMMAND_ADDED, e);
+                    CallEvent(Event.CommandAdded, e);
                     if (e.EventCanceled) return;
                     //End Event
 
@@ -326,7 +327,7 @@ namespace Chraft.Plugins
                 {
                     //Event
                     CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
-                    CallEvent(Event.COMMAND_ADDED, e);
+                    CallEvent(Event.CommandAdded, e);
                     if (e.EventCanceled) return;
                     //End Event
 
@@ -369,7 +370,7 @@ namespace Chraft.Plugins
         {
             //Event
             CommandRemovedEventArgs e = new CommandRemovedEventArgs(Plugin, cmd);
-            CallEvent(Event.COMMAND_ADDED, e);
+            CallEvent(Event.CommandAdded, e);
             if (e.EventCanceled) return;
             //End Event
 

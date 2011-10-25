@@ -45,10 +45,8 @@ namespace Chraft
 		{
             //Event
             LoggerEventArgs e = new LoggerEventArgs(this, level, message);
-            Server.PluginManager.CallEvent(Event.LOGGER_LOG, e);
-            if (e.EventCanceled) return;
-            level = e.LogLevel;
-            message = e.LogMessage;
+            Server.PluginManager.CallEvent(Event.LoggerLog, e);
+            // do not allow cancellation or altering of log messages
             //End Event
 
             LogToConsole(level, message);
@@ -71,8 +69,8 @@ namespace Chraft
 		{
             //Event
             LoggerEventArgs e = new LoggerEventArgs(this, LogLevel.Debug, ex.ToString(), ex);
-            Server.PluginManager.CallEvent(Event.LOGGER_LOG, e);
-            if (e.EventCanceled) return;
+            Server.PluginManager.CallEvent(Event.LoggerLog, e);
+            // do not allow cancellation or altering of log messages
             //End Event
 
 			Log(LogLevel.Debug, ex.ToString());

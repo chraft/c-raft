@@ -6,10 +6,10 @@ using System.Collections;
 
 namespace Chraft.Plugins.Events
 {
-    public class EventList : IEnumerable<ChraftEventHandler>
+    public class EventList : IEnumerable<IChraftEventHandler>
     {
-        private List<ChraftEventHandler> Events = new List<ChraftEventHandler>();
-        private Dictionary<Event, ChraftEventHandler> Mappings = new Dictionary<Event, ChraftEventHandler>();
+        private List<IChraftEventHandler> Events = new List<IChraftEventHandler>();
+        private Dictionary<Event, IChraftEventHandler> Mappings = new Dictionary<Event, IChraftEventHandler>();
         
         public EventList() { }
         /// <summary>
@@ -17,9 +17,9 @@ namespace Chraft.Plugins.Events
         /// </summary>
         /// <param name="Event">The name of the event(e.g. PLUGIN_ENABLED).</param>
         /// <returns>Event Handler</returns>
-        public ChraftEventHandler Find(Event Event)
+        public IChraftEventHandler Find(Event Event)
         {
-            foreach (ChraftEventHandler e in Events)
+            foreach (IChraftEventHandler e in Events)
             {
                 if (e.Events.Contains(Event))
                 {
@@ -35,7 +35,7 @@ namespace Chraft.Plugins.Events
         /// Adds an event handler.
         /// </summary>
         /// <param name="e">The Event handler to add.</param>
-        public void Add(ChraftEventHandler e)
+        public void Add(IChraftEventHandler e)
         {
             Events.Add(e);
             foreach (Event Event in e.Events)
@@ -57,9 +57,9 @@ namespace Chraft.Plugins.Events
         /// This removes the event handler and ALL Mappings linked to this handler.
         /// </summary>
         /// <param name="e"></param>
-        public void RemoveEventHandler(ChraftEventHandler e)
+        public void RemoveEventHandler(IChraftEventHandler e)
         {
-            foreach(KeyValuePair<Event, ChraftEventHandler> ed in from ed in Mappings 
+            foreach(KeyValuePair<Event, IChraftEventHandler> ed in from ed in Mappings 
                     where Mappings.ContainsValue(e) select ed)
             {
                 Mappings.Remove(ed.Key);
@@ -67,7 +67,7 @@ namespace Chraft.Plugins.Events
             Events.Remove(e);
         }
 
-        public IEnumerator<ChraftEventHandler> GetEnumerator()
+        public IEnumerator<IChraftEventHandler> GetEnumerator()
         {
             return Events.GetEnumerator();
         }

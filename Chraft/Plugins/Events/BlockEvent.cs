@@ -10,12 +10,12 @@ namespace Chraft.Plugins.Events
     /// <summary>
     /// This class contains all the possible block events
     /// </summary>
-    public class BlockEvent : ChraftEventHandler
+    public class BlockEvent : IChraftEventHandler
     {
         public BlockEvent()
         {
-            events.AddRange(new Event[]{Event.BLOCK_DESTROY, Event.BLOCK_PLACE,
-                Event.BLOCK_TOUCH });
+            events.AddRange(new Event[]{Event.BlockDestroy, Event.BlockPlace,
+                Event.BlockTouch });
         }
         public EventType Type
         {
@@ -31,21 +31,21 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.BLOCK_DESTROY:
+                case Event.BlockDestroy:
                     OnDestroy(e as BlockDestroyEventArgs);
                     break;
-                case Event.BLOCK_PLACE:
+                case Event.BlockPlace:
                     OnPlace(e as BlockPlaceEventArgs);
                     break;
-                case Event.BLOCK_TOUCH:
+                case Event.BlockTouch:
                     OnTouch(e as BlockTouchEventArgs);
                     break;
             }
         }
 
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
 
         #region LocalHooks
@@ -53,7 +53,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.BLOCK_DESTROY)
+                if (el.Event == Event.BlockDestroy)
                 {
                     BlockListener l = el.Listener as BlockListener;
                     l.OnDestroy(e);
@@ -64,7 +64,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.BLOCK_PLACE)
+                if (el.Event == Event.BlockPlace)
                 {
                     BlockListener l = el.Listener as BlockListener;
                     l.OnPlace(e);
@@ -75,7 +75,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                if (el.Event == Event.BLOCK_TOUCH)
+                if (el.Event == Event.BlockTouch)
                 {
                     BlockListener l = el.Listener as BlockListener;
                     l.OnTouch(e);

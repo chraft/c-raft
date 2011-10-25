@@ -5,6 +5,8 @@ using System.ServiceProcess;
 using System.Threading.Tasks;
 using Chraft;
 using Chraft.Commands;
+using Chraft.Plugins.Events;
+using Chraft.Plugins.Events.Args;
 using Chraft.Properties;
 
 namespace ChraftServer
@@ -89,9 +91,15 @@ namespace ChraftServer
                         var cmd = Server.ServerCommandHandler.Find(inputParts[0]) as IServerCommand;
                         if (cmd is CmdStop)
                         {
-                            //TODO: Clean this up
-                            break;
+                            Server.Stop();
                         }
+                        
+                        //Event Start
+                        ServerCommandEventArgs e = new ServerCommandEventArgs(Server, cmd, inputParts);
+                        Server.PluginManager.CallEvent(Event.ServerCommand, e);
+                        if (e.EventCanceled) { return;}
+                        //Event End
+
                         cmd.Use(Server, inputParts[0], inputParts);
                     }
                     catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }

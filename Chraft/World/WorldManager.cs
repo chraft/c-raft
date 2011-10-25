@@ -193,7 +193,7 @@ namespace Chraft.World
 
             //Event
             WorldLoadEventArgs e = new WorldLoadEventArgs(this);
-            Server.PluginManager.CallEvent(Event.WORLD_LOAD, e);
+            Server.PluginManager.CallEvent(Event.WorldLoad, e);
             if (e.EventCanceled) return false;
             //End Event
 
@@ -498,7 +498,7 @@ namespace Chraft.World
 
             //Event
             EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
             if (e.EventCanceled) return;
             mob.Position = e.Location;
             //End Event
@@ -530,7 +530,7 @@ namespace Chraft.World
 
             //Event
             EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_SPAWN, e);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
             if (e.EventCanceled) return;
             mob.Position = e.Location;
             //End Event

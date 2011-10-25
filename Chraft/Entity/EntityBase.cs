@@ -407,7 +407,7 @@ namespace Chraft.Entity
                      
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event
@@ -497,7 +497,7 @@ namespace Chraft.Entity
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.ENTITY_MOVE, e);
+            Server.PluginManager.CallEvent(Plugins.Events.Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event

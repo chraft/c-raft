@@ -9,14 +9,14 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Events
 {
-    public class PluginEvent : ChraftEventHandler
+    public class PluginEvent : IChraftEventHandler
     {
         public PluginEvent()
         {
-            Events.Add(Event.PLUGIN_ENABLED);
-            Events.Add(Event.PLUGIN_DISABLED);
-            Events.Add(Event.COMMAND_ADDED);
-            Events.Add(Event.COMMAND_REMOVED);
+            Events.Add(Event.PluginEnabled);
+            Events.Add(Event.PluginDisabled);
+            Events.Add(Event.CommandAdded);
+            Events.Add(Event.CommandRemoved);
         }
         public EventType Type { get { return EventType.Plugin; } }
         public List<Event> Events { get { return events; } }
@@ -28,23 +28,23 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.PLUGIN_ENABLED:
+                case Event.PluginEnabled:
                     OnPluginEnabled(e as PluginEnabledEventArgs);
                     break;
-                case Event.PLUGIN_DISABLED:
+                case Event.PluginDisabled:
                     OnPluginDisabled(e as PluginDisabledEventArgs);
                     break;
-                case Event.COMMAND_ADDED:
+                case Event.CommandAdded:
                     OnPluginCommandAdded(e as CommandAddedEventArgs);
                     break;
-                case Event.COMMAND_REMOVED:
+                case Event.CommandRemoved:
                     OnPluginCommandRemoved(e as CommandRemovedEventArgs);
                     break;
             }
         }
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
         #region Local Hooks
         private void OnPluginEnabled(PluginEnabledEventArgs e)
@@ -52,7 +52,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener v in Plugins)
             {
                 PluginListener pl = (PluginListener)v.Listener;
-                if (v.Event == Event.PLUGIN_ENABLED)
+                if (v.Event == Event.PluginEnabled)
                     pl.OnPluginEnabled(e);
             }
         }
@@ -61,7 +61,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener v in Plugins)
             {
                 PluginListener pl = (PluginListener)v.Listener;
-                if (v.Event == Event.PLUGIN_DISABLED)
+                if (v.Event == Event.PluginDisabled)
                     pl.OnPluginDisabled(e);
             }
         }
@@ -70,7 +70,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener v in Plugins)
             {
                 PluginListener pl = (PluginListener)v.Listener;
-                if (v.Event == Event.COMMAND_ADDED)
+                if (v.Event == Event.CommandAdded)
                     pl.OnPluginCommandAdded(e);
             }
         }
@@ -79,7 +79,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener v in Plugins)
             {
                 PluginListener pl = (PluginListener)v.Listener;
-                if (v.Event == Event.COMMAND_REMOVED)
+                if (v.Event == Event.CommandRemoved)
                     pl.OnPluginCommandRemoved(e);
             }
         }

@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Plugins;
+﻿using System.Collections.Generic;
 using Chraft.Plugins.Listener;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Events
 {
-    public interface ChraftEventHandler
+    public interface IChraftEventHandler
     {
         /// <summary>
         /// The type of event this is.
@@ -35,8 +31,8 @@ namespace Chraft.Plugins.Events
         /// Registers an event listener with this event handler.
         /// This should only be called from the PluginManager.
         /// </summary>
-        /// <param name="Listener">An EventListener instance.</param>
-        void RegisterEvent(EventListener Listener);
+        /// <param name="listener">An EventListener instance.</param>
+        void RegisterEvent(EventListener listener);
     }
     /// <summary>
     /// A list of event types.
@@ -54,58 +50,58 @@ namespace Chraft.Plugins.Events
     }
     public enum Event
     {
-        ENTITY_DEATH,
-        ENTITY_SPAWN,
-        ENTITY_MOVE,
-        ENTITY_DAMAGE,
-        ENTITY_ATTACK,
-        PLAYER_JOINED,
-        PLAYER_LEFT,
-        PLAYER_COMMAND,
-        PLAYER_PRE_COMMAND,
-        PLAYER_CHAT,
-        PLAYER_PRE_CHAT,
-        PLAYER_KICKED,
-        PLAYER_MOVE,
-        PLAYER_DIED,
-        IRC_JOINED,
-        IRC_LEFT,
-        IRC_MESSAGE,
-        PACKET_RECEIVED,
-        PACKET_SENT,
-        PLUGIN_ENABLED,
-        PLUGIN_DISABLED,
-        COMMAND_ADDED,
-        COMMAND_REMOVED,
-        WORLD_LOAD,
-        WORLD_UNLOAD,
-        WORLD_JOIN,
-        WORLD_LEAVE,
-        WORLD_CREATE,
-        WORLD_DELETE,
-        SERVER_COMMAND,
-        SERVER_CHAT,
-        SERVER_BROADCAST,
-        SERVER_ACCEPT,
-        LOGGER_LOG,
-        BLOCK_PLACE,
-        BLOCK_DESTROY,
-        BLOCK_TOUCH
+        EntityDeath,
+        EntitySpawn,
+        EntityMove,
+        EntityDamage,
+        EntityAttack,
+        PlayerJoined,
+        PlayerLeft,
+        PlayerCommand,
+        PlayerPreCommand,
+        PlayerChat,
+        PlayerPreChat,
+        PlayerKicked,
+        PlayerMove,
+        PlayerDied,
+        IrcJoined,
+        IrcLeft,
+        IrcMessage,
+        PacketReceived,
+        PacketSent,
+        PluginEnabled,
+        PluginDisabled,
+        CommandAdded,
+        CommandRemoved,
+        WorldLoad,
+        WorldUnload,
+        WorldJoin,
+        WorldLeave,
+        WorldCreate,
+        WorldDelete,
+        ServerCommand,
+        ServerChat,
+        ServerBroadcast,
+        ServerAccept,
+        LoggerLog,
+        BlockPlace,
+        BlockDestroy,
+        BlockTouch
     }
     public struct EventListener
     {
         /// <summary>
         /// initializes a new instance of the EventListener struct.
         /// </summary>
-        /// <param name="Listener">A valid Listener.  
+        /// <param name="listener">A valid Listener.  
         /// All Listeners are in the Chraft.Plugins.Listener namespace.</param>
-        /// <param name="Plugin">The IPlugin that the listener is attached to.</param>
+        /// <param name="plugin">The IPlugin that the listener is attached to.</param>
         /// <param name="Event">The name of the event to listen for.</param>
-        public EventListener(IChraftListener Listener, IPlugin Plugin, Event Event)
+        public EventListener(IChraftListener listener, IPlugin plugin, Event Event)
         {
-            this.Listener = Listener;
+            this.Listener = listener;
             this.Event = Event;
-            this.Plugin = Plugin;
+            this.Plugin = plugin;
         }
         public IChraftListener Listener;
         public IPlugin Plugin;

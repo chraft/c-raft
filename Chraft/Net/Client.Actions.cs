@@ -69,7 +69,7 @@ namespace Chraft.Net
         {
             //Event
             ClientPreChatEventArgs e1 = new ClientPreChatEventArgs(this, clean);
-            _player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_CHAT, e1);
+            _player.Server.PluginManager.CallEvent(Event.PlayerPreChat, e1);
             if (e1.EventCanceled) return;
             clean = e1.Message;
             //End Event
@@ -84,7 +84,7 @@ namespace Chraft.Net
             {
                 //Event
                 ClientChatEventArgs e2 = new ClientChatEventArgs(this, clean);
-                _player.Server.PluginManager.CallEvent(Event.PLAYER_CHAT, e2);
+                _player.Server.PluginManager.CallEvent(Event.PlayerChat, e2);
                 if (e2.EventCanceled) return;
                 clean = e2.Message;
                 //End Event
@@ -114,7 +114,7 @@ namespace Chraft.Net
         {
             //Event
             ClientPreCommandEventArgs e = new ClientPreCommandEventArgs(this, command);
-            _player.Server.PluginManager.CallEvent(Event.PLAYER_PRE_COMMAND, e);
+            _player.Server.PluginManager.CallEvent(Event.PlayerPreCommand, e);
             if (e.EventCanceled) return;
             command = e.Command;
             //End Event
@@ -150,7 +150,7 @@ namespace Chraft.Net
             {
                 //Event
                 ClientCommandEventArgs e = new ClientCommandEventArgs(this, cmd, cleanedTokens);
-                _player.Server.PluginManager.CallEvent(Event.PLAYER_COMMAND, e);
+                _player.Server.PluginManager.CallEvent(Event.PlayerCommand, e);
                 if (e.EventCanceled) return;
                 cleanedTokens = e.Tokens;
                 //End Event

@@ -7,16 +7,16 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Events
 {
-    public class WorldEvent : ChraftEventHandler
+    public class WorldEvent : IChraftEventHandler
     {
         public WorldEvent()
         {
-            Events.Add(Event.WORLD_LOAD);
-            Events.Add(Event.WORLD_UNLOAD);
-            Events.Add(Event.WORLD_JOIN);
-            Events.Add(Event.WORLD_LEAVE);
-            Events.Add(Event.WORLD_CREATE);
-            Events.Add(Event.WORLD_DELETE);
+            Events.Add(Event.WorldLoad);
+            Events.Add(Event.WorldUnload);
+            Events.Add(Event.WorldJoin);
+            Events.Add(Event.WorldLeave);
+            Events.Add(Event.WorldCreate);
+            Events.Add(Event.WorldDelete);
         }
         public EventType Type { get { return EventType.World; } }
         public List<Event> Events { get { return events; } }
@@ -28,29 +28,29 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.WORLD_LOAD:
+                case Event.WorldLoad:
                     OnWorldLoaded(e as WorldLoadEventArgs);
                     break;
-                case Event.WORLD_UNLOAD:
+                case Event.WorldUnload:
                     OnLeveUnloaded(e as WorldUnloadEventArgs);
                     break;
-                case Event.WORLD_JOIN:
+                case Event.WorldJoin:
                     OnWorldJoined(e as WorldJoinedEventArgs);
                     break;
-                case Event.WORLD_LEAVE:
+                case Event.WorldLeave:
                     OnWorldLeft(e as WorldLeftEventArgs);
                     break;
-                case Event.WORLD_CREATE:
+                case Event.WorldCreate:
                     OnWorldCreated(e as WorldCreatedEventArgs);
                     break;
-                case Event.WORLD_DELETE:
+                case Event.WorldDelete:
                     OnWorldDeleted(e as WorldDeletedEventArgs);
                     break;
             }
         }
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
         #region Local Hooks
         private void OnWorldLoaded(WorldLoadEventArgs e)
@@ -58,7 +58,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_LOAD)
+                if (bl.Event == Event.WorldLoad)
                     ll.OnWorldLoaded(e);
             }
         }
@@ -67,7 +67,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_UNLOAD)
+                if (bl.Event == Event.WorldUnload)
                     ll.OnWorldUnloaded(e);
             }
         }
@@ -76,7 +76,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_JOIN)
+                if (bl.Event == Event.WorldJoin)
                     ll.OnWorldJoined(e);
             }
         }
@@ -85,7 +85,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_LEAVE)
+                if (bl.Event == Event.WorldLeave)
                     ll.OnWorldLeft(e);
             }
         }
@@ -94,7 +94,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_CREATE)
+                if (bl.Event == Event.WorldCreate)
                     ll.OnWorldCreated(e);
             }
         }
@@ -103,7 +103,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 WorldListener ll = (WorldListener)bl.Listener;
-                if (bl.Event == Event.WORLD_DELETE)
+                if (bl.Event == Event.WorldDelete)
                     ll.OnWorldDeleted(e);
             }
         }

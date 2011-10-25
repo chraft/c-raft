@@ -7,12 +7,12 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Events
 {
-    public class ServerEvent : ChraftEventHandler
+    public class ServerEvent : IChraftEventHandler
     {
         public ServerEvent()
         {
-            events.AddRange(new Event[] {Event.SERVER_BROADCAST, Event.SERVER_CHAT, Event.SERVER_COMMAND,
-            Event.SERVER_ACCEPT, Event.LOGGER_LOG});
+            events.AddRange(new Event[] {Event.ServerBroadcast, Event.ServerChat, Event.ServerCommand,
+            Event.ServerAccept, Event.LoggerLog});
         }
         public EventType Type { get { return EventType.Player; } }
         public List<Event> Events { get { return events; } }
@@ -24,26 +24,26 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.LOGGER_LOG:
+                case Event.LoggerLog:
                     OnLog(e as LoggerEventArgs);
                     break;
-                case Event.SERVER_ACCEPT:
+                case Event.ServerAccept:
                     OnAccept(e as ClientAcceptedEventArgs);
                     break;
-                case Event.SERVER_BROADCAST:
+                case Event.ServerBroadcast:
                     OnBroadcast(e as ServerBroadcastEventArgs);
                     break;
-                case Event.SERVER_CHAT:
+                case Event.ServerChat:
                     OnChat(e as ServerChatEventArgs);
                     break;
-                case Event.SERVER_COMMAND:
+                case Event.ServerCommand:
                     OnCommand(e as ServerCommandEventArgs);
                     break;
             }
         }
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
         #region Local Hooks
         private void OnBroadcast(ServerBroadcastEventArgs e)
@@ -51,7 +51,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.SERVER_BROADCAST)
+                if (el.Event == Event.ServerBroadcast)
                     sl.OnBroadcast(e);
             }
         }
@@ -60,7 +60,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.LOGGER_LOG)
+                if (el.Event == Event.LoggerLog)
                     sl.OnLog(e);
             }
         }
@@ -69,7 +69,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.SERVER_ACCEPT)
+                if (el.Event == Event.ServerAccept)
                     sl.OnAccept(e);
             }
         }
@@ -78,7 +78,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.SERVER_COMMAND)
+                if (el.Event == Event.ServerCommand)
                     sl.OnCommand(e);
             }
         }
@@ -87,7 +87,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.SERVER_CHAT)
+                if (el.Event == Event.ServerChat)
                     sl.OnChat(e);
             }
         }

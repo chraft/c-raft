@@ -7,13 +7,13 @@ using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Plugins.Events
 {
-    public class ClientEvent : ChraftEventHandler
+    public class ClientEvent : IChraftEventHandler
     {
         public ClientEvent()
         {
-            events.AddRange(new Event[]{Event.PLAYER_JOINED, Event.PLAYER_LEFT, Event.PLAYER_COMMAND,
-                Event.PLAYER_PRE_COMMAND, Event.PLAYER_CHAT, Event.PLAYER_PRE_CHAT, Event.PLAYER_KICKED,
-                Event.PLAYER_MOVE, Event.PLAYER_DIED});
+            events.AddRange(new Event[]{Event.PlayerJoined, Event.PlayerLeft, Event.PlayerCommand,
+                Event.PlayerPreCommand, Event.PlayerChat, Event.PlayerPreChat, Event.PlayerKicked,
+                Event.PlayerMove, Event.PlayerDied});
         }
         public EventType Type { get { return EventType.Player; } }
         public List<Event> Events { get { return events; } }
@@ -25,38 +25,38 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.PLAYER_JOINED:
+                case Event.PlayerJoined:
                     OnPlayerJoined(e as ClientJoinedEventArgs);
                     break;
-                case Event.PLAYER_LEFT:
+                case Event.PlayerLeft:
                     OnPlayerLeft(e as ClientLeftEventArgs);
                     break;
-                case Event.PLAYER_COMMAND:
+                case Event.PlayerCommand:
                     OnPlayerCommand(e as ClientCommandEventArgs);
                     break;
-                case Event.PLAYER_PRE_COMMAND:
+                case Event.PlayerPreCommand:
                     OnPlayerPreCommand(e as ClientCommandEventArgs);
                     break;
-                case Event.PLAYER_CHAT:
+                case Event.PlayerChat:
                     OnPlayerChat(e as ClientChatEventArgs);
                     break;
-                case Event.PLAYER_PRE_CHAT:
+                case Event.PlayerPreChat:
                     OnPlayerPreChat(e as ClientPreChatEventArgs);
                     break;
-                case Event.PLAYER_KICKED:
+                case Event.PlayerKicked:
                     OnPlayerKicked(e as ClientKickedEventArgs);
                     break;
-                case Event.PLAYER_MOVE:
+                case Event.PlayerMove:
                     OnPlayerMoved(e as ClientMoveEventArgs);
                     break;
-                case Event.PLAYER_DIED:
+                case Event.PlayerDied:
                     OnPlayerDeath(e as ClientDeathEventArgs);
                     break;
             }
         }
-        public void RegisterEvent(EventListener Listener)
+        public void RegisterEvent(EventListener listener)
         {
-            plugins.Add(Listener);
+            plugins.Add(listener);
         }
         #region Local Hooks
         private void OnPlayerJoined(ClientJoinedEventArgs e)
@@ -64,7 +64,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_JOINED)
+                if (bl.Event == Event.PlayerJoined)
                     pl.OnPlayerJoined(e);
             }
         }
@@ -73,7 +73,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_LEFT)
+                if (bl.Event == Event.PlayerLeft)
                     pl.OnPlayerLeft(e);
             }
         }
@@ -82,7 +82,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_COMMAND)
+                if (bl.Event == Event.PlayerCommand)
                     pl.OnPlayerCommand(e);
             }
         }
@@ -91,7 +91,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_PRE_COMMAND)
+                if (bl.Event == Event.PlayerPreCommand)
                     pl.OnPlayerPreCommand(e);
             }
         }
@@ -100,7 +100,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_CHAT)
+                if (bl.Event == Event.PlayerChat)
                     pl.OnPlayerChat(e);
             }
         }
@@ -109,7 +109,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener bl in Plugins)
             {
                 PlayerListener pl = (PlayerListener)bl.Listener;
-                if (bl.Event == Event.PLAYER_PRE_CHAT)
+                if (bl.Event == Event.PlayerPreChat)
                     pl.OnPlayerPreChat(e);
             }
         }
@@ -118,7 +118,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 PlayerListener pl = (PlayerListener)el.Listener;
-                if (el.Event == Event.PLAYER_KICKED)
+                if (el.Event == Event.PlayerKicked)
                     pl.OnPlayerKicked(e);
             }
         }
@@ -127,7 +127,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 PlayerListener pl = (PlayerListener)el.Listener;
-                if (el.Event == Event.PLAYER_MOVE)
+                if (el.Event == Event.PlayerMove)
                     pl.OnPlayerMoved(e);
             }
         }
@@ -136,7 +136,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 PlayerListener pl = (PlayerListener)el.Listener;
-                if (el.Event == Event.PLAYER_DIED)
+                if (el.Event == Event.PlayerDied)
                     pl.OnPlayerDeath(e);
             }
         }

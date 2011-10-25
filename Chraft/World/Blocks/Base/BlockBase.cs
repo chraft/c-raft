@@ -296,7 +296,7 @@ namespace Chraft.World.Blocks
         protected virtual BlockDestroyEventArgs RaiseDestroyEvent(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs e = new BlockDestroyEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BLOCK_DESTROY, e);
+            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BlockDestroy, e);
             return e;
         }
 
@@ -309,7 +309,7 @@ namespace Chraft.World.Blocks
         protected virtual bool RaisePlaceEvent(EntityBase entity, StructBlock block)
         {
             BlockPlaceEventArgs e = new BlockPlaceEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BLOCK_PLACE, e);
+            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BlockPlace, e);
             // Destruction made not by the living can not be interrupted?
             if (entity == null)
                 return true;

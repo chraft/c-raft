@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 using System.Threading;
 using Chraft.Commands;
 using Chraft.Interfaces;
@@ -219,6 +218,16 @@ namespace Chraft.Entity
             if (target == null)
                 return;
             short weaponDmg = GetWeaponDamage();
+
+            //Start Event
+            EntityAttackEventArgs e = new EntityAttackEventArgs(this, weaponDmg, target);
+            Server.PluginManager.CallEvent(Event.EntityAttack, e);
+            if(e.EventCanceled) return;
+            target = (LivingEntity)e.EntityToAttack;
+            weaponDmg = e.Damage;
+            //End Event
+
+            
             target.Damage(DamageCause.EntityAttack, weaponDmg, this);
         }
 
@@ -306,7 +315,7 @@ namespace Chraft.Entity
         {
             //Event
             ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, killedBy);
-            Client.Owner.Server.PluginManager.CallEvent(Event.PLAYER_DIED, clientDeath);
+            Client.Owner.Server.PluginManager.CallEvent(Event.PlayerDied, clientDeath);
             if (clientDeath.EventCanceled) { return; }
             killedBy = clientDeath.KilledBy;
             //End Event
@@ -498,7 +507,7 @@ namespace Chraft.Entity
             string DisplayMessage = DisplayName + " has logged in";
             //Event
             ClientJoinedEventArgs e = new ClientJoinedEventArgs(Client);
-            Server.PluginManager.CallEvent(Event.PLAYER_JOINED, e);
+            Server.PluginManager.CallEvent(Event.PlayerJoined, e);
             //We kick the player because it would not work to use return.
             if (e.EventCanceled)
             {
