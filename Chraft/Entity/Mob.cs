@@ -13,7 +13,6 @@ namespace Chraft.Entity
 	public abstract partial class Mob : LivingEntity
 	{
         public MobType Type { get; set; }
-		public MetaData Data { get; internal set; }
 
         /// <summary>
         /// The amount of damage this Mob can inflict
@@ -38,7 +37,7 @@ namespace Chraft.Entity
         }
 
         /// <summary>
-        /// How far the mob can see (i.e. if aggressive a client will be hunted if seen within this range)
+        /// How far the mob can see (i.e. if aggressive a player will be hunted if seen within this range)
         /// </summary>
         public virtual int SightRange 
         {

@@ -271,7 +271,16 @@ namespace Chraft.Net
             RecvSocketEventPool.Push(_recvSocketEvent);
 
             if (_socket.Connected)
-                _socket.Shutdown(SocketShutdown.Both);                          
+            {
+                try
+                {
+                    _socket.Shutdown(SocketShutdown.Both);
+                }
+                catch(SocketException)
+                {
+                    // Ignore errors in socket shutdown (e.g. if client crashes there is a no connection error when trying to shutdown)
+                }
+            }
             _socket.Close();
            
             //GC.Collect();

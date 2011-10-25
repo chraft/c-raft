@@ -52,7 +52,7 @@ namespace Chraft.World.Blocks.Physics
         {
         }
 
-        public virtual void Stop()
+        public virtual void Stop(bool forceStop = false)
         {
             IsPlaying = false;
             BlockBasePhysics unused = null;
@@ -61,8 +61,8 @@ namespace Chraft.World.Blocks.Physics
             World.Server.SendPacketToNearbyPlayers(World,
                                                    UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z),
                                                    entity);
-            
-            OnStop();
+            if (!forceStop)
+                OnStop();
         }
 
         protected virtual void OnStop()

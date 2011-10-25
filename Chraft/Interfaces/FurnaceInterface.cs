@@ -17,6 +17,9 @@ namespace Chraft.Interfaces
     {
         class FurnaceInstance
         {
+            protected const short FullFire = 250;
+            protected const short FullProgress = 185;
+
             List<FurnaceInterface> Interfaces = new List<FurnaceInterface>();
             object _instanceLock = new object();
 
@@ -31,12 +34,93 @@ namespace Chraft.Interfaces
             public UniversalCoords Coords { get; private set; }
             public WorldManager World { get; private set; }
             public volatile bool IsBurning;
-            public volatile bool IsSmelting;
+
+            protected ItemStack FuelSlot;
+            protected ItemStack InputSlot;
+            protected ItemStack OutputSlot;
+
+            private short _fuelTicksLeft;
+            private short _fuelTicksFull;
+            private short _progressTicks;
+            private Timer _burnerTimer;
 
             public FurnaceInstance(WorldManager world, UniversalCoords coords)
             {
                 this.World = world;
                 Coords = coords;
+            }
+
+            public void InitSlots(ItemStack input, ItemStack fuel, ItemStack output)
+            {
+                lock (_instanceLock)
+                {
+                    InputSlot = (ItemStack.IsVoid(input) ? ItemStack.Void : new ItemStack(input.Type, input.Count, input.Durability));
+                    FuelSlot = (ItemStack.IsVoid(fuel) ? ItemStack.Void : new ItemStack(fuel.Type, fuel.Count, fuel.Durability));
+                    OutputSlot = (ItemStack.IsVoid(output) ? ItemStack.Void : new ItemStack(output.Type, output.Count, output.Durability));
+                }
+            }
+
+            public void ChangeFuel(ItemStack newItem)
+            {
+                lock (_instanceLock)
+                {
+                    if (ItemStack.IsVoid(newItem))
+                        FuelSlot = ItemStack.Void;
+                    else
+                    {
+                        FuelSlot.Type = newItem.Type;
+                        FuelSlot.Count = newItem.Count;
+                        FuelSlot.Durability = newItem.Durability;
+                    }
+                    foreach (var fInterface in Interfaces)
+                    {
+                        fInterface[FUEL_SLOT] = FuelSlot;
+                        fInterface.SendUpdate(FUEL_SLOT);
+                    }
+                }
+                TryBurn();
+            }
+
+            public void ChangeInput(ItemStack newItem)
+            {
+                lock (_instanceLock)
+                {
+                    if (ItemStack.IsVoid(newItem))
+                        InputSlot = ItemStack.Void;
+                    else
+                    {
+                        InputSlot.Type = newItem.Type;
+                        InputSlot.Count = newItem.Count;
+                        InputSlot.Durability = newItem.Durability;
+                    }
+                    foreach (var fInterface in Interfaces)
+                    {
+                        fInterface[INPUT_SLOT] = InputSlot;
+                        fInterface.SendUpdate(INPUT_SLOT);
+                    }
+                }
+                TryBurn();
+            }
+
+            public void ChangeOutput(ItemStack newItem)
+            {
+                lock (_instanceLock)
+                {
+                    if (ItemStack.IsVoid(newItem))
+                        OutputSlot = ItemStack.Void;
+                    else
+                    {
+                        OutputSlot.Type = newItem.Type;
+                        OutputSlot.Count = newItem.Count;
+                        OutputSlot.Durability = newItem.Durability;
+                    }
+                    foreach (var fInterface in Interfaces)
+                    {
+                        fInterface[OUTPUT_SLOT] = OutputSlot;
+                        fInterface.SendUpdate(OUTPUT_SLOT);
+                    }   
+                }
+                TryBurn();
             }
 
             public void Add(FurnaceInterface furnaceInterface)
@@ -58,18 +142,187 @@ namespace Chraft.Interfaces
                 }
             }
 
-            public void SendBurnerProgressPacket()
+            public bool HasInterfaces()
             {
-                foreach (var furnaceInterface in this.Interfaces)
+                return Interfaces.Count > 0;
+            }
+
+            private SmeltingRecipe GetSmeltingRecipe(ItemStack item)
+            {
+                SmeltingRecipe recipe = null;
+                if (!ItemStack.IsVoid(item))
+                    recipe = SmeltingRecipe.GetRecipe(Server.GetSmeltingRecipes(), item);
+                return recipe;
+            }
+
+            public void SendFurnaceProgressPacket(short progressLevel = 0)
+            {
+                foreach (var furnaceInterface in Interfaces)
+                {
+                    furnaceInterface.Owner.Client.SendPacket(new UpdateProgressBarPacket
+                    {
+                        WindowId = furnaceInterface.Handle,
+                        ProgressBar = 0,
+                        Value = progressLevel,
+                    });
+                }
+            }
+
+            public void SendFurnaceFirePacket(short fireLevel = FullFire)
+            {
+                foreach (var furnaceInterface in Interfaces)
                 {
                     furnaceInterface.Owner.Client.SendPacket(new UpdateProgressBarPacket
                     {
                         WindowId = furnaceInterface.Handle,
                         ProgressBar = 1,
-                        Value = 0,
+                        Value = fireLevel,
                     });
                 }
-                return;
+            }
+
+            public bool IsUnused()
+            {
+                return (ItemStack.IsVoid(InputSlot) && ItemStack.IsVoid(FuelSlot) && ItemStack.IsVoid(OutputSlot) && !IsBurning);
+            }
+
+            private bool HasFuel()
+            {
+                if (ItemStack.IsVoid(FuelSlot))
+                    return false;
+                return ((FuelSlot.Type < 256 && BlockHelper.Instance((byte)FuelSlot.Type).IsIgnitable) ||
+                        (FuelSlot.Type >= 256 && BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)FuelSlot.Type)));
+            }
+
+            private bool HasIngredient()
+            {
+                if (ItemStack.IsVoid(InputSlot))
+                    return false;
+                SmeltingRecipe recipe = GetSmeltingRecipe(InputSlot);
+                return (recipe != null);
+            }
+
+            public void TryBurn()
+            {
+                lock (_instanceLock)
+                {
+                    if (!IsBurning && HasFuel() && HasIngredient())
+                    {
+                        if (_burnerTimer == null)
+                            _burnerTimer = new Timer(Burn, null, 0, 50);
+                    }
+                }
+            }
+
+            private void RemoveFuel()
+            {
+                FuelSlot.Count--;
+                if (FuelSlot.Count == 0)
+                    FuelSlot = ItemStack.Void;
+                foreach (var fInterface in Interfaces)
+                {
+                    fInterface[FUEL_SLOT] = new ItemStack(FuelSlot.Type, FuelSlot.Count, FuelSlot.Durability);
+                    fInterface.SendUpdate(FUEL_SLOT);
+                }
+            }
+
+            private short GetFuelEfficiency()
+            {
+                if (ItemStack.IsVoid(FuelSlot))
+                    return 0;
+
+                return (FuelSlot.Type < 256 ? BlockHelper.Instance((byte)FuelSlot.Type).BurnEfficiency : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
+            }
+
+            public void StopBurning()
+            {
+                if (_burnerTimer != null)
+                {
+                    _burnerTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _burnerTimer.Dispose();
+                    _burnerTimer = null;
+                }
+                IsBurning = false;
+                _progressTicks = 0;
+                _fuelTicksLeft = 0;
+                _fuelTicksFull = 0;
+                SendFurnaceProgressPacket();
+                SendFurnaceFirePacket(0);
+                World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Furnace, World.GetBlockData(Coords));
+            }
+
+            private void Burn(object state)
+            {
+                lock (_instanceLock)
+                {
+                    if (!World.ChunkExists(Coords))
+                    {
+                        StopBurning();
+                        return;
+                    }
+                    if (_fuelTicksLeft <= 0)
+                    {
+                        if (HasIngredient() && HasFuel())
+                        {
+                            if (!ItemStack.IsVoid(OutputSlot) && !GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot))
+                            {
+                                StopBurning();
+                                return;
+                            }
+                            _fuelTicksFull = GetFuelEfficiency();
+                            _fuelTicksLeft = _fuelTicksFull;
+
+                            SendFurnaceProgressPacket(_progressTicks);
+                            RemoveFuel();
+
+                            if (World.GetBlockId(Coords) == (byte)BlockData.Blocks.Furnace)
+                                World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, World.GetBlockData(Coords));
+                            IsBurning = true;
+                        }
+                        else
+                        {
+                            StopBurning();
+                        }
+                        return;
+                    }
+                    else
+                    {
+                        _fuelTicksLeft--;
+                        if (ItemStack.IsVoid(InputSlot) ||
+                            (!ItemStack.IsVoid(OutputSlot) && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
+                        {
+                            _progressTicks = 0;
+                        }
+                        else
+                        {
+                            if (_progressTicks >= FullProgress)
+                            {
+                                _progressTicks = 0;
+                                ItemStack output = GetSmeltingRecipe(InputSlot).Result;
+                                output.Count = 1;
+                                if (!ItemStack.IsVoid(OutputSlot))
+                                    output.Count = (sbyte)(OutputSlot.Count + 1);
+                                ChangeOutput(output);
+                                if (InputSlot.Count < 2)
+                                    ChangeInput(ItemStack.Void);
+                                else
+                                    ChangeInput(new ItemStack(InputSlot.Type, --InputSlot.Count, InputSlot.Durability));
+                            }
+                            _progressTicks++;
+                        }
+                    }
+                    double fuelTickCost = ((double)(_fuelTicksFull))/FullFire;
+                    short fireLevel = (short)(_fuelTicksLeft/fuelTickCost);
+                    if (fireLevel % 10 == 0 || fireLevel == FullFire)
+                    {
+                        SendFurnaceFirePacket(fireLevel);
+                    }
+                    if (_progressTicks % 10 == 0 || _progressTicks == FullProgress)
+                    {
+                        SendFurnaceProgressPacket(_progressTicks);
+                    }
+
+                }
             }
         }
 
@@ -94,6 +347,8 @@ namespace Chraft.Interfaces
                 if (!_furnaceInstances.ContainsKey(id))
                 {
                     furnaceInstance = new FurnaceInstance(furnace.World, coords);
+                    furnaceInstance.InitSlots(furnace[INPUT_SLOT], furnace[FUEL_SLOT], furnace[OUTPUT_SLOT]);
+                    furnaceInstance.TryBurn();
                     _furnaceInstances[id] = furnaceInstance;
                 }
                 else
@@ -114,6 +369,8 @@ namespace Chraft.Interfaces
                 if (_furnaceInstances.ContainsKey(id))
                 {
                     _furnaceInstances[id].Remove(furnace);
+                    if (!_furnaceInstances[id].HasInterfaces() && _furnaceInstances[id].IsUnused())
+                        _furnaceInstances.Remove(id);
                 }
             }
         }
@@ -126,6 +383,17 @@ namespace Chraft.Interfaces
 		}
 
         private FurnaceInstance _furnaceInstance;
+
+        public static void StopBurning(WorldManager world, UniversalCoords coords)
+        {
+            string id = String.Format("{0}-{1},{2},{3}", world.Name, coords.WorldX, coords.WorldY, coords.WorldZ);
+            lock (_staticLock)
+            {
+                if (_furnaceInstances.ContainsKey(id))
+                    _furnaceInstances[id].StopBurning();
+            }
+        }
+
         protected override void DoOpen()
         {
             base.DoOpen();
@@ -135,7 +403,6 @@ namespace Chraft.Interfaces
         protected override void DoClose()
         {
             RemoveFurnaceInterface(Coords, this);
-            _furnaceInstance = null;
             base.DoClose();
         }
 
@@ -143,35 +410,15 @@ namespace Chraft.Interfaces
         const short FUEL_SLOT = 1;
         const short OUTPUT_SLOT = 2;
 
-        internal bool HasFuel()
+        internal override void OnClicked(WindowClickPacket packet)
         {
-            return !ItemStack.IsVoid(this[FUEL_SLOT]);
-        }
+            ItemStack newItem = ItemStack.Void;
 
-        internal bool HasIngredient()
-        {
-            return !ItemStack.IsVoid(this[INPUT_SLOT]);
-        }
-
-        private SmeltingRecipe GetSmeltingRecipe(ItemStack item)
-        {
-            SmeltingRecipe recipe = null;
-            if (!ItemStack.IsVoid(item))
-                recipe = SmeltingRecipe.GetRecipe(Server.GetSmeltingRecipes(), item);
-            return recipe;
-        }
-
-
-        internal override void OnClicked(Net.Packets.WindowClickPacket packet)
-        {
-            if (packet.Slot == FUEL_SLOT)
+            if (packet.Slot == OUTPUT_SLOT)
             {
-                if (!ItemStack.IsVoid(this.Cursor))
+                lock (_furnaceInstance)
                 {
-                    // Only allow operations against valid fuel blocks/items
-
-                    if ((this.Cursor.Type < 256 && !BlockHelper.Instance((byte)Cursor.Type).IsIgnitable) ||
-                        (this.Cursor.Type >= 256 && !BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)this.Cursor.Type)))
+                    if (!ItemStack.IsVoid(Cursor))
                     {
                         Owner.Client.SendPacket(new TransactionPacket
                         {
@@ -180,159 +427,51 @@ namespace Chraft.Interfaces
                             WindowId = packet.WindowId
                         });
                         return;
-                    }
-                }
-            }
-            else if (packet.Slot == INPUT_SLOT)
-            {
-                if (!ItemStack.IsVoid(this.Cursor))
-                {
-                    // Only allow operations against valid smelting ingredients
-                    SmeltingRecipe recipe = GetSmeltingRecipe(this.Cursor);
-
-                    if (recipe == null)
-                    {
-                        Owner.Client.SendPacket(new TransactionPacket
-                        {
-                            Accepted = false,
-                            Transaction = packet.Transaction,
-                            WindowId = packet.WindowId
-                        });
-                        return;
-                    }
-                }
-            }
-            else if (packet.Slot == OUTPUT_SLOT)
-            {
-                lock (this._furnaceInstance)
-                {
-                    if (ItemStack.IsVoid(this[OUTPUT_SLOT]))
-                    {
-                        Owner.Client.SendPacket(new TransactionPacket
-                        {
-                            Accepted = false,
-                            Transaction = packet.Transaction,
-                            WindowId = packet.WindowId
-                        });
-                        return;
+                        //if (!Cursor.StacksWith(this[OUTPUT_SLOT]) || Cursor.Count + this[OUTPUT_SLOT].Count > 64)
+                        //{}
                     }
                     else
                     {
-                        if (!ItemStack.IsVoid(Cursor))
-                        {
-                            if (!Cursor.StacksWith(this[OUTPUT_SLOT]) || Cursor.Count + this[OUTPUT_SLOT].Count > 64)
-                            {
-                                Owner.Client.SendPacket(new TransactionPacket
-                                {
-                                    Accepted = false,
-                                    Transaction = packet.Transaction,
-                                    WindowId = packet.WindowId
-                                });
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            this.Cursor = ItemStack.Void;
-                            this.Cursor.Slot = -1;
-                            this.Cursor.Type = this[OUTPUT_SLOT].Type;
-                            this.Cursor.Durability = this[OUTPUT_SLOT].Durability;
-                        }
-
+                        Cursor = ItemStack.Void;
+                        Cursor.Slot = -1;
+                        Cursor.Type = this[OUTPUT_SLOT].Type;
+                        Cursor.Durability = this[OUTPUT_SLOT].Durability;
                         // Add the output item to the Cursor
-                        this.Cursor.Count += this[OUTPUT_SLOT].Count;
+                        Cursor.Count += this[OUTPUT_SLOT].Count;
                         this[OUTPUT_SLOT] = ItemStack.Void;
+                        _furnaceInstance.ChangeOutput(ItemStack.Void);
                     }
+                    return;
                 }
-                
-                return;
+
             }
 
-            // Base performs any adding/removing input / fuel.
             base.OnClicked(packet);
 
-            // Check if we need to start the burner / smelting process
-            if (packet.Slot >= INPUT_SLOT && packet.Slot <= OUTPUT_SLOT)
+            if (packet.Slot == INPUT_SLOT)
             {
-                //0	 above flame
-                //1	 fuel
-                //2	 output
-
-                if (!this._furnaceInstance.IsBurning)
-                { // Not burning
-
-                    if (HasIngredient() && HasFuel())
-                    {
-                        StartBurner();
-                        StartSmelting();
-                    }
-                }
-                else if (!this._furnaceInstance.IsSmelting)
-                { // Burning but not cooking
-
-                    if (HasIngredient())
-                    {
-                        StartSmelting();
-                    }
-                }
-            }
-        }
-
-        private int _burnerStartTick;
-        private short _burnForTicks;
-        private void StartBurner()
-        {
-            lock (_furnaceInstance)
-            {
-                if (this[FUEL_SLOT].Type < 256)
-                    _burnForTicks = BlockHelper.Instance((byte)this[FUEL_SLOT].Type).BurnEfficiency;
-                else
-                    _burnForTicks = BlockData.ItemBurnEfficiency[(BlockData.Items)this[FUEL_SLOT].Type];
-
-                // Set block to burning furnace
-                this.World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, this.World.GetBlockData(Coords));
-                _burnerStartTick = this.World.WorldTicks;
-                _furnaceInstance.IsBurning = true;
-
-                // Consume a fuel item
-                this[FUEL_SLOT].Count--;
-                if (this[FUEL_SLOT].Count == 0)
-                    this[FUEL_SLOT] = ItemStack.Void;
-
-                new Thread(BurnerThread).Start();
-            }
-        }
-
-        private void BurnerThread(object state)
-        {
-
-        }
-
-        private void StartSmelting()
-        {
-            lock (_furnaceInstance)
-            {
-                SmeltingRecipe recipe = GetSmeltingRecipe(this[INPUT_SLOT]);
-
-                // TODO: preliminary work has the result being copied to OUTPUT_SLOT immediately instead of after 10secs of burn time
-                if (recipe != null && (ItemStack.IsVoid(this[OUTPUT_SLOT]) || (this[OUTPUT_SLOT].StacksWith(recipe.Result) && this[OUTPUT_SLOT].Count < 64)))
+                lock (_furnaceInstance)
                 {
-                    this[INPUT_SLOT].Count--;
-                    if (this[INPUT_SLOT].Count == 0)
-                        this[INPUT_SLOT] = ItemStack.Void;
-
-                    if (ItemStack.IsVoid(this[OUTPUT_SLOT]))
+                    if (!ItemStack.IsVoid(this[INPUT_SLOT]))
                     {
-                        ItemStack newItem = ItemStack.Void;
-                        newItem.Type = recipe.Result.Type;
-                        newItem.Durability = recipe.Result.Durability;
-                        newItem.Count = 1;
-                        this[OUTPUT_SLOT] = newItem;
+                        newItem.Type = this[INPUT_SLOT].Type;
+                        newItem.Count = this[INPUT_SLOT].Count;
+                        newItem.Durability = this[INPUT_SLOT].Durability;
                     }
-                    else
+                    _furnaceInstance.ChangeInput(newItem);
+                }
+            }
+            else if (packet.Slot == FUEL_SLOT)
+            {
+                lock (_furnaceInstance)
+                {
+                    if (!ItemStack.IsVoid(this[FUEL_SLOT]))
                     {
-                        this[OUTPUT_SLOT].Count++;
+                        newItem.Type = this[FUEL_SLOT].Type;
+                        newItem.Count = this[FUEL_SLOT].Count;
+                        newItem.Durability = this[FUEL_SLOT].Durability;
                     }
+                    _furnaceInstance.ChangeFuel(newItem);
                 }
             }
         }

@@ -10,8 +10,8 @@ namespace Chraft.Entity {
 
         // Behaviour junk
         private bool AIWaiting;
-        public bool Hunter; // Is this mob capable of tracking clients?
-        public bool Hunting; // Is this mob currently tracking a client?
+        public bool Hunter; // Is this mob capable of tracking entities?
+        public bool Hunting; // Is this mob currently tracking an entity?
 
         public void Update()
         {

@@ -169,6 +169,7 @@ namespace Chraft.Entity
             if (DrowningTimer != null)
             {
                 DrowningTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                DrowningTimer.Dispose();
                 DrowningTimer = null;
             }
             TicksDrowning = 0;
@@ -209,6 +210,7 @@ namespace Chraft.Entity
             if (SuffocationTimer != null)
             {
                 SuffocationTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                SuffocationTimer.Dispose();
                 SuffocationTimer = null;
             }
             TicksSuffocating = 0;
