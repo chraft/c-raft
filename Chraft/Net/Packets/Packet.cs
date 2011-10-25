@@ -23,7 +23,6 @@ namespace Chraft.Net.Packets
         protected PacketWriter Writer;
 
         private int _Length;
-        public bool Async = true;
         public bool Shared { get; private set; }
         public int Written;
         public Logger Logger;

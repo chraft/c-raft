@@ -82,85 +82,45 @@ namespace Chraft.Net
             
         }
 
-        public void Send_Start(Packet packet = null)
+        public void Send_Sync_Packet(Packet packet)
+        {
+            packet.Write();
+            Send_Sync(packet.GetBuffer());
+            packet.Release();
+        }
+
+        internal void Send_Start()
         {
             if (!Running || !_socket.Connected)
             {
                 DisposeSendSystem();
-
-                if(packet != null)
-                    packet.Release();
                 return;
             }
 
+            Packet packet = null;
             try
             {
                 byte[] data;
-                if (packet == null)
+
+                
+                if (!PacketsToBeSent.IsEmpty)
                 {
-                    if (PacketsToBeSent.Count > 0)
+                    if (!PacketsToBeSent.TryDequeue(out packet))
                     {
-                        if (!PacketsToBeSent.TryDequeue(out packet))
-                        {
-                            Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
-                            return;
-                        }
-
-                        if (!packet.Shared)
-                            packet.Write();
-                                                   
-                        data = packet.GetBuffer();
-                        
-                        if (packet.Async)
-                        {
-                            Send_Async(data);
-                            packet.Release();
-                        }
-                        else
-                        {
-                            Send_Sync(data);
-                            packet.Release();
-                            packet = null;
-                            while (Running && PacketsToBeSent.Count > 0)
-                            {
-                                if (!PacketsToBeSent.TryDequeue(out packet))
-                                {
-                                    Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
-                                    return;
-                                }
-
-                                if (packet.Async)
-                                    break;
-
-                                if (!packet.Shared)
-                                    packet.Write();
-
-                                data = packet.GetBuffer();
-
-                                Send_Sync(data);
-                                packet.Release();
-                                packet = null;
-                            }
-
-                            if (packet != null)
-                                Send_Start(packet);
-                            else
-                                Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
-                        }
-                    }
-                    else
                         Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
-                }
-                else
-                {
+                        return;
+                    }
+
                     if (!packet.Shared)
                         packet.Write();
-                    
+                                                   
                     data = packet.GetBuffer();
-                    
+                                               
                     Send_Async(data);
                     packet.Release();
                 }
+                else
+                    Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
             }
             catch (Exception e)
             {
@@ -254,7 +214,7 @@ namespace Chraft.Net
 
         public void SendLoginRequest()
         {
-            SendPacket(new LoginRequestPacket
+            Send_Sync_Packet(new LoginRequestPacket
             {
                 ProtocolOrEntityId = _player.EntityId,
                 Dimension = _player.World.Dimension,
@@ -266,12 +226,17 @@ namespace Chraft.Net
             });
         }
 
-        public void SendInitialTime()
+        public void SendInitialTime(bool async = true)
         {
-            SendPacket(new TimeUpdatePacket
+            Packet packet = new TimeUpdatePacket
             {
                 Time = _player.World.Time
-            });
+            };
+
+            if (async)
+                SendPacket(packet);
+            else
+                Send_Sync_Packet(packet);
         }
 
         public void SendInitialPosition()
@@ -288,14 +253,19 @@ namespace Chraft.Net
             });
         }
 
-        public void SendSpawnPosition()
+        public void SendSpawnPosition(bool async = true)
         {
-            SendPacket(new SpawnPositionPacket
+            Packet packet = new SpawnPositionPacket
             {
                 X = _player.World.Spawn.WorldX,
                 Y = _player.World.Spawn.WorldY,
                 Z = _player.World.Spawn.WorldZ
-            });
+            };
+
+            if (async)
+                SendPacket(packet);
+            else
+                Send_Sync_Packet(packet);
         }
 
         public void SendHandshake()
@@ -316,13 +286,13 @@ namespace Chraft.Net
             Server.AddAuthenticatedClient(this);
             Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
-            Load();
-            StartKeepAliveTimer();
+            Load();           
             SendLoginRequest();
-            SendSpawnPosition();
-            SendInitialTime();
+            SendSpawnPosition(false);
+            SendInitialTime(false);
             // This must be sent sync otherwise we will fall through them
             _player.UpdateChunks(2, true, CancellationToken.None);
+            StartKeepAliveTimer();
             SendInitialPosition();
             SendInitialTime();
             SetGameMode();
@@ -330,24 +300,25 @@ namespace Chraft.Net
             _player.InitializeHealth();
             _player.OnJoined();
             SendMotd();
-
-
         }
 
         #endregion
 
         #region Chunks
 
-        public void SendPreChunk(int x, int z, bool load, bool sync)
+        internal void SendPreChunk(int x, int z, bool load, bool sync)
         {
             PreChunkPacket prepacket = new PreChunkPacket
             {
                 Load = load,
                 X = x,
                 Z = z,
-                Async = !sync
             };
-            SendPacket(prepacket);
+
+            if (!sync)
+                SendPacket(prepacket);
+            else
+                Send_Sync_Packet(prepacket);
         }
 
         internal void SendChunk(Chunk chunk, bool sync)
@@ -355,9 +326,13 @@ namespace Chraft.Net
             MapChunkPacket packet = new MapChunkPacket
             {
                 Chunk = chunk,
-                Async = !sync
+
             };
-            SendPacket(packet);
+
+            if (!sync)
+                SendPacket(packet);
+            else
+                Send_Sync_Packet(packet);
         }
 
         internal void SendSignTexts(Chunk chunk)
