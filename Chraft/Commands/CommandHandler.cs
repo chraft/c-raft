@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chraft.Commands
 {
-    public interface CommandHandler
+    public interface ICommandHandler
     {
         ICommand Find(string Command);
         ICommand FindShort(string Shortcut);

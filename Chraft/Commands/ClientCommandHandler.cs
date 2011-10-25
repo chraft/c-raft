@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Chraft.Commands
 {
-    public class ClientCommandHandler : CommandHandler
+    public class ClientCommandHandler : ICommandHandler
     {
         private List<IClientCommand> commands;
         public ClientCommandHandler()
