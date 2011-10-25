@@ -43,7 +43,6 @@ namespace Chraft.World
 		{
 			World = world;
 		    Coords = coords;
-            _UpdateTimer = new Timer(UpdateBlocksToNearbyPlayers, null, Timeout.Infinite, Timeout.Infinite);
 		}
 
 		/// <summary>
@@ -322,6 +321,12 @@ namespace Chraft.World
         protected virtual void UpdateBlocksToNearbyPlayers(object state)
         {
             Interlocked.Exchange(ref _TimerStarted, 0);
+        }
+
+        public void Dispose()
+        {
+            _UpdateTimer.Dispose();
+            _UpdateTimer = null;
         }
 	}
 }

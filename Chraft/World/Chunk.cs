@@ -43,6 +43,11 @@ namespace Chraft.World
            
         }
 
+        internal void InitBlockChangesTimer()
+        {
+            _UpdateTimer = new Timer(UpdateBlocksToNearbyPlayers, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
         public void Recalculate()
         {
             Stopwatch sw = new Stopwatch();

@@ -50,6 +50,7 @@ namespace Chraft.World
 		public void Add(Chunk chunk)
 		{
             this[chunk.Coords] = chunk;
+		    chunk.InitBlockChangesTimer();
             Interlocked.Increment(ref Changes);
 		}
 
@@ -57,7 +58,13 @@ namespace Chraft.World
 		{
             Chunk chunk;
             Interlocked.Increment(ref Changes);
-            return Chunks.TryRemove(coords.ChunkPackedCoords, out chunk);
+            
+            bool result = Chunks.TryRemove(coords.ChunkPackedCoords, out chunk);
+
+            if(result)
+                chunk.Dispose();
+
+            return result;
 		}
 
 		internal bool Remove(Chunk chunk)
