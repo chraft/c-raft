@@ -1,3 +1,4 @@
+using System;
 using Chraft.World;
 using java.util.zip;
 
@@ -63,7 +64,7 @@ namespace Chraft.Net.Packets
 
             SetCapacity(18 + len);
             Writer.Write(Coords.WorldX);
-            Writer.Write((short)Coords.WorldY);
+            Writer.Write((short)0);
             Writer.Write(Coords.WorldZ);
             Writer.Write(SizeX);
             Writer.Write(SizeY);
