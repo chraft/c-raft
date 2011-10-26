@@ -10,21 +10,15 @@ namespace Chraft.Plugins.Commands
 
         public void Use(Client client, string commandName, string[] tokens)
         {
-            if (tokens.Length < 1)
+            short newHealth = 20;
+            if (tokens.Length > 1)
             {
-                SetHealth(client, 20);
-                return;
+                if (!short.TryParse(tokens[0], out newHealth))
+                    newHealth = 20;
             }
-            SetHealth(client, short.Parse(tokens[0]));
+            client.Owner.SetHealth(newHealth);
         }
-        private void SetHealth(Client client, short health)
-        {
-            if (health > 20)
-            {
-                health = 20;
-            }
-            client.SendPacket(new UpdateHealthPacket { Health = health });
-        }
+
         public void Help(Client client)
         {
             client.SendMessage("/sethealth <Health> - Sets your health to <Health>");
