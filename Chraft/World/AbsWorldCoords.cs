@@ -8,8 +8,17 @@ namespace Chraft.World
 {
     public struct AbsWorldCoords
     {
+        /// <summary>
+        /// The absolute world X coordinate (+ south / - north).
+        /// </summary>
         public readonly double X;
+        /// <summary>
+        /// The absolute world Y coordinate (+ up).
+        /// </summary>
         public readonly double Y;
+        /// <summary>
+        /// The absolute world Z coordinate (+ east / - west).
+        /// </summary>
         public readonly double Z;
 
         public AbsWorldCoords(double x, double y, double z)

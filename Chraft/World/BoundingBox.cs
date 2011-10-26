@@ -339,8 +339,8 @@ namespace Chraft.World
         {
             // Plane intersection
             
-            Vector3? northIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.XAxis);
-            Vector3? southIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.XAxis);
+            Vector3? southIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.XAxis);
+            Vector3? northIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.XAxis);
             Vector3? topIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.YAxis);
             Vector3? bottomIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Minimum, Vector3.YAxis);
             Vector3? westIntersection = Vector3.IntersectPointForSegmentAndPlane(startSegment, endSegment, this.Maximum, Vector3.ZAxis);
