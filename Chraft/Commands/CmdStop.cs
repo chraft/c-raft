@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Chraft.Net;
+using Chraft.Plugins;
 
 [assembly: InternalsVisibleTo("ChraftServer")]
 namespace Chraft.Commands
@@ -30,6 +31,8 @@ namespace Chraft.Commands
         {
             get { return "chraft.stop"; }
         }
+
+        public IPlugin Iplugin { get; set; }
 
         public void Use(Server server, string commandName, string[] tokens)
         {

@@ -6,6 +6,11 @@ namespace Chraft.Plugins.Commands
 {
     public class CmdSetHealth : IClientCommand
     {
+        public CmdSetHealth(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
+
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -33,6 +38,7 @@ namespace Chraft.Plugins.Commands
         public string Name
         {
             get { return "sethealth"; }
+            set { }
         }
 
         public string Shortcut
@@ -49,5 +55,7 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.sethealth"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

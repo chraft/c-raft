@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.Utils;
 using Chraft.World;
 
@@ -15,7 +16,7 @@ namespace Chraft.Commands.Debug
         public void Use(Client client, string commandName, string[] tokens)
         {
             Vector3 facing = new Vector3(client.Owner.Yaw, client.Owner.Pitch);
-                
+
             Vector3 start = new Vector3(client.Owner.Position.X, client.Owner.Position.Y + client.Owner.EyeHeight, client.Owner.Position.Z);
             Vector3 end = facing * 100 + start;
             if (end.Y < 0)
@@ -28,7 +29,7 @@ namespace Chraft.Commands.Debug
             {
                 // Ray trace out along client facing direction
                 RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
-                
+
                 if (hit == null)
                     client.SendMessage(String.Format("No block targetted within {0} metres", start.Distance(end)));
                 else
@@ -39,7 +40,7 @@ namespace Chraft.Commands.Debug
             else if (tokens[0] == "destroy") // destroy the targetted block
             {
                 RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
-                
+
                 if (hit != null)
                 {
                     client.Owner.World.SetBlockAndData(hit.TargetBlock, 0, 0);
@@ -48,7 +49,7 @@ namespace Chraft.Commands.Debug
             else if (tokens[0] == "pink") // make the targetted block pink wool
             {
                 RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
-                
+
                 if (hit != null)
                 {
                     client.Owner.World.SetBlockAndData(hit.TargetBlock, 35, 6);
@@ -62,7 +63,7 @@ namespace Chraft.Commands.Debug
                 {
                     hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
                 }
-                
+
                 DateTime endTime = DateTime.Now;
                 if (hit != null)
                 {
@@ -72,13 +73,13 @@ namespace Chraft.Commands.Debug
                 {
                     client.SendMessage(String.Format("Time to ray trace {0} metres:", start.Distance(end)));
                 }
-                client.SendMessage(((endTime - startTime).TotalMilliseconds/1000.0).ToString() + " ms");
+                client.SendMessage(((endTime - startTime).TotalMilliseconds / 1000.0).ToString() + " ms");
             }
         }
 
         public void Help(Client client)
         {
-            
+
         }
 
         public string Name
@@ -100,6 +101,8 @@ namespace Chraft.Commands.Debug
         {
             get { return "chraft.debug"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }
 

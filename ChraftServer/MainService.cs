@@ -86,9 +86,12 @@ namespace ChraftServer
                     if (Server == null) return;
                     if (input == null) return;
                     string[] inputParts = input.Split();
+                    var cleanedtokens = inputParts.Skip(1).ToArray();
                     try
                     {
                         var cmd = Server.ServerCommandHandler.Find(inputParts[0]) as IServerCommand;
+                        if (cmd == null) return;
+                            //todo - make this better
                         if (cmd is CmdStop)
                         {
                             Server.Stop();
@@ -99,8 +102,8 @@ namespace ChraftServer
                         Server.PluginManager.CallEvent(Event.ServerCommand, e);
                         if (e.EventCanceled) { return;}
                         //Event End
-
-                        cmd.Use(Server, inputParts[0], inputParts);
+                        
+                        cmd.Use(Server, inputParts[0], cleanedtokens);
                     }
                     catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }
                     catch (Exception e)

@@ -8,6 +8,10 @@ namespace Chraft.Plugins.Commands
 {
     public class CmdSpawnMob : IClientCommand
     {
+        public CmdSpawnMob(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -31,7 +35,8 @@ namespace Chraft.Plugins.Commands
                         Enum.TryParse(tokens[0], true, out type);
                         validMob = true;
                     }
-                } else if (!string.IsNullOrEmpty(mobName))
+                }
+                else if (!string.IsNullOrEmpty(mobName))
                 {
                     type = (MobType)Enum.Parse(typeof(MobType), mobName);
                     validMob = true;
@@ -60,6 +65,7 @@ namespace Chraft.Plugins.Commands
         public string Name
         {
             get { return "spawnmob"; }
+            set { }
         }
 
         public string Shortcut
@@ -76,5 +82,8 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.spawnmob"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }
+

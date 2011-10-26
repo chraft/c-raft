@@ -1,4 +1,5 @@
 ﻿using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.World;
 
 namespace Chraft.Commands
@@ -36,5 +37,7 @@ namespace Chraft.Commands
         {
             get { return "chraft.spawn"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

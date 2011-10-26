@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.Utils;
 
 namespace Chraft.Commands.Debug
@@ -29,7 +30,7 @@ namespace Chraft.Commands.Debug
 
         public void Help(Client client)
         {
-            
+
         }
 
         public string Name
@@ -51,5 +52,7 @@ namespace Chraft.Commands.Debug
         {
             get { return "chraft.debug"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

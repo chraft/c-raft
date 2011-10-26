@@ -2,13 +2,13 @@
 using System.Linq;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
     internal class CmdGive : IClientCommand
     {
-
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+       public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
         {
@@ -81,7 +81,7 @@ namespace Chraft.Commands
                     {
                         item = client.Owner.Server.Items[tokens[1]];
                     }
-                }  
+                }
             }
             else
             {
@@ -103,7 +103,7 @@ namespace Chraft.Commands
                 }
 
             }
-            
+
             if (ItemStack.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
@@ -117,23 +117,27 @@ namespace Chraft.Commands
             }
 
             if (amount > 0)
-                item.Count = (sbyte)amount;
-            
+                item.Count = (sbyte) amount;
+
             foreach (Client c in who)
                 c.Owner.Inventory.AddItem(item.Type, item.Count, item.Durability);
-            client.SendMessage("§7Item given to " + who.Count + " player" + (who.Count > 1 ? "s":""));
+            client.SendMessage("§7Item given to " + who.Count + " player" + (who.Count > 1 ? "s" : ""));
         }
 
         public void Help(Client client)
         {
-            client.SendMessage("/give <Player> <Item OR Block>[:MetaData] [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
+            client.SendMessage(
+                "/give <Player> <Item OR Block>[:MetaData] [Amount] - Gives <Player> [Amount] of <Item OR Block>.");
             client.SendMessage("/give <Item OR Block>[:MetaData] [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
         public string Name
         {
             get { return "give"; }
+            set {}
         }
+
+
 
         public string Shortcut
         {
@@ -149,5 +153,7 @@ namespace Chraft.Commands
         {
             get { return "chraft.give"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

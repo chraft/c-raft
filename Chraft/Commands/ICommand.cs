@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
@@ -11,5 +12,6 @@ namespace Chraft.Commands
         string Shortcut { get; }
         CommandType Type { get; }
         string Permission { get; }
+        IPlugin Iplugin { get; set; }
     }
 }

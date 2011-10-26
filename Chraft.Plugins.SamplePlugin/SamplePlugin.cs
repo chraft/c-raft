@@ -6,8 +6,8 @@ namespace Chraft.Plugins.SamplePlugin
     [Plugin]
     public class SamplePlugin : IPlugin
     {
-        private SamplePluginPlayerListener playerListener;
-        private SamplePluginEntitiyListener entitiyListener;
+        private SamplePluginPlayerListener _playerListener;
+        private SamplePluginEntitiyListener _entitiyListener;
 
         public string Name
         {
@@ -39,8 +39,8 @@ namespace Chraft.Plugins.SamplePlugin
 
         public void Initialize()
         {
-            playerListener = new SamplePluginPlayerListener(this);
-            entitiyListener = new SamplePluginEntitiyListener(this);
+            _playerListener = new SamplePluginPlayerListener(this);
+            _entitiyListener = new SamplePluginEntitiyListener(this);
         }
 
         public void Associate(Server server, PluginManager pluginManager)
@@ -52,18 +52,18 @@ namespace Chraft.Plugins.SamplePlugin
         public void OnEnabled()
         {
             IsPluginEnabled = true;
-            PluginManager.RegisterEvent(Event.PLAYER_CHAT, playerListener, this);
-            PluginManager.RegisterEvent(Event.PLAYER_DIED, playerListener, this);
-            PluginManager.RegisterEvent(Event.ENTITY_SPAWN, entitiyListener, this);
+            PluginManager.RegisterEvent(Event.PlayerChat, _playerListener, this);
+            PluginManager.RegisterEvent(Event.PlayerDied, _playerListener, this);
+            PluginManager.RegisterEvent(Event.EntitySpawn, _entitiyListener, this);
             Console.WriteLine(Name + " " + Version + " Enabled");
         }
 
         public void OnDisabled()
         {
             IsPluginEnabled = false;
-            PluginManager.UnregisterEvent(Event.PLAYER_CHAT, playerListener, this);
-            PluginManager.UnregisterEvent(Event.PLAYER_DIED, playerListener, this);
-            PluginManager.UnregisterEvent(Event.ENTITY_SPAWN, entitiyListener, this);
+            PluginManager.UnregisterEvent(Event.PlayerChat, _playerListener, this);
+            PluginManager.UnregisterEvent(Event.PlayerDied, _playerListener, this);
+            PluginManager.UnregisterEvent(Event.EntitySpawn, _entitiyListener, this);
             Console.WriteLine(Name + " " + Version + " Disabled");
         }
     }

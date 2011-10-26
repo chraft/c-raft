@@ -47,13 +47,13 @@ namespace Chraft.Plugins.Commands
         {
             _commands = new List<ICommand>
                             {
-                                new CmdSet(),
-                                new CmdTime(),
-                                new CmdPos1(),
-                                new CmdPos2(),
-                                new CmdSpawnMob(),
-                                new CmdMute(),
-                                new CmdSetHealth()
+                                new CmdSet(this),
+                                new CmdTime(this),
+                                new CmdPos1(this),
+                                new CmdPos2(this),
+                                new CmdSpawnMob(this),
+                                new CmdMute(this),
+                                new CmdSetHealth(this)
                             };
         }
 

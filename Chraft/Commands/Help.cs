@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.Utils;
 
 namespace Chraft.Commands
@@ -14,7 +15,9 @@ namespace Chraft.Commands
         public string Name { get { return "help"; } }
         public string Shortcut { get { return ""; } }
         public CommandType Type { get { return CommandType.Information; } }
-        public string Permission{get { return "chraft.help"; }}
+        public string Permission { get { return "chraft.help"; } }
+
+        public IPlugin Iplugin { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
         {
@@ -102,7 +105,7 @@ namespace Chraft.Commands
                                 client.SendMessage(ChatColor.Red + "You cannot use this command.");
                             }
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             client.SendMessage("There was an error while accessing the help for this command.");
                             client.Owner.Server.Logger.Log(e);

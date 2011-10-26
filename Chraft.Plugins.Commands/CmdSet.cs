@@ -7,7 +7,10 @@ namespace Chraft.Plugins.Commands
 {
     public class CmdSet : IClientCommand
     {
-
+        public CmdSet(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -39,7 +42,7 @@ namespace Chraft.Plugins.Commands
                 {
                     for (int z = start.WorldZ; z <= end.WorldZ; z++)
                     {
-                        client.Owner.World.SetBlockAndData(UniversalCoords.FromWorld(x,y,z), (byte)item.Type, (byte)item.Durability);
+                        client.Owner.World.SetBlockAndData(UniversalCoords.FromWorld(x, y, z), (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }
@@ -53,6 +56,7 @@ namespace Chraft.Plugins.Commands
         public string Name
         {
             get { return "set"; }
+            set { }
         }
 
         public string Shortcut
@@ -69,5 +73,7 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.set"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

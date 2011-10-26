@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.World;
 
 namespace Chraft.Commands
@@ -51,10 +52,11 @@ namespace Chraft.Commands
         {
             get { return "chraft.tp"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
     internal class CmdSummon : IClientCommand
     {
-
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -101,5 +103,7 @@ namespace Chraft.Commands
         {
             get { return "chraft.tphere"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

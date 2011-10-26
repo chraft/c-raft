@@ -6,6 +6,10 @@ namespace Chraft.Plugins.Commands
 {
     public class CmdPos1 : IClientCommand
     {
+        public CmdPos1(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -38,9 +42,15 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.pos1"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
     public class CmdPos2 : IClientCommand
     {
+        public CmdPos2(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -73,5 +83,7 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.pos2"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

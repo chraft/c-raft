@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
@@ -21,13 +22,13 @@ namespace Chraft.Commands
         /// Exceptions:
         /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
         /// </summary>
-        /// <param name="Command">The name of the command to find.</param>
+        /// <param name="command">The name of the command to find.</param>
         /// <returns>A command with the given name.</returns>
-        public ICommand Find(string Command)
+        public ICommand Find(string command)
         {
             foreach (IServerCommand cmd in Commands)
             {
-                if (cmd.Name == Command)
+                if (cmd.Name == command)
                 {
                     return cmd;
                 }
@@ -35,7 +36,7 @@ namespace Chraft.Commands
             IServerCommand Cmd;
             try
             {
-                Cmd = FindShort(Command) as IServerCommand;
+                Cmd = FindShort(command) as IServerCommand;
                 return Cmd;
             }
             catch { }

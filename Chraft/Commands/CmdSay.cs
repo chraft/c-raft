@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.Plugins.Events.Args;
 
 namespace Chraft.Commands
 {
     internal class CmdSay : IClientCommand, IServerCommand
     {
-
         public ClientCommandHandler ClientCommandHandler { get; set; }
         public ServerCommandHandler ServerCommandHandler { get; set; }
         public void Use(Client client, string commandName, string[] tokens)
@@ -37,6 +37,8 @@ namespace Chraft.Commands
         {
             get { return "chraft.say"; }
         }
+
+        public IPlugin Iplugin { get; set; }
 
         public void Use(Server server, string commandName, string[] tokens)
         {

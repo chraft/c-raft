@@ -6,6 +6,10 @@ namespace Chraft.Plugins.Commands
 {
     public class CmdMute : IClientCommand
     {
+        public CmdMute(IPlugin plugin)
+        {
+            Iplugin = plugin;
+        }
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -79,5 +83,7 @@ namespace Chraft.Plugins.Commands
         {
             get { return "chraft.mute"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

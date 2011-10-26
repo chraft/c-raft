@@ -23,8 +23,8 @@ namespace Chraft.Plugins
         /// <summary>
         /// A Dictionary of all plugin commands.
         /// </summary>
-        private Dictionary<ICommand, IPlugin> PluginCommands = new Dictionary<ICommand, IPlugin>();
-
+        internal static Dictionary<ICommand, IPlugin> PluginCommands = new Dictionary<ICommand, IPlugin>();
+       
         /// <summary>
         /// The folder searched at runtime for available plugins.
         /// </summary>
@@ -41,7 +41,7 @@ namespace Chraft.Plugins
         /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
         internal PluginManager(Server server, string folder)
         {
-            if (!Directory.Exists(folder)){Directory.CreateDirectory(folder);}
+            if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
             Folder = folder;
             Server = server;
             PluginHooks.Add(new ClientEvent());
@@ -195,7 +195,7 @@ namespace Chraft.Plugins
         {
             PluginHooks.Find(Event).CallEvent(Event, args);
         }
-       
+
         /// <summary>
         /// Subscribes to an event.
         /// </summary>
@@ -300,25 +300,25 @@ namespace Chraft.Plugins
         /// Registers a command with the server.
         /// </summary>
         /// <param name="cmd">The command to register.  ClientCommand or ServerCommand.</param>
-        /// <param name="Plugin">The plugin to associate the command with.</param>
-        public void RegisterCommand(ICommand cmd, IPlugin Plugin)
+        /// <param name="plugin">The plugin to associate the command with.</param>
+        public void RegisterCommand(ICommand cmd, IPlugin plugin)
         {
             if (cmd is IClientCommand)
             {
                 try
                 {
                     //Event
-                    CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
+                    CommandAddedEventArgs e = new CommandAddedEventArgs(plugin, cmd);
                     CallEvent(Event.CommandAdded, e);
                     if (e.EventCanceled) return;
                     //End Event
 
-                    PluginCommands.Add(cmd, Plugin);
-                    Plugin.Server.ClientCommandHandler.RegisterCommand(cmd);
+                    PluginCommands.Add(cmd,plugin);
+                    plugin.Server.ClientCommandHandler.RegisterCommand(cmd);
                 }
                 catch (CommandAlreadyExistsException e)
                 {
-                    Plugin.Server.Logger.Log(e);
+                    plugin.Server.Logger.Log(e);
                 }
             }
             else if (cmd is IServerCommand)
@@ -326,17 +326,17 @@ namespace Chraft.Plugins
                 try
                 {
                     //Event
-                    CommandAddedEventArgs e = new CommandAddedEventArgs(Plugin, cmd);
+                    CommandAddedEventArgs e = new CommandAddedEventArgs(plugin, cmd);
                     CallEvent(Event.CommandAdded, e);
                     if (e.EventCanceled) return;
                     //End Event
 
-                    PluginCommands.Add(cmd, Plugin);
-                    Plugin.Server.ServerCommandHandler.RegisterCommand(cmd);
+                    PluginCommands.Add(cmd, plugin);
+                    plugin.Server.ServerCommandHandler.RegisterCommand(cmd);
                 }
                 catch (CommandAlreadyExistsException e)
                 {
-                    Plugin.Server.Logger.Log(e);
+                    plugin.Server.Logger.Log(e);
                 }
             }
         }
@@ -378,9 +378,9 @@ namespace Chraft.Plugins
             {
                 IPlugin plugin;
                 PluginCommands.TryGetValue(cmd, out plugin);
-                if (plugin != Plugin)
+                if (Plugin != plugin)
                     return;
-                else { PluginCommands.Remove(cmd); }
+                PluginCommands.Remove(cmd);
             }
             try
             {

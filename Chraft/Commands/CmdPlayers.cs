@@ -1,10 +1,11 @@
 ﻿using Chraft.Net;
+using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
     internal class CmdPlayers : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+       public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
         {
@@ -37,5 +38,7 @@ namespace Chraft.Commands
         {
             get { return "chraft.players"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

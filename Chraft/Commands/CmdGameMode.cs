@@ -2,13 +2,13 @@
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Plugins;
 using Chraft.Utils;
 
 namespace Chraft.Commands
 {
     internal class CmdGameMode : IClientCommand
     {
-
         public ClientCommandHandler ClientCommandHandler { get; set; }
 
         public void Use(Client client, string commandName, string[] tokens)
@@ -65,6 +65,8 @@ namespace Chraft.Commands
             get { return "gamemode"; }
         }
 
+
+
         public string Shortcut
         {
             get { return "gm"; }
@@ -79,5 +81,7 @@ namespace Chraft.Commands
         {
             get { return "chraft.gamemode"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }

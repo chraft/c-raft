@@ -417,6 +417,26 @@ namespace Chraft.World
         {
             return String.Format("boundingbox[{0} -> {1}]", Minimum.ToString(), Maximum.ToString());
         }
+
+        public bool Equals(BoundingBox other)
+        {
+            return other._minimum.Equals(_minimum) && other._maximum.Equals(_maximum);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (obj.GetType() != typeof (BoundingBox)) return false;
+            return Equals((BoundingBox) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (_minimum.GetHashCode()*397) ^ _maximum.GetHashCode();
+            }
+        }
     }
 }
 
