@@ -792,7 +792,7 @@ namespace Chraft.Utils
         /// A point on the plane.
         /// </param>
         /// <param name='planeNormal'>
-        /// The plane normal (e.g. Vector3.XAxis represents the normal for north facing plane)
+        /// The plane normal (e.g. Vector3.XAxis represents the normal for south/north facing plane)
         /// </param>
         /// <Acknowledgement>Adapted from "http://softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm#Line-Plane%20Intersection"</Acknowledgement>
         public static Vector3? IntersectPointForSegmentAndPlane(Vector3 v1, Vector3 v2, Vector3 planePoint, Vector3 planeNormal)
