@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.Plugins;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Entity;
@@ -16,7 +17,7 @@ namespace Chraft.Commands.Debug
         public void Use(Client client, string commandName, string[] tokens)
         {
             Vector3 facing = new Vector3(client.Owner.Yaw, client.Owner.Pitch);
-                
+
             Vector3 start = new Vector3(client.Owner.Position.X, client.Owner.Position.Y + client.Owner.EyeHeight, client.Owner.Position.Z);
             Vector3 end = facing * 100 + start;
             if (end.Y < 0)
@@ -24,9 +25,9 @@ namespace Chraft.Commands.Debug
                 end = end * (Math.Abs(end.Y) / start.Y);
                 end.Y = 0;
             }
-            
+
             RayTraceHitBlock hit = client.Owner.World.RayTraceBlocks(new AbsWorldCoords(start), new AbsWorldCoords(end));
-   
+
             if (hit != null)
             {
                 if (tokens.Length == 0)
@@ -51,7 +52,7 @@ namespace Chraft.Commands.Debug
 
         public void Help(Client client)
         {
-            
+
         }
 
         public string Name
@@ -73,6 +74,8 @@ namespace Chraft.Commands.Debug
         {
             get { return "chraft.debug"; }
         }
+
+        public IPlugin Iplugin { get; set; }
     }
 }
 
