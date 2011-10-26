@@ -241,18 +241,30 @@ namespace Chraft.Net
                 Send_Sync_Packet(packet);
         }
 
-        public void SendInitialPosition()
+        public void SendInitialPosition(bool async = true)
         {
-            SendPacket(new PlayerPositionRotationPacket
-            {
-                X = _player.Position.X,
-                Y = _player.Position.Y + this._player.EyeHeight,
-                Z = _player.Position.Z,
-                Yaw = (float)_player.Yaw,
-                Pitch = (float)_player.Pitch,
-                Stance = Stance,
-                OnGround = false
-            });
+            if(async)
+                SendPacket(new PlayerPositionRotationPacket
+                {
+                    X = _player.Position.X,
+                    Y = _player.Position.Y + this._player.EyeHeight,
+                    Z = _player.Position.Z,
+                    Yaw = (float)_player.Yaw,
+                    Pitch = (float)_player.Pitch,
+                    Stance = Stance,
+                    OnGround = false
+                });
+            else
+                Send_Sync_Packet(new PlayerPositionRotationPacket
+                {
+                    X = _player.Position.X,
+                    Y = _player.Position.Y + this._player.EyeHeight,
+                    Z = _player.Position.Z,
+                    Yaw = (float)_player.Yaw,
+                    Pitch = (float)_player.Pitch,
+                    Stance = Stance,
+                    OnGround = false
+                });
         }
 
         public void SendSpawnPosition(bool async = true)
@@ -292,17 +304,17 @@ namespace Chraft.Net
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
+            SendInitialPosition(false);
+            SendInitialTime(false);
             // This must be sent sync otherwise we will fall through them
             _player.UpdateChunks(2, true, CancellationToken.None);
-            StartKeepAliveTimer();
-            SendInitialPosition();
-            SendInitialTime();
-            SetGameMode();
+			SetGameMode();
             _player.InitializeInventory();
             _player.InitializeHealth();
             _player.OnJoined();
             SendMotd();
 
+            StartKeepAliveTimer();
             _player.UpdateEntities();
             Server.SendEntityToNearbyPlayers(_player.World, _player);
         }
