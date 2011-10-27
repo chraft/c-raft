@@ -188,7 +188,7 @@ namespace Chraft.Net
             }
             catch (Exception e)
             {
-                _player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
+                Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
                 Stop();
             }
 
