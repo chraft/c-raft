@@ -17,5 +17,15 @@ namespace Chraft.World.Blocks
             IsLiquid = true;
             Opacity = 0x2;
         }
+
+        public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
+        {
+            LivingEntity living = entity as LivingEntity;
+            if (living != null)
+            {
+                living.StopFireBurnTimer();
+            }
+            base.Touch(entity, block, face);
+        }
     }
 }

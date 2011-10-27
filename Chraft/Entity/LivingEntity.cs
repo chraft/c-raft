@@ -197,7 +197,7 @@ namespace Chraft.Entity
             }
         }
 
-        protected void StopFireBurnTimer()
+        public void StopFireBurnTimer()
         {
             if (FireBurnTimer != null)
             {
