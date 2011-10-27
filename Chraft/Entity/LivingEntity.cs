@@ -151,6 +151,7 @@ namespace Chraft.Entity
             Damage(DamageCause.Lava, 4);
             FireBurnTicks = 600;
             Data.IsOnFire = true;
+            SendMetadataUpdate();
             if (FireBurnTimer == null)
             {
                 FireBurnTimer = new Timer(FireBurn, null, 50, 50);
@@ -165,6 +166,7 @@ namespace Chraft.Entity
             if (FireBurnTicks == 0)
                 FireBurnTicks = 300;
             Data.IsOnFire = true;
+            SendMetadataUpdate();
             if (FireBurnTimer == null)
             {
                 FireBurnTimer = new Timer(FireBurn, null, 50, 50);
@@ -205,6 +207,7 @@ namespace Chraft.Entity
             }
             FireBurnTicks = 0;
             Data.IsOnFire = false;
+            SendMetadataUpdate();
         }
 
         #endregion
@@ -493,6 +496,16 @@ namespace Chraft.Entity
                 rotationAmount = -rotationSpeed;
             }
             return currentRotation + rotationAmount;
+        }
+
+        protected void SendMetadataUpdate()
+        {
+            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
+               new EntityMetadataPacket // Metadata update
+               {
+                   EntityId = this.EntityId,
+                   Data = this.Data
+               });
         }
     }
 }

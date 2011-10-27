@@ -60,16 +60,6 @@ namespace Chraft.Entity
             this.World = world;
 		}
 
-        protected void SendMetadataUpdate()
-        {
-            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
-               new EntityMetadataPacket // Metadata update
-               {
-                   EntityId = this.EntityId,
-                   Data = this.Data
-               });
-        }
-
         protected virtual void DoInteraction(Client client, ItemStack item)
         {
         }
