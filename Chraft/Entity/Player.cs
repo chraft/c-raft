@@ -118,6 +118,38 @@ namespace Chraft.Entity
             });
         }
 
+        #region Fire/burning damage
+        public override void TouchedFire()
+        {
+            if (!LoggedIn)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.TouchedFire();
+        }
+
+        public override void TouchedLava()
+        {
+            if (!LoggedIn)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.TouchedLava();
+        }
+
+        protected override void FireBurn(object state)
+        {
+            if (!LoggedIn)
+
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.FireBurn(state);
+        }
+        #endregion
         #region Suffocation/drowning
         protected override void Suffocate(object state)
         {
@@ -350,6 +382,9 @@ namespace Chraft.Entity
         protected override void DoDeath(EntityBase killedBy)
         {
             Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+            StopFireBurnTimer();
+            StopSuffocationTimer();
+            StopDrowningTimer();
         }
 
         #endregion

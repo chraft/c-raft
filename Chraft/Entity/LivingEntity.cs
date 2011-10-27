@@ -39,6 +39,8 @@ namespace Chraft.Entity
             get { return this.Height * 0.85f; }
         }
 
+        private static object _damageLock = new object();
+        protected int LastDamageTick;
         protected Timer SuffocationTimer;
         protected Timer DrowningTimer;
 
@@ -48,6 +50,10 @@ namespace Chraft.Entity
         public bool CanDrown { get; protected set; }
 
         public bool CanSuffocate { get; protected set; }
+
+        protected Timer FireBurnTimer;
+        public short FireBurnTicks { get; protected set; }
+        public bool IsImmuneToFire { get; protected set; }
 
         public bool IsDead { get; protected set; }
 
@@ -77,6 +83,10 @@ namespace Chraft.Entity
             this.Health = MaxHealth;
             CanDrown = true;
             CanSuffocate = true;
+            IsImmuneToFire = false;
+            FireBurnTicks = 0;
+            LastDamageTick = 0;
+            Data = new MetaData();
         }
         
         /// <summary>
@@ -133,6 +143,72 @@ namespace Chraft.Entity
             return "W";
         }
 
+        #region Fire/burning damage
+        public virtual void TouchedLava()
+        {
+            if (IsDead || IsImmuneToFire)
+                return;
+            Damage(DamageCause.Lava, 4);
+            FireBurnTicks = 600;
+            Data.IsOnFire = true;
+            if (FireBurnTimer == null)
+            {
+                FireBurnTimer = new Timer(FireBurn, null, 50, 50);
+            }
+        }
+
+        public virtual void TouchedFire()
+        {
+            if (IsDead || IsImmuneToFire)
+                return;
+            Damage(DamageCause.Fire, 1);
+            if (FireBurnTicks == 0)
+                FireBurnTicks = 300;
+            Data.IsOnFire = true;
+            if (FireBurnTimer == null)
+            {
+                FireBurnTimer = new Timer(FireBurn, null, 50, 50);
+            }
+        }
+
+        protected virtual void FireBurn(object state)
+        {
+            if (IsDead || FireBurnTicks <= 0)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+
+            if (IsImmuneToFire)
+            {
+                FireBurnTicks -= 4;
+                if (FireBurnTicks < 0)
+                    FireBurnTicks = 0;
+            }
+            else
+            {
+                if (FireBurnTicks % 20 == 0) // Each second
+                {
+                    Damage(DamageCause.FireBurn, 1);
+                }
+                FireBurnTicks--;
+            }
+        }
+
+        protected void StopFireBurnTimer()
+        {
+            if (FireBurnTimer != null)
+            {
+                FireBurnTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                FireBurnTimer.Dispose();
+                FireBurnTimer = null;
+            }
+            FireBurnTicks = 0;
+            Data.IsOnFire = false;
+        }
+
+        #endregion
+
         #region Drowning/suffocation
         public virtual void CheckDrowning()
         {
@@ -157,7 +233,7 @@ namespace Chraft.Entity
                 return;
             }
 
-            if (TicksDrowning >= 200 && TicksDrowning % 20 == 0) // 10+ Seconds underwater
+            if (TicksDrowning >= 240 && TicksDrowning % 20 == 0) // 10+ Seconds underwater
             {
                 Damage(DamageCause.Drowning, 2);
             }
@@ -223,6 +299,7 @@ namespace Chraft.Entity
             base.OnMoveTo(x, y, z);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
         public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
@@ -230,6 +307,7 @@ namespace Chraft.Entity
             base.OnMoveRotateTo(x, y, z);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
         public override void OnTeleportTo(AbsWorldCoords absCoords)
@@ -237,6 +315,7 @@ namespace Chraft.Entity
             base.OnTeleportTo(absCoords);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
 
@@ -248,27 +327,33 @@ namespace Chraft.Entity
 
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
-
-            EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
-            Server.PluginManager.CallEvent(Event.EntityDamage, e);
-            if (e.EventCanceled) return;
-            damageAmount = e.Damage;
-            hitBy = e.DamagedBy;
-            // Debug
-            if (hitBy is Player)
+            lock (_damageLock)
             {
-                var hitByPlayer = hitBy as Player;
-                ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
-                hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " + damageAmount + " damage.");
-            }
-            
-            Health -= damageAmount;
-            SendUpdateOnDamage();
-            
-            // TODO: Entity Knockback
+                if (World.WorldTicks - LastDamageTick < 10)
+                    return;
+                LastDamageTick = World.WorldTicks;
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
+                Server.PluginManager.CallEvent(Event.EntityDamage, e);
+                if (e.EventCanceled) return;
+                damageAmount = e.Damage;
+                hitBy = e.DamagedBy;
+                // Debug
+                if (hitBy is Player)
+                {
+                    var hitByPlayer = hitBy as Player;
+                    ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
+                    hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " +
+                                                   damageAmount + " damage.");
+                }
 
-            if (Health <= 0)
-                HandleDeath(hitBy);
+                Health -= damageAmount;
+                SendUpdateOnDamage();
+
+                // TODO: Entity Knockback
+
+                if (Health <= 0)
+                    HandleDeath(hitBy);
+            }
         }
 
         protected virtual void SendUpdateOnDamage()
@@ -351,6 +436,10 @@ namespace Chraft.Entity
             };
 
             removeTimer.Start();
+
+            StopFireBurnTimer();
+            StopSuffocationTimer();
+            StopDrowningTimer();
         }
 
         #endregion
