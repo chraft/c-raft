@@ -325,8 +325,11 @@ namespace Chraft.World
 
         public void Dispose()
         {
-            _UpdateTimer.Dispose();
-            _UpdateTimer = null;
+            if (_UpdateTimer != null)
+            {
+                _UpdateTimer.Dispose();
+                _UpdateTimer = null;
+            }
         }
 	}
 }

@@ -119,8 +119,6 @@ namespace ChraftTestClient
         {
             MapChunkPacket mc = new MapChunkPacket();
             mc.Read(reader);
-
-            mc.Chunk.Dispose();
         }
 
         public static void ReadTimeUpdate(TestClient client, PacketReader reader)
