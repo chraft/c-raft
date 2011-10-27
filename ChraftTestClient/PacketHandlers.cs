@@ -9,16 +9,16 @@ namespace ChraftTestClient
 {
     public class PacketHandlers
     {
-        private static ClientPacketHandler[] m_Handlers;
+        private static ClientPacketHandler[] _handlers;
 
         public static ClientPacketHandler[] Handlers
         {
-            get { return m_Handlers; }
+            get { return _handlers; }
         }
 
         static PacketHandlers()
         {
-            m_Handlers = new ClientPacketHandler[0x100];
+            _handlers = new ClientPacketHandler[0x100];
 
             Register(PacketType.KeepAlive, 5, 0, ReadKeepAlive);
             Register(PacketType.LoginRequest, 0, 23, ReadLoginRequest);
@@ -47,18 +47,21 @@ namespace ChraftTestClient
             Register(PacketType.PlayerListItem, 0, 6, ReadPlayerListItem);
             Register(PacketType.UpdateHealth, 9, 0, ReadUpdateHealth);
             Register(PacketType.EntityEquipment, 11, 0, ReadEntityEquipment);
-            Register(PacketType.DestroyEntity, 3, 0, ReadDestroyEntity);
+            Register(PacketType.DestroyEntity, 5, 0, ReadDestroyEntity);
             Register(PacketType.Animation, 6, 0, ReadAnimation);
+            Register(PacketType.PickupSpawn, 25, 0, ReadPickupSpawn);
+            Register(PacketType.CollectItem, 9, 0, ReadCollectItem);
+            Register(PacketType.UpdateProgressBar, 6, 0, ReadUpdateProgressBar);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
         {
-            m_Handlers[(byte)packetID] = new ClientPacketHandler(packetID, length, minimumLength, onReceive);
+            _handlers[(byte)packetID] = new ClientPacketHandler(packetID, length, minimumLength, onReceive);
         }
 
         public static ClientPacketHandler GetHandler(PacketType packetID)
         {
-            return m_Handlers[(byte)packetID];
+            return _handlers[(byte)packetID];
         }
 
         public static void ReadKeepAlive(TestClient client, PacketReader reader)
@@ -116,6 +119,8 @@ namespace ChraftTestClient
         {
             MapChunkPacket mc = new MapChunkPacket();
             mc.Read(reader);
+
+            mc.Chunk.Dispose();
         }
 
         public static void ReadTimeUpdate(TestClient client, PacketReader reader)
@@ -258,6 +263,24 @@ namespace ChraftTestClient
         {
             AnimationPacket ap = new AnimationPacket();
             ap.Read(reader);
+        }
+
+        public static void ReadPickupSpawn(TestClient client, PacketReader reader)
+        {
+            SpawnItemPacket si = new SpawnItemPacket();
+            si.Read(reader);
+        }
+
+        public static void ReadCollectItem(TestClient client, PacketReader reader)
+        {
+            CollectItemPacket ci = new CollectItemPacket();
+            ci.Read(reader);
+        }
+
+        public static void ReadUpdateProgressBar(TestClient client, PacketReader reader)
+        {
+            UpdateProgressBarPacket up = new UpdateProgressBarPacket();
+            up.Read(reader);
         }
     }
 }
