@@ -17,24 +17,33 @@ namespace Chraft.Plugins.Commands
             int newTime = -1;
             if (tokens.Length < 1)
             {
-                client.SendMessage("You must specify an explicit time, day, or night.");
+                client.SendMessage("You must specify a time value between 0 and 24000 or <sunrise|day|sunset|night>");
                 return;
             }
             if (int.TryParse(tokens[0], out newTime) && newTime >= 0 && newTime <= 24000)
             {
                 client.Owner.World.Time = newTime;
             }
-            else if (tokens[0].ToLower() == "day")
+            else if (tokens[0].ToLower() == "sunrise")
             {
                 client.Owner.World.Time = 0;
             }
-            else if (tokens[0].ToLower() == "night")
+            else if (tokens[0].ToLower() == "day")
+            {
+                client.Owner.World.Time = 6000;
+            }
+            else if (tokens[0].ToLower() == "sunset")
             {
                 client.Owner.World.Time = 12000;
             }
+
+            else if (tokens[0].ToLower() == "night")
+            {
+                client.Owner.World.Time = 18000;
+            }
             else
             {
-                client.SendMessage("You must specify a time value between 0 and 24000");
+                client.SendMessage("You must specify a time value between 0 and 24000 or <sunrise|day|sunset|night>");
                 return;
             }
             client.Owner.Server.Broadcast(new TimeUpdatePacket { Time = client.Owner.World.Time });
@@ -42,7 +51,7 @@ namespace Chraft.Plugins.Commands
 
         public void Help(Client client)
         {
-            client.SendMessage("/time <Day | Night | Raw> - Sets the time.");
+            client.SendMessage("/time <Sunrise | Day | Sunset | Night | Raw> - Sets the time.");
         }
 
         public string Name
