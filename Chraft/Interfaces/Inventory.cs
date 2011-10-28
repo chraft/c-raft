@@ -134,7 +134,7 @@ namespace Chraft.Interfaces
             }
         }
 
-        internal bool DamageItem(short slot)
+        internal bool DamageItem(short slot, short damageAmount = 1)
         {
             short durability = 0;
 
@@ -142,7 +142,7 @@ namespace Chraft.Interfaces
 
             if (durability > 0)
             {
-                if (this[slot].Durability == durability)
+                if (this[slot].Durability >= durability)
                 {
                     if (this[slot].Count == 1)
                     {
@@ -158,7 +158,7 @@ namespace Chraft.Interfaces
                 }
                 else
                 {
-                    this[slot].Durability++;
+                    this[slot].Durability += damageAmount;
                     return true;
                 }
             }
