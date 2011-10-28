@@ -643,6 +643,27 @@ namespace Chraft.Net
             client.CheckAndUpdateChunks(packet.X, packet.Z);
         }
 
+        public static void HandlePacketEntityAction(Client client, EntityActionPacket packet)
+        {
+            switch (packet.Action)
+            {
+                case EntityActionPacket.ActionType.Crouch:
+                    client.Owner.StartCrouching();
+                    break;
+                case EntityActionPacket.ActionType.Uncrouch:
+                    client.Owner.StopCrouching();
+                    break;
+                case EntityActionPacket.ActionType.StartSprinting:
+                    client.Owner.StartSprinting();
+                    break;
+                case EntityActionPacket.ActionType.StopSprinting:
+                    client.Owner.StopSprinting();
+                    break;
+                default:
+                    break;
+            }
+        }
+
         private double _lastX;
         private double _lastZ;
         private int _movementsArrived;

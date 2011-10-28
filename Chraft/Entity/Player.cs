@@ -59,6 +59,9 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
+        public float FoodSaturation { get; set; }
+        public short Food { get; set; }
+        
         public Player(Server server, int entityId, Client client) : base(server, entityId)
         {
             _client = client;
@@ -69,6 +72,7 @@ namespace Chraft.Entity
             PermHandler = new PermissionHandler(server);
         }
 
+        #region Initialization
         public void InitializePosition()
         {
             World = Server.GetDefaultWorld();
@@ -94,9 +98,6 @@ namespace Chraft.Entity
             Inventory.UpdateClient();
         }
 
-        public float FoodSaturation { get; set; }
-        public short Food { get; set; }
-
         public void InitializeHealth()
         {
             if (Health <= 0)
@@ -117,6 +118,7 @@ namespace Chraft.Entity
                 FoodSaturation = FoodSaturation,
             });
         }
+        #endregion
 
         #region Fire/burning damage
         public override void TouchedFire()
@@ -241,6 +243,29 @@ namespace Chraft.Entity
             }
         }
 
+        public void StartCrouching()
+        {
+            Data.IsCrouched = true;
+            SendMetadataUpdate();
+        }
+
+        public void StopCrouching()
+        {
+            Data.IsCrouched = false;
+            SendMetadataUpdate();
+        }
+
+        public void StartSprinting()
+        {
+            Data.IsSprinting = true;
+            SendMetadataUpdate();
+        }
+
+        public void StopSprinting()
+        {
+            Data.IsSprinting = false;
+            SendMetadataUpdate();
+        }
         #endregion
 
         #region Attack & damage

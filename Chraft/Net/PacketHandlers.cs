@@ -187,9 +187,8 @@ namespace Chraft.Net
             EntityActionPacket ea = new EntityActionPacket();
             ea.Read(reader);
 
-            // TODO: implement this packet
-            /*if (!reader.Failed)
-                Client.HandlePacketEntityAction(client, ea);*/
+            if (!reader.Failed)
+                Client.HandlePacketEntityAction(client, ea);
         }
 
         public static void ReadCloseWindow(Client client, PacketReader reader)
