@@ -12,5 +12,15 @@ namespace Chraft.Interfaces
             : base(world, InterfaceType.Chest, coords, 27)
         {
         }
+
+        public enum SmallChestSlots : short
+        {
+            ChestFirst = 0,
+            ChestLast = 26,
+            InventoryFirst = 27,
+            InventoryLast = 53,
+            QuickSlotFirst = 54,
+            QuickSlotLast = 62
+        }
     }
 }

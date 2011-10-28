@@ -74,8 +74,8 @@ namespace Chraft.Interfaces
                     }
                     foreach (var fInterface in Interfaces)
                     {
-                        fInterface[FUEL_SLOT] = FuelSlot;
-                        fInterface.SendUpdate(FUEL_SLOT);
+                        fInterface[(short)FurnaceSlots.Fuel] = FuelSlot;
+                        fInterface.SendUpdate((short)FurnaceSlots.Fuel);
                     }
                 }
                 TryBurn();
@@ -95,8 +95,8 @@ namespace Chraft.Interfaces
                     }
                     foreach (var fInterface in Interfaces)
                     {
-                        fInterface[INPUT_SLOT] = InputSlot;
-                        fInterface.SendUpdate(INPUT_SLOT);
+                        fInterface[(short)FurnaceSlots.Input] = InputSlot;
+                        fInterface.SendUpdate((short)FurnaceSlots.Input);
                     }
                 }
                 TryBurn();
@@ -116,8 +116,8 @@ namespace Chraft.Interfaces
                     }
                     foreach (var fInterface in Interfaces)
                     {
-                        fInterface[OUTPUT_SLOT] = OutputSlot;
-                        fInterface.SendUpdate(OUTPUT_SLOT);
+                        fInterface[(short)FurnaceSlots.Output] = OutputSlot;
+                        fInterface.SendUpdate((short)FurnaceSlots.Output);
                     }   
                 }
                 TryBurn();
@@ -221,8 +221,8 @@ namespace Chraft.Interfaces
                     FuelSlot = ItemStack.Void;
                 foreach (var fInterface in Interfaces)
                 {
-                    fInterface[FUEL_SLOT] = new ItemStack(FuelSlot.Type, FuelSlot.Count, FuelSlot.Durability);
-                    fInterface.SendUpdate(FUEL_SLOT);
+                    fInterface[(short)FurnaceSlots.Fuel] = new ItemStack(FuelSlot.Type, FuelSlot.Count, FuelSlot.Durability);
+                    fInterface.SendUpdate((short)FurnaceSlots.Fuel);
                 }
             }
 
@@ -347,7 +347,7 @@ namespace Chraft.Interfaces
                 if (!_furnaceInstances.ContainsKey(id))
                 {
                     furnaceInstance = new FurnaceInstance(furnace.World, coords);
-                    furnaceInstance.InitSlots(furnace[INPUT_SLOT], furnace[FUEL_SLOT], furnace[OUTPUT_SLOT]);
+                    furnaceInstance.InitSlots(furnace[(short)FurnaceSlots.Input], furnace[(short)FurnaceSlots.Fuel], furnace[(short)FurnaceSlots.Output]);
                     furnaceInstance.TryBurn();
                     _furnaceInstances[id] = furnaceInstance;
                 }
@@ -406,15 +406,11 @@ namespace Chraft.Interfaces
             base.DoClose();
         }
 
-        const short INPUT_SLOT = 0;
-        const short FUEL_SLOT = 1;
-        const short OUTPUT_SLOT = 2;
-
         internal override void OnClicked(WindowClickPacket packet)
         {
             ItemStack newItem = ItemStack.Void;
 
-            if (packet.Slot == OUTPUT_SLOT)
+            if (packet.Slot == (short)FurnaceSlots.Output)
             {
                 lock (_furnaceInstance)
                 {
@@ -434,11 +430,11 @@ namespace Chraft.Interfaces
                     {
                         Cursor = ItemStack.Void;
                         Cursor.Slot = -1;
-                        Cursor.Type = this[OUTPUT_SLOT].Type;
-                        Cursor.Durability = this[OUTPUT_SLOT].Durability;
+                        Cursor.Type = this[(short)FurnaceSlots.Output].Type;
+                        Cursor.Durability = this[(short)FurnaceSlots.Output].Durability;
                         // Add the output item to the Cursor
-                        Cursor.Count += this[OUTPUT_SLOT].Count;
-                        this[OUTPUT_SLOT] = ItemStack.Void;
+                        Cursor.Count += this[(short)FurnaceSlots.Output].Count;
+                        this[(short)FurnaceSlots.Output] = ItemStack.Void;
                         _furnaceInstance.ChangeOutput(ItemStack.Void);
                     }
                     return;
@@ -448,32 +444,43 @@ namespace Chraft.Interfaces
 
             base.OnClicked(packet);
 
-            if (packet.Slot == INPUT_SLOT)
+            if (packet.Slot == (short)FurnaceSlots.Input)
             {
                 lock (_furnaceInstance)
                 {
-                    if (!ItemStack.IsVoid(this[INPUT_SLOT]))
+                    if (!ItemStack.IsVoid(this[(short)FurnaceSlots.Input]))
                     {
-                        newItem.Type = this[INPUT_SLOT].Type;
-                        newItem.Count = this[INPUT_SLOT].Count;
-                        newItem.Durability = this[INPUT_SLOT].Durability;
+                        newItem.Type = this[(short)FurnaceSlots.Input].Type;
+                        newItem.Count = this[(short)FurnaceSlots.Input].Count;
+                        newItem.Durability = this[(short)FurnaceSlots.Input].Durability;
                     }
                     _furnaceInstance.ChangeInput(newItem);
                 }
             }
-            else if (packet.Slot == FUEL_SLOT)
+            else if (packet.Slot == (short)FurnaceSlots.Fuel)
             {
                 lock (_furnaceInstance)
                 {
-                    if (!ItemStack.IsVoid(this[FUEL_SLOT]))
+                    if (!ItemStack.IsVoid(this[(short)FurnaceSlots.Fuel]))
                     {
-                        newItem.Type = this[FUEL_SLOT].Type;
-                        newItem.Count = this[FUEL_SLOT].Count;
-                        newItem.Durability = this[FUEL_SLOT].Durability;
+                        newItem.Type = this[(short)FurnaceSlots.Fuel].Type;
+                        newItem.Count = this[(short)FurnaceSlots.Fuel].Count;
+                        newItem.Durability = this[(short)FurnaceSlots.Fuel].Durability;
                     }
                     _furnaceInstance.ChangeFuel(newItem);
                 }
             }
+        }
+
+        public enum FurnaceSlots : short
+        {
+            Input = 0,
+            Fuel = 1,
+            Output = 2,
+            InventoryFirst = 3,
+            InventoryLast = 29,
+            QuickSlotFirst = 30,
+            QuickSlotLast = 38
         }
 	}
 }

@@ -12,5 +12,15 @@ namespace Chraft.Interfaces
             : base(world, InterfaceType.Dispenser, coords, 9)
 		{
 		}
+
+        public enum DispenserSlots : short
+        {
+            DispenserFirst = 0,
+            DispenserLast = 8,
+            InventoryFirst = 9,
+            InventoryLast = 35,
+            QuickSlotFirst = 36,
+            QuickSlotLast = 44
+        }
 	}
 }
