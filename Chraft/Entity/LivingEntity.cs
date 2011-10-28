@@ -330,6 +330,11 @@ namespace Chraft.Entity
 
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
+            if (damageAmount <= 0)
+            {
+                World.Logger.Log(Logger.LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" :hitBy.EntityId.ToString()), Name, EntityId));
+                return;
+            }
             lock (_damageLock)
             {
                 if (World.WorldTicks - LastDamageTick < 10)
