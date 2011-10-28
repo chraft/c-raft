@@ -321,10 +321,16 @@ namespace Chraft.Net
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
+            
+            List<Chunk> toUpdate = new List<Chunk>();
+            _player.SendInitialPreChunks(toUpdate, 2);
+            UniversalCoords spawn = UniversalCoords.FromAbsWorld(_player.Position);
+            Chunk chunk = _player.World.GetChunkFromChunk(spawn.ChunkX, spawn.ChunkZ, true, true);
+            SendChunk(chunk, true);
             SendInitialPosition(false);
             SendInitialTime(false);
-            // This must be sent sync otherwise we will fall through them
-            _player.UpdateChunks(2, true, CancellationToken.None);
+            _player.SendInitialMapChunks(toUpdate);
+            
 			SetGameMode();
             _player.InitializeInventory();
             _player.InitializeHealth();

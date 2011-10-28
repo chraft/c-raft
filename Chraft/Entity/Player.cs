@@ -504,12 +504,11 @@ namespace Chraft.Entity
 
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
         {
-            List<int> nearbyChunks = new List<int>();
-            List<int> toUpdate = new List<int>();
-
-            int chunkX = (int)Position.X >> 4;
-            int chunkZ = (int)Position.Z >> 4;
-
+            int chunkX = (int)(Math.Floor(Position.X)) >> 4;
+            int chunkZ = (int)(Math.Floor(Position.Z)) >> 4;
+            
+            Dictionary<int, int> nearbyChunks = new Dictionary<int, int>();
+            
             for (int x = chunkX - radius; x <= chunkX + radius; ++x)
             {
                 for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
@@ -519,35 +518,23 @@ namespace Chraft.Entity
 
                     int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
                     //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
-                    nearbyChunks.Add(packedChunk);
+                    nearbyChunks.Add(packedChunk, packedChunk);
 
                     if (!LoadedChunks.ContainsKey(packedChunk))
                     {
-                        toUpdate.Add(packedChunk);
+                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                        LoadedChunks.TryAdd(packedChunk, chunk);
+                        chunk.AddClient(Client);
                         _client.SendPreChunk(x, z, true, sync);
+                        _client.SendChunk(chunk, sync);
                     }
                 }
             }
-
-            foreach (int c in toUpdate)
-            {
-                if (token.IsCancellationRequested)
-                    return;
-                int x = UniversalCoords.FromPackedChunkToX(c);
-                int z = UniversalCoords.FromPackedChunkToZ(c);
-
-                Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
-                //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
-                chunk.AddClient(_client);
-                LoadedChunks.TryAdd(c, chunk);
-                _client.SendChunk(chunk, sync);
-
-                _client.SendSignTexts(chunk);
-            }
+            
 
             if (remove)
             {
-                foreach (int c in LoadedChunks.Keys.Where(c => !nearbyChunks.Contains(c)))
+                foreach (int c in LoadedChunks.Keys.Where(c => !nearbyChunks.ContainsKey(c)))
                 {
                     if (token.IsCancellationRequested)
                         return;
@@ -559,6 +546,45 @@ namespace Chraft.Entity
                 }
             }
 
+        }
+        
+        
+        public void SendInitialPreChunks(List<Chunk> toUpdate, int radius, bool sync = true)
+        {
+            int chunkX = (int)(Math.Floor(Position.X)) >> 4;
+            int chunkZ = (int)(Math.Floor(Position.Z)) >> 4;
+            
+            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
+            {
+                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
+                {
+                    
+                    int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
+                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
+
+                    if (!LoadedChunks.ContainsKey(packedChunk))
+                    {
+                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                        if(x != 0 || z != 0)
+                            toUpdate.Add(chunk);
+                        chunk.AddClient(_client);
+                        LoadedChunks.TryAdd(packedChunk, chunk);
+                        _client.SendPreChunk(x, z, true, sync);
+                    }
+                }
+            }
+        }
+
+        public void SendInitialMapChunks(List<Chunk> toUpdate, bool sync = true)
+        {
+            foreach (Chunk c in toUpdate)
+            {
+                //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
+                
+                _client.SendChunk(c, sync);
+
+                _client.SendSignTexts(c);
+            }
         }
 
         public void OnJoined()
