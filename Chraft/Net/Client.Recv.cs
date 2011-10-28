@@ -181,10 +181,8 @@ namespace Chraft.Net
             {
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
 
-                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
-                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
                 if (!pending)
-                    Recv_Process(_recvSocketEvent);
+                    Recv_Completed(null, _recvSocketEvent);
             }
             catch (Exception e)
             {
@@ -195,34 +193,25 @@ namespace Chraft.Net
         }
 
         private void Recv_Process(SocketAsyncEventArgs e)
-        {
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
-            {
-                lock (_QueueSwapLock)
-                    _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
+        {         
+            lock (_QueueSwapLock)
+                _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
-                int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
+            int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
 
-                if ((newValue - 1) == 0)
-                    Server.RecvClientQueue.Enqueue(this);
+            if ((newValue - 1) == 0)
+                Server.RecvClientQueue.Enqueue(this);
 
-                Server.NetworkSignal.Set();
+            Server.NetworkSignal.Set();
 
-                Recv_Start();
-            }
-            else
-            {
-                MarkToDispose();
-                DisposeRecvSystem();
-                _nextActivityCheck = DateTime.MinValue;
-            }
+            Recv_Start();       
         }
 
         private void Recv_Completed(object sender, SocketAsyncEventArgs e)
         {
             if (!Running)
                 DisposeRecvSystem();
-            else if(e.SocketError != SocketError.Success || e.BytesTransferred == 0)
+            else if (e.SocketError != SocketError.Success || e.BytesTransferred == 0)
             {
                 Client client;
                 if (Server.AuthClients.TryGetValue(SessionID, out client))
@@ -234,7 +223,11 @@ namespace Chraft.Net
                 //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
             }
             else
+            {
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
                 Recv_Process(e);
+            }
         }
 
         public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
@@ -780,7 +773,7 @@ namespace Chraft.Net
                     }
                 }
 
-                client.SendLoginSequence();
+                Task.Factory.StartNew(client.SendLoginSequence);
             }
         }
 

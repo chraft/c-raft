@@ -40,7 +40,7 @@ namespace Chraft.Net
             Server.NetworkSignal.Set();
         }
 
-        public void Send_Async(byte[] data)
+        private void Send_Async(byte[] data)
         {
             if (!Running || !_socket.Connected)
             {
@@ -62,7 +62,7 @@ namespace Chraft.Net
                 Send_Completed(null, _sendSocketEvent);
         }
 
-        public void Send_Sync(byte[] data)
+        private void Send_Sync(byte[] data)
         {
             if (!Running || !_socket.Connected)
             {
@@ -73,8 +73,8 @@ namespace Chraft.Net
             {
                 _socket.Send(data, data.Length, 0);
 
-                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
-                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
             }
             catch (Exception)
             {
@@ -122,7 +122,20 @@ namespace Chraft.Net
                     packet.Release();
                 }
                 else
+                {
                     Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
+
+                    if (!PacketsToBeSent.IsEmpty)
+                    {
+                        int newValue = Interlocked.Increment(ref _TimesEnqueuedForSend);
+
+                        if (newValue == 1)
+                        {
+                            Server.SendClientQueue.Enqueue(this);
+                            Server.NetworkSignal.Set();
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -150,7 +163,11 @@ namespace Chraft.Net
                 _nextActivityCheck = DateTime.MinValue;
             }
             else
+            {
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
                 Send_Start();
+            }
         }
 
         internal void SendPulse()
