@@ -61,6 +61,8 @@ namespace Chraft.Entity
 
         public float FoodSaturation { get; set; }
         public short Food { get; set; }
+
+        protected short _lastDamageRemainder = 0;
         
         public Player(Server server, int entityId, Client client) : base(server, entityId)
         {
@@ -299,6 +301,9 @@ namespace Chraft.Entity
         {
             if (GameMode == 1)
                 return;
+            // Armor can't reduce suffocation, fire burn, drowning, starving, magic, generic and falling-in-void damage
+            if (cause != DamageCause.Suffocation && cause != DamageCause.Drowning && cause != DamageCause.FireBurn && cause != DamageCause.Void)
+                damageAmount = ApplyArmorReduction(damageAmount);
             base.Damage(cause, damageAmount, hitBy, args);
         }
 
@@ -357,6 +362,76 @@ namespace Chraft.Entity
             }
 
             return damage;
+        }
+
+        protected short ApplyArmorReduction(short initialDamage)
+        {
+            short armorPoints = GetArmor();
+            int j = 25 - armorPoints;
+            int k = initialDamage * j + _lastDamageRemainder;
+            DamageArmor(initialDamage);
+            short reducedDamage = (short)(k / 25);
+            _lastDamageRemainder = (short)(k % 25);
+            return reducedDamage;
+        }
+
+        public void DamageArmor(short damage)
+        {
+            for (int i = 5; i < 9; i++)
+            {
+                if (!ItemStack.IsVoid(Inventory.Slots[i]))
+                {
+                    if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
+                        continue;
+
+                    Inventory.DamageItem((short)i, Math.Abs(damage));
+                }
+            }
+        }
+
+        protected short GetArmor()
+        {
+            short baseArmorPoints = 0;
+            short totalCurrentDurability = 0;
+            short totalBaseDurability = 0;
+            short effectiveArmor = 0;
+
+            // Helmet
+            if (!ItemStack.IsVoid(Inventory.Slots[5]))
+            {
+                // We can wear a pumpkin, but it'll not give us any armor
+                if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
+                {
+                    baseArmorPoints += 3;
+                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type] - Inventory.Slots[5].Durability);
+                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type];
+                }
+            }
+            // Chest
+            if (!ItemStack.IsVoid(Inventory.Slots[6]))
+            {
+                baseArmorPoints += 8;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
+            }
+            // Pants
+            if (!ItemStack.IsVoid(Inventory.Slots[7]))
+            {
+                baseArmorPoints += 6;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
+            }
+            // Boots
+            if (!ItemStack.IsVoid(Inventory.Slots[8]))
+            {
+                baseArmorPoints += 3;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type];
+            }
+            if (totalBaseDurability > 0)
+                effectiveArmor = (short)Math.Floor(baseArmorPoints*((double) totalCurrentDurability/totalBaseDurability));
+
+            return effectiveArmor;
         }
 
 
