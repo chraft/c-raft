@@ -438,7 +438,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendMoveBy(this, x, y, z);
             }
         }
@@ -461,7 +461,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
             {
-                if (!c.Equals(this))
+                if (!ToSkip(c))
                     c.SendTeleportTo(this);
             }
         }
@@ -483,7 +483,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
@@ -532,9 +532,14 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
+        }
+
+        public virtual bool ToSkip(Client c)
+        {
+            return false;
         }
 
         public bool Equals(EntityBase other)

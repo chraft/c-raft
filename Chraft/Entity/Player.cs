@@ -207,6 +207,7 @@ namespace Chraft.Entity
         public override void OnTeleportTo(AbsWorldCoords absCoords)
         {
             base.OnTeleportTo(absCoords);
+
             Client.SendPacket(new PlayerPositionRotationPacket
                                   {
                                       X = absCoords.X,
@@ -217,6 +218,11 @@ namespace Chraft.Entity
                                       Stance = Client.Stance,
                                       OnGround = false
                                   });
+        }
+
+        public override bool ToSkip(Client c)
+        {
+            return c.Owner.Equals(this);
         }
 
         public void UpdateEntities()
@@ -641,7 +647,7 @@ namespace Chraft.Entity
                     {
                         Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
                         if(x != 0 || z != 0)
-                            toUpdate.Add(chunk);
+                        toUpdate.Add(chunk);
                         chunk.AddClient(_client);
                         LoadedChunks.TryAdd(packedChunk, chunk);
                         _client.SendPreChunk(x, z, true, sync);
