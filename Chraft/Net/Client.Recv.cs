@@ -621,19 +621,31 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerPositionRotation(Client client, PlayerPositionRotationPacket packet)
         {
-            //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
-            double threshold = 0.001;
-            double diffX = Math.Abs(client.Owner.Position.X - packet.X);
-            double diffY = Math.Abs(client.Owner.Position.Y - (packet.Y - client.Owner.EyeHeight));
-            double diffZ = Math.Abs(client.Owner.Position.Z - packet.Z);
-            if (diffX < threshold && diffY < threshold && diffZ < threshold)
-                return;
+            double feetY = packet.Y - client.Owner.EyeHeight;
+            if(client.WaitForInitialPosAck)
+            {
+                AbsWorldCoords coords = new AbsWorldCoords(packet.X, feetY, packet.Z);
+                if(coords == client.Owner.LoginPosition)
+                {
+                    client.WaitForInitialPosAck = false;
+                    client.SendSecondLoginSequence();
+                }
+            }
+            else
+            {
+                double threshold = 0.001;
+                double diffX = Math.Abs(client.Owner.Position.X - packet.X);
+                double diffY = Math.Abs(client.Owner.Position.Y - feetY);
+                double diffZ = Math.Abs(client.Owner.Position.Z - packet.Z);
+                if (diffX < threshold && diffY < threshold && diffZ < threshold)
+                    return;
 
-            client.Owner.MoveTo(new AbsWorldCoords(packet.X, packet.Y - client.Owner.EyeHeight, packet.Z), packet.Yaw, packet.Pitch);
-            client.OnGround = packet.OnGround;
-            client.Stance = packet.Stance;
+                client.Owner.MoveTo(new AbsWorldCoords(packet.X, feetY, packet.Z), packet.Yaw, packet.Pitch);
+                client.OnGround = packet.OnGround;
+                client.Stance = packet.Stance;
 
-            client.CheckAndUpdateChunks(packet.X, packet.Z);
+                client.CheckAndUpdateChunks(packet.X, packet.Z);
+            }
         }
 
         public static void HandlePacketEntityAction(Client client, EntityActionPacket packet)
@@ -665,6 +677,9 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
+            if(client.WaitForInitialPosAck)
+                return;
+
             //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
             client.Owner.Ready = true;
             double threshold = 0.001;

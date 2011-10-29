@@ -26,6 +26,7 @@ namespace Chraft.Entity
         public PermissionHandler PermHandler;
         public ClientPermission Permissions;
         public Interface CurrentInterface = null;
+        public AbsWorldCoords LoginPosition;
 
         private Client _client;
 
@@ -627,45 +628,6 @@ namespace Chraft.Entity
                 }
             }
 
-        }
-        
-        
-        public void SendInitialPreChunks(List<Chunk> toUpdate, int radius, bool sync = true)
-        {
-            int chunkX = (int)(Math.Floor(Position.X)) >> 4;
-            int chunkZ = (int)(Math.Floor(Position.Z)) >> 4;
-            
-            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
-            {
-                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
-                {
-                    
-                    int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
-                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
-
-                    if (!LoadedChunks.ContainsKey(packedChunk))
-                    {
-                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
-                        if(x != 0 || z != 0)
-                        toUpdate.Add(chunk);
-                        chunk.AddClient(_client);
-                        LoadedChunks.TryAdd(packedChunk, chunk);
-                        _client.SendPreChunk(x, z, true, sync);
-                    }
-                }
-            }
-        }
-
-        public void SendInitialMapChunks(List<Chunk> toUpdate, bool sync = true)
-        {
-            foreach (Chunk c in toUpdate)
-            {
-                //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
-                
-                _client.SendChunk(c, sync);
-
-                _client.SendSignTexts(c);
-            }
         }
 
         public void OnJoined()

@@ -310,6 +310,8 @@ namespace Chraft.Net
             });
         }
 
+        public bool WaitForInitialPosAck;
+
         public void SendLoginSequence()
         {
             _player = new Player(Server, Server.AllocateEntity(), this);
@@ -317,21 +319,18 @@ namespace Chraft.Net
             Server.AddAuthenticatedClient(this);
             Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
-            Load();           
+            Load();
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
-            
-            List<Chunk> toUpdate = new List<Chunk>();
-            _player.SendInitialPreChunks(toUpdate, 2);
-            UniversalCoords spawn = UniversalCoords.FromAbsWorld(_player.Position);
-            Chunk chunk = _player.World.GetChunkFromChunk(spawn.ChunkX, spawn.ChunkZ, true, true);
-            SendChunk(chunk, true);
-            SendInitialPosition(false);
+            _player.UpdateChunks(2, true, CancellationToken.None);
+            SendInitialPosition(false);            
+        }
+
+        public void SendSecondLoginSequence()
+        {           
             SendInitialTime(false);
-            _player.SendInitialMapChunks(toUpdate);
-            
-			SetGameMode();
+            SetGameMode();
             _player.InitializeInventory();
             _player.InitializeHealth();
             _player.OnJoined();

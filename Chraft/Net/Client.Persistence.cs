@@ -21,7 +21,7 @@ namespace Chraft.Net
             ClientSurrogate client;
             using (FileStream rx = File.OpenRead(DataFile))
                 client = (ClientSurrogate)Xml.Deserialize(rx);
-            _player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y + 1, client.Z);
+            _player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y, client.Z);
             _player.Yaw = client.Yaw;
             _player.Pitch = client.Pitch;
             if (client.Inventory != null)
@@ -49,6 +49,8 @@ namespace Chraft.Net
             _player.Food = client.Food;
             _player.FoodSaturation = client.FoodSaturation;
             _player.DisplayName = client.DisplayName;
+            WaitForInitialPosAck = true;
+            _player.LoginPosition = _player.Position;
         }
 
         private void Save()
