@@ -16,7 +16,7 @@ namespace Chraft.Plugins.Commands
         public void Use(Client client, string commandName, string[] tokens)
         {
             short newHealth = 20;
-            if (tokens.Length > 1)
+            if (tokens.Length > 0)
             {
                 if (!short.TryParse(tokens[0], out newHealth))
                     newHealth = 20;
