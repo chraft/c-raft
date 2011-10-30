@@ -507,7 +507,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (c.Equals(this) && !notifyYourself)
+                if (ToSkip(c) && !notifyYourself)
                     continue;
                 c.SendEntityMetadata(this);
             }
