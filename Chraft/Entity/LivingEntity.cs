@@ -503,14 +503,14 @@ namespace Chraft.Entity
             return currentRotation + rotationAmount;
         }
 
-        protected void SendMetadataUpdate()
+        protected void SendMetadataUpdate(bool notifyYourself = true)
         {
-            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
-               new EntityMetadataPacket // Metadata update
-               {
-                   EntityId = this.EntityId,
-                   Data = this.Data
-               });
+            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if (c.Equals(this) && !notifyYourself)
+                    continue;
+                c.SendEntityMetadata(this);
+            }
         }
     }
 }

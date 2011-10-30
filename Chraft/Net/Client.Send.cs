@@ -448,6 +448,15 @@ namespace Chraft.Net
             });
         }
 
+        internal void SendEntityMetadata(LivingEntity entity)
+        {
+            SendPacket(new EntityMetadataPacket
+            {
+                EntityId = entity.EntityId,
+                Data = entity.Data
+            });
+        }
+
         public void SendDestroyEntity(EntityBase entity)
         {
             SendPacket(new DestroyEntityPacket
