@@ -267,13 +267,13 @@ namespace Chraft.Entity
         public void StartSprinting()
         {
             Data.IsSprinting = true;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
 
         public void StopSprinting()
         {
             Data.IsSprinting = false;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
         #endregion
 
