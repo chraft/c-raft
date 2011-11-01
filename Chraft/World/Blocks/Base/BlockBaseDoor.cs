@@ -10,9 +10,9 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockBaseDoor : BlockBase
+    public abstract class BlockBaseDoor : BlockBase
     {
-        public BlockBaseDoor()
+        protected BlockBaseDoor()
         {
             Name = "BaseDoor";
             Opacity = 0x0;
