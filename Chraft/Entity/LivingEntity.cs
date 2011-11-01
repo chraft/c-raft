@@ -565,12 +565,15 @@ namespace Chraft.Entity
 
         protected void SendMetadataUpdate(bool notifyYourself = true)
         {
-            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            foreach (
+                Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z))
+                )
             {
                 if (ToSkip(c) && !notifyYourself)
                     continue;
                 c.SendEntityMetadata(this);
             }
+        }
 
         internal void MountEntity(EntityBase entity)
         {
