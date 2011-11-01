@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using Chraft.Interfaces;
 using Chraft.Net;
@@ -55,6 +56,8 @@ namespace Chraft.Entity
         protected Timer FireBurnTimer;
         public short FireBurnTicks { get; protected set; }
         public bool IsImmuneToFire { get; protected set; }
+
+        protected Timer CactusDamageTimer;
 
         public bool IsDead { get; protected set; }
 
@@ -150,6 +153,55 @@ namespace Chraft.Entity
                 return "N";
             return "W";
         }
+
+        #region Cactus damage
+        public virtual void TouchedCactus()
+        {
+            if (IsDead)
+                return;
+            if (CactusDamageTimer == null)
+            {
+                CactusDamageTimer = new Timer(CactusDamage, null, 0, 50);
+            }
+        }
+        protected virtual void CactusDamage(object state)
+        {
+            if (IsDead)
+            {
+                StopCactusDamageTimer();
+                return;
+            }
+
+            List<StructBlock> touchedBlocks = GetNearbyBlocks();
+            bool touchingCactus = false;
+            foreach (var block in touchedBlocks)
+            {
+                if (block.Type == (byte)BlockData.Blocks.Cactus)
+                {
+                    touchingCactus = true;
+                    break;
+                }
+            }
+
+            if (!touchingCactus)
+            {
+                StopCactusDamageTimer();
+                return;
+            }
+
+            Damage(DamageCause.Cactus, 1);
+        }
+
+        protected void StopCactusDamageTimer()
+        {
+            if (CactusDamageTimer != null)
+            {
+                CactusDamageTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                CactusDamageTimer.Dispose();
+                CactusDamageTimer = null;
+            }
+        }
+        #endregion
 
         #region Fire/burning damage
         public virtual void TouchedLava()
@@ -511,15 +563,14 @@ namespace Chraft.Entity
             return currentRotation + rotationAmount;
         }
 
-        protected void SendMetadataUpdate()
+        protected void SendMetadataUpdate(bool notifyYourself = true)
         {
-            World.Server.SendPacketToNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z),
-               new EntityMetadataPacket // Metadata update
-               {
-                   EntityId = this.EntityId,
-                   Data = this.Data
-               });
-        }
+            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            {
+                if (ToSkip(c) && !notifyYourself)
+                    continue;
+                c.SendEntityMetadata(this);
+            }
 
         internal void MountEntity(EntityBase entity)
         {

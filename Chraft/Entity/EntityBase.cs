@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Utils;
@@ -247,6 +248,32 @@ namespace Chraft.Entity
                         this.Velocity.Z = motion;
                 }
             }
+        }
+
+        public virtual List<StructBlock> GetNearbyBlocks()
+        {
+            BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
+
+            List<StructBlock> touchedBlocks = new List<StructBlock>();
+
+            // Notify blocks of collisions with an entity
+            UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
+            UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
+            if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
+            {
+                for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
+                {
+                    for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
+                    {
+                        for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
+                        {
+                            var block = this.World.GetBlock(x, y, z);
+                            touchedBlocks.Add(block);
+                        }
+                    }
+                }
+            }
+            return touchedBlocks;
         }
 
         public virtual void TouchNearbyBlocks()

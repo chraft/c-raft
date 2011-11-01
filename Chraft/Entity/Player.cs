@@ -256,25 +256,25 @@ namespace Chraft.Entity
         public void StartCrouching()
         {
             Data.IsCrouched = true;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
 
         public void StopCrouching()
         {
             Data.IsCrouched = false;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
 
         public void StartSprinting()
         {
             Data.IsSprinting = true;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
 
         public void StopSprinting()
         {
             Data.IsSprinting = false;
-            SendMetadataUpdate();
+            SendMetadataUpdate(false);
         }
         #endregion
 

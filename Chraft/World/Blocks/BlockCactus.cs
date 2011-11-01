@@ -117,7 +117,7 @@ namespace Chraft.World.Blocks
             } else if (entity is LivingEntity)
             {
                 LivingEntity living = entity as LivingEntity;
-                living.Damage(DamageCause.Cactus, 1);
+                living.TouchedCactus();
             }
         }
     }
