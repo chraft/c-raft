@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using Chraft.Interfaces;
 using Chraft.Net;
@@ -76,17 +77,24 @@ namespace Chraft.Entity
                 return !IsDead;
             }
         }
+
+        public override bool PreventMobSpawning
+        {
+            get { return !this.IsDead; }
+        }
     
-        public LivingEntity(Server server, int entityId)
+        public LivingEntity(Server server, int entityId, MetaData data)
          : base(server, entityId)
         {
+            if (data == null)
+                data = new MetaData();
+            this.Data = data;
             this.Health = MaxHealth;
             CanDrown = true;
             CanSuffocate = true;
             IsImmuneToFire = false;
             FireBurnTicks = 0;
             LastDamageTick = 0;
-            Data = new MetaData();
         }
         
         /// <summary>
@@ -511,6 +519,22 @@ namespace Chraft.Entity
                    EntityId = this.EntityId,
                    Data = this.Data
                });
+        }
+
+        internal void MountEntity(EntityBase entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Can this entity spawn at this.Position
+        /// </summary>
+        /// <returns>Returns true if there are no entities within the bounds that PreventMobSpawning, and the location is not within liquid, otherwise false</returns>
+        /// <remarks>This method uses the currently set Position because it relies upon the current BoundingBox and BlockPosition to be set also.</remarks>
+        public virtual bool CanSpawnHere()
+        {
+            return World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox).All(entity => !entity.PreventMobSpawning)
+                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance(block.Type).IsLiquid);
         }
     }
 }

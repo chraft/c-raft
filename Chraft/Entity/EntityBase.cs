@@ -56,6 +56,11 @@ namespace Chraft.Entity
         public virtual bool Pushable { get { return false; } }
 
         /// <summary>
+        /// Whether or not this entity prevents mobs from spawning if bounding boxes collide
+        /// </summary>
+        public virtual bool PreventMobSpawning { get { return false; } }
+        
+        /// <summary>
         /// Rotation around the X-axis
         /// </summary>
         public double Pitch { get; set; }
@@ -89,10 +94,18 @@ namespace Chraft.Entity
             set
             {
                 _position = value;
+                BlockPosition = UniversalCoords.FromAbsWorld(_position);
                 // Set the bounding box based on the new position
                 double halfWidth = this.Width / 2.0;
                 this.BoundingBox = new BoundingBox(new AbsWorldCoords(_position.X - halfWidth, _position.Y, _position.Z - halfWidth), new AbsWorldCoords(_position.X + halfWidth, _position.Y + Height, _position.Z + halfWidth));
             }
+        }
+
+        private UniversalCoords _blockPosition;
+        public UniversalCoords BlockPosition
+        {
+            get { return _blockPosition; }
+            private set { _blockPosition = value; }
         }
 
         public EntityBase(Server server, int entityId)

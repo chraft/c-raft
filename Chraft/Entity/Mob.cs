@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Chraft.Net;
@@ -7,6 +8,7 @@ using Chraft.World;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
 using Chraft.Utils;
+using Chraft.World.Blocks;
 
 namespace Chraft.Entity
 {
@@ -47,15 +49,21 @@ namespace Chraft.Entity
             }
         }
 
+	    public virtual int MaxSpawnedPerGroup
+	    {
+            get
+            {
+                return 4;
+            }
+
+	    }
+
         public int GotoLoc; // Location as int entity should move towards
         public Vector3 gotoPos; // Location entity should move towards
 
         protected Mob(WorldManager world, int entityId, MobType type, MetaData data)
-			: base(world.Server, entityId)
+			: base(world.Server, entityId, data)
 		{
-            if (data == null)
-                data = new MetaData();
-            this.Data = data;
             this.Type = type;
             this.World = world;
 		}
@@ -89,6 +97,21 @@ namespace Chraft.Entity
             Server.RemoveEntity(this);
 
             // Client.UpdateEntities() will handle any notifications about this entity disappearing
+        }
+
+
+        protected virtual double BlockPathWeight(UniversalCoords coords)
+        {
+            return 0.0;
+        }
+
+        /// <summary>
+        /// In addition to <see cref="LivingEntity.CanSpawnHere"/> determine if the BlockPathWeight of the location is suitable for spawning
+        /// </summary>
+        /// <returns>True if the <see cref="Creature"/> can spawn at <see cref="EntityBase.Position"/>; otherwise False</returns>
+        public override bool CanSpawnHere()
+        {
+            return base.CanSpawnHere() && BlockPathWeight(this.BlockPosition) >= 0.0F;
         }
 	}
 }

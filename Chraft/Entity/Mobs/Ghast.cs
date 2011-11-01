@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Ghast : Mob
+    public class Ghast : Monster
     {
         public override string Name
         {
@@ -28,6 +28,14 @@ namespace Chraft.Entity.Mobs
             get
             {
                 return 100;
+            }
+        }
+
+        public override int MaxSpawnedPerGroup
+        {
+            get
+            {
+                return 1;
             }
         }
 

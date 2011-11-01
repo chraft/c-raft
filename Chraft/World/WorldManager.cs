@@ -17,6 +17,8 @@ using Chraft.Utils;
 using System.Collections.Generic;
 using Chraft.WorldGen;
 using System.Collections.Concurrent;
+using java.util;
+using Timer = System.Threading.Timer;
 
 namespace Chraft.World
 {
@@ -47,6 +49,7 @@ namespace Chraft.World
         public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
         private Task _physicsSimulationTask;
         private Task _entityUpdateTask;
+        private Task _mobSpawnerTask;
 
         public ConcurrentQueue<ChunkBase> ChunksToSave;
 
@@ -177,7 +180,7 @@ namespace Chraft.World
             
             return collidingBoundingBoxes.ToArray();
         }
-
+        double[] _lightBrightnessTable = new double[16];
         public WorldManager(Server server)
         {          
             _chunks = new ChunkSet();
@@ -185,6 +188,14 @@ namespace Chraft.World
             ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             ChunksToSave = new ConcurrentQueue<ChunkBase>();
             Load();
+
+            // Create the light brightness table
+            double d = 0.0;
+            for(int i = 0; i < 16; i++)
+            {
+                double d1 = 1.0 - (double)i / 15.0;
+                _lightBrightnessTable[i] = ((1.0 - d1) / (d1 * 3.0 + 1.0)) * (1.0 - d) + d;
+            }
         }
 
         public bool Load()
@@ -408,6 +419,15 @@ namespace Chraft.World
                 _entityUpdateTask = Task.Factory.StartNew(EntityProc);
             }
 
+            // Every 2 Ticks (100ms)
+            if (WorldTicks % 2 == 0)
+            {
+                if (_mobSpawnerTask == null || _mobSpawnerTask.IsCompleted)
+                {
+                    _mobSpawnerTask = Task.Factory.StartNew(MobSpawnerProc);
+                }
+            }
+
 #if PROFILE
             // Must wait at least one second between calls to perf counter
             if (WorldTicks % 20 == 0)
@@ -475,6 +495,12 @@ namespace Chraft.World
             {
                 e.Update();
             });
+        }
+
+        
+        private void MobSpawnerProc()
+        {
+            WorldMobSpawner.SpawnMobs(this, true, this.WorldTicks % 400 == 0);
         }
 
         public void SpawnAnimal(UniversalCoords coords)
@@ -549,6 +575,48 @@ namespace Chraft.World
             return GetChunkFromWorld(worldX, worldZ, false, true);
         }
   
+        /// <summary>
+        /// Yields each <see cref="StructBlock"/> found within the bounds of a <see cref="BoundingBox"/>
+        /// </summary>
+        /// <param name="boundingBox"></param>
+        /// <returns></returns>
+        public IEnumerable<StructBlock> GetBlocksInBoundingBox(BoundingBox boundingBox)
+        {
+            UniversalCoords minimum =
+                UniversalCoords.FromAbsWorld(
+                    boundingBox.Minimum.X < 0.0 ? boundingBox.Minimum.X - 1.0 : boundingBox.Minimum.X,
+                    boundingBox.Minimum.Y < 0.0 ? boundingBox.Minimum.Y - 1.0 : boundingBox.Minimum.Y,
+                    boundingBox.Minimum.Z < 0.0 ? boundingBox.Minimum.Z - 1.0 : boundingBox.Minimum.Z);
+            UniversalCoords maximum = UniversalCoords.FromAbsWorld(boundingBox.Maximum.X + 1.0,
+                                                                   boundingBox.Maximum.Y + 1.0,
+                                                                   boundingBox.Maximum.Z + 1.0);
+
+            return GetBlocksBetweenCoords(minimum, maximum);
+        }
+
+        /// <summary>
+        /// Yields each <see cref="StructBlock"/> found between two coordinates
+        /// </summary>
+        /// <param name="minimum">Start here</param>
+        /// <param name="maximum">Stop here</param>
+        /// <returns>Yields a <see cref="StructBlock"/> for each coordinate between minimum and maximum</returns>
+        public IEnumerable<StructBlock> GetBlocksBetweenCoords(UniversalCoords minimum, UniversalCoords maximum)
+        {
+            if (minimum.WorldX >= maximum.WorldX || minimum.WorldY >= maximum.WorldY || minimum.WorldZ >= maximum.WorldZ)
+                throw new ArgumentOutOfRangeException("minimum", "minimum X, Y and Z must be less than maximum X, Y and Z");
+
+            for (int x = minimum.WorldX; x < maximum.WorldX; x++)
+            {
+                for (int y = minimum.WorldY; y < maximum.WorldY; y++)
+                {
+                    for (int z = minimum.WorldZ; z < maximum.WorldZ; z++)
+                    {
+                        yield return this.GetBlock(x, y, z);
+                    }
+                }
+            }
+        }
+
         public StructBlock GetBlock(UniversalCoords coords)
         {
             return new StructBlock(coords, GetBlockId(coords), GetBlockData(coords), this);
@@ -586,6 +654,30 @@ namespace Chraft.World
             if (!ChunkExists(worldX >> 4, worldZ >> 4))
                 return 0;
             return Chunks[worldX >> 4, worldZ >> 4].GetData(worldX & 0xF, worldY, worldZ & 0xF);
+        }
+
+        public double GetBlockLightBrightness(UniversalCoords coords)
+        {
+            return _lightBrightnessTable[GetEffectiveLight(coords)];
+        }
+
+        public byte GetFullBlockLight(UniversalCoords coords)
+        {
+            if (!ChunkExists(coords))
+                return 0;
+            ChunkBase chunk = Chunks[coords];
+            return Math.Max(chunk.GetSkyLight(coords), chunk.GetBlockLight(coords));
+        }
+
+        /// <summary>
+        /// Get the Effective light at a coordinate
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <returns></returns>
+        public byte GetEffectiveLight(UniversalCoords coords)
+        {
+            // TODO: this needs to return the effective light for a block, taking into consideration the time of day etc... see calculateSkylightSubtracted and getBlockLightValue_do
+            return GetFullBlockLight(coords); // THIS HAS TO BE REMOVED AND CHANGED TO PROPER TIME CALCULATION TOO
         }
 
         public byte GetBlockLight(UniversalCoords coords)
@@ -634,6 +726,21 @@ namespace Chraft.World
             return Chunks[worldX >> 4, worldZ >> 4][worldX & 0xF, worldY, worldZ & 0xF];
         }
   
+        public IEnumerable<EntityBase> GetEntities()
+        {
+            return Server.GetEntities().Where((e) => e != null && e.World == this);
+        }
+
+        public Player GetClosestPlayer(AbsWorldCoords coords, double radius)
+        {
+            Vector3 coordVector = coords.ToVector();
+            return (from c in Server.GetAuthenticatedClients().Where(client => client.Owner.World == this)
+                    let distanceVector = coordVector - c.Owner.Position.ToVector()
+                    where distanceVector.X <= radius && distanceVector.Y <= radius && distanceVector.Z <= radius
+                    orderby distanceVector
+                    select c.Owner).FirstOrDefault();
+        }
+
         private RayTraceHitBlock DoRayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
         {
             byte blockType = this.GetBlockId(coords); // only get the block type first to save time

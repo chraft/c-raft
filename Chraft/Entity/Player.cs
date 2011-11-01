@@ -64,8 +64,9 @@ namespace Chraft.Entity
         public short Food { get; set; }
 
         protected short _lastDamageRemainder = 0;
-        
-        public Player(Server server, int entityId, Client client) : base(server, entityId)
+
+        public Player(Server server, int entityId, Client client)
+            : base(server, entityId, null)
         {
             _client = client;
             EnsureServer(server);

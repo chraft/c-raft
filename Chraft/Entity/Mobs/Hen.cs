@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Hen : Mob
+    public class Hen : Animal
     {
         public override string Name
         {

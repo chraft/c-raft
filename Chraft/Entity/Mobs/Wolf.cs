@@ -8,7 +8,7 @@ using Chraft.Interfaces;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Wolf : Mob
+    public class Wolf : Animal
     {
         public override string Name
         {
@@ -49,6 +49,14 @@ namespace Chraft.Entity.Mobs
             get
             {
                 return (short)((this.Data.IsTamed) ? 20 : 8); // Wild 8, Tame 20;
+            }
+        }
+
+        public override int MaxSpawnedPerGroup
+        {
+            get
+            {
+                return 8;
             }
         }
 
