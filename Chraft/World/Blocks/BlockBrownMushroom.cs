@@ -25,8 +25,8 @@ namespace Chraft.World.Blocks
             if (chunk == null)
                 return;
 
-            BlockData.Blocks blockBelow = chunk.GetType(block.Coords.WorldX, block.Coords.WorldY - 1,
-                                                                   block.Coords.WorldZ);
+            BlockData.Blocks blockBelow = chunk.GetType(block.Coords.BlockX, block.Coords.BlockY - 1,
+                                                                   block.Coords.BlockZ);
 
             if (blockBelow != BlockData.Blocks.Dirt && blockBelow != BlockData.Blocks.Grass && blockBelow != BlockData.Blocks.Mycelium)
                 return;
@@ -38,7 +38,7 @@ namespace Chraft.World.Blocks
 
             for (int dY = block.Coords.WorldY + 1; dY < capY - 1; dY++)
             {
-                BlockData.Blocks blockUp = chunk.GetType(block.Coords.WorldX, dY, block.Coords.WorldZ);
+                BlockData.Blocks blockUp = chunk.GetType(block.Coords.BlockX, dY, block.Coords.BlockZ);
 
                 if (blockUp != BlockData.Blocks.Air && blockUp != BlockData.Blocks.Leaves)
                     return;
@@ -61,8 +61,8 @@ namespace Chraft.World.Blocks
 
             byte metaData = (byte)MetaData.HugeMushroom.NorthWeastSouthEast;
             for (int dY = block.Coords.WorldY; dY < capY; dY++)                           
-                if (chunk.GetType(block.Coords.WorldX, dY, block.Coords.WorldZ) != BlockData.Blocks.Leaves)
-                    chunk.SetBlockAndData(block.Coords.WorldX, dY, block.Coords.WorldZ, (byte) BlockData.Blocks.BrownMushroomCap, metaData);
+                if (chunk.GetType(block.Coords.BlockX, dY, block.Coords.BlockZ) != BlockData.Blocks.Leaves)
+                    chunk.SetBlockAndData(block.Coords.BlockX, dY, block.Coords.BlockZ, (byte) BlockData.Blocks.BrownMushroomCap, metaData);
 
             for (int dX = -3; dX < 4; dX++)
                 for (int dZ = -3; dZ < 4; dZ++)
@@ -76,7 +76,7 @@ namespace Chraft.World.Blocks
                     if (absdX == 3 && absdZ == 3)
                         continue;
 
-                    BlockData.Blocks nearbyBlockId = currentChunk.GetType(block.Coords.WorldX + dX, capY, block.Coords.WorldZ + dZ);
+                    BlockData.Blocks nearbyBlockId = currentChunk.GetType(block.Coords.BlockX + dX, capY, block.Coords.BlockZ + dZ);
                     if (nearbyBlockId == BlockData.Blocks.Leaves)
                         continue;
 
@@ -99,7 +99,7 @@ namespace Chraft.World.Blocks
                     else if (dZ == 3 && absdX < 2)
                         metaData = (byte)MetaData.HugeMushroom.TopSouth;
 
-                    currentChunk.SetBlockAndData(block.Coords.WorldX + dX, capY, block.Coords.WorldZ + dZ, (byte)BlockData.Blocks.BrownMushroomCap, metaData);
+                    currentChunk.SetBlockAndData(block.Coords.BlockX + dX, capY, block.Coords.BlockZ + dZ, (byte)BlockData.Blocks.BrownMushroomCap, metaData);
                 }
         }
     }

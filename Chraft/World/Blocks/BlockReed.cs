@@ -88,7 +88,7 @@ namespace Chraft.World.Blocks
             int reedHeightBelow = 0;
             for (int i = block.Coords.WorldY - 1; i >= 0; i--)
             {
-                if (chunk.GetType(block.Coords.WorldX, i, block.Coords.WorldZ) != BlockData.Blocks.Reed)
+                if (chunk.GetType(block.Coords.BlockX, i, block.Coords.BlockZ) != BlockData.Blocks.Reed)
                     break;
                 reedHeightBelow++;
             }

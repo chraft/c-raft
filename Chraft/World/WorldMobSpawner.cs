@@ -183,8 +183,8 @@ namespace Chraft.World
             if (chunk == null)
                 return false;
 
-            BlockBase blockClassCurrent = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY, worldZ));
-            BlockBase blockClassUp = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY + 1, worldZ));          
+            BlockBase blockClassCurrent = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF));
+            BlockBase blockClassUp = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY + 1, worldZ & 0xF));          
 
             if (mobType == MobType.Squid)
             {
@@ -192,7 +192,7 @@ namespace Chraft.World
                     && !blockClassUp.IsOpaque; // Has either water or air above it
             }
 
-            BlockBase blockClassDown = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY - 1, worldZ));
+            BlockBase blockClassDown = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY - 1, worldZ & 0xF));
 
             return blockClassDown.IsOpaque && blockClassDown.IsSolid && // Is solid underneath
                     !blockClassCurrent.IsOpaque && !blockClassCurrent.IsSolid && !blockClassCurrent.IsLiquid && // Is not solid or liquid where spawning 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,31 +9,29 @@ namespace Chraft.Net
 {
 	public class SocketAsyncEventArgsPool
 	{
-		private Stack<SocketAsyncEventArgs> m_EventsPool;
+		private ConcurrentStack<SocketAsyncEventArgs> m_EventsPool;
 
 		public SocketAsyncEventArgsPool(int numConnection)
 		{
-			m_EventsPool = new Stack<SocketAsyncEventArgs>(numConnection);
+			m_EventsPool = new ConcurrentStack<SocketAsyncEventArgs>();
 		}
 
 		public SocketAsyncEventArgs Pop()
-		{
-			lock(m_EventsPool)
-			{
-				if(m_EventsPool.Count == 0)
-								return new SocketAsyncEventArgs();
-							else
-								return m_EventsPool.Pop();
-			}
+		{		
+			if(m_EventsPool.IsEmpty)
+				return new SocketAsyncEventArgs();
+
+			SocketAsyncEventArgs popped;
+			m_EventsPool.TryPop(out popped);
+
+			return popped;			
 		}
 
 		public void Push(SocketAsyncEventArgs item)
 		{
 			if (item == null) { throw new ArgumentNullException("Items added to a SocketAsyncEventArgsPool cannot be null"); }
-			lock(m_EventsPool)
-			{
-				m_EventsPool.Push(item);
-			}
+			
+            m_EventsPool.Push(item);			
 		}
 
 		public int Count

@@ -69,8 +69,8 @@ namespace Chraft.World.Blocks
 
             for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {
-                chunk.SetBlockAndData(block.Coords.WorldX, i, block.Coords.WorldZ, (byte)BlockData.Blocks.Log, block.MetaData);
-                if(chunk.GetType(block.Coords.WorldX, i + 1, block.Coords.WorldZ) != BlockData.Blocks.Air)
+                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Log, block.MetaData);
+                if(chunk.GetType(block.Coords.BlockX, i + 1, block.Coords.BlockZ) != BlockData.Blocks.Air)
                     break;
             }
 
@@ -80,11 +80,11 @@ namespace Chraft.World.Blocks
                     for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
                     {
                         Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k, false, false);
-                        if (nearbyChunk == null || (nearbyChunk.GetType(j, i, k) != BlockData.Blocks.Air))
+                        if (nearbyChunk == null || (nearbyChunk.GetType(j & 0xF, i, k & 0xF) != BlockData.Blocks.Air))
                             continue;
 
 
-                        nearbyChunk.SetBlockAndData(j, i, k, (byte)BlockData.Blocks.Leaves,
+                        nearbyChunk.SetBlockAndData(j & 0xF, i, k & 0xF, (byte)BlockData.Blocks.Leaves,
                                                         block.MetaData);
                     }
 
@@ -92,11 +92,11 @@ namespace Chraft.World.Blocks
                 for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
                 {
                     Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j, false, false);
-                    if (nearbyChunk == null || nearbyChunk.GetType(i, block.Coords.WorldY + 5, j) != BlockData.Blocks.Air)
+                    if (nearbyChunk == null || nearbyChunk.GetType(i & 0xF, block.Coords.WorldY + 5, j & 0xF) != BlockData.Blocks.Air)
                         continue;
 
 
-                    nearbyChunk.SetBlockAndData(i, block.Coords.WorldY + 5, j, (byte)BlockData.Blocks.Leaves,
+                    nearbyChunk.SetBlockAndData(i & 0xF, block.Coords.WorldY + 5, j & 0xF, (byte)BlockData.Blocks.Leaves,
                                                     block.MetaData);
                 }
         }

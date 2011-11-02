@@ -310,7 +310,7 @@ namespace Chraft.Entity
 
                         for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
                         {
-                            var block = chunk.GetBlock(x, y, z);
+                            var block = chunk.GetBlock(x & 0xF, y, z & 0xF);
                             if (block.Type > 0)
                             {
                                 var blockClass = BlockHelper.Instance(block.Type);

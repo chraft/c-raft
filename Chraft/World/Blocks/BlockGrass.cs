@@ -73,13 +73,13 @@ namespace Chraft.World.Blocks
                 if (nearbyChunk == null)
                     return;
 
-                byte newBlockId = (byte)nearbyChunk.GetType(x, y, z);
+                byte newBlockId = (byte)nearbyChunk.GetType(x & 0xF, y, z & 0xF);
                 if (newBlockId != (byte)BlockData.Blocks.Dirt)
                     return;
 
-                byte newBlockAboveLight = nearbyChunk.GetBlockLight(x, y + 1, z);
+                byte newBlockAboveLight = nearbyChunk.GetBlockLight(x & 0xF, y + 1, z & 0xf);
                 if (newBlockAboveLight >= 4 && BlockHelper.Instance(newBlockId).Opacity <= 2)
-                    nearbyChunk.SetBlockAndData(x, y, z, (byte)BlockData.Blocks.Grass, 0);
+                    nearbyChunk.SetBlockAndData(x & 0xF, y, z & 0xF, (byte)BlockData.Blocks.Grass, 0);
             }
         }
     }

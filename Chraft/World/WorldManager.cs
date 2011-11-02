@@ -579,8 +579,8 @@ namespace Chraft.World
             if (chunk == null)
                 return StructBlock.Empty;
 
-            byte blockId = (byte)chunk.GetType(worldX, worldY, worldZ);
-            byte blockData = chunk.GetData(worldX, worldY, worldZ);
+            byte blockId = (byte)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF);
+            byte blockData = chunk.GetData(worldX & 0xF, worldY, worldZ & 0xF);
 
             return new StructBlock(worldX, worldY, worldZ, blockId, blockData, this);
         }

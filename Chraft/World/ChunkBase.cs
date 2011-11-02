@@ -111,12 +111,12 @@ namespace Chraft.World
             return new StructBlock(coords, blockId, blockData, World);
         }
 
-        public StructBlock GetBlock(int worldX, int worldY, int worldZ)
+        public StructBlock GetBlock(int blockX, int blockY, int blockZ)
         {
-            byte blockId = (byte)GetType(worldX, worldY, worldZ);
-            byte blockData = GetData(worldX, worldY, worldZ);
+            byte blockId = (byte)GetType(blockX, blockY, blockZ);
+            byte blockData = GetData(blockX, blockY, blockZ);
 
-            return new StructBlock(worldX, worldY, worldZ, blockId, blockData, World);
+            return new StructBlock(blockX + Coords.WorldX, blockY, blockZ + Coords.WorldZ, blockId, blockData, World);
         }
 
         public byte GetBlockLight(UniversalCoords coords)
@@ -255,11 +255,8 @@ namespace Chraft.World
                 BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
         }
 
-        public void SetBlockAndData(int worldX, int worldY, int worldZ, byte type, byte data, bool needsUpdate = true)
+        public void SetBlockAndData(int blockX, int blockY, int blockZ, byte type, byte data, bool needsUpdate = true)
         {
-            int blockX = worldX & 0xF;
-            int blockY = worldY;
-            int blockZ = worldZ & 0xF;
             SetType(blockX, blockY, blockZ, (BlockData.Blocks)type, false);
             SetData(blockX, blockY, blockZ, data, false);
 
