@@ -3,6 +3,7 @@ using System.IO;
 using System.Xml.Serialization;
 using Chraft.Persistence;
 using Chraft.Interfaces;
+using Chraft.World;
 
 namespace Chraft.Net
 {
@@ -16,12 +17,17 @@ namespace Chraft.Net
         {
             if (string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(_player.DisplayName)) { return; } //we are the server ping
             if (!File.Exists(DataFile))
+            {
+                _player.Position = new AbsWorldCoords(Owner.World.Spawn.WorldX, Owner.World.Spawn.WorldY, Owner.World.Spawn.WorldZ);
+                WaitForInitialPosAck = true;
+                _player.LoginPosition = _player.Position;
                 return;
+            }
 
             ClientSurrogate client;
             using (FileStream rx = File.OpenRead(DataFile))
                 client = (ClientSurrogate)Xml.Deserialize(rx);
-            _player.Position = new Chraft.World.AbsWorldCoords(client.X, client.Y, client.Z);
+            _player.Position = new AbsWorldCoords(client.X, client.Y, client.Z);
             _player.Yaw = client.Yaw;
             _player.Pitch = client.Pitch;
             if (client.Inventory != null)
