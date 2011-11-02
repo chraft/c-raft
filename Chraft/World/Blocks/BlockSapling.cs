@@ -54,6 +54,10 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block))
                 return;
 
+            UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            if (block.World.GetEffectiveLight(blockUp) < 9)
+                return;
+
             if (block.World.Server.Rand.Next(29) != 0)
                 return;
 

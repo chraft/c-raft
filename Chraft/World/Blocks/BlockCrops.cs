@@ -59,6 +59,10 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block))
                 return;
 
+            UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            if (block.World.GetEffectiveLight(blockUp) < 9)
+                return;
+
             // TODO: Check if the blocks nearby are hydrated and grow faster
             if (block.World.Server.Rand.Next(10) == 0)
             {
