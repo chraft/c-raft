@@ -33,8 +33,8 @@ namespace Chraft.World.Blocks
                                                                   block.Coords.WorldZ);
 
                 byte blockAboveId = (byte)chunk.GetType(oneUp);
-                byte blockAboveLight = chunk.GetBlockLight(oneUp);
-                if ((blockAboveLight < 4 && BlockHelper.Instance(blockAboveId).Opacity > 2) || blockAboveLight >= 9)
+                byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
+                if (blockAboveLight != null && ((blockAboveLight < 4 && BlockHelper.Instance(blockAboveId).Opacity > 2) || blockAboveLight >= 9))
                     canGrow = true;
             }
             else
@@ -52,7 +52,9 @@ namespace Chraft.World.Blocks
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             byte blockAboveId = (byte)chunk.GetType(oneUp);
-            byte blockAboveLight = chunk.GetBlockLight(oneUp);
+            byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
+            if (blockAboveLight == null)
+                return;
             if (blockAboveLight < 4 && BlockHelper.Instance(blockAboveId).Opacity > 2)
             {
                 if (block.World.Server.Rand.Next(3) == 0)
@@ -77,8 +79,8 @@ namespace Chraft.World.Blocks
                 if (newBlockId != (byte)BlockData.Blocks.Dirt)
                     return;
 
-                byte newBlockAboveLight = nearbyChunk.GetBlockLight(x & 0xF, y + 1, z & 0xf);
-                if (newBlockAboveLight >= 4 && BlockHelper.Instance(newBlockId).Opacity <= 2)
+                byte? newBlockAboveLight = nearbyChunk.World.GetEffectiveLight(UniversalCoords.FromWorld(x, y + 1, z));
+                if (newBlockAboveLight != null && (newBlockAboveLight >= 4 && BlockHelper.Instance(newBlockId).Opacity <= 2))
                     nearbyChunk.SetBlockAndData(x & 0xF, y, z & 0xF, (byte)BlockData.Blocks.Grass, 0);
             }
         }
