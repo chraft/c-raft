@@ -727,7 +727,10 @@ namespace Chraft.Net
         public void StopUpdateChunks()
         {
             if (_updateChunksToken != null)
+            {
                 _updateChunksToken.Cancel();
+                Task.WaitAny(_updateChunks);
+            }
         }
 
         public void ScheduleUpdateChunks()

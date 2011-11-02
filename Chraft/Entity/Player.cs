@@ -210,6 +210,10 @@ namespace Chraft.Entity
         {
             base.OnTeleportTo(absCoords);
 
+            Client.StopUpdateChunks();
+
+            UpdateChunks(1, CancellationToken.None, true, false);
+
             Client.SendPacket(new PlayerPositionRotationPacket
                                   {
                                       X = absCoords.X,
@@ -220,6 +224,10 @@ namespace Chraft.Entity
                                       Stance = Client.Stance,
                                       OnGround = false
                                   });
+
+            UpdateEntities();
+            Server.SendEntityToNearbyPlayers(World, this);
+            Client.ScheduleUpdateChunks();
         }
 
         public override bool ToSkip(Client c)
