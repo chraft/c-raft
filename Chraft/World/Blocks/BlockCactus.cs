@@ -28,10 +28,17 @@ namespace Chraft.World.Blocks
                 return false;
             // Can be placed only if North/West/East/South is clear
             bool isAir = true;
-            block.Chunk.ForNSEW(block.Coords,
+
+            Chunk chunk = GetBlockChunk(block);
+
+            if (chunk == null)
+                return false;
+
+            chunk.ForNSEW(block.Coords,
                 delegate(UniversalCoords uc)
                 {
-                    if (block.World.GetBlockId(uc) != (byte)BlockData.Blocks.Air)
+                    byte? blockId = block.World.GetBlockId(uc);
+                    if (blockId == null || blockId != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
             if (!isAir)
@@ -49,8 +56,11 @@ namespace Chraft.World.Blocks
             base.NotifyDestroy(entity, sourceBlock, thisBlock);
         }
 
-        public bool CanGrow(StructBlock block)
+        public bool CanGrow(StructBlock block, Chunk chunk)
         {
+            if (chunk == null)
+                return false;
+
             // BlockMeta = 0x0 is a freshly planted cactus.
             // The data value is incremented at random intervals.
             // When it becomes 15, a new cactus block is created on top as long as the total height does not exceed 3.
@@ -60,15 +70,16 @@ namespace Chraft.World.Blocks
                 return false;
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
-            byte blockId = block.World.GetBlockId(oneUp);
-            if (blockId != (byte)BlockData.Blocks.Air)
+            BlockData.Blocks blockId = chunk.GetType(oneUp);
+            if (blockId != BlockData.Blocks.Air)
                 return false;
 
             // Calculating the cactus length below this block
             int cactusHeightBelow = 0;
             for (int i = block.Coords.WorldY - 1; i >= 0; i--)
             {
-                if (block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, i, block.Coords.WorldZ)) != (byte)BlockData.Blocks.Cactus)
+                blockId = chunk.GetType(UniversalCoords.FromWorld(block.Coords.WorldX, i, block.Coords.WorldZ));
+                if (blockId != BlockData.Blocks.Cactus)
                     break;
                 cactusHeightBelow++;
             }
@@ -76,11 +87,13 @@ namespace Chraft.World.Blocks
             if ((cactusHeightBelow + 1) >= maxHeight)
                 return false;
 
-            bool isAir = true;
-            block.Chunk.ForNSEW(oneUp,
+            bool isAir = true;        
+
+            chunk.ForNSEW(oneUp,
                 delegate(UniversalCoords uc)
                 {
-                    if (block.World.GetBlockId(uc) != (byte)BlockData.Blocks.Air)
+                    byte? nearbyBlockId = block.World.GetBlockId(uc);
+                    if (nearbyBlockId == null || nearbyBlockId != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
 
@@ -90,21 +103,22 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        public void Grow(StructBlock block)
+        public void Grow(StructBlock block, Chunk chunk)
         {
-            if (!CanGrow(block))
+            if (!CanGrow(block, chunk))
                 return;
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
 
             if (block.MetaData < 0xe) // 14
             {
-                block.Chunk.SetData(block.Coords, ++block.MetaData, false);
+
+                chunk.SetData(block.Coords, ++block.MetaData, false);
                 return;
             }
 
-            block.World.SetBlockData(block.Coords, 0);
-            block.World.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
+            chunk.SetData(block.Coords, 0);
+            chunk.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
         }
 
         public override void Touch(EntityBase entity, StructBlock block, BlockFace face)

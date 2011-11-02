@@ -26,7 +26,10 @@ namespace Chraft.Entity
                 return false;
             }
 
-            byte light = this.World.GetEffectiveLight(this.BlockPosition);
+            byte? light = this.World.GetEffectiveLight(this.BlockPosition);
+
+            if (light == null)
+                return false;
             // TODO: if world Thundering adjust light value
 
             return light <= World.Server.Rand.Next(8) && base.CanSpawnHere();

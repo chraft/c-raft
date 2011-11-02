@@ -419,9 +419,15 @@ namespace Chraft.Net
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            BlockData.Blocks baseBlockType = (BlockData.Blocks)player.World.GetBlockId(baseBlockCoords); // Get block being built against.
-            byte baseBlockData = player.World.GetBlockData(baseBlockCoords);
-            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, baseBlockData, player.World);
+            Chunk chunk = player.World.GetChunk(baseBlockCoords, false, false);
+
+            if (chunk == null)
+                return;
+
+            BlockData.Blocks baseBlockType = chunk.GetType(baseBlockCoords); // Get block being built against.
+            byte baseBlockData = chunk.GetData(baseBlockCoords);
+
+            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, (byte)baseBlockData, player.World);
 
             // Placed Item Info
             short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
@@ -529,8 +535,13 @@ namespace Chraft.Net
 
             Player player = client.Owner;
 
-            BlockData.Blocks type = (BlockData.Blocks)player.World.GetBlockId(coords); // Get block being built against.
-            byte metadata = player.World.GetBlockData(coords);
+            Chunk chunk = player.World.GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            BlockData.Blocks type = chunk.GetType(coords); // Get block being built against.
+            byte metadata = chunk.GetData(coords);
             StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
 
             UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
@@ -567,8 +578,13 @@ namespace Chraft.Net
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            byte type = player.World.GetBlockId(coords);
-            byte data = player.World.GetBlockData(coords);
+            Chunk chunk = player.World.GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            byte type = (byte)chunk.GetType(coords);
+            byte data = chunk.GetData(coords);
 
             switch (packet.Action)
             {
@@ -576,7 +592,7 @@ namespace Chraft.Net
                     UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                     client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
                     client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
-                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(oneUp).GetOpacity(oneUp)));
+                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetChunk(oneUp, false, false).GetOpacity(oneUp)));
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()

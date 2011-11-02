@@ -46,10 +46,17 @@ namespace Chraft.World.Blocks
                 return false;
 
             bool isWater = false;
-            block.Chunk.ForNSEW(targetBlock.Coords,
+
+            Chunk chunk = GetBlockChunk(block);
+
+            if (chunk == null)
+                return false;
+
+            chunk.ForNSEW(targetBlock.Coords,
                 delegate(UniversalCoords uc)
                 {
-                    if (block.World.GetBlockId(uc) == (byte)BlockData.Blocks.Water || block.World.GetBlockId(uc) == (byte)BlockData.Blocks.Still_Water)
+                    byte? blockId = block.World.GetBlockId(uc);
+                    if (blockId != null && (blockId == (byte)BlockData.Blocks.Water || blockId == (byte)BlockData.Blocks.Still_Water))
                         isWater = true;
                 });
 
@@ -59,14 +66,17 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(who, block, targetBlock, targetSide);
         }
 
-        public bool CanGrow(StructBlock block)
+        public bool CanGrow(StructBlock block, Chunk chunk)
         {
+            if (chunk == null)
+                return false;
+
             // Can't grow above the sky
             if (block.Coords.WorldY == 127)
                 return false;
 
             // Can grow only if the block above is free
-            byte blockId = block.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
+            byte blockId = (byte)chunk.GetType(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ));
             if (blockId != (byte)BlockData.Blocks.Air)
                 return false;
 
@@ -78,7 +88,7 @@ namespace Chraft.World.Blocks
             int reedHeightBelow = 0;
             for (int i = block.Coords.WorldY - 1; i >= 0; i--)
             {
-                if (block.World.GetBlockId(block.Coords.WorldX, i, block.Coords.WorldZ) != (byte)BlockData.Blocks.Reed)
+                if (chunk.GetType(block.Coords.WorldX, i, block.Coords.WorldZ) != BlockData.Blocks.Reed)
                     break;
                 reedHeightBelow++;
             }
@@ -89,12 +99,12 @@ namespace Chraft.World.Blocks
 
             // Checking if there are water next to the basement block
             bool isWater = false;
-            blockId = 0;
-            block.Chunk.ForNSEW(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - reedHeightBelow - 1, block.Coords.WorldZ),
+
+            chunk.ForNSEW(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - reedHeightBelow - 1, block.Coords.WorldZ),
                 delegate(UniversalCoords uc)
                 {
-                    blockId = block.World.GetBlockId(uc);
-                    if (blockId == (byte)BlockData.Blocks.Water || blockId == (byte)BlockData.Blocks.Still_Water)
+                    byte? blockIdBelow = block.World.GetBlockId(uc);
+                    if (blockIdBelow != null && (blockIdBelow == (byte)BlockData.Blocks.Water || blockIdBelow == (byte)BlockData.Blocks.Still_Water))
                     {
                         isWater = true;
                     }
@@ -112,21 +122,21 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        public void Grow(StructBlock block)
+        public void Grow(StructBlock block, Chunk chunk)
         {
-            if (!CanGrow(block))
+            if (!CanGrow(block, chunk))
                 return;
 
             if (block.MetaData < 0xe) // 14
             {
-                block.World.SetBlockData(block.Coords, ++block.MetaData);
+                chunk.SetData(block.Coords, ++block.MetaData);
                 return;
             }
 
-            block.World.SetBlockData(block.Coords, 0);
+            chunk.SetData(block.Coords, 0);
             UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                    block.Coords.WorldZ);
-            block.World.SetBlockAndData(blockAbove, (byte)BlockData.Blocks.Reed, 0x0);
+            chunk.SetBlockAndData(blockAbove, (byte)BlockData.Blocks.Reed, 0x0);
         }
     }
 }

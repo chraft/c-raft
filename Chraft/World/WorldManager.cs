@@ -148,9 +148,14 @@ namespace Chraft.World
             {
                 for (int z = minimumBlockXYZ.WorldZ; z < maximumBlockXYZ.WorldZ; z++)
                 {
+                    Chunk chunk = GetChunkFromWorld(x, z, false, false);
+
+                    if (chunk == null)
+                        continue;
+
                     for (int y = minimumBlockXYZ.WorldY - 1; y < maximumBlockXYZ.WorldY; y++)
                     {
-                        StructBlock block = this.GetBlock(UniversalCoords.FromWorld(x, y, z));
+                        StructBlock block = chunk.GetBlock(UniversalCoords.FromWorld(x, y, z));
                         
                         BlockBase blockInstance = BlockHelper.Instance(block.Type);
                         
@@ -556,54 +561,85 @@ namespace Chraft.World
 
         public StructBlock GetBlock(UniversalCoords coords)
         {
-            return new StructBlock(coords, GetBlockId(coords), GetBlockData(coords), this);
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if(chunk == null)
+                return StructBlock.Empty;
+
+            byte blockId = (byte)chunk.GetType(coords);
+            byte blockData = chunk.GetData(coords);
+
+            return new StructBlock(coords, blockId, blockData, this);
         }
 
         public StructBlock GetBlock(int worldX, int worldY, int worldZ)
         {
-            UniversalCoords coords = UniversalCoords.FromWorld(worldX, worldY, worldZ);
-            return new StructBlock(coords, GetBlockId(coords), GetBlockData(coords), this);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ, false, false);
+
+            if (chunk == null)
+                return StructBlock.Empty;
+
+            byte blockId = (byte)chunk.GetType(worldX, worldY, worldZ);
+            byte blockData = chunk.GetData(worldX, worldY, worldZ);
+
+            return new StructBlock(worldX, worldY, worldZ, blockId, blockData, this);
         }
                                                             
-        public byte GetBlockId(UniversalCoords coords)
+        public byte? GetBlockId(UniversalCoords coords)
         {
-            if (!ChunkExists(coords))
-                return 0;
-            return Chunks[coords][coords];
+            Chunk chunk = Chunks[coords];
+
+            if (chunk != null)
+                return chunk[coords];
+
+            return null;
         }
 
-        public byte GetBlockId(int worldX, int worldY, int worldZ)
+        public byte? GetBlockId(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(worldX >> 4, worldZ >> 4))
-                return 0;
-            return (byte)Chunks[worldX >> 4, worldZ >> 4].GetType(worldX & 0xF, worldY, worldZ & 0xF);
+            Chunk chunk = Chunks[worldX >> 4, worldZ >> 4];
+
+            if (chunk != null)
+                return chunk[worldX & 0xF, worldY, worldZ & 0xF];
+
+            return null;
         }
 
-        public byte GetBlockData(UniversalCoords coords)
+        public byte? GetBlockData(UniversalCoords coords)
         {
-            if (!ChunkExists(coords))
-                return 0;
-            return Chunks[coords].GetData(coords);
+            Chunk chunk = Chunks[coords];
+            if (chunk != null)
+                return chunk.GetData(coords);
+
+            return null;
         }
 
-        public byte GetBlockData(int worldX, int worldY, int worldZ)
+        public byte? GetBlockData(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(worldX >> 4, worldZ >> 4))
-                return 0;
-            return Chunks[worldX >> 4, worldZ >> 4].GetData(worldX & 0xF, worldY, worldZ & 0xF);
+            Chunk chunk = Chunks[worldX >> 4, worldZ >> 4];
+            if (chunk != null)
+                return chunk.GetData(worldX & 0xF, worldY, worldZ & 0xF);
+            
+            return null;
         }
 
         public double GetBlockLightBrightness(UniversalCoords coords)
         {
-            return _lightBrightnessTable[GetEffectiveLight(coords)];
-        }
+            byte? effectiveLight = GetEffectiveLight(coords);
+            if(effectiveLight == null)
+                return 0.0;
 
-        public byte GetFullBlockLight(UniversalCoords coords)
+            return _lightBrightnessTable[(byte)effectiveLight];        
+        }       
+ 
+        public byte? GetFullBlockLight(UniversalCoords coords)
         {
-            if (!ChunkExists(coords))
-                return 0;
-            ChunkBase chunk = Chunks[coords];
-            return Math.Max(chunk.GetSkyLight(coords), chunk.GetBlockLight(coords));
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return null;
+                      
+            return Math.Max(chunk.GetSkyLight(coords), chunk.GetBlockLight(coords));        
         }
 
         /// <summary>
@@ -611,56 +647,46 @@ namespace Chraft.World
         /// </summary>
         /// <param name="coords"></param>
         /// <returns></returns>
-        public byte GetEffectiveLight(UniversalCoords coords)
+        public byte? GetEffectiveLight(UniversalCoords coords)        
+        {            
+            // TODO: this needs to return the effective light for a block, taking into consideration the time of day etc... see calculateSkylightSubtracted and getBlockLightValue_do                        
+            return GetFullBlockLight(coords); // THIS HAS TO BE REMOVED AND CHANGED TO PROPER TIME CALCULATION TOO        
+        }        
+        
+        public byte? GetBlockLight(UniversalCoords coords)        
         {
-            // TODO: this needs to return the effective light for a block, taking into consideration the time of day etc... see calculateSkylightSubtracted and getBlockLightValue_do
-            return GetFullBlockLight(coords); // THIS HAS TO BE REMOVED AND CHANGED TO PROPER TIME CALCULATION TOO
+            Chunk chunk = Chunks[coords];
+            if (chunk != null)
+                return chunk.GetBlockLight(coords);
+
+            return null;
         }
 
-        public byte GetBlockLight(UniversalCoords coords)
+        public byte? GetBlockLight(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(coords))
-                return 0;
-            return Chunks[coords].GetBlockLight(coords);
+            Chunk chunk = Chunks[worldX >> 4, worldZ >> 4];
+            if (chunk != null)
+                return chunk.GetBlockLight(worldX & 0xF, worldY, worldZ & 0xF);
+
+            return null;
         }
 
-        public byte GetBlockLight(int worldX, int worldY, int worldZ)
+        public byte? GetSkyLight(UniversalCoords coords)
         {
-            if (!ChunkExists(worldX >> 4, worldZ >> 4))
-                return 0;
-            return Chunks[worldX >> 4, worldZ >> 4].GetBlockLight(worldX & 0xF, worldY, worldZ & 0xF);
+            Chunk chunk = Chunks[coords];
+            if (chunk != null)
+                return chunk.GetBlockLight(coords);
+
+            return null;
         }
 
-        public byte GetSkyLight(UniversalCoords coords)
+        public byte? GetSkyLight(int worldX, int worldY, int worldZ)
         {
-            if (!ChunkExists(coords))
-                return 0;
-            return Chunks[coords].GetSkyLight(coords);
-        }
+            Chunk chunk = Chunks[worldX >> 4, worldZ >> 4];
+            if (chunk != null)
+                return chunk.GetSkyLight(worldX & 0xF, worldY, worldZ & 0xF);
 
-        public byte GetSkyLight(int worldX, int worldY, int worldZ)
-        {
-            if (!ChunkExists(worldX >> 4, worldZ >> 4))
-                return 0;
-            return Chunks[worldX >> 4, worldZ >> 4].GetSkyLight(worldX & 0xF, worldY, worldZ & 0xF);
-        }
-
-        public byte? GetBlockOrNull(UniversalCoords coords)
-        {
-            if (coords.WorldY < 0 || coords.WorldY > 127)
-                return null;
-            if (!ChunkExists(coords))
-                return null;
-            return Chunks[coords][coords];
-        }
-
-        public byte? GetBlockOrNull(int worldX, int worldY, int worldZ)
-        {
-            if (worldY < 0 || worldY > 127)
-                return null;
-            if (!ChunkExists(worldX >> 4, worldZ >> 4))
-                return null;
-            return Chunks[worldX >> 4, worldZ >> 4][worldX & 0xF, worldY, worldZ & 0xF];
+            return null;
         }
   
         public IEnumerable<EntityBase> GetEntities()
@@ -680,10 +706,17 @@ namespace Chraft.World
 
         private RayTraceHitBlock DoRayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
         {
-            byte blockType = this.GetBlockId(coords); // only get the block type first to save time
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return null;
+
+            byte blockType = (byte)chunk.GetType(coords); // only get the block type first to save time
             if (blockType > 0)
             {
-                StructBlock block = new StructBlock(coords, blockType, this.GetBlockData(coords), this);
+                byte blockData = chunk.GetData(coords);
+
+                StructBlock block = new StructBlock(coords, (byte)blockType, (byte)blockData, this);
                 BlockBase blockClass = BlockHelper.Instance(block.Type);
                 RayTraceHitBlock blockRayTrace = blockClass.RayTraceIntersection(block, rayStart, rayEnd);
                 if (blockRayTrace != null)
@@ -857,28 +890,48 @@ namespace Chraft.World
             return Settings.Default.WorldSeed.GetHashCode();
         }
 
-        public void SetBlockAndData(UniversalCoords coords, byte type, byte data)
+        public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunk(coords, false, true);
-            chunk.SetType(coords, (BlockData.Blocks)type);
-            chunk.SetData(coords, data, true);
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if(chunk == null)
+                return;
+
+            chunk.SetType(coords, (BlockData.Blocks)type, false);
+            chunk.SetData(coords, data, false);
+
+            if(needsUpdate)
+                chunk.BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
         }
 
-        public void SetBlockAndData(int worldX, int worldY, int worldZ, byte type, byte data)
+        public void SetBlockAndData(int worldX, int worldY, int worldZ, byte type, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunkFromWorld(worldX, worldZ, false, true);
-            chunk.SetType(worldX & 0xF, worldY, worldZ & 0xF, (BlockData.Blocks)type);
-            chunk.SetData(worldX & 0xF, worldY, worldZ & 0xF, data, true);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ, false, false);
+
+            if (chunk == null)
+                return;
+
+            chunk.SetType(worldX & 0xF, worldY, worldZ & 0xF, (BlockData.Blocks)type, false);
+            chunk.SetData(worldX & 0xF, worldY, worldZ & 0xF, data, false);
+
+            if (needsUpdate)
+                chunk.BlockNeedsUpdate(worldX & 0xF, worldY, worldZ & 0xF);
         }
 
-        public void SetBlockData(UniversalCoords coords, byte data)
+        public void SetBlockData(UniversalCoords coords, byte data, bool needsUpdate = true)
         {
-            GetChunk(coords, false, true).SetData(coords, data, true);
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if(chunk != null)
+                chunk.SetData(coords, data, needsUpdate);
         }
 
-        public void SetBlockData(int worldX, int worldY, int worldZ, byte data)
+        public void SetBlockData(int worldX, int worldY, int worldZ, byte data, bool needsUpdate = true)
         {
-            GetChunkFromWorld(worldX, worldZ, false, true).SetData(worldX & 0xF, worldY, worldZ & 0xF, data, true);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ, false, false);
+
+            if(chunk != null)
+                chunk.SetData(worldX & 0xF, worldY, worldZ & 0xF, data, needsUpdate);
         }
 
         public bool ChunkExists(UniversalCoords coords)
@@ -908,25 +961,38 @@ namespace Chraft.World
 
         private void UpdatePhysics(UniversalCoords coords, bool updateClients = true)
         {
-            BlockData.Blocks type = (BlockData.Blocks)GetBlockId(coords);
-            UniversalCoords oneDown = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);
+            Chunk chunk = GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            BlockData.Blocks type = chunk.GetType(coords);
+            UniversalCoords oneDown = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY - 1, coords.WorldZ);        
 
             if (type == BlockData.Blocks.Water)
             {
                 byte water = 8;
-                GetChunk(coords, false, true).ForNSEW(coords, delegate(UniversalCoords uc)
+                chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    if (GetBlockId(uc) == (byte)BlockData.Blocks.Still_Water)
+                    Chunk nearbyChunk = GetChunk(uc, false, false);
+
+                    if (nearbyChunk == null)
+                        return;
+
+                    BlockData.Blocks blockId = nearbyChunk.GetType(uc);
+                    byte blockData;
+                    if (blockId == BlockData.Blocks.Still_Water)
                         water = 0;
-                    else if (GetBlockId(uc) == (byte)BlockData.Blocks.Water && GetBlockData(uc) < water)
-                        water = (byte)(GetBlockData(uc) + 1);
+                    else if (blockId == BlockData.Blocks.Water && (blockData = nearbyChunk.GetData(uc)) < water)
+                        water = (byte)(blockData + 1);
                 });
-                if (water != GetBlockData(coords))
+
+                if (water != chunk.GetData(coords))
                 {
                     if (water == 8)
-                        SetBlockAndData(coords, 0, 0);
+                        chunk.SetBlockAndData(coords, 0, 0);
                     else
-                        SetBlockAndData(coords, (byte)BlockData.Blocks.Water, water);
+                        chunk.SetBlockAndData(coords, (byte)BlockData.Blocks.Water, water);
                     //Update(x, y, z, updateClients);
                     return;
                 }
@@ -935,32 +1001,41 @@ namespace Chraft.World
             if (type == BlockData.Blocks.Air)
             {
                 UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
-                if (coords.WorldY < 127 && (GetBlockId(oneUp) == (byte)BlockData.Blocks.Water || GetBlockId(oneUp) == (byte)BlockData.Blocks.Still_Water))
+                BlockData.Blocks blockIdOneUp = chunk.GetType(oneUp);
+                if (coords.WorldY < 127 && (blockIdOneUp == BlockData.Blocks.Water || blockIdOneUp == BlockData.Blocks.Still_Water))
                 {
-                    SetBlockAndData(coords, (byte)BlockData.Blocks.Water, 0);
+                    chunk.SetBlockAndData(coords, (byte)BlockData.Blocks.Water, 0);
                     //Update(x, y, z, updateClients);
                     return;
                 }
 
-                if (coords.WorldY < 127 && (GetBlockId(oneUp) == (byte)BlockData.Blocks.Lava || GetBlockId(oneUp) == (byte)BlockData.Blocks.Still_Lava))
+                if (coords.WorldY < 127 && (blockIdOneUp == BlockData.Blocks.Lava || blockIdOneUp == BlockData.Blocks.Still_Lava))
                 {
-                    SetBlockAndData(coords, (byte)BlockData.Blocks.Lava, 0);
+                    chunk.SetBlockAndData(coords, (byte)BlockData.Blocks.Lava, 0);
                     //Update(x, y, z, updateClients);
                     return;
                 }
 
                 byte water = 8;
-                Chunk chunk = GetChunk(coords, false, true);
+
                 chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    if (GetBlockId(uc) == (byte)BlockData.Blocks.Still_Water)
+                    Chunk nearbyChunk = GetChunk(uc, false, false);
+
+                    if (nearbyChunk == null)
+                        return;
+
+                    BlockData.Blocks blockId = nearbyChunk.GetType(uc);
+                    byte blockData;
+
+                    if (blockId == BlockData.Blocks.Still_Water)
                         water = 0;
-                    else if (GetBlockId(uc) == (byte)BlockData.Blocks.Water && GetBlockData(uc) < water)
-                        water = (byte)(GetBlockData(uc) + 1);
+                    else if (blockId == BlockData.Blocks.Water && (blockData = nearbyChunk.GetData(uc)) < water)
+                        water = (byte)(blockData + 1);
                 });
                 if (water < 8)
                 {
-                    SetBlockAndData(coords, (byte)BlockData.Blocks.Water, water);
+                    chunk.SetBlockAndData(coords, (byte)BlockData.Blocks.Water, water);
                     //Update(x, y, z, updateClients);
                     return;
                 }
@@ -968,14 +1043,22 @@ namespace Chraft.World
                 byte lava = 8;
                 chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    if (GetBlockId(uc) == (byte)BlockData.Blocks.Still_Lava)
+                    Chunk nearbyChunk = GetChunk(uc, false, false);
+
+                    if (nearbyChunk == null)
+                        return;
+
+                    BlockData.Blocks blockId = nearbyChunk.GetType(uc);
+                    byte blockData;
+
+                    if (blockId == BlockData.Blocks.Still_Lava)
                         lava = 0;
-                    else if (GetBlockId(uc) == (byte)BlockData.Blocks.Lava && GetBlockData(uc) < lava)
-                        lava = (byte)(GetBlockData(uc) + 1);
+                    else if (blockId == BlockData.Blocks.Lava && (blockData = nearbyChunk.GetData(uc)) < lava)
+                        lava = (byte)(blockData + 1);
                 });
                 if (water < 4)
                 {
-                    SetBlockAndData(coords, (byte)BlockData.Blocks.Lava, lava);
+                    chunk.SetBlockAndData(coords, (byte)BlockData.Blocks.Lava, lava);
                     //Update(x, y, z, updateClients);
                     return;
                 }

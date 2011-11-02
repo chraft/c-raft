@@ -206,7 +206,7 @@ namespace Chraft.Net
         /// <param name="l">Length (X magnitude)</param>
         /// <param name="w">Height (Y magnitude)</param>
         /// <param name="h">Width (Z magnitude)</param>
-        public void SendBlockRegion(int x, int y, int z, int l, int h, int w)
+        /*public void SendBlockRegion(int x, int y, int z, int l, int h, int w)
         {
             for (int dx = 0; dx < l; dx++)
             {
@@ -214,13 +214,13 @@ namespace Chraft.Net
                 {
                     for (int dz = 0; dz < w; dz++)
                     {
-                        byte? type = _player.World.GetBlockOrNull(x + dx, y + dy, z + dz);
+                        byte? type = _player.World.GetBlockId(x + dx, y + dy, z + dz);
                         if (type != null)
                             SendBlock(x + dx, y + dy, z + dz, type.Value, _player.World.GetBlockData(x + dx, y + dy, z + dz));
                     }
                 }
             }
-        }
+        }*/
 
         private void SendMotd()
         {

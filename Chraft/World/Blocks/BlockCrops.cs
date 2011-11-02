@@ -20,10 +20,10 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public bool CanGrow(StructBlock block)
+        public bool CanGrow(StructBlock block, Chunk chunk)
         {
             // Crops grow from 0x0 to 0x7
-            if (block.MetaData == 0x07)
+            if (chunk == null || block.MetaData == 0x07)
                 return false;
             if (block.Coords.WorldY == 127)
                 return false;
@@ -54,9 +54,9 @@ namespace Chraft.World.Blocks
             base.DropItems(who, block);
         }
 
-        public void Grow(StructBlock block)
+        public void Grow(StructBlock block, Chunk chunk)
         {
-            if (!CanGrow(block))
+            if (!CanGrow(block, chunk))
                 return;
 
             UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
@@ -67,7 +67,7 @@ namespace Chraft.World.Blocks
             if (block.World.Server.Rand.Next(10) == 0)
             {
                 block.MetaData++;
-                block.World.SetBlockData(block.Coords, block.MetaData);
+                chunk.SetData(block.Coords, block.MetaData);
             }
         }
 

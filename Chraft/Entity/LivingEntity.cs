@@ -277,8 +277,8 @@ namespace Chraft.Entity
         {
             if (!CanDrown || IsDead)
                 return;
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (BlockHelper.Instance(headBlockId).IsLiquid)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsLiquid)
             {
                 if (DrowningTimer == null)
                 {
@@ -289,8 +289,8 @@ namespace Chraft.Entity
 
         protected virtual void Drown(object state)
         {
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (IsDead || !BlockHelper.Instance(headBlockId).IsLiquid || !CanDrown)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsLiquid || !CanDrown)
             {
                 StopDrowningTimer();
                 return;
@@ -318,8 +318,8 @@ namespace Chraft.Entity
         {
             if (!CanSuffocate || IsDead)
                 return;
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (BlockHelper.Instance(headBlockId).IsOpaque)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsOpaque)
             {
                 if (SuffocationTimer == null)
                 {
@@ -330,8 +330,8 @@ namespace Chraft.Entity
 
         protected virtual void Suffocate(object state)
         {
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (IsDead || !BlockHelper.Instance(headBlockId).IsOpaque || !CanSuffocate)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsOpaque || !CanSuffocate)
             {
                 StopSuffocationTimer();
                 return;

@@ -22,13 +22,25 @@ namespace Chraft.World.Blocks
 
         public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
         {
+            Chunk chunk = GetBlockChunk(block);
+            Chunk targetChunk = GetBlockChunk(targetBlock);
+
+            if (chunk == null || targetChunk == null)
+                return;
+
             // Load the blocks surrounding the position (NSEW) not diagonals
             BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
             UniversalCoords[] nsewBlockPositions = new UniversalCoords[4];
             int nsewCount = 0;
-            block.Chunk.ForNSEW(block.Coords, (uc) =>
+
+            chunk.ForNSEW(block.Coords, (uc) =>
             {
-                nsewBlocks[nsewCount] = (BlockData.Blocks)block.World.GetBlockId(uc);
+                byte? nearbyBlockId = block.World.GetBlockId(uc);
+
+                if(nearbyBlockId == null)
+                    return;
+
+                nsewBlocks[nsewCount] = (BlockData.Blocks)nearbyBlockId;
                 nsewBlockPositions[nsewCount] = uc;
                 nsewCount++;
             });
@@ -43,7 +55,7 @@ namespace Chraft.World.Blocks
             for (int i = 0; i < 4; i++)
             {
                 UniversalCoords p = nsewBlockPositions[i];
-                if (nsewBlocks[i] == BlockData.Blocks.Chest && block.Chunk.IsNSEWTo(p, (byte)BlockData.Blocks.Chest))
+                if (nsewBlocks[i] == BlockData.Blocks.Chest && chunk.IsNSEWTo(p, (byte)BlockData.Blocks.Chest))
                 {
                     // Cannot place next to a double chest
                     return;
@@ -73,13 +85,15 @@ namespace Chraft.World.Blocks
             if (player.CurrentInterface != null)
                 return;
 
-            if (!BlockHelper.Instance(block.World.GetBlockId(block.Coords)).IsAir)
+            byte? blockId = block.World.GetBlockId(block.Coords);
+
+            if (blockId == null || !BlockHelper.Instance((byte)blockId).IsAir)
             {
                 // Cannot open a chest if no space is above it
                 return;
             }
 
-            Chunk chunk = player.World.GetBlockChunk(block.Coords);
+            Chunk chunk = GetBlockChunk(block);
 
             // Double chest?
             if (chunk.IsNSEWTo(block.Coords, block.Type))

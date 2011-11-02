@@ -248,18 +248,28 @@ namespace Chraft.Interfaces
                 _fuelTicksFull = 0;
                 SendFurnaceProgressPacket();
                 SendFurnaceFirePacket(0);
-                World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Furnace, World.GetBlockData(Coords));
+
+                Chunk chunk = World.GetChunk(Coords, false, false);
+
+                if (chunk == null)
+                    return;
+
+                byte blockId = chunk.GetData(Coords);
+                chunk.SetBlockAndData(Coords, (byte)BlockData.Blocks.Furnace, blockId);
             }
 
             private void Burn(object state)
             {
                 lock (_instanceLock)
                 {
-                    if (!World.ChunkExists(Coords))
+                    Chunk chunk = World.GetChunk(Coords, false, false);
+
+                    if (chunk == null)
                     {
                         StopBurning();
                         return;
                     }
+
                     if (_fuelTicksLeft <= 0)
                     {
                         if (HasIngredient() && HasFuel())
@@ -275,53 +285,49 @@ namespace Chraft.Interfaces
                             SendFurnaceProgressPacket(_progressTicks);
                             RemoveFuel();
 
-                            if (World.GetBlockId(Coords) == (byte)BlockData.Blocks.Furnace)
-                                World.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, World.GetBlockData(Coords));
+                            BlockData.Blocks blockId = chunk.GetType(Coords);
+
+                            if (blockId == BlockData.Blocks.Furnace)
+                                chunk.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, (byte)blockId);
+                            
                             IsBurning = true;
                         }
                         else
-                        {
                             StopBurning();
-                        }
+                        
                         return;
                     }
+
+                    
+                    _fuelTicksLeft--;
+                    if (ItemStack.IsVoid(InputSlot) || (!ItemStack.IsVoid(OutputSlot) && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))                   
+                        _progressTicks = 0;                   
                     else
                     {
-                        _fuelTicksLeft--;
-                        if (ItemStack.IsVoid(InputSlot) ||
-                            (!ItemStack.IsVoid(OutputSlot) && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
+                        if (_progressTicks >= FullProgress)
                         {
                             _progressTicks = 0;
+                            ItemStack output = GetSmeltingRecipe(InputSlot).Result;
+                            output.Count = 1;
+                            if (!ItemStack.IsVoid(OutputSlot))
+                                output.Count = (sbyte)(OutputSlot.Count + 1);
+                            ChangeOutput(output);
+                            if (InputSlot.Count < 2)
+                                ChangeInput(ItemStack.Void);
+                            else
+                                ChangeInput(new ItemStack(InputSlot.Type, --InputSlot.Count, InputSlot.Durability));
                         }
-                        else
-                        {
-                            if (_progressTicks >= FullProgress)
-                            {
-                                _progressTicks = 0;
-                                ItemStack output = GetSmeltingRecipe(InputSlot).Result;
-                                output.Count = 1;
-                                if (!ItemStack.IsVoid(OutputSlot))
-                                    output.Count = (sbyte)(OutputSlot.Count + 1);
-                                ChangeOutput(output);
-                                if (InputSlot.Count < 2)
-                                    ChangeInput(ItemStack.Void);
-                                else
-                                    ChangeInput(new ItemStack(InputSlot.Type, --InputSlot.Count, InputSlot.Durability));
-                            }
-                            _progressTicks++;
-                        }
+                        _progressTicks++;
                     }
+                    
                     double fuelTickCost = ((double)(_fuelTicksFull))/FullFire;
                     short fireLevel = (short)(_fuelTicksLeft/fuelTickCost);
-                    if (fireLevel % 10 == 0 || fireLevel == FullFire)
-                    {
-                        SendFurnaceFirePacket(fireLevel);
-                    }
-                    if (_progressTicks % 10 == 0 || _progressTicks == FullProgress)
-                    {
-                        SendFurnaceProgressPacket(_progressTicks);
-                    }
 
+                    if (fireLevel % 10 == 0 || fireLevel == FullFire)
+                        SendFurnaceFirePacket(fireLevel);
+
+                    if (_progressTicks % 10 == 0 || _progressTicks == FullProgress)
+                        SendFurnaceProgressPacket(_progressTicks);
                 }
             }
         }

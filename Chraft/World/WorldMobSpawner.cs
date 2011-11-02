@@ -95,7 +95,12 @@ namespace Chraft.World
                     MobType mobType = mobGroup.SelectRandom(world.Server.Rand);
                     UniversalCoords packSpawnPosition = GetRandomPointInChunk(world, UniversalCoords.FromPackedChunkToX(packedChunk), UniversalCoords.FromPackedChunkToZ(packedChunk));
 
-                    BlockBase blockClass = BlockHelper.Instance(world.GetBlockId(packSpawnPosition));
+                    byte? blockId = world.GetBlockId(packSpawnPosition);
+
+                    if (blockId == null)
+                        continue;
+
+                    BlockBase blockClass = BlockHelper.Instance((byte)blockId);
 
                     if (!blockClass.IsOpaque && ((!inWater && blockClass.Type == BlockData.Blocks.Air) || (inWater && blockClass.IsLiquid))) // Lava is Opaque, so IsLiquid is safe to use here for water & still water
                     {
@@ -154,6 +159,10 @@ namespace Chraft.World
                                                     // Don't pull that face at me - there are legitimate reasons to use a goto, like break out of two for loops and continue the foreach iteration
                                                     // Ok ok, we could do a break, and duplicate the above if statement and then break in the next for and that would do the same, 
                                                     // but seriously "goto nextChunk" does make more sense, that's exactly what we are doing!
+
+                                                    // Smjert: do you really need the outher for? 
+                                                    // You don't even use the i index, you could just make one for that loops 12 times. And even if you used it you could do a math operation.
+                                                    // Or if you really need these two for you can put them into a function and then call return in this case, so you would break out of the two loops.
                                                     goto nextChunk;
                                                 }
                                             }
@@ -170,18 +179,24 @@ namespace Chraft.World
 
         private static bool CanMobTypeSpawnAtLocation(MobType mobType, WorldManager world, int worldX, int worldY, int worldZ)
         {
-            BlockBase blockClass = BlockHelper.Instance(world.GetBlockId(worldX, worldY, worldZ));
+            Chunk chunk = world.GetChunkFromWorld(worldX, worldZ, false, false);
+            if (chunk == null)
+                return false;
+
+            BlockBase blockClassCurrent = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY, worldZ));
+            BlockBase blockClassUp = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY + 1, worldZ));          
+
             if (mobType == MobType.Squid)
             {
-                return (blockClass.IsLiquid && !blockClass.IsOpaque) // Is Water
-                    && !BlockHelper.Instance((world.GetBlockId(worldX, worldY + 1, worldZ))).IsOpaque; // Has either water or air above it
+                return (blockClassCurrent.IsLiquid && !blockClassCurrent.IsOpaque) // Is Water
+                    && !blockClassUp.IsOpaque; // Has either water or air above it
             }
-            else
-            {
-                return BlockHelper.Instance((world.GetBlockId(worldX, worldY - 1, worldZ))).IsOpaque && BlockHelper.Instance((world.GetBlockId(worldX, worldY - 1, worldZ))).IsSolid && // Is solid underneath
-                       !blockClass.IsOpaque && !blockClass.IsSolid && !blockClass.IsLiquid && // Is not solid or liquid where spawning 
-                       !BlockHelper.Instance((world.GetBlockId(worldX, worldY + 1, worldZ))).IsOpaque && !BlockHelper.Instance((world.GetBlockId(worldX, worldY + 1, worldZ))).IsSolid; // Is not solid 1 block above
-            }
+
+            BlockBase blockClassDown = BlockHelper.Instance((byte)chunk.GetType(worldX, worldY - 1, worldZ));
+
+            return blockClassDown.IsOpaque && blockClassDown.IsSolid && // Is solid underneath
+                    !blockClassCurrent.IsOpaque && !blockClassCurrent.IsSolid && !blockClassCurrent.IsLiquid && // Is not solid or liquid where spawning 
+                    !blockClassUp.IsOpaque && !blockClassUp.IsSolid; // Is not solid 1 block above
         }
 
         private static void MobSpecificInitialisation(Mob mob, WorldManager world, AbsWorldCoords coords)

@@ -167,8 +167,13 @@ namespace Chraft.Entity
         protected virtual void PushOutOfBlocks(AbsWorldCoords absWorldCoords)
         {
             UniversalCoords coords = UniversalCoords.FromAbsWorld(absWorldCoords);
-            
-            BlockBase blockClass = BlockHelper.Instance(this.World.GetBlockId(coords));
+
+            byte? blockId = World.GetBlockId(coords);
+
+            if (blockId == null)
+                return;
+
+            BlockBase blockClass = BlockHelper.Instance((byte)blockId);
             if (blockClass.IsOpaque && blockClass.IsSolid)
             {
                 // The offset within World (int) coords
@@ -178,8 +183,14 @@ namespace Chraft.Entity
                 Direction? moveDirection = null;
                 
                 // Calculate the smallest distance needed to move the entity out of the block
-                coords.ForAdjacent((aCoord, direction) => {
-                    var adjacentBlockClass = BlockHelper.Instance(this.World.GetBlockId(aCoord));
+                coords.ForAdjacent((aCoord, direction) =>
+                {
+                    byte? adjBlockId = World.GetBlockId(aCoord);
+
+                    if (adjBlockId == null)
+                        return;
+
+                    var adjacentBlockClass = BlockHelper.Instance((byte)adjBlockId);
                     
                     if (!(adjacentBlockClass.IsOpaque && adjacentBlockClass.IsSolid))
                     {
@@ -289,12 +300,17 @@ namespace Chraft.Entity
             if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
             {
                 for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
-                {
-                    for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
+                {                 
+                    for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
                     {
-                        for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
+                        Chunk chunk = World.GetChunkFromWorld(x, z, false, false);
+
+                        if (chunk == null)
+                            continue;
+
+                        for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
                         {
-                            var block = this.World.GetBlock(x, y, z);
+                            var block = chunk.GetBlock(x, y, z);
                             if (block.Type > 0)
                             {
                                 var blockClass = BlockHelper.Instance(block.Type);
