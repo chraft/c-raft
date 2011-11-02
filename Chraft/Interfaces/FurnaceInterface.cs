@@ -254,8 +254,7 @@ namespace Chraft.Interfaces
                 if (chunk == null)
                     return;
 
-                byte blockId = chunk.GetData(Coords);
-                chunk.SetBlockAndData(Coords, (byte)BlockData.Blocks.Furnace, blockId);
+                chunk.SetType(Coords, BlockData.Blocks.Furnace);
             }
 
             private void Burn(object state)
@@ -288,7 +287,7 @@ namespace Chraft.Interfaces
                             BlockData.Blocks blockId = chunk.GetType(Coords);
 
                             if (blockId == BlockData.Blocks.Furnace)
-                                chunk.SetBlockAndData(Coords, (byte)BlockData.Blocks.Burning_Furnace, (byte)blockId);
+                                chunk.SetType(Coords, BlockData.Blocks.Burning_Furnace);
                             
                             IsBurning = true;
                         }
