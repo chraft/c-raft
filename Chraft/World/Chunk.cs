@@ -659,11 +659,6 @@ namespace Chraft.World
                     {
                         iGrowable.Grow(block);
 
-                        if (light < 7 && sky < 7)
-                        {
-                            SpawnMob(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));
-                        }/* else if (blockId == (byte)BlockData.Blocks.Grass)
-                            SpawnAnimal(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));*/
                         continue;
                     }
                 }
@@ -761,21 +756,6 @@ namespace Chraft.World
             }
         }
 
-        private void SpawnAnimal(UniversalCoords coords)
-        {
-            if (coords.WorldY >= 127 || !IsAir(coords))
-                return;
-
-            if (IsAir(coords))
-            {
-                if (World.Time % 50 == 0)
-                {
-                    if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                        World.SpawnAnimal(coords);
-                }
-            }
-        }
-
         private void GrowDirt(UniversalCoords coords)
         {
             if (coords.WorldY >= 127 || IsAir(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ)))
@@ -784,22 +764,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(30) != 0)
             {
                 SetType(coords, BlockData.Blocks.Dirt);
-            }
-        }
-
-        private void SpawnMob(UniversalCoords coords)
-        {
-            UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
-            if (GetType(coords) != BlockData.Blocks.Air)
-                return;
-
-            if (GetType(oneUp) != BlockData.Blocks.Air)
-                return;
-
-            if (World.Time % 100 == 0)
-            {
-                if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                    World.SpawnMob(oneUp);
             }
         }
 

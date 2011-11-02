@@ -496,73 +496,10 @@ namespace Chraft.World
                 e.Update();
             });
         }
-
         
         private void MobSpawnerProc()
         {
             WorldMobSpawner.SpawnMobs(this, true, this.WorldTicks % 400 == 0);
-        }
-
-        public void SpawnAnimal(UniversalCoords coords)
-        {
-            MobType type = MobType.Giant;
-            switch (Server.Rand.Next(4))
-            {
-                case 0: type = MobType.Cow; break;
-                case 1: type = MobType.Hen; break;
-                case 2: type = MobType.Pig; break;
-                case 3: type = MobType.Sheep; break;
-            }
-
-            Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
-
-            mob.Position = new AbsWorldCoords(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5));
-            mob.World = this;
-
-            mob.Hunter = true;
-            mob.Hunting = false;
-
-            //Event
-            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
-            if (e.EventCanceled) return;
-            mob.Position = e.Location;
-            //End Event
-            
-            //mob.Data // Set accessor is inaccebile?
-            Server.AddEntity(mob);
-        }
-
-        public void SpawnMob(UniversalCoords coords, MobType type = MobType.Pig)
-        {
-            if (type == MobType.Pig) // Type has not been forced.
-            {
-                switch (Server.Rand.Next(4))
-                {
-                    case 0: type = MobType.Zombie; break;
-                    case 1: type = MobType.Skeleton; break;
-                    case 2: type = MobType.Creeper; break;
-                    case 3: type = MobType.Spider; break; // TODO: Check space is larger than 1x2
-                }
-            }
-
-            Mob mob = MobFactory.CreateMob(this, this.Server.AllocateEntity(), type);
-
-            mob.Position = new AbsWorldCoords(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5));
-            mob.World = this;
-
-            mob.Hunter = true;
-            mob.Hunting = false;
-
-            //Event
-            EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
-            if (e.EventCanceled) return;
-            mob.Position = e.Location;
-            //End Event
-            
-            //mob.Data // Set accessor is inaccebile?
-            Server.AddEntity(mob); // TODO: Limit this in some way.
         }
 
         public Chunk GetBlockChunk(UniversalCoords coords)

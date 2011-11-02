@@ -5,6 +5,7 @@ using System.Text;
 using Chraft.Utils;
 using Chraft.Entity;
 using Chraft.World.Blocks;
+using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World
 {
@@ -136,10 +137,17 @@ namespace Chraft.World
                                             // Finally apply any mob specific rules about spawning here
                                             if (newMob.CanSpawnHere())
                                             {
+                                                //Event
+                                                EntitySpawnEventArgs e = new EntitySpawnEventArgs(newMob, newMob.Position);
+                                                world.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
+                                                if (e.EventCanceled)
+                                                    continue;
+                                                newMob.Position = e.Location;
+                                                //End Event
+                                            
                                                 ++spawnedCount;
-                                                world.Server.AddEntity(newMob);
                                                 MobSpecificInitialisation(newMob, world, spawnPosition);
-                                                world.Server.SendEntityToNearbyPlayers(world, newMob);
+                                                world.Server.AddEntity(newMob);
 
                                                 if (spawnedCount >= newMob.MaxSpawnedPerGroup)
                                                 {
@@ -184,6 +192,7 @@ namespace Chraft.World
                 LivingEntity skeleton = MobFactory.CreateMob(world, world.Server.AllocateEntity(), MobType.Skeleton);
                 skeleton.Position = coords;
                 skeleton.Yaw = mob.Yaw;
+                
                 world.Server.AddEntity(skeleton);
                 skeleton.MountEntity(mob);
             }
