@@ -702,8 +702,12 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of removing server entities
         /// </summary>
-        public void RemoveEntity(EntityBase e)
+        public void RemoveEntity(EntityBase e, bool notifyNearbyClients = true)
         {
+            if (notifyNearbyClients)
+            {
+                this.SendRemoveEntityToNearbyPlayers(e.World, e);
+            }
             _Entities.TryRemove(e.EntityId, out e);
             Interlocked.Increment(ref _entityDictChanges);
         }
@@ -711,10 +715,14 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of adding server entities
         /// </summary>
-        public void AddEntity(EntityBase e)
+        public void AddEntity(EntityBase e, bool notifyNearbyClients = true)
         {
             _Entities.TryAdd(e.EntityId, e);
             Interlocked.Increment(ref _entityDictChanges);
+            if (notifyNearbyClients)
+            {
+                this.SendEntityToNearbyPlayers(e.World, e);
+            }
         }
 
         public void AddClient(Client client)

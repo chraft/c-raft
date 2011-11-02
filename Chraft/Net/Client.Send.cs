@@ -315,7 +315,7 @@ namespace Chraft.Net
         public void SendLoginSequence()
         {
             _player = new Player(Server, Server.AllocateEntity(), this);
-            Server.AddEntity(_player);
+            Server.AddEntity(_player, false);
             Server.AddAuthenticatedClient(this);
             Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);

@@ -93,7 +93,6 @@ namespace Chraft.Entity
 
         public void Despawn()
         {
-            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(this);
 
             // Client.UpdateEntities() will handle any notifications about this entity disappearing

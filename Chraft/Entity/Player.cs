@@ -503,7 +503,6 @@ namespace Chraft.Entity
         public void HandleRespawn()
         {
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
-            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(this);
 
             Position = new AbsWorldCoords(
@@ -523,7 +522,6 @@ namespace Chraft.Entity
             _client.ScheduleUpdateChunks();
 
             Server.AddEntity(this);
-            Server.SendEntityToNearbyPlayers(World, this);
         }
 
         private void PickupItem(ItemEntity item)
@@ -531,7 +529,6 @@ namespace Chraft.Entity
             if (Server.GetEntityById(item.EntityId) == null)
                 return;
 
-            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(item);
 
             Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position.X, item.Position.Y, item.Position.Z), new CollectItemPacket
