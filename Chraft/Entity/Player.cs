@@ -668,7 +668,12 @@ namespace Chraft.Entity
 
         public void DropItem()
         {
-            Server.DropItem(this, Inventory.Slots[Inventory.ActiveSlot]);
+            var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
+            if (activeItemStack.Count > 0)
+            {
+                Server.DropItem(this, new ItemStack(activeItemStack.Type, 1, activeItemStack.Durability));
+                Inventory.RemoveItem(Inventory.ActiveSlot);
+            }
         }
 
 
