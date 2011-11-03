@@ -537,13 +537,13 @@ namespace Chraft.Entity
             if (Server.GetEntityById(item.EntityId) == null)
                 return;
 
-            Server.RemoveEntity(item);
-
             Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position.X, item.Position.Y, item.Position.Z), new CollectItemPacket
             {
                 EntityId = item.EntityId,
                 PlayerId = EntityId
             });
+
+            Server.RemoveEntity(item);
 
             Inventory.AddItem(item.ItemId, item.Count, item.Durability);
         }
