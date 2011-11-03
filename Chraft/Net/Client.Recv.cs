@@ -610,8 +610,6 @@ namespace Chraft.Net
                     break;
 
                 case PlayerDiggingPacket.DigAction.DropItem:
-                    var slot = player.Inventory.ActiveSlot;
-                    player.Inventory.RemoveItem(slot);
                     player.DropItem();
                     break;
             }
