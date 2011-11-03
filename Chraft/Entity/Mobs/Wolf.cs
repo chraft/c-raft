@@ -73,6 +73,7 @@ namespace Chraft.Entity.Mobs
 
         protected override void DoDeath(EntityBase killedBy)
         {
+            base.DoDeath(killedBy);
         }
 
         protected override void DoInteraction(Client client, Chraft.Interfaces.ItemStack item)

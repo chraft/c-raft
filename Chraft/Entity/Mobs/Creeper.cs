@@ -53,6 +53,7 @@ namespace Chraft.Entity.Mobs
                 if (count > 0)
                     Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
             }
+            base.DoDeath(killedBy);
         }
     }
 }

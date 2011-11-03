@@ -30,8 +30,8 @@ namespace Chraft.Entity.Mobs
         internal Sheep(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Sheep, data)
         {
-            this.Data.Sheared = false;
-            this.Data.WoolColor = _woolColor.SelectRandom(world.Server.Rand);
+            Data.Sheared = false;
+            Data.WoolColor = _woolColor.SelectRandom(world.Server.Rand);
         }
 
         protected WoolColor DyeColorToWoolColor(MetaData.Dyes dyeColor)
@@ -78,7 +78,7 @@ namespace Chraft.Entity.Mobs
         {
             base.DoInteraction(client, item);
 
-            if (client != null && !Chraft.Interfaces.ItemStack.IsVoid(item))
+            if (client != null && !Interfaces.ItemStack.IsVoid(item))
             {
                 if (item.Type == (short)Chraft.World.BlockData.Items.Shears && !Data.Sheared)
                 {
@@ -106,8 +106,9 @@ namespace Chraft.Entity.Mobs
 
         protected override void DoDeath(EntityBase killedBy)
         {
-            if (!this.Data.Sheared)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(this.Position.X, this.Position.Y, this.Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
+            if (!Data.Sheared)
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)Data.WoolColor));
+            base.DoDeath(killedBy);
         }
     }
 }
