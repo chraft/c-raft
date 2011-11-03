@@ -32,7 +32,7 @@ namespace Chraft.Entity.Mobs
         {
             var killedByMob = killedBy as Mob;
             UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
-            if (killedByMob.Type == MobType.Skeleton)
+            if (killedByMob != null && killedByMob.Type == MobType.Skeleton)
             {
                 // If killed by a skeleton drop a music disc
                 sbyte count = 1;
