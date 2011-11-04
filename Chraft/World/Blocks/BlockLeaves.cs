@@ -27,9 +27,7 @@ namespace Chraft.World.Blocks
             if (player != null)
             {
                 if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
-                {
-                    LootTable.Add(new ItemStack((short)Type, 1, block.MetaData));
-                }
+                    LootTable.Add(new ItemStack((short)Type, 1, block.MetaData));              
                 else if (block.World.Server.Rand.Next(5) == 0)
                     LootTable.Add(new ItemStack((short)BlockData.Blocks.Sapling, 1));
             }

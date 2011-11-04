@@ -9,7 +9,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Sheep: Mob
+    public class Sheep: Animal
     {
         public override string Name
         {
@@ -18,20 +18,20 @@ namespace Chraft.Entity.Mobs
 
         public override short MaxHealth { get { return 10; } }
 
-        static ProportionValue<WoolColor>[] _woolColor = new[]{
-                ProportionValue.Create(0.8184, WoolColor.White), // 81.84% chance for White
-                ProportionValue.Create(0.05, WoolColor.Silver),  // 5% chance for light gray
-                ProportionValue.Create(0.05, WoolColor.Gray),    // 5% chance for gray
-                ProportionValue.Create(0.05, WoolColor.Black),   // 5% chance for black
-                ProportionValue.Create(0.03, WoolColor.Brown),   // 3% chance for brown
-                ProportionValue.Create(0.0016, WoolColor.Pink),  // 0.16% chance for pink
+        static WeightedPercentValue<WoolColor>[] _woolColor = new[]{
+                WeightedPercentValue.Create(0.8184, WoolColor.White), // 81.84% chance for White
+                WeightedPercentValue.Create(0.05, WoolColor.Silver),  // 5% chance for light gray
+                WeightedPercentValue.Create(0.05, WoolColor.Gray),    // 5% chance for gray
+                WeightedPercentValue.Create(0.05, WoolColor.Black),   // 5% chance for black
+                WeightedPercentValue.Create(0.03, WoolColor.Brown),   // 3% chance for brown
+                WeightedPercentValue.Create(0.0016, WoolColor.Pink),  // 0.16% chance for pink
             };
 
         internal Sheep(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Sheep, data)
         {
-            this.Data.Sheared = false;
-            this.Data.WoolColor = _woolColor.ChooseByRandom();
+            Data.Sheared = false;
+            Data.WoolColor = _woolColor.SelectRandom(world.Server.Rand);
         }
 
         protected WoolColor DyeColorToWoolColor(MetaData.Dyes dyeColor)
@@ -78,7 +78,7 @@ namespace Chraft.Entity.Mobs
         {
             base.DoInteraction(client, item);
 
-            if (client != null && !Chraft.Interfaces.ItemStack.IsVoid(item))
+            if (client != null && !Interfaces.ItemStack.IsVoid(item))
             {
                 if (item.Type == (short)Chraft.World.BlockData.Items.Shears && !Data.Sheared)
                 {
@@ -106,8 +106,9 @@ namespace Chraft.Entity.Mobs
 
         protected override void DoDeath(EntityBase killedBy)
         {
-            if (!this.Data.Sheared)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(this.Position.X, this.Position.Y, this.Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)this.Data.WoolColor));
+            if (!Data.Sheared)
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)Data.WoolColor));
+            base.DoDeath(killedBy);
         }
     }
 }

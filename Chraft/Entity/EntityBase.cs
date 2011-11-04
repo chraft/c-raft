@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Utils;
@@ -56,6 +57,11 @@ namespace Chraft.Entity
         public virtual bool Pushable { get { return false; } }
 
         /// <summary>
+        /// Whether or not this entity prevents mobs from spawning if bounding boxes collide
+        /// </summary>
+        public virtual bool PreventMobSpawning { get { return false; } }
+        
+        /// <summary>
         /// Rotation around the X-axis
         /// </summary>
         public double Pitch { get; set; }
@@ -89,10 +95,18 @@ namespace Chraft.Entity
             set
             {
                 _position = value;
+                BlockPosition = UniversalCoords.FromAbsWorld(_position);
                 // Set the bounding box based on the new position
                 double halfWidth = this.Width / 2.0;
                 this.BoundingBox = new BoundingBox(new AbsWorldCoords(_position.X - halfWidth, _position.Y, _position.Z - halfWidth), new AbsWorldCoords(_position.X + halfWidth, _position.Y + Height, _position.Z + halfWidth));
             }
+        }
+
+        private UniversalCoords _blockPosition;
+        public UniversalCoords BlockPosition
+        {
+            get { return _blockPosition; }
+            private set { _blockPosition = value; }
         }
 
         public EntityBase(Server server, int entityId)
@@ -153,8 +167,13 @@ namespace Chraft.Entity
         protected virtual void PushOutOfBlocks(AbsWorldCoords absWorldCoords)
         {
             UniversalCoords coords = UniversalCoords.FromAbsWorld(absWorldCoords);
-            
-            BlockBase blockClass = BlockHelper.Instance(this.World.GetBlockId(coords));
+
+            byte? blockId = World.GetBlockId(coords);
+
+            if (blockId == null)
+                return;
+
+            BlockBase blockClass = BlockHelper.Instance((byte)blockId);
             if (blockClass.IsOpaque && blockClass.IsSolid)
             {
                 // The offset within World (int) coords
@@ -164,8 +183,14 @@ namespace Chraft.Entity
                 Direction? moveDirection = null;
                 
                 // Calculate the smallest distance needed to move the entity out of the block
-                coords.ForAdjacent((aCoord, direction) => {
-                    var adjacentBlockClass = BlockHelper.Instance(this.World.GetBlockId(aCoord));
+                coords.ForAdjacent((aCoord, direction) =>
+                {
+                    byte? adjBlockId = World.GetBlockId(aCoord);
+
+                    if (adjBlockId == null)
+                        return;
+
+                    var adjacentBlockClass = BlockHelper.Instance((byte)adjBlockId);
                     
                     if (!(adjacentBlockClass.IsOpaque && adjacentBlockClass.IsSolid))
                     {
@@ -235,6 +260,115 @@ namespace Chraft.Entity
                 }
             }
         }
+
+        public virtual List<StructBlock> GetNearbyBlocks()
+        {
+            BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
+
+            List<StructBlock> touchedBlocks = new List<StructBlock>();
+
+            // Notify blocks of collisions with an entity
+            UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
+            UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
+            if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
+            {
+                for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
+                {
+                    for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
+                    {
+                        for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
+                        {
+                            var block = this.World.GetBlock(x, y, z);
+                            touchedBlocks.Add(block);
+                        }
+                    }
+                }
+            }
+            return touchedBlocks;
+        }
+
+        public virtual void TouchNearbyBlocks()
+        {
+            // TODO: notify blocks of collisions + play sounds
+            BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
+
+            Vector3 thisPosition = this.Position.ToVector();
+
+            // Notify blocks of collisions with an entity
+            UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
+            UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
+            if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
+            {
+                for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
+                {                 
+                    for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
+                    {
+                        Chunk chunk = World.GetChunkFromWorld(x, z, false, false);
+
+                        if (chunk == null)
+                            continue;
+
+                        for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
+                        {
+                            var block = chunk.GetBlock(x & 0xF, y, z & 0xF);
+                            if (block.Type > 0)
+                            {
+                                var blockClass = BlockHelper.Instance(block.Type);
+
+                                #region Calculate closest face of block (precedence, x, z, y)
+                                Vector3 v = thisPosition - new Vector3(x, y, z);
+
+                                double vx = Math.Abs(v.X);
+                                double vy = Math.Abs(v.Y);
+                                double vz = Math.Abs(v.Z);
+
+                                BlockFace face = BlockFace.North;
+
+                                if (vx <= vy && vx <= vz)
+                                {
+                                    if (v.X > 0.0)
+                                    {
+                                        face = BlockFace.North;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.South;
+                                    }
+                                }
+                                else if (vz <= vx && vz <= vy)
+                                {
+                                    if (v.Z > 0.0)
+                                    {
+                                        face = BlockFace.West;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.East;
+                                    }
+                                }
+                                else if (vy <= vx && vy <= vz)
+                                {
+                                    if (v.Y > 0.0)
+                                    {
+                                        face = BlockFace.Up;
+                                    }
+                                    else
+                                    {
+                                        face = BlockFace.Down;
+                                    }
+                                }
+                                #endregion
+
+                                blockClass.Touch(this, block, face);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            
+
+        }
         
         /// <summary>
         /// Applies the specified velocity to this entity.
@@ -280,80 +414,8 @@ namespace Chraft.Entity
                 Velocity.Z = 0.0;
             }
             #endregion
-            
-            // TODO: notify blocks of collisions + play sounds
-            BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
-            
-            Vector3 thisPosition = this.Position.ToVector();
-            
-            // Notify blocks of collisions with an entity
-            UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
-            UniversalCoords maxCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Maximum.X, touchCheckBoundingBox.Maximum.Y, touchCheckBoundingBox.Maximum.Z);
-            if (this.World.ChunkExists(minCoords) && this.World.ChunkExists(maxCoords))
-            {
-                for (int x = minCoords.WorldX; x <= maxCoords.WorldX; x++)
-                {
-                    for (int y = minCoords.WorldY; y <= maxCoords.WorldY; y++)
-                    {
-                        for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
-                        {
-                            var block = this.World.GetBlock(x, y, z);
-                            if (block.Type > 0)
-                            {
-                                var blockClass = BlockHelper.Instance(block.Type);
-                                
-                                #region Calculate closest face of block (precedence, x, z, y)
-                                Vector3 v = thisPosition - new Vector3(x, y, z);
-                                
-                                double vx = Math.Abs(v.X);
-                                double vy = Math.Abs(v.Y);
-                                double vz = Math.Abs(v.Z);
-                                
-                                BlockFace face = BlockFace.North;
-                                
-                                if (vx <= vy && vx <= vz)
-                                {
-                                    if (v.X > 0.0)
-                                    {
-                                        face = BlockFace.North;
-                                    }
-                                    else
-                                    {
-                                        face = BlockFace.South;
-                                    }
-                                }
-                                else if (vz <= vx && vz <= vy)
-                                {
-                                    if (v.Z > 0.0)
-                                    {
-                                        face = BlockFace.West;
-                                    }
-                                    else
-                                    {
-                                        face = BlockFace.East;
-                                    }
-                                }
-                                else if (vy <= vx && vy <= vz)
-                                {
-                                    if (v.Y > 0.0)
-                                    {
-                                        face = BlockFace.Up;
-                                    }
-                                    else
-                                    {
-                                        face = BlockFace.Down;
-                                    }
-                                }
-                                #endregion
-                                
-                                blockClass.Touch(this, block, face);
-                            }
-                        }
-                    }
-                }
-            }
-            
-            
+
+            TouchNearbyBlocks();
             // TODO: check for proximity to fire
         }
         
@@ -432,7 +494,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendMoveBy(this, x, y, z);
             }
         }
@@ -455,7 +517,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
             {
-                if (!c.Equals(this))
+                if (!ToSkip(c))
                     c.SendTeleportTo(this);
             }
         }
@@ -477,7 +539,7 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendRotateBy(this, PackedYaw, PackedPitch);
             }
         }
@@ -526,9 +588,14 @@ namespace Chraft.Entity
         {
             foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
             {
-                if (!c.Owner.Equals(this))
+                if (!ToSkip(c))
                     c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
+        }
+
+        public virtual bool ToSkip(Client c)
+        {
+            return false;
         }
 
         public bool Equals(EntityBase other)

@@ -60,5 +60,15 @@ namespace Chraft.Interfaces
                 DoSaveToFile(Slots.Skip(27).ToArray(), SWDataFile);
             }
         }
+
+        public enum LargeChestSlots : short
+        {
+            ChestFirst = 0,
+            ChestLast = 53,
+            InventoryFirst = 54,
+            InventoryLast = 80,
+            QuickSlotFirst = 81,
+            QuickSlotLast = 89
+        }
 	}
 }

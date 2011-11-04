@@ -88,7 +88,12 @@ namespace Chraft.World.Blocks
                 string unused;
                 File.Delete(String.Format("{0}/sign_{1}_{2}_{3}.txt", folderPath, block.Coords.BlockX,
                                           block.Coords.BlockY, block.Coords.BlockZ));
-                block.Chunk.SignsText.TryRemove(block.Coords.BlockPackedCoords, out unused);
+
+                Chunk chunk = GetBlockChunk(block);
+                if(chunk == null)
+                    return;
+                
+                chunk.SignsText.TryRemove(block.Coords.BlockPackedCoords, out unused);
             }
             base.Destroy(entity, block);
         }

@@ -7,7 +7,7 @@ namespace Chraft.World.Blocks.Interfaces
 {
     interface IBlockGrowable
     {
-        void Grow(StructBlock block);
-        bool CanGrow(StructBlock block);
+        void Grow(StructBlock block, Chunk chunk);
+        bool CanGrow(StructBlock block, Chunk chunk);
     }
 }

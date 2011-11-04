@@ -181,48 +181,37 @@ namespace Chraft.Net
             {
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
 
-                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
-                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
                 if (!pending)
-                    Recv_Process(_recvSocketEvent);
+                    Recv_Completed(null, _recvSocketEvent);
             }
             catch (Exception e)
             {
-                _player.Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
+                Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
                 Stop();
             }
 
         }
 
         private void Recv_Process(SocketAsyncEventArgs e)
-        {
-            if (e.BytesTransferred > 0 && e.SocketError == SocketError.Success)
-            {
-                lock (_QueueSwapLock)
-                    _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
+        {         
+            lock (_QueueSwapLock)
+                _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
-                int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
+            int newValue = Interlocked.Increment(ref TimesEnqueuedForRecv);
 
-                if ((newValue - 1) == 0)
-                    Server.RecvClientQueue.Enqueue(this);
+            if ((newValue - 1) == 0)
+                Server.RecvClientQueue.Enqueue(this);
 
-                Server.NetworkSignal.Set();
+            Server.NetworkSignal.Set();
 
-                Recv_Start();
-            }
-            else
-            {
-                MarkToDispose();
-                DisposeRecvSystem();
-                _nextActivityCheck = DateTime.MinValue;
-            }
+            Recv_Start();       
         }
 
         private void Recv_Completed(object sender, SocketAsyncEventArgs e)
         {
             if (!Running)
                 DisposeRecvSystem();
-            else if(e.SocketError != SocketError.Success || e.BytesTransferred == 0)
+            else if (e.SocketError != SocketError.Success || e.BytesTransferred == 0)
             {
                 Client client;
                 if (Server.AuthClients.TryGetValue(SessionID, out client))
@@ -234,7 +223,11 @@ namespace Chraft.Net
                 //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
             }
             else
+            {
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
                 Recv_Process(e);
+            }
         }
 
         public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
@@ -426,9 +419,15 @@ namespace Chraft.Net
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            BlockData.Blocks baseBlockType = (BlockData.Blocks)player.World.GetBlockId(baseBlockCoords); // Get block being built against.
-            byte baseBlockData = player.World.GetBlockData(baseBlockCoords);
-            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, baseBlockData, player.World);
+            Chunk chunk = player.World.GetChunk(baseBlockCoords, false, false);
+
+            if (chunk == null)
+                return;
+
+            BlockData.Blocks baseBlockType = chunk.GetType(baseBlockCoords); // Get block being built against.
+            byte baseBlockData = chunk.GetData(baseBlockCoords);
+
+            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, (byte)baseBlockData, player.World);
 
             // Placed Item Info
             short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
@@ -536,8 +535,13 @@ namespace Chraft.Net
 
             Player player = client.Owner;
 
-            BlockData.Blocks type = (BlockData.Blocks)player.World.GetBlockId(coords); // Get block being built against.
-            byte metadata = player.World.GetBlockData(coords);
+            Chunk chunk = player.World.GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            BlockData.Blocks type = chunk.GetType(coords); // Get block being built against.
+            byte metadata = chunk.GetData(coords);
             StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
 
             UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
@@ -574,8 +578,13 @@ namespace Chraft.Net
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            byte type = player.World.GetBlockId(coords);
-            byte data = player.World.GetBlockData(coords);
+            Chunk chunk = player.World.GetChunk(coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            byte type = (byte)chunk.GetType(coords);
+            byte data = chunk.GetData(coords);
 
             switch (packet.Action)
             {
@@ -583,7 +592,7 @@ namespace Chraft.Net
                     UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                     client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
                     client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
-                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetBlockChunk(oneUp).GetOpacity(oneUp)));
+                    client.SendMessage(String.Format("Opacity: {0}", player.World.GetChunk(oneUp, false, false).GetOpacity(oneUp)));
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
@@ -601,8 +610,6 @@ namespace Chraft.Net
                     break;
 
                 case PlayerDiggingPacket.DigAction.DropItem:
-                    var slot = player.Inventory.ActiveSlot;
-                    player.Inventory.RemoveItem(slot);
                     player.DropItem();
                     break;
             }
@@ -628,19 +635,52 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerPositionRotation(Client client, PlayerPositionRotationPacket packet)
         {
-            //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
-            double threshold = 0.001;
-            double diffX = Math.Abs(client.Owner.Position.X - packet.X);
-            double diffY = Math.Abs(client.Owner.Position.Y - (packet.Y - client.Owner.EyeHeight));
-            double diffZ = Math.Abs(client.Owner.Position.Z - packet.Z);
-            if (diffX < threshold && diffY < threshold && diffZ < threshold)
-                return;
+            double feetY = packet.Y - client.Owner.EyeHeight;
+            if(client.WaitForInitialPosAck)
+            {
+                AbsWorldCoords coords = new AbsWorldCoords(packet.X, feetY, packet.Z);
+                if(coords == client.Owner.LoginPosition)
+                {
+                    client.WaitForInitialPosAck = false;
+                    client.SendSecondLoginSequence();
+                }
+            }
+            else
+            {
+                double threshold = 0.001;
+                double diffX = Math.Abs(client.Owner.Position.X - packet.X);
+                double diffY = Math.Abs(client.Owner.Position.Y - feetY);
+                double diffZ = Math.Abs(client.Owner.Position.Z - packet.Z);
+                if (diffX < threshold && diffY < threshold && diffZ < threshold)
+                    return;
 
-            client.Owner.MoveTo(new AbsWorldCoords(packet.X, packet.Y - client.Owner.EyeHeight, packet.Z), packet.Yaw, packet.Pitch);
-            client.OnGround = packet.OnGround;
-            client.Stance = packet.Stance;
+                client.Owner.MoveTo(new AbsWorldCoords(packet.X, feetY, packet.Z), packet.Yaw, packet.Pitch);
+                client.OnGround = packet.OnGround;
+                client.Stance = packet.Stance;
 
-            client.CheckAndUpdateChunks(packet.X, packet.Z);
+                client.CheckAndUpdateChunks(packet.X, packet.Z);
+            }
+        }
+
+        public static void HandlePacketEntityAction(Client client, EntityActionPacket packet)
+        {
+            switch (packet.Action)
+            {
+                case EntityActionPacket.ActionType.Crouch:
+                    client.Owner.StartCrouching();
+                    break;
+                case EntityActionPacket.ActionType.Uncrouch:
+                    client.Owner.StopCrouching();
+                    break;
+                case EntityActionPacket.ActionType.StartSprinting:
+                    client.Owner.StartSprinting();
+                    break;
+                case EntityActionPacket.ActionType.StopSprinting:
+                    client.Owner.StopSprinting();
+                    break;
+                default:
+                    break;
+            }
         }
 
         private double _lastX;
@@ -651,6 +691,9 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
+            if(client.WaitForInitialPosAck)
+                return;
+
             //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
             client.Owner.Ready = true;
             double threshold = 0.001;
@@ -682,7 +725,10 @@ namespace Chraft.Net
         public void StopUpdateChunks()
         {
             if (_updateChunksToken != null)
+            {
                 _updateChunksToken.Cancel();
+                Task.WaitAny(_updateChunks);
+            }
         }
 
         public void ScheduleUpdateChunks()
@@ -759,7 +805,7 @@ namespace Chraft.Net
                     }
                 }
 
-                client.SendLoginSequence();
+                Task.Factory.StartNew(client.SendLoginSequence);
             }
         }
 

@@ -53,7 +53,18 @@ namespace Chraft.Plugins.Commands
 
             for (int i = 0; i < amount; i++)
             {
-                client.Owner.World.SpawnMob(UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z), type);
+                var mob = MobFactory.CreateMob(client.Owner.World, client.Server.AllocateEntity(), type, null);
+                mob.Position = client.Owner.Position;
+                
+                //Event
+                Chraft.Plugins.Events.Args.EntitySpawnEventArgs e = new Chraft.Plugins.Events.Args.EntitySpawnEventArgs(mob, mob.Position);
+                client.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
+                if (e.EventCanceled)
+                    continue;
+                mob.Position = e.Location;
+                //End Event
+                
+                client.Server.AddEntity(mob);
             }
         }
 

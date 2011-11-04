@@ -54,5 +54,16 @@ namespace Chraft.Interfaces
                 base.DropAll(UniversalCoords.FromAbsWorld((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z));
             }
         }
+
+        public enum WorkbenchSlots : short
+        {
+            CraftingOutput = 0,
+            CraftingInputFirst = 1,
+            CraftingInputLast = 9,
+            InventoryFirst = 10,
+            InventoryLast = 36,
+            QuickSlotFirst = 37,
+            QuickSlotLast = 45
+        }
 	}
 }

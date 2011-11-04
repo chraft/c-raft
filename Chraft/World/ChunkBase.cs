@@ -103,6 +103,22 @@ namespace Chraft.World
             }
         }
 
+        public StructBlock GetBlock(UniversalCoords coords)
+        {
+            byte blockId = (byte)GetType(coords);
+            byte blockData = GetData(coords);
+
+            return new StructBlock(coords, blockId, blockData, World);
+        }
+
+        public StructBlock GetBlock(int blockX, int blockY, int blockZ)
+        {
+            byte blockId = (byte)GetType(blockX, blockY, blockZ);
+            byte blockData = GetData(blockX, blockY, blockZ);
+
+            return new StructBlock(blockX + Coords.WorldX, blockY, blockZ + Coords.WorldZ, blockId, blockData, World);
+        }
+
         public byte GetBlockLight(UniversalCoords coords)
         {
             return (byte)Light.getNibble(coords.BlockPackedCoords);
@@ -141,70 +157,6 @@ namespace Chraft.World
         public byte GetDualLight(int blockX, int blockY, int blockZ)
         {
             return (byte)(Light.getNibble(blockX, blockY, blockZ) << 4 | SkyLight.getNibble(blockX, blockY, blockZ));
-        }
-
-        public void SetData(UniversalCoords coords, byte value, bool needsUpdate)
-        {
-            Data.setNibble(coords.BlockPackedCoords, value);
-
-            if (needsUpdate)
-                BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
-        }
-
-        public void SetData(int blockX, int blockY, int blockZ, byte value, bool needsUpdate)
-        {
-            Data.setNibble(blockX, blockY, blockZ, value);
-
-            if(needsUpdate)
-                BlockNeedsUpdate(blockX, blockY, blockZ);
-        }
-
-        public void SetDualLight(UniversalCoords coords, byte value)
-        {
-            byte low = (byte)(value & 0x0F);
-            byte high = (byte)((value & 0x0F) >> 4);
-
-            SkyLight.setNibble(coords.BlockPackedCoords, low);
-            Light.setNibble(coords.BlockPackedCoords, high);
-        }
-
-        public void SetDualLight(int blockX, int blockY, int blockZ, byte value)
-        {
-            byte low = (byte)(value & 0x0F);
-            byte high = (byte)((value & 0x0F) >> 4);
-
-            SkyLight.setNibble(blockX, blockY, blockZ, low);
-            Light.setNibble(blockX, blockY, blockZ, high);
-        }
-
-        public void SetBlockLight(UniversalCoords coords, byte value)
-        {
-            Light.setNibble(coords.BlockPackedCoords, value);
-        }
-
-        public void SetBlockLight(int blockX, int blockY, int blockZ, byte value)
-        {
-            Light.setNibble(blockX, blockY, blockZ, value);
-        }
-
-        public void SetSkyLight(UniversalCoords coords, byte value)
-        {
-            SkyLight.setNibble(coords.BlockPackedCoords, value);
-        }
-
-        public void SetSkyLight(int blockX, int blockY, int blockZ, byte value)
-        {
-            SkyLight.setNibble(blockX, blockY, blockZ, value);
-        }
-
-        public void SetData(UniversalCoords coords, byte value)
-		{
-            Data.setNibble(coords.BlockPackedCoords, value);
-		}
-
-        public void SetData(int blockX, int blockY, int blockZ, byte value)
-        {
-            Data.setNibble(blockX, blockY, blockZ, value);
         }
 
         public byte GetLuminance(UniversalCoords coords)
@@ -266,16 +218,104 @@ namespace Chraft.World
             return (BlockData.Blocks)this[blockX, blockY, blockZ];
         }
 
-        public void SetType(UniversalCoords coords, BlockData.Blocks value)
+        public void SetType(UniversalCoords coords, BlockData.Blocks value, bool needsUpdate = true)
 		{
-			this[coords] = (byte)value;
-            BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
+			this[coords] = (byte)value;            
+            OnSetType(coords, value);
+
+            if(needsUpdate)
+                BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
 		}
 
-        public void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
+        public void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value, bool needsUpdate = true)
         {
-            this[blockX, blockY, blockZ] = (byte)value;
-            BlockNeedsUpdate(blockX, blockY, blockZ);
+            this[blockX, blockY, blockZ] = (byte)value;            
+            OnSetType(blockX, blockY, blockZ, value);
+
+            if(needsUpdate)
+                BlockNeedsUpdate(blockX, blockY, blockZ);
+        }
+
+        public virtual void OnSetType(UniversalCoords coords, BlockData.Blocks value)
+        {
+            
+        }
+
+        public virtual void OnSetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
+        {
+
+        }
+
+        public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
+        {
+            SetType(coords, (BlockData.Blocks)type, false);
+            SetData(coords, data, false);
+
+            if (needsUpdate)
+                BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
+        }
+
+        public void SetBlockAndData(int blockX, int blockY, int blockZ, byte type, byte data, bool needsUpdate = true)
+        {
+            SetType(blockX, blockY, blockZ, (BlockData.Blocks)type, false);
+            SetData(blockX, blockY, blockZ, data, false);
+
+            if (needsUpdate)
+                BlockNeedsUpdate(blockX, blockY, blockZ);
+        }
+
+        public void SetData(UniversalCoords coords, byte value, bool needsUpdate = true)
+        {
+            Data.setNibble(coords.BlockPackedCoords, value);
+
+            if (needsUpdate)
+                BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
+        }
+
+        public void SetData(int blockX, int blockY, int blockZ, byte value, bool needsUpdate = true)
+        {
+            Data.setNibble(blockX, blockY, blockZ, value);
+
+            if (needsUpdate)
+                BlockNeedsUpdate(blockX, blockY, blockZ);
+        }
+
+        public void SetDualLight(UniversalCoords coords, byte value)
+        {
+            byte low = (byte)(value & 0x0F);
+            byte high = (byte)((value & 0x0F) >> 4);
+
+            SkyLight.setNibble(coords.BlockPackedCoords, low);
+            Light.setNibble(coords.BlockPackedCoords, high);
+        }
+
+        public void SetDualLight(int blockX, int blockY, int blockZ, byte value)
+        {
+            byte low = (byte)(value & 0x0F);
+            byte high = (byte)((value & 0x0F) >> 4);
+
+            SkyLight.setNibble(blockX, blockY, blockZ, low);
+            Light.setNibble(blockX, blockY, blockZ, high);
+        }
+
+        public void SetBlockLight(UniversalCoords coords, byte value)
+        {
+            Light.setNibble(coords.BlockPackedCoords, value);
+        }
+
+        public void SetBlockLight(int blockX, int blockY, int blockZ, byte value)
+        {
+            Light.setNibble(blockX, blockY, blockZ, value);
+        }
+
+        public void SetSkyLight(UniversalCoords coords, byte value)
+        {
+            SkyLight.setNibble(coords.BlockPackedCoords, value);
+        }
+
+        public void SetSkyLight(int blockX, int blockY, int blockZ, byte value)
+        {
+            SkyLight.setNibble(blockX, blockY, blockZ, value);
         }
 
         public bool IsAir(UniversalCoords coords)
@@ -325,8 +365,11 @@ namespace Chraft.World
 
         public void Dispose()
         {
-            _UpdateTimer.Dispose();
-            _UpdateTimer = null;
+            if (_UpdateTimer != null)
+            {
+                _UpdateTimer.Dispose();
+                _UpdateTimer = null;
+            }
         }
 	}
 }

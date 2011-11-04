@@ -37,9 +37,9 @@ namespace Chraft.World.Blocks
             base.DropItems(entity, block);
         }
 
-        public bool CanGrow(StructBlock block)
+        public bool CanGrow(StructBlock block, Chunk chunk)
         {
-            if (block.Coords.WorldY > 120)
+            if (chunk == null || block.Coords.WorldY > 120)
                 return false;
             /*UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                               block.Coords.WorldZ);
@@ -49,9 +49,13 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        public void Grow(StructBlock block)
+        public void Grow(StructBlock block, Chunk chunk)
         {
-            if (!CanGrow(block))
+            if (!CanGrow(block, chunk))
+                return;
+
+            UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            if (block.World.GetEffectiveLight(blockUp) < 9)
                 return;
 
             if (block.World.Server.Rand.Next(29) != 0)
@@ -59,14 +63,14 @@ namespace Chraft.World.Blocks
 
             if ((block.MetaData & 8) == 0)
             {
-                block.World.SetBlockData(block.Coords, (byte)(block.MetaData | 8));
+                chunk.SetData(block.Coords, (byte)(block.MetaData | 8));
                 return;
             }
 
             for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {
-                block.World.SetBlockAndData(block.Coords.WorldX, i, block.Coords.WorldZ, (byte)BlockData.Blocks.Log, block.MetaData);
-                if (block.World.GetBlockId(block.Coords.WorldX, i + 1, block.Coords.WorldZ) != (byte)BlockData.Blocks.Air)
+                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Log, block.MetaData);
+                if(chunk.GetType(block.Coords.BlockX, i + 1, block.Coords.BlockZ) != BlockData.Blocks.Air)
                     break;
             }
 
@@ -74,19 +78,27 @@ namespace Chraft.World.Blocks
             for (int i = block.Coords.WorldY + 2; i < block.Coords.WorldY + 5; i++)
                 for (int j = block.Coords.WorldX - 2; j <= block.Coords.WorldX + 2; j++)
                     for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
-                        if (!block.World.ChunkExists(j >> 4, k >> 4) || (block.World.GetBlockId(j, i, k) != (byte)BlockData.Blocks.Air))
+                    {
+                        Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k, false, false);
+                        if (nearbyChunk == null || (nearbyChunk.GetType(j & 0xF, i, k & 0xF) != BlockData.Blocks.Air))
                             continue;
-                        else
-                            block.World.SetBlockAndData(j, i, k, (byte)BlockData.Blocks.Leaves,
+
+
+                        nearbyChunk.SetBlockAndData(j & 0xF, i, k & 0xF, (byte)BlockData.Blocks.Leaves,
                                                         block.MetaData);
+                    }
 
             for (int i = block.Coords.WorldX - 1; i <= block.Coords.WorldX + 1; i++)
                 for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
-                    if (!block.World.ChunkExists(i >> 4, j >> 4) || (block.World.GetBlockId(i, block.Coords.WorldY + 5, j) != (byte)BlockData.Blocks.Air))
+                {
+                    Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j, false, false);
+                    if (nearbyChunk == null || nearbyChunk.GetType(i & 0xF, block.Coords.WorldY + 5, j & 0xF) != BlockData.Blocks.Air)
                         continue;
-                    else
-                        block.World.SetBlockAndData(i, block.Coords.WorldY + 5, j, (byte)BlockData.Blocks.Leaves,
+
+
+                    nearbyChunk.SetBlockAndData(i & 0xF, block.Coords.WorldY + 5, j & 0xF, (byte)BlockData.Blocks.Leaves,
                                                     block.MetaData);
+                }
         }
     }
 }

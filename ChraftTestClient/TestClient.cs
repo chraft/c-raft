@@ -202,11 +202,17 @@ namespace ChraftTestClient
                
             }
 
+            Interlocked.Exchange(ref SendRunning, 0);
+
             Interlocked.Decrement(ref Sends);
             if (_running && !_packetsToSend.IsEmpty)
-                _sendTask = Task.Factory.StartNew(Send);
-            else
-                Interlocked.Exchange(ref SendRunning, 0);
+            {
+                int running = Interlocked.Exchange(ref SendRunning, 1);
+
+                if(running == 0)
+                    _sendTask = Task.Factory.StartNew(Send);
+            }
+
         }
 
         private void RecvCompleted(object sender, SocketAsyncEventArgs e)
@@ -301,7 +307,7 @@ namespace ChraftTestClient
                             }
                         }
                         else
-                            EnqueueFragment(data);
+                            EnqueueFragment(data); // Not enough data
 
                     }
                     else if (length >= handler.Length)
@@ -312,14 +318,19 @@ namespace ChraftTestClient
 
                         handler.OnReceive(this, reader);
 
-                        // If we failed it's because the packet isn't complete
+                        // If we failed it's because the packet is wrong
                         if (reader.Failed)
                         {
-                            EnqueueFragment(data);
+                            Dispose();
                             length = 0;
                         }
                         else
+                        {
+                            if (_fragPackets.Length > 0)
+                                throw new Exception("Fragpackets must be empy here!");
                             length = _readingBufferQueue.Length;
+                        }
+                            
                     }
                     else
                     {

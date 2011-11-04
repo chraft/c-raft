@@ -26,6 +26,7 @@ namespace Chraft.Entity
         public PermissionHandler PermHandler;
         public ClientPermission Permissions;
         public Interface CurrentInterface = null;
+        public AbsWorldCoords LoginPosition;
 
         private Client _client;
 
@@ -59,7 +60,13 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
-        public Player(Server server, int entityId, Client client) : base(server, entityId)
+        public float FoodSaturation { get; set; }
+        public short Food { get; set; }
+
+        protected short _lastDamageRemainder = 0;
+
+        public Player(Server server, int entityId, Client client)
+            : base(server, entityId, null)
         {
             _client = client;
             EnsureServer(server);
@@ -69,6 +76,7 @@ namespace Chraft.Entity
             PermHandler = new PermissionHandler(server);
         }
 
+        #region Initialization
         public void InitializePosition()
         {
             World = Server.GetDefaultWorld();
@@ -94,9 +102,6 @@ namespace Chraft.Entity
             Inventory.UpdateClient();
         }
 
-        public float FoodSaturation { get; set; }
-        public short Food { get; set; }
-
         public void InitializeHealth()
         {
             if (Health <= 0)
@@ -117,7 +122,40 @@ namespace Chraft.Entity
                 FoodSaturation = FoodSaturation,
             });
         }
+        #endregion
 
+        #region Fire/burning damage
+        public override void TouchedFire()
+        {
+            if (!LoggedIn)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.TouchedFire();
+        }
+
+        public override void TouchedLava()
+        {
+            if (!LoggedIn)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.TouchedLava();
+        }
+
+        protected override void FireBurn(object state)
+        {
+            if (!LoggedIn)
+
+            {
+                StopFireBurnTimer();
+                return;
+            }
+            base.FireBurn(state);
+        }
+        #endregion
         #region Suffocation/drowning
         protected override void Suffocate(object state)
         {
@@ -171,6 +209,11 @@ namespace Chraft.Entity
         public override void OnTeleportTo(AbsWorldCoords absCoords)
         {
             base.OnTeleportTo(absCoords);
+
+            Client.StopUpdateChunks();
+
+            UpdateChunks(1, CancellationToken.None, true, false);
+
             Client.SendPacket(new PlayerPositionRotationPacket
                                   {
                                       X = absCoords.X,
@@ -181,6 +224,15 @@ namespace Chraft.Entity
                                       Stance = Client.Stance,
                                       OnGround = false
                                   });
+
+            UpdateEntities();
+            Server.SendEntityToNearbyPlayers(World, this);
+            Client.ScheduleUpdateChunks();
+        }
+
+        public override bool ToSkip(Client c)
+        {
+            return c.Owner.Equals(this);
         }
 
         public void UpdateEntities()
@@ -209,6 +261,29 @@ namespace Chraft.Entity
             }
         }
 
+        public void StartCrouching()
+        {
+            Data.IsCrouched = true;
+            SendMetadataUpdate(false);
+        }
+
+        public void StopCrouching()
+        {
+            Data.IsCrouched = false;
+            SendMetadataUpdate(false);
+        }
+
+        public void StartSprinting()
+        {
+            Data.IsSprinting = true;
+            SendMetadataUpdate(false);
+        }
+
+        public void StopSprinting()
+        {
+            Data.IsSprinting = false;
+            SendMetadataUpdate(false);
+        }
         #endregion
 
         #region Attack & damage
@@ -242,6 +317,9 @@ namespace Chraft.Entity
         {
             if (GameMode == 1)
                 return;
+            // Armor can't reduce suffocation, fire burn, drowning, starving, magic, generic and falling-in-void damage
+            if (cause != DamageCause.Suffocation && cause != DamageCause.Drowning && cause != DamageCause.FireBurn && cause != DamageCause.Void)
+                damageAmount = ApplyArmorReduction(damageAmount);
             base.Damage(cause, damageAmount, hitBy, args);
         }
 
@@ -302,6 +380,76 @@ namespace Chraft.Entity
             return damage;
         }
 
+        protected short ApplyArmorReduction(short initialDamage)
+        {
+            short armorPoints = GetArmor();
+            int j = 25 - armorPoints;
+            int k = initialDamage * j + _lastDamageRemainder;
+            DamageArmor(initialDamage);
+            short reducedDamage = (short)(k / 25);
+            _lastDamageRemainder = (short)(k % 25);
+            return reducedDamage;
+        }
+
+        public void DamageArmor(short damage)
+        {
+            for (int i = 5; i < 9; i++)
+            {
+                if (!ItemStack.IsVoid(Inventory.Slots[i]))
+                {
+                    if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
+                        continue;
+
+                    Inventory.DamageItem((short)i, Math.Abs(damage));
+                }
+            }
+        }
+
+        protected short GetArmor()
+        {
+            short baseArmorPoints = 0;
+            short totalCurrentDurability = 0;
+            short totalBaseDurability = 0;
+            short effectiveArmor = 0;
+
+            // Helmet
+            if (!ItemStack.IsVoid(Inventory.Slots[5]))
+            {
+                // We can wear a pumpkin, but it'll not give us any armor
+                if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
+                {
+                    baseArmorPoints += 3;
+                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type] - Inventory.Slots[5].Durability);
+                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type];
+                }
+            }
+            // Chest
+            if (!ItemStack.IsVoid(Inventory.Slots[6]))
+            {
+                baseArmorPoints += 8;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
+            }
+            // Pants
+            if (!ItemStack.IsVoid(Inventory.Slots[7]))
+            {
+                baseArmorPoints += 6;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
+            }
+            // Boots
+            if (!ItemStack.IsVoid(Inventory.Slots[8]))
+            {
+                baseArmorPoints += 3;
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type];
+            }
+            if (totalBaseDurability > 0)
+                effectiveArmor = (short)Math.Floor(baseArmorPoints*((double) totalCurrentDurability/totalBaseDurability));
+
+            return effectiveArmor;
+        }
+
 
         #endregion
 
@@ -350,6 +498,9 @@ namespace Chraft.Entity
         protected override void DoDeath(EntityBase killedBy)
         {
             Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+            StopFireBurnTimer();
+            StopSuffocationTimer();
+            StopDrowningTimer();
         }
 
         #endregion
@@ -360,7 +511,6 @@ namespace Chraft.Entity
         public void HandleRespawn()
         {
             // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
-            Server.SendRemoveEntityToNearbyPlayers(World, this);
             Server.RemoveEntity(this);
 
             Position = new AbsWorldCoords(
@@ -380,7 +530,6 @@ namespace Chraft.Entity
             _client.ScheduleUpdateChunks();
 
             Server.AddEntity(this);
-            Server.SendEntityToNearbyPlayers(World, this);
         }
 
         private void PickupItem(ItemEntity item)
@@ -388,14 +537,13 @@ namespace Chraft.Entity
             if (Server.GetEntityById(item.EntityId) == null)
                 return;
 
-            Server.SendRemoveEntityToNearbyPlayers(World, this);
-            Server.RemoveEntity(item);
-
             Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position.X, item.Position.Y, item.Position.Z), new CollectItemPacket
             {
                 EntityId = item.EntityId,
                 PlayerId = EntityId
             });
+
+            Server.RemoveEntity(item);
 
             Inventory.AddItem(item.ItemId, item.Count, item.Durability);
         }
@@ -444,12 +592,11 @@ namespace Chraft.Entity
 
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
         {
-            List<int> nearbyChunks = new List<int>();
-            List<int> toUpdate = new List<int>();
-
-            int chunkX = (int)Position.X >> 4;
-            int chunkZ = (int)Position.Z >> 4;
-
+            int chunkX = (int)(Math.Floor(Position.X)) >> 4;
+            int chunkZ = (int)(Math.Floor(Position.Z)) >> 4;
+            
+            Dictionary<int, int> nearbyChunks = new Dictionary<int, int>();
+            
             for (int x = chunkX - radius; x <= chunkX + radius; ++x)
             {
                 for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
@@ -459,35 +606,23 @@ namespace Chraft.Entity
 
                     int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
                     //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
-                    nearbyChunks.Add(packedChunk);
+                    nearbyChunks.Add(packedChunk, packedChunk);
 
                     if (!LoadedChunks.ContainsKey(packedChunk))
                     {
-                        toUpdate.Add(packedChunk);
+                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                        LoadedChunks.TryAdd(packedChunk, chunk);
+                        chunk.AddClient(Client);
                         _client.SendPreChunk(x, z, true, sync);
+                        _client.SendChunk(chunk, sync);
                     }
                 }
             }
-
-            foreach (int c in toUpdate)
-            {
-                if (token.IsCancellationRequested)
-                    return;
-                int x = UniversalCoords.FromPackedChunkToX(c);
-                int z = UniversalCoords.FromPackedChunkToZ(c);
-
-                Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
-                //_Client.Logger.Log(Logger.LogLevel.Info, "Packed {0} Unpacked Chunk {1} {2}", c, x, z);
-                chunk.AddClient(_client);
-                LoadedChunks.TryAdd(c, chunk);
-                _client.SendChunk(chunk, sync);
-
-                _client.SendSignTexts(chunk);
-            }
+            
 
             if (remove)
             {
-                foreach (int c in LoadedChunks.Keys.Where(c => !nearbyChunks.Contains(c)))
+                foreach (int c in LoadedChunks.Keys.Where(c => !nearbyChunks.ContainsKey(c)))
                 {
                     if (token.IsCancellationRequested)
                         return;
@@ -533,7 +668,12 @@ namespace Chraft.Entity
 
         public void DropItem()
         {
-            Server.DropItem(this, Inventory.Slots[Inventory.ActiveSlot]);
+            var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
+            if (activeItemStack.Count > 0)
+            {
+                Server.DropItem(this, new ItemStack(activeItemStack.Type, 1, activeItemStack.Durability));
+                Inventory.RemoveItem(Inventory.ActiveSlot);
+            }
         }
 
 
