@@ -87,6 +87,8 @@ namespace Chraft.World
 
         private static void DoSpawn(WorldManager world, HashSet<int> chunksToSpawnIn, Mob[] mobEntities, List<WeightedValue<MobType>> mobGroup, int maximumMobs, bool inWater = false)
         {
+            // Based on original server spawn logic and minecraft wiki (http://www.minecraftwiki.net/wiki/Spawn)
+
             // Check that we haven't already reached the maximum number of this type of mob
             if (mobGroup.Count > 0 && (mobEntities.Where(e => mobGroup.Where(mob => mob.Value == e.Type).Any()).Count() <= maximumMobs * chunksToSpawnIn.Count / 256))
             {
@@ -105,66 +107,63 @@ namespace Chraft.World
                     if (!blockClass.IsOpaque && ((!inWater && blockClass.Type == BlockData.Blocks.Air) || (inWater && blockClass.IsLiquid))) // Lava is Opaque, so IsLiquid is safe to use here for water & still water
                     {
                         int spawnedCount = 0;
-                        // Make 3 separate attempts to spawn around the spawnPosition at 4 varying distances
-                        for (int i = 0; i < 3; i++)
+                        int x = packSpawnPosition.WorldX;
+                        int y = packSpawnPosition.WorldY;
+                        int z = packSpawnPosition.WorldZ;
+ 
+                        for (int i = 0; i < 21; i++)
                         {
-                            int x = packSpawnPosition.WorldX;
-                            int y = packSpawnPosition.WorldY;
-                            int z = packSpawnPosition.WorldZ;
+                            // Every 4th attempt reset the coordinates to the centre of the pack spawn
+                            if (i % 4 == 0)
+                            {
+                                x = packSpawnPosition.WorldX;
+                                y = packSpawnPosition.WorldY;
+                                z = packSpawnPosition.WorldZ;
+                            }
 
                             const int distance = 6;
 
-                            // Make four attempts to spawn at increasing distances from spawnPosition
-                            for (int j = 0; j < 4; j++)
+                            x += world.Server.Rand.Next(distance) - world.Server.Rand.Next(distance);
+                            y += world.Server.Rand.Next(1) - world.Server.Rand.Next(1);
+                            z += world.Server.Rand.Next(distance) - world.Server.Rand.Next(distance);
+
+                            if (CanMobTypeSpawnAtLocation(mobType, world, x, y, z))
                             {
-                                x += world.Server.Rand.Next(distance) - world.Server.Rand.Next(distance);
-                                y += world.Server.Rand.Next(1) - world.Server.Rand.Next(1);
-                                z += world.Server.Rand.Next(distance) - world.Server.Rand.Next(distance);
+                                AbsWorldCoords spawnPosition = new AbsWorldCoords(x + 0.5, y, z + 0.5);
 
-                                if (CanMobTypeSpawnAtLocation(mobType, world, x, y, z))
+                                // Check that no player is within a radius of 24 blocks of the spawnPosition
+                                if (world.GetClosestPlayer(spawnPosition, 24.0) == null)
                                 {
-                                    AbsWorldCoords spawnPosition = new AbsWorldCoords((double)x + 0.5, y, (double)z + 0.5);
-
-                                    // Check that no player is within a radius of 24 blocks of the spawnPosition
-                                    if (world.GetClosestPlayer(spawnPosition, 24.0) == null)
+                                    // Check that the squared distance is more than 576 from spawn (24 blocks)
+                                    if (spawnPosition.ToVector().DistanceSquared(new AbsWorldCoords(world.Spawn).ToVector()) > 576.0)
                                     {
-                                        // Check that the squared distance is more than 576 from spawn (24 blocks)
-                                        if (spawnPosition.ToVector().DistanceSquared(new AbsWorldCoords(world.Spawn).ToVector()) > 576.0)
+                                        Mob newMob = MobFactory.CreateMob(world, world.Server.AllocateEntity(),
+                                                                          mobType);
+
+                                        if (newMob == null)
+                                            break;
+
+                                        newMob.Position = spawnPosition;
+                                        newMob.Yaw = world.Server.Rand.NextDouble()*360.0;
+                                        // Finally apply any mob specific rules about spawning here
+                                        if (newMob.CanSpawnHere())
                                         {
-                                            Mob newMob = MobFactory.CreateMob(world, world.Server.AllocateEntity(),
-                                                                              mobType);
+                                            //Event
+                                            EntitySpawnEventArgs e = new EntitySpawnEventArgs(newMob, newMob.Position);
+                                            world.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
+                                            if (e.EventCanceled)
+                                                continue;
+                                            newMob.Position = e.Location;
+                                            //End Event
 
-                                            if (newMob == null)
-                                                break;
+                                            ++spawnedCount;
+                                            MobSpecificInitialisation(newMob, world, spawnPosition);
+                                            world.Server.AddEntity(newMob);
 
-                                            newMob.Position = spawnPosition;
-                                            newMob.Yaw = world.Server.Rand.NextDouble()*360.0;
-                                            // Finally apply any mob specific rules about spawning here
-                                            if (newMob.CanSpawnHere())
+                                            if (spawnedCount >= newMob.MaxSpawnedPerGroup)
                                             {
-                                                //Event
-                                                EntitySpawnEventArgs e = new EntitySpawnEventArgs(newMob, newMob.Position);
-                                                world.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
-                                                if (e.EventCanceled)
-                                                    continue;
-                                                newMob.Position = e.Location;
-                                                //End Event
-                                            
-                                                ++spawnedCount;
-                                                MobSpecificInitialisation(newMob, world, spawnPosition);
-                                                world.Server.AddEntity(newMob);
-
-                                                if (spawnedCount >= newMob.MaxSpawnedPerGroup)
-                                                {
-                                                    // Don't pull that face at me - there are legitimate reasons to use a goto, like break out of two for loops and continue the foreach iteration
-                                                    // Ok ok, we could do a break, and duplicate the above if statement and then break in the next for and that would do the same, 
-                                                    // but seriously "goto nextChunk" does make more sense, that's exactly what we are doing!
-
-                                                    // Smjert: do you really need the outher for? 
-                                                    // You don't even use the i index, you could just make one for that loops 12 times. And even if you used it you could do a math operation.
-                                                    // Or if you really need these two for you can put them into a function and then call return in this case, so you would break out of the two loops.
-                                                    goto nextChunk;
-                                                }
+                                                // This chunk is full - move to the next
+                                                break;
                                             }
                                         }
                                     }
@@ -172,7 +171,6 @@ namespace Chraft.World
                             }
                         }
                     }
-                nextChunk:;
                 }
             }
         }
