@@ -38,11 +38,17 @@ namespace Chraft.Net
         }
         public bool IsRiding
         {
+            get { return ((byte)Data[0] & 0x3) != 0; }
+            set { Data[0] = (byte)((byte)Data[0] & 0xfc | (value ? 0x3 : 0)); }
+            //TODO - find out the significance of 0xfc
+        }
+
+        public bool IsSprinting
+        {
             get { return ((byte)Data[0] & 0x4) != 0; }
             set { Data[0] = (byte)((byte)Data[0] & 0xfb | (value ? 0x4 : 0)); }
             //TODO - find out the significance of 0xfb
         }
-
 
         #region Wolf Meta Data
         /// <summary>

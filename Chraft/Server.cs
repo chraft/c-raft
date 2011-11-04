@@ -278,7 +278,7 @@ namespace Chraft
 
         private void RunProc()
         {
-            Logger.Log(Logger.LogLevel.Info, "Using IP Addresss {0}.", Settings.Default.IPAddress);
+            Logger.Log(Logger.LogLevel.Info, "Using IP Address {0}.", Settings.Default.IPAddress);
             Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
 
             IPAddress address = IPAddress.Parse(Settings.Default.IPAddress);
@@ -521,12 +521,11 @@ namespace Chraft
                 //Do not check for EventCanceled because that could make this unstable.
                 //End Event
 
-                lock (Clients)
-                {
-                    AddClient(c);
-                    Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Clients.Count);
-                }
                 c.Start();
+                
+                AddClient(c);
+                Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Clients.Count);
+                                
                 Logger.Log(Chraft.Logger.LogLevel.Info, "Starting client");
                 OnJoined(c);
             }
@@ -602,9 +601,7 @@ namespace Chraft
                 if (c != excludeClient)
                 {
                     ChatMessagePacket cm = new ChatMessagePacket { Message = message };
-                    cm.Write();
-                    byte[] data = cm.GetBuffer();
-                    c.Send_Sync(data);
+                    c.Send_Sync_Packet(cm);
                 }
             }
 
@@ -705,8 +702,12 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of removing server entities
         /// </summary>
-        public void RemoveEntity(EntityBase e)
+        public void RemoveEntity(EntityBase e, bool notifyNearbyClients = true)
         {
+            if (notifyNearbyClients)
+            {
+                this.SendRemoveEntityToNearbyPlayers(e.World, e);
+            }
             _Entities.TryRemove(e.EntityId, out e);
             Interlocked.Increment(ref _entityDictChanges);
         }
@@ -714,10 +715,14 @@ namespace Chraft
         /// <summary>
         /// Thread-friendly way of adding server entities
         /// </summary>
-        public void AddEntity(EntityBase e)
+        public void AddEntity(EntityBase e, bool notifyNearbyClients = true)
         {
             _Entities.TryAdd(e.EntityId, e);
             Interlocked.Increment(ref _entityDictChanges);
+            if (notifyNearbyClients)
+            {
+                this.SendEntityToNearbyPlayers(e.World, e);
+            }
         }
 
         public void AddClient(Client client)

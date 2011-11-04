@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Skeleton : Mob
+    public class Skeleton : Monster
     {
         public override string Name
         {
@@ -37,6 +37,7 @@ namespace Chraft.Entity.Mobs
             count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
                 Server.DropItem(World, coords, new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Bone, count, 0));
+            base.DoDeath(killedBy);
         }
     }
 }

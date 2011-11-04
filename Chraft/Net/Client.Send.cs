@@ -40,7 +40,7 @@ namespace Chraft.Net
             Server.NetworkSignal.Set();
         }
 
-        public void Send_Async(byte[] data)
+        private void Send_Async(byte[] data)
         {
             if (!Running || !_socket.Connected)
             {
@@ -62,7 +62,7 @@ namespace Chraft.Net
                 Send_Completed(null, _sendSocketEvent);
         }
 
-        public void Send_Sync(byte[] data)
+        private void Send_Sync(byte[] data)
         {
             if (!Running || !_socket.Connected)
             {
@@ -73,8 +73,8 @@ namespace Chraft.Net
             {
                 _socket.Send(data, data.Length, 0);
 
-                if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
-                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
             }
             catch (Exception)
             {
@@ -122,7 +122,20 @@ namespace Chraft.Net
                     packet.Release();
                 }
                 else
+                {
                     Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
+
+                    if (!PacketsToBeSent.IsEmpty)
+                    {
+                        int newValue = Interlocked.Increment(ref _TimesEnqueuedForSend);
+
+                        if (newValue == 1)
+                        {
+                            Server.SendClientQueue.Enqueue(this);
+                            Server.NetworkSignal.Set();
+                        }
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -150,7 +163,11 @@ namespace Chraft.Net
                 _nextActivityCheck = DateTime.MinValue;
             }
             else
+            {
+                if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
+                    _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
                 Send_Start();
+            }
         }
 
         internal void SendPulse()
@@ -189,7 +206,7 @@ namespace Chraft.Net
         /// <param name="l">Length (X magnitude)</param>
         /// <param name="w">Height (Y magnitude)</param>
         /// <param name="h">Width (Z magnitude)</param>
-        public void SendBlockRegion(int x, int y, int z, int l, int h, int w)
+        /*public void SendBlockRegion(int x, int y, int z, int l, int h, int w)
         {
             for (int dx = 0; dx < l; dx++)
             {
@@ -197,13 +214,13 @@ namespace Chraft.Net
                 {
                     for (int dz = 0; dz < w; dz++)
                     {
-                        byte? type = _player.World.GetBlockOrNull(x + dx, y + dy, z + dz);
+                        byte? type = _player.World.GetBlockId(x + dx, y + dy, z + dz);
                         if (type != null)
                             SendBlock(x + dx, y + dy, z + dz, type.Value, _player.World.GetBlockData(x + dx, y + dy, z + dz));
                     }
                 }
             }
-        }
+        }*/
 
         private void SendMotd()
         {
@@ -293,22 +310,27 @@ namespace Chraft.Net
             });
         }
 
+        public bool WaitForInitialPosAck;
+
         public void SendLoginSequence()
         {
             _player = new Player(Server, Server.AllocateEntity(), this);
-            Server.AddEntity(_player);
+            Server.AddEntity(_player, false);
             Server.AddAuthenticatedClient(this);
             Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
-            Load();           
+            Load();
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
-            SendInitialPosition(false);
-            SendInitialTime(false);
-            // This must be sent sync otherwise we will fall through them
             _player.UpdateChunks(2, true, CancellationToken.None);
-			SetGameMode();
+            SendInitialPosition(false);            
+        }
+
+        public void SendSecondLoginSequence()
+        {           
+            SendInitialTime(false);
+            SetGameMode();
             _player.InitializeInventory();
             _player.InitializeHealth();
             _player.OnJoined();
@@ -423,6 +445,15 @@ namespace Chraft.Net
             SendPacket(new CreateEntityPacket
             {
                 EntityId = entity.EntityId
+            });
+        }
+
+        internal void SendEntityMetadata(LivingEntity entity)
+        {
+            SendPacket(new EntityMetadataPacket
+            {
+                EntityId = entity.EntityId,
+                Data = entity.Data
             });
         }
 

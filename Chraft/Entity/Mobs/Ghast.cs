@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Ghast : Mob
+    public class Ghast : Monster
     {
         public override string Name
         {
@@ -31,6 +31,14 @@ namespace Chraft.Entity.Mobs
             }
         }
 
+        public override int MaxSpawnedPerGroup
+        {
+            get
+            {
+                return 1;
+            }
+        }
+
         internal Ghast(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Ghast, data)
         {
@@ -41,6 +49,7 @@ namespace Chraft.Entity.Mobs
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
                 Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Gunpowder, count, 0));
+            base.DoDeath(killedBy);
         }
     }
 }

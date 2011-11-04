@@ -8,7 +8,7 @@ using Chraft.Interfaces;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Wolf : Mob
+    public class Wolf : Animal
     {
         public override string Name
         {
@@ -52,6 +52,14 @@ namespace Chraft.Entity.Mobs
             }
         }
 
+        public override int MaxSpawnedPerGroup
+        {
+            get
+            {
+                return 8;
+            }
+        }
+
         protected virtual int BonesUntilTamed { get; set; }
 
         internal Wolf(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
@@ -65,6 +73,7 @@ namespace Chraft.Entity.Mobs
 
         protected override void DoDeath(EntityBase killedBy)
         {
+            base.DoDeath(killedBy);
         }
 
         protected override void DoInteraction(Client client, Chraft.Interfaces.ItemStack item)

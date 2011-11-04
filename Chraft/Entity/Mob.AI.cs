@@ -54,16 +54,29 @@ namespace Chraft.Entity {
             // TODO: Actual collision prediction.
             if (Velocity.Z != 0)
             {
-                if (World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y, (Position.Z + Velocity.Z))) != 0)
-                    if (World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + 1, (Position.Z + Velocity.Z))) != 0)
+                double zOffset = (Position.Z + Velocity.Z);
+                Chunk chunk = World.GetChunkFromAbs(Position.X, zOffset, false, false);
+
+                if (chunk == null)
+                    return;
+
+                if (chunk.GetType(UniversalCoords.FromAbsWorld(Position.X, Position.Y, zOffset)) != BlockData.Blocks.Air)
+                    if (chunk.GetType(UniversalCoords.FromAbsWorld(Position.X, Position.Y + 1, zOffset)) != BlockData.Blocks.Air)
                         Velocity.Z -= Velocity.Z;
                     else
                         Velocity.Y += 1;
             }
             if (Velocity.X != 0)
             {
-                if (World.GetBlockId(UniversalCoords.FromAbsWorld((Position.X + Velocity.X), Position.Y, Position.Z)) != 0)
-                    if (World.GetBlockId(UniversalCoords.FromAbsWorld((Position.X + Velocity.X), Position.Y + 1, Position.Z)) != 0)
+                double xOffset = (Position.X + Velocity.X);
+
+                Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z, false, false);
+
+                if (chunk == null)
+                    return;
+
+                if (chunk.GetType(UniversalCoords.FromAbsWorld(xOffset, Position.Y, Position.Z)) != BlockData.Blocks.Air)
+                    if (chunk.GetType(UniversalCoords.FromAbsWorld(xOffset, Position.Y + 1, Position.Z)) != BlockData.Blocks.Air)
                         Velocity.X -= Velocity.X;
                     else
                         Velocity.Y += 1;

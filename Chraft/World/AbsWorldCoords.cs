@@ -46,5 +46,19 @@ namespace Chraft.World
         {
             return new Vector3(X, Y, Z);
         }
+
+        public static bool operator ==(AbsWorldCoords coords1, AbsWorldCoords coords2)
+        {
+            return coords1.X == coords2.X &&
+                    coords1.Y == coords2.Y &&
+                    coords1.Z == coords2.Z;
+        }
+
+        public static bool operator !=(AbsWorldCoords coords1, AbsWorldCoords coords2)
+        {
+            return coords1.X != coords2.X ||
+                    coords1.Y != coords2.Y ||
+                    coords1.Z != coords2.Z;
+        }
     }
 }

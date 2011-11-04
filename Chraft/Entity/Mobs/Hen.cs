@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Hen : Mob
+    public class Hen : Animal
     {
         public override string Name
         {
@@ -31,6 +31,7 @@ namespace Chraft.Entity.Mobs
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
                 Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Items.Feather, count, 0));
+            base.DoDeath(killedBy);
         }
     }
 }

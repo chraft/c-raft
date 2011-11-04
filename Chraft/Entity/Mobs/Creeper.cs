@@ -6,7 +6,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Creeper : Mob
+    public class Creeper : Monster
     {
         public override string Name
         {
@@ -32,7 +32,7 @@ namespace Chraft.Entity.Mobs
         {
             var killedByMob = killedBy as Mob;
             UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
-            if (killedByMob.Type == MobType.Skeleton)
+            if (killedByMob != null && killedByMob.Type == MobType.Skeleton)
             {
                 // If killed by a skeleton drop a music disc
                 sbyte count = 1;
@@ -53,6 +53,7 @@ namespace Chraft.Entity.Mobs
                 if (count > 0)
                     Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
             }
+            base.DoDeath(killedBy);
         }
     }
 }

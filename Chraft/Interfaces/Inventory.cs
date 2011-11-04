@@ -61,14 +61,14 @@ namespace Chraft.Interfaces
 		/// <returns>Quick slots from left to right</returns>
 		public IEnumerable<ItemStack> GetQuickSlots()
 		{
-			for (short i = 36; i < this.SlotCount; i++)
+			for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 				yield return this[i];
 		}
 
 		internal void AddItem(short id, sbyte count, short durability)
 		{
 			// Quickslots, stacking
-			for (short i = 36; i < this.SlotCount; i++)
+            for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
 				if (!ItemStack.IsVoid(Slots[i]) && Slots[i].Type == id && Slots[i].Durability == durability)
 				{
@@ -83,7 +83,7 @@ namespace Chraft.Interfaces
 			}
 
 			// Inventory, stacking
-			for (short i = 9; i < 36; i++)
+			for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
 				if (!ItemStack.IsVoid(Slots[i]) && Slots[i].Type == id && Slots[i].Durability == durability)
 				{
@@ -98,7 +98,7 @@ namespace Chraft.Interfaces
 			}
 
 			// Quickslots, not stacking
-			for (short i = 36; i < this.SlotCount; i++)
+            for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
 				if (ItemStack.IsVoid(Slots[i]))
 				{
@@ -109,7 +109,7 @@ namespace Chraft.Interfaces
 			}
 
 			// Inventory, not stacking
-			for (short i = 9; i < 36; i++)
+            for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
 				if (ItemStack.IsVoid(Slots[i]))
 				{
@@ -134,7 +134,7 @@ namespace Chraft.Interfaces
             }
         }
 
-        internal bool DamageItem(short slot)
+        internal bool DamageItem(short slot, short damageAmount = 1)
         {
             short durability = 0;
 
@@ -142,7 +142,7 @@ namespace Chraft.Interfaces
 
             if (durability > 0)
             {
-                if (this[slot].Durability == durability)
+                if (this[slot].Durability >= durability)
                 {
                     if (this[slot].Count == 1)
                     {
@@ -158,7 +158,7 @@ namespace Chraft.Interfaces
                 }
                 else
                 {
-                    this[slot].Durability++;
+                    this[slot].Durability += damageAmount;
                     return true;
                 }
             }
@@ -172,6 +172,21 @@ namespace Chraft.Interfaces
 
             // Always leave the inventory open
             _IsOpen = true;
+        }
+
+        public enum InventorySlots : short
+        {
+            CraftingOutput = 0,
+            CraftingInputFirst = 1,
+            CraftingInputLast = 4,
+            Head = 5,
+            Chest = 6,
+            Legs = 7,
+            Feets = 8,
+            InventoryFirst = 9,
+            InventoryLast = 35,
+            QuickSlotFirst = 36,
+            QuickSlotLast = 44
         }
 	}
 }

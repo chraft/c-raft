@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using Chraft.Interfaces;
 using Chraft.Net;
@@ -39,6 +41,8 @@ namespace Chraft.Entity
             get { return this.Height * 0.85f; }
         }
 
+        private static object _damageLock = new object();
+        protected int LastDamageTick;
         protected Timer SuffocationTimer;
         protected Timer DrowningTimer;
 
@@ -48,6 +52,12 @@ namespace Chraft.Entity
         public bool CanDrown { get; protected set; }
 
         public bool CanSuffocate { get; protected set; }
+
+        protected Timer FireBurnTimer;
+        public short FireBurnTicks { get; protected set; }
+        public bool IsImmuneToFire { get; protected set; }
+
+        protected Timer CactusDamageTimer;
 
         public bool IsDead { get; protected set; }
 
@@ -70,13 +80,24 @@ namespace Chraft.Entity
                 return !IsDead;
             }
         }
+
+        public override bool PreventMobSpawning
+        {
+            get { return !this.IsDead; }
+        }
     
-        public LivingEntity(Server server, int entityId)
+        public LivingEntity(Server server, int entityId, MetaData data)
          : base(server, entityId)
         {
+            if (data == null)
+                data = new MetaData();
+            this.Data = data;
             this.Health = MaxHealth;
             CanDrown = true;
             CanSuffocate = true;
+            IsImmuneToFire = false;
+            FireBurnTicks = 0;
+            LastDamageTick = 0;
         }
         
         /// <summary>
@@ -133,13 +154,131 @@ namespace Chraft.Entity
             return "W";
         }
 
+        #region Cactus damage
+        public virtual void TouchedCactus()
+        {
+            if (IsDead)
+                return;
+            if (CactusDamageTimer == null)
+            {
+                CactusDamageTimer = new Timer(CactusDamage, null, 0, 50);
+            }
+        }
+        protected virtual void CactusDamage(object state)
+        {
+            if (IsDead)
+            {
+                StopCactusDamageTimer();
+                return;
+            }
+
+            List<StructBlock> touchedBlocks = GetNearbyBlocks();
+            bool touchingCactus = false;
+            foreach (var block in touchedBlocks)
+            {
+                if (block.Type == (byte)BlockData.Blocks.Cactus)
+                {
+                    touchingCactus = true;
+                    break;
+                }
+            }
+
+            if (!touchingCactus)
+            {
+                StopCactusDamageTimer();
+                return;
+            }
+
+            Damage(DamageCause.Cactus, 1);
+        }
+
+        protected void StopCactusDamageTimer()
+        {
+            if (CactusDamageTimer != null)
+            {
+                CactusDamageTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                CactusDamageTimer.Dispose();
+                CactusDamageTimer = null;
+            }
+        }
+        #endregion
+
+        #region Fire/burning damage
+        public virtual void TouchedLava()
+        {
+            if (IsDead || IsImmuneToFire)
+                return;
+            Damage(DamageCause.Lava, 4);
+            FireBurnTicks = 600;
+            Data.IsOnFire = true;
+            SendMetadataUpdate();
+            if (FireBurnTimer == null)
+            {
+                FireBurnTimer = new Timer(FireBurn, null, 50, 50);
+            }
+        }
+
+        public virtual void TouchedFire()
+        {
+            if (IsDead || IsImmuneToFire)
+                return;
+            Damage(DamageCause.Fire, 1);
+            if (FireBurnTicks == 0)
+                FireBurnTicks = 300;
+            Data.IsOnFire = true;
+            SendMetadataUpdate();
+            if (FireBurnTimer == null)
+            {
+                FireBurnTimer = new Timer(FireBurn, null, 50, 50);
+            }
+        }
+
+        protected virtual void FireBurn(object state)
+        {
+            if (IsDead || FireBurnTicks <= 0)
+            {
+                StopFireBurnTimer();
+                return;
+            }
+
+            if (IsImmuneToFire)
+            {
+                FireBurnTicks -= 4;
+                if (FireBurnTicks < 0)
+                    FireBurnTicks = 0;
+            }
+            else
+            {
+                if (FireBurnTicks % 20 == 0) // Each second
+                {
+                    Damage(DamageCause.FireBurn, 1);
+                }
+                FireBurnTicks--;
+            }
+        }
+
+        public void StopFireBurnTimer()
+        {
+            if (FireBurnTimer != null)
+            {
+                FireBurnTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                FireBurnTimer.Dispose();
+                FireBurnTimer = null;
+            }
+            FireBurnTicks = 0;
+            Data.IsOnFire = false;
+            SendMetadataUpdate();
+        }
+
+        #endregion
+
         #region Drowning/suffocation
         public virtual void CheckDrowning()
         {
             if (!CanDrown || IsDead)
                 return;
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (BlockHelper.Instance(headBlockId).IsLiquid)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsLiquid)
             {
                 if (DrowningTimer == null)
                 {
@@ -150,14 +289,14 @@ namespace Chraft.Entity
 
         protected virtual void Drown(object state)
         {
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (IsDead || !BlockHelper.Instance(headBlockId).IsLiquid || !CanDrown)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
+            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsLiquid || !CanDrown)
             {
                 StopDrowningTimer();
                 return;
             }
 
-            if (TicksDrowning >= 200 && TicksDrowning % 20 == 0) // 10+ Seconds underwater
+            if (TicksDrowning >= 240 && TicksDrowning % 20 == 0) // 10+ Seconds underwater
             {
                 Damage(DamageCause.Drowning, 2);
             }
@@ -179,8 +318,8 @@ namespace Chraft.Entity
         {
             if (!CanSuffocate || IsDead)
                 return;
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (BlockHelper.Instance(headBlockId).IsOpaque)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsOpaque)
             {
                 if (SuffocationTimer == null)
                 {
@@ -191,8 +330,8 @@ namespace Chraft.Entity
 
         protected virtual void Suffocate(object state)
         {
-            byte headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (IsDead || !BlockHelper.Instance(headBlockId).IsOpaque || !CanSuffocate)
+            byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
+            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsOpaque || !CanSuffocate)
             {
                 StopSuffocationTimer();
                 return;
@@ -223,6 +362,7 @@ namespace Chraft.Entity
             base.OnMoveTo(x, y, z);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
         public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
@@ -230,6 +370,7 @@ namespace Chraft.Entity
             base.OnMoveRotateTo(x, y, z);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
         public override void OnTeleportTo(AbsWorldCoords absCoords)
@@ -237,6 +378,7 @@ namespace Chraft.Entity
             base.OnTeleportTo(absCoords);
             CheckDrowning();
             CheckSuffocation();
+            TouchNearbyBlocks();
         }
 
 
@@ -248,27 +390,38 @@ namespace Chraft.Entity
 
         public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
         {
-
-            EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
-            Server.PluginManager.CallEvent(Event.EntityDamage, e);
-            if (e.EventCanceled) return;
-            damageAmount = e.Damage;
-            hitBy = e.DamagedBy;
-            // Debug
-            if (hitBy is Player)
+            if (damageAmount <= 0)
             {
-                var hitByPlayer = hitBy as Player;
-                ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
-                hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " + damageAmount + " damage.");
+                World.Logger.Log(Logger.LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" :hitBy.EntityId.ToString()), Name, EntityId));
+                return;
             }
-            
-            Health -= damageAmount;
-            SendUpdateOnDamage();
-            
-            // TODO: Entity Knockback
+            lock (_damageLock)
+            {
+                if (World.WorldTicks - LastDamageTick < 10)
+                    return;
+                LastDamageTick = World.WorldTicks;
+                EntityDamageEventArgs e = new EntityDamageEventArgs(this, damageAmount, hitBy, cause);
+                Server.PluginManager.CallEvent(Event.EntityDamage, e);
+                if (e.EventCanceled) return;
+                damageAmount = e.Damage;
+                hitBy = e.DamagedBy;
+                // Debug
+                if (hitBy is Player)
+                {
+                    var hitByPlayer = hitBy as Player;
+                    ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
+                    hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " +
+                                                   damageAmount + " damage.");
+                }
 
-            if (Health <= 0)
-                HandleDeath(hitBy);
+                Health -= damageAmount;
+                SendUpdateOnDamage();
+
+                // TODO: Entity Knockback
+
+                if (Health <= 0)
+                    HandleDeath(hitBy);
+            }
         }
 
         protected virtual void SendUpdateOnDamage()
@@ -345,12 +498,15 @@ namespace Chraft.Entity
             removeTimer.Elapsed += delegate
             {
                 removeTimer.Stop();
-                World.Server.SendRemoveEntityToNearbyPlayers(World, this);
                 World.Server.RemoveEntity(this);
                 removeTimer.Dispose();
             };
 
             removeTimer.Start();
+
+            StopFireBurnTimer();
+            StopSuffocationTimer();
+            StopDrowningTimer();
         }
 
         #endregion
@@ -404,6 +560,34 @@ namespace Chraft.Entity
                 rotationAmount = -rotationSpeed;
             }
             return currentRotation + rotationAmount;
+        }
+
+        protected void SendMetadataUpdate(bool notifyYourself = true)
+        {
+            foreach (
+                Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z))
+                )
+            {
+                if (ToSkip(c) && !notifyYourself)
+                    continue;
+                c.SendEntityMetadata(this);
+            }
+        }
+
+        internal void MountEntity(EntityBase entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Can this entity spawn at this.Position
+        /// </summary>
+        /// <returns>Returns true if there are no entities within the bounds that PreventMobSpawning, and the location is not within liquid, otherwise false</returns>
+        /// <remarks>This method uses the currently set Position because it relies upon the current BoundingBox and BlockPosition to be set also.</remarks>
+        public virtual bool CanSpawnHere()
+        {
+            return World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox).All(entity => !entity.PreventMobSpawning)
+                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance(block.Type).IsLiquid);
         }
     }
 }

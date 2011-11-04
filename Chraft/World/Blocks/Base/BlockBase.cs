@@ -18,7 +18,6 @@ namespace Chraft.World.Blocks
         public byte Type;
         public UniversalCoords Coords;
         public byte MetaData;
-        public Chunk Chunk;
         public WorldManager World;
 
         public StructBlock(UniversalCoords coords, byte type, byte metaData, WorldManager world)
@@ -27,11 +26,14 @@ namespace Chraft.World.Blocks
             Coords = coords;
             MetaData = metaData;
             World = world;
-            Chunk = null;
-            if (World != null)
-            {
-                Chunk = World.GetBlockChunk(Coords);
-            }
+        }
+
+        public StructBlock(int worldX, int worldY, int worldZ, byte type, byte metaData, WorldManager world)
+        {
+            Type = type;
+            Coords = UniversalCoords.FromWorld(worldX, worldY, worldZ);
+            MetaData = metaData;
+            World = world;
         }
         
         public static readonly StructBlock Empty;
@@ -224,8 +226,13 @@ namespace Chraft.World.Blocks
             byte blockMeta = 0;
             foreach (var coords in blocks)
             {
-                blockId = block.World.GetBlockId(coords);
-                blockMeta = block.World.GetBlockData(coords);
+                Chunk chunk = block.World.GetChunk(coords, false, false);
+
+                if (chunk == null)
+                    break;
+
+                blockId = (byte)chunk.GetType(coords);
+                blockMeta = chunk.GetData(coords);
                 if (destroyed)
                     BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
                 else
@@ -345,10 +352,15 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that has been destroyed</param>
         protected virtual void UpdateOnDestroy(StructBlock block)
         {
-            block.World.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
-            block.Chunk.RecalculateHeight(block.Coords);
-            block.Chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
-            block.Chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
+            Chunk chunk = GetBlockChunk(block);
+
+            if (chunk == null)
+                return;
+
+            chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
+            chunk.RecalculateHeight(block.Coords);
+            chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
+            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
             block.World.Update(block.Coords, false);
         }
 
@@ -424,13 +436,13 @@ namespace Chraft.World.Blocks
             if (!tBlock.IsSolid)
                 return false;
 
-            byte originalBlock = block.World.GetBlockId(block.Coords);
+            byte? originalBlock = block.World.GetBlockId(block.Coords);
 
-            if ( originalBlock != (byte)BlockData.Blocks.Air &&
+            if ( originalBlock == null || (originalBlock != (byte)BlockData.Blocks.Air &&
                 originalBlock != (byte)BlockData.Blocks.Water &&
                 originalBlock != (byte)BlockData.Blocks.Still_Water &&
                 originalBlock != (byte)BlockData.Blocks.Lava &&
-                originalBlock != (byte)BlockData.Blocks.Still_Lava)
+                originalBlock != (byte)BlockData.Blocks.Still_Lava))
                 return false;
 
             if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
@@ -459,8 +471,8 @@ namespace Chraft.World.Blocks
         public BoundingBox GetCollisionBoundingBox(StructBlock block)
         {
             UniversalCoords coords = block.Coords;
-            return new BoundingBox(coords.WorldX + this.BlockBoundsOffset.Minimum.X, coords.WorldY + this.BlockBoundsOffset.Minimum.Y, coords.WorldZ + this.BlockBoundsOffset.Minimum.Z,
-                                   coords.WorldX + this.BlockBoundsOffset.Maximum.X, coords.WorldY + this.BlockBoundsOffset.Maximum.Y, coords.WorldZ + this.BlockBoundsOffset.Maximum.Z);
+            return new BoundingBox(coords.WorldX + BlockBoundsOffset.Minimum.X, coords.WorldY + BlockBoundsOffset.Minimum.Y, coords.WorldZ + BlockBoundsOffset.Minimum.Z,
+                                   coords.WorldX + BlockBoundsOffset.Maximum.X, coords.WorldY + BlockBoundsOffset.Maximum.Y, coords.WorldZ + BlockBoundsOffset.Maximum.Z);
         }
         
         public RayTraceHitBlock RayTraceIntersection(StructBlock block, Vector3 start, Vector3 end)
@@ -469,13 +481,14 @@ namespace Chraft.World.Blocks
             
             RayTraceHit rayTraceHit = boundingBox.RayTraceIntersection(start, end);
             if (rayTraceHit != null)
-            {
                 return new RayTraceHitBlock(block.Coords, rayTraceHit.FaceHit, rayTraceHit.Hit);
-            }
-            else
-            {
-                return null;
-            }
+            
+            return null;          
+        }
+
+        public Chunk GetBlockChunk(StructBlock block)
+        {
+            return block.World.GetChunk(block.Coords, false, false);
         }
     }
 }

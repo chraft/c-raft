@@ -20,10 +20,15 @@ namespace Chraft.World.Blocks
 
         protected override void UpdateOnDestroy(StructBlock block)
         {
-            block.World.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Still_Water, 0);
-            block.Chunk.RecalculateHeight(block.Coords);
-            block.Chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
-            block.Chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
+            Chunk chunk = GetBlockChunk(block);
+
+            if (chunk == null)
+                return;
+
+            chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Still_Water, 0);
+            chunk.RecalculateHeight(block.Coords);
+            chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
+            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
             block.World.Update(block.Coords, false);
         }
     }

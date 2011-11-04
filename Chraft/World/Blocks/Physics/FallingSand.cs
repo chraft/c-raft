@@ -24,8 +24,8 @@ namespace Chraft.World.Blocks.Physics
             int x = (int)Math.Floor(Position.X);
             int y = (int)Math.Floor(Position.Y);
             int z = (int)Math.Floor(Position.Z);
-            byte blockId = World.GetBlockId(x, y, z);
-            if (blockId != (byte)BlockData.Blocks.Air)
+            byte? blockId = World.GetBlockId(x, y, z);
+            if (blockId == null || blockId != (byte)BlockData.Blocks.Air)
             {
                 Stop();
                 return;
@@ -43,8 +43,12 @@ namespace Chraft.World.Blocks.Physics
         protected override void OnStop()
         {
             UniversalCoords currentBlockCoords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
-            byte blockId = World.GetBlockId(currentBlockCoords);
-            if (BlockHelper.Instance(blockId).IsAir)
+            byte? blockId = World.GetBlockId(currentBlockCoords);
+
+            if (blockId == null)
+                return;
+
+            if (BlockHelper.Instance((byte)blockId).IsAir)
             {
                 World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
             }

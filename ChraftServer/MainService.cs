@@ -75,10 +75,12 @@ namespace ChraftServer
             }
             else
             {
+                Version version = Assembly.GetExecutingAssembly().GetName().Version;
+
                 if (!IsRunningInMono)
-                {
-                    Console.Title = "C#raft v" + Assembly.GetExecutingAssembly().GetName().Version;
-                }
+                    Console.Title = "C#raft v" + version;
+                   
+                Console.WriteLine("C#raft v{0}", version);
                 OnStart(args);
                 while (true)
                 {

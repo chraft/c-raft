@@ -232,7 +232,7 @@ namespace Chraft.Net
                 Server.RemoveAuthenticatedClient(this);
 
                 Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
-                Server.RemoveEntity(_player);
+                Server.RemoveEntity(_player, false);
 
                 Client[] nearbyClients = Server.GetNearbyPlayers(_player.World, UniversalCoords.FromAbsWorld(_player.Position)).ToArray();
 

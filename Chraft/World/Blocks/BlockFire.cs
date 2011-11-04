@@ -18,5 +18,15 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
             Luminance = 0xf;
         }
+
+        public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
+        {
+            LivingEntity living = entity as LivingEntity;
+            if (living != null)
+            {
+                living.TouchedFire();
+            }
+            base.Touch(entity, block, face);
+        }
     }
 }

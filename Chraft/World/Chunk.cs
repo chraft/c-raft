@@ -533,9 +533,9 @@ namespace Chraft.World
             }
         }
 
-        public new void SetType(UniversalCoords coords, BlockData.Blocks value)
+        public override void OnSetType(UniversalCoords coords, BlockData.Blocks value)
         {
-            base.SetType(coords, value);
+            base.OnSetType(coords, value);
             byte blockId = (byte)value;
 
             if (GrowableBlocks.ContainsKey(coords.BlockPackedCoords))
@@ -549,7 +549,7 @@ namespace Chraft.World
                 else
                 {
                     StructBlock block = new StructBlock(coords, blockId, GetData(coords), World);
-                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
                     {
                         GrowableBlocks.TryRemove(coords.BlockPackedCoords, out unused);
                     }
@@ -560,7 +560,7 @@ namespace Chraft.World
                 if (BlockHelper.IsGrowable(blockId))
                 {
                     StructBlock block = new StructBlock(coords, blockId, GetData(coords), World);
-                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
                     {
                         GrowableBlocks.TryAdd(coords.BlockPackedCoords, coords.BlockPackedCoords);
                     }
@@ -568,9 +568,9 @@ namespace Chraft.World
             }
         }
 
-        public new void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
+        public override void OnSetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
         {
-            base.SetType(blockX, blockY, blockZ, value);
+            base.OnSetType(blockX, blockY, blockZ, value);
 
             byte blockId = (byte)value;
             short blockPackedCoords = (short)(blockX << 11 | blockZ << 7 | blockY);
@@ -588,7 +588,7 @@ namespace Chraft.World
                 {
                     byte metaData = GetData(blockX, blockY, blockZ);
                     StructBlock block = new StructBlock(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY, blockZ), blockId, metaData, World);
-                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    if (!(BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
                     {
                         GrowableBlocks.TryRemove(blockPackedCoords, out unused);
                     }
@@ -602,7 +602,7 @@ namespace Chraft.World
                     UniversalCoords blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY,
                                                                             blockZ);
                     StructBlock block = new StructBlock(blockCoords, blockId, metaData, World);
-                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                    if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
                         GrowableBlocks.TryAdd(blockPackedCoords, blockPackedCoords);
                 }
             }
@@ -624,7 +624,7 @@ namespace Chraft.World
                             blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z);
                             blockMeta = GetData(x, y, z);
                             block = new StructBlock(blockCoords, blockId, blockMeta, World);
-                            if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block))
+                            if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
                                 GrowableBlocks.TryAdd(blockCoords.BlockPackedCoords, blockCoords.BlockPackedCoords);
                         }
                     }
@@ -655,15 +655,10 @@ namespace Chraft.World
                     metaData = GetData(blockX, blockY, blockZ);
                     block = new StructBlock(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY, blockZ), blockId, metaData, World);
                     iGrowable = (BlockHelper.Instance(blockId) as IBlockGrowable);
-                    if (iGrowable.CanGrow(block))
+                    if (iGrowable.CanGrow(block, this))
                     {
-                        iGrowable.Grow(block);
+                        iGrowable.Grow(block, this);
 
-                        if (light < 7 && sky < 7)
-                        {
-                            SpawnMob(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));
-                        }/* else if (blockId == (byte)BlockData.Blocks.Grass)
-                            SpawnAnimal(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY + 1, blockZ));*/
                         continue;
                     }
                 }
@@ -761,21 +756,6 @@ namespace Chraft.World
             }
         }
 
-        private void SpawnAnimal(UniversalCoords coords)
-        {
-            if (coords.WorldY >= 127 || !IsAir(coords))
-                return;
-
-            if (IsAir(coords))
-            {
-                if (World.Time % 50 == 0)
-                {
-                    if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                        World.SpawnAnimal(coords);
-                }
-            }
-        }
-
         private void GrowDirt(UniversalCoords coords)
         {
             if (coords.WorldY >= 127 || IsAir(UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ)))
@@ -784,22 +764,6 @@ namespace Chraft.World
             if (World.Server.Rand.Next(30) != 0)
             {
                 SetType(coords, BlockData.Blocks.Dirt);
-            }
-        }
-
-        private void SpawnMob(UniversalCoords coords)
-        {
-            UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
-            if (GetType(coords) != BlockData.Blocks.Air)
-                return;
-
-            if (GetType(oneUp) != BlockData.Blocks.Air)
-                return;
-
-            if (World.Time % 100 == 0)
-            {
-                if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
-                    World.SpawnMob(oneUp);
             }
         }
 
