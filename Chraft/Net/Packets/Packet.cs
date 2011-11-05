@@ -953,6 +953,8 @@ namespace Chraft.Net.Packets
         public short VelocityY { get; set; }
         public short VelocityZ { get; set; }
 
+        protected override int Length { get { return 11; } }
+
         public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
