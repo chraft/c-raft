@@ -605,6 +605,7 @@ namespace Chraft.Net
             switch (packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
+#if DEBUG
                     UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                     client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
                     client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
@@ -612,6 +613,7 @@ namespace Chraft.Net
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
+#endif
                     if (BlockHelper.Instance(type).IsSingleHit)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (BlockHelper.Instance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
