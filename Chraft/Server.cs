@@ -155,11 +155,11 @@ namespace Chraft
 
         public Server()
         {
-            ServerHash = Hash.MD5(Guid.NewGuid().ToByteArray());
+            Rand = new Random();
+            ServerHash = GetRandomServerHash();
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
             Clients = new ConcurrentDictionary<int, Client>();
             AuthClients = new ConcurrentDictionary<int, Client>();
-            Rand = new Random();
             Logger = new Logger(this, Settings.Default.LogFile);
             PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
             Items = new ItemDb(Settings.Default.ItemsFile);
@@ -174,6 +174,14 @@ namespace Chraft
             _AcceptEventArgs.Completed += Accept_Completion;
 
             _Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }
+
+        public string GetRandomServerHash()
+        {
+            byte[] bytes = new byte[8];
+            Rand.NextBytes(bytes);
+
+            return BitConverter.ToString(bytes).Replace("-", String.Empty);
         }
 
         public static Recipe[] GetRecipes()
