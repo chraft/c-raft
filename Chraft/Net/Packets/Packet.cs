@@ -963,6 +963,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
+            SetCapacity();
             Writer.Write(EntityId);
             Writer.Write(VelocityX);
             Writer.Write(VelocityY);
