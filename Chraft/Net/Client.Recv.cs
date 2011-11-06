@@ -66,9 +66,13 @@ namespace Chraft.Net
                 if (_onGround != value)
                 {
                     _onGround = value;
+                   
+                    byte? blockId = _player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
 
-                    // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)_player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
+                    if (blockId == null)
+                        return;
+
+                    BlockData.Blocks currentBlock = (BlockData.Blocks) blockId;
 
                     if (!_onGround)
                     {
