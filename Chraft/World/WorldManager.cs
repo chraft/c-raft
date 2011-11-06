@@ -70,6 +70,8 @@ namespace Chraft.World
 
         public ConcurrentQueue<ChunkBase> ChunksToSave;
 
+        public ConcurrentDictionary<int, ChunkEntry> PendingChunks = new ConcurrentDictionary<int, ChunkEntry>();
+
         private CancellationTokenSource _saveToken;
         public bool NeedsFullSave;
         public bool FullSaving;
@@ -263,10 +265,17 @@ namespace Chraft.World
 
         private Chunk LoadChunk(UniversalCoords coords, bool create, bool recalculate)
         {
-            lock (ChunkGenLock)
+            ChunkEntry newEntry = new ChunkEntry();
+            ChunkEntry entry;
+
+            entry = PendingChunks.GetOrAdd(coords.ChunkPackedCoords, newEntry);
+            int state = Interlocked.CompareExchange(ref entry.State, ChunkEntry.InProgress, ChunkEntry.NotInitialized);
+            Chunk chunk;
+            
+            if (state == ChunkEntry.NotInitialized)
             {
-                // We should check again since two threads can enter here, one after the other, with the same chunk to load 
-                Chunk chunk;
+                Interlocked.Increment(ref entry.ThreadsWaiting);
+                // The entry could have been just readded but the chunk is already initialized
                 if ((chunk = Chunks[coords]) != null)
                     return chunk;
 
@@ -275,8 +284,6 @@ namespace Chraft.World
                     AddChunk(chunk);
                 else if (create)
                     _generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, chunk, recalculate);
-                else
-                    chunk = null;
 
                 if (chunk != null)
                 {
@@ -284,8 +291,27 @@ namespace Chraft.World
                     ContainerFactory.LoadContainersFromDisk(chunk);
                 }
 
+                entry.State = ChunkEntry.Initialized;
+                entry.ChunkLock.Set();
+
+                int threads = Interlocked.Decrement(ref entry.ThreadsWaiting);
+
+                if(threads == 0)
+                    PendingChunks.TryRemove(coords.ChunkPackedCoords, out entry);
                 return chunk;
             }
+           
+            if (state == ChunkEntry.InProgress)
+            {
+                Interlocked.Increment(ref entry.ThreadsWaiting);
+                entry.ChunkLock.Wait();
+                int threads = Interlocked.Decrement(ref entry.ThreadsWaiting);
+                if (threads == 0)
+                    PendingChunks.TryRemove(coords.ChunkPackedCoords, out entry);
+            }
+
+            chunk = Chunks[coords];
+            return chunk;            
         }
 
         private void InitializeThreads()

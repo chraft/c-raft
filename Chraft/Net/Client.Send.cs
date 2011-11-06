@@ -34,8 +34,15 @@ namespace Chraft.Net
     public partial class Client 
     {
         public ConcurrentQueue<Packet> PacketsToBeSent = new ConcurrentQueue<Packet>();
+        public ConcurrentQueue<Chunk> ChunksToBeSent = new ConcurrentQueue<Chunk>();
+
+        private int _chunkTimerRunning;
 
         private int _TimesEnqueuedForSend;
+        private Timer _chunkSendTimer;
+
+        private DateTime _lastChunkTimerStart = DateTime.MinValue;
+        private int _startDelay;
         public void SendPacket(Packet packet)
         {
             if (!Running)
@@ -48,12 +55,13 @@ namespace Chraft.Net
 
             int newValue = Interlocked.Increment(ref _TimesEnqueuedForSend);
 
-            if ((newValue - 1) == 0)
+            if (newValue == 1)
+            {
                 Server.SendClientQueue.Enqueue(this);
+                Server.NetworkSignal.Set();
+            }
 
-            //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());
-
-            Server.NetworkSignal.Set();
+            //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());           
         }
 
         private void Send_Async(byte[] data)
@@ -71,13 +79,11 @@ namespace Chraft.Net
 
             bool pending = _socket.SendAsync(_sendSocketEvent);
 
-            if (DateTime.Now + TimeSpan.FromSeconds(2.5) > _nextActivityCheck)
-            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(2.5);
-
             if (!pending)
                 Send_Completed(null, _sendSocketEvent);
         }
-
+        
+        private object sendwritelock = new object();
         private void Send_Sync(byte[] data)
         {
             if (!Running || !_socket.Connected)
@@ -95,9 +101,7 @@ namespace Chraft.Net
             catch (Exception)
             {
                 Stop();
-
-            }
-            
+            }         
         }
 
         public void Send_Sync_Packet(Packet packet)
@@ -378,16 +382,62 @@ namespace Chraft.Net
 
         internal void SendChunk(Chunk chunk, bool sync)
         {
-            MapChunkPacket packet = new MapChunkPacket
-            {
-                Chunk = chunk,
-
-            };
-
             if (!sync)
-                SendPacket(packet);
+            {
+                ChunksToBeSent.Enqueue(chunk);
+                int newValue = Interlocked.Increment(ref _chunkTimerRunning);
+
+                if (newValue == 1)
+                {
+                    if (_lastChunkTimerStart != DateTime.MinValue)
+                        _startDelay = 4000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
+
+                    if (_startDelay < 0)
+                        _startDelay = 0;
+                    _chunkSendTimer.Change(_startDelay, 4000);
+                }
+            }
             else
-                Send_Sync_Packet(packet);
+                Send_Sync_Packet(new MapChunkPacket
+                {
+                    Chunk = chunk,
+                });
+        }
+
+        internal void SendChunks(object state)
+        {
+            for (int i = 0; i < 30 && !ChunksToBeSent.IsEmpty; ++i)
+            {
+                Chunk chunk;
+                ChunksToBeSent.TryDequeue(out chunk);
+
+                SendPacket(new MapChunkPacket
+                {
+                    Chunk = chunk,
+                });
+            }
+
+            if (ChunksToBeSent.IsEmpty)
+            {
+                _chunkSendTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                Interlocked.Exchange(ref _chunkTimerRunning, 0);
+            }
+
+            if(!ChunksToBeSent.IsEmpty)
+            {
+                int running = Interlocked.Exchange(ref _chunkTimerRunning, 1);
+
+                if (running == 0)
+                {
+                    if (_lastChunkTimerStart != DateTime.MinValue)
+                        _startDelay = 4000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
+
+                    if (_startDelay < 0)
+                        _startDelay = 0;
+                    _chunkSendTimer.Change(_startDelay, 4000);
+                }
+            }
+            _lastChunkTimerStart = DateTime.Now;
         }
 
         internal void SendSignTexts(Chunk chunk)

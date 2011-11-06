@@ -258,6 +258,7 @@
     <Compile Include="World\Blocks\Physics\FallingGravel.cs" />
     <Compile Include="World\Blocks\BlockRedMushroomCap.cs" />
     <Compile Include="World\Blocks\BlockBrownMushroomCap.cs" />
+    <Compile Include="World\ChunkEntry.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />

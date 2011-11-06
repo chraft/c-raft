@@ -96,9 +96,10 @@ namespace Chraft.Net
             _currentBuffer = new ByteQueue();
             _processedBuffer = new ByteQueue();
             _fragPackets = new ByteQueue();
-            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5.0);
+            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(10);
             SessionID = sessionId;
             Server = server;
+            _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
             //PacketHandler = new PacketHandler(Server, socket);
         }
 
@@ -269,7 +270,7 @@ namespace Chraft.Net
 
                 if (_keepAliveTimer != null)
                 {
-                    _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _keepAliveTimer.Dispose();
                     _keepAliveTimer = null;
                 }
             }
@@ -281,6 +282,8 @@ namespace Chraft.Net
                 Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
             }
 
+            _chunkSendTimer.Dispose();
+            _chunkSendTimer = null;
 
             RecvBufferPool.ReleaseBuffer(_recvBuffer);
             SendSocketEventPool.Push(_sendSocketEvent);
