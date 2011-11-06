@@ -46,31 +46,31 @@ namespace Chraft.World.Blocks
             switch (face) //Bugged, as the client has a mind of its own for facing
             {
                 case BlockFace.East:
-                    block.MetaData = (byte)MetaData.Furnace.East;
+                    block.MetaData = (byte)MetaData.Container.East;
                     break;
                 case BlockFace.West:
-                    block.MetaData = (byte)MetaData.Furnace.West;
+                    block.MetaData = (byte)MetaData.Container.West;
                     break;
                 case BlockFace.North:
-                    block.MetaData = (byte)MetaData.Furnace.North;
+                    block.MetaData = (byte)MetaData.Container.North;
                     break;
                 case BlockFace.South:
-                    block.MetaData = (byte)MetaData.Furnace.South;
+                    block.MetaData = (byte)MetaData.Container.South;
                     break;
                 default:
                     switch (living.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
-                            block.MetaData = (byte)MetaData.Furnace.North;
+                            block.MetaData = (byte)MetaData.Container.North;
                             break;
                         case "W":
-                            block.MetaData = (byte)MetaData.Furnace.West;
+                            block.MetaData = (byte)MetaData.Container.West;
                             break;
                         case "S":
-                            block.MetaData = (byte)MetaData.Furnace.South;
+                            block.MetaData = (byte)MetaData.Container.South;
                             break;
                         case "E":
-                            block.MetaData = (byte)MetaData.Furnace.East;
+                            block.MetaData = (byte)MetaData.Container.East;
                             break;
                         default:
                             return;

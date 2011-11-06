@@ -236,7 +236,7 @@ namespace Chraft.Interfaces
         }
 
         private void ItemStack_Changed(object sender, EventArgs e)
-		{
+        {
             OnItemStackChanged(((ItemStack)sender));
 		}
 

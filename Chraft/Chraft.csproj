@@ -113,6 +113,12 @@
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Monster.cs" />
+    <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
+    <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
+    <Compile Include="Interfaces\Containers\FurnaceContainer.cs" />
+    <Compile Include="Interfaces\Containers\PersistentContainer.cs" />
+    <Compile Include="Interfaces\Containers\SmallChestContainer.cs" />
+    <Compile Include="Interfaces\Containers\LargeChestContainer.cs" />
     <Compile Include="Net\BigEndianStream.cs" />
     <Compile Include="Net\BufferPool.cs" />
     <Compile Include="Net\ByteQueue.cs" />
@@ -286,7 +292,6 @@
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
     <Compile Include="Interfaces\Recipes\SmeltingRecipe.cs" />
-    <Compile Include="Interfaces\SingleContainerInterface.cs" />
     <Compile Include="Interfaces\SmallChestInterface.cs" />
     <Compile Include="Interfaces\WorkbenchInterface.cs" />
     <Compile Include="Irc\HostMask.cs" />

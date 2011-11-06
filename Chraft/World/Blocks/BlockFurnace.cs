@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity;
+using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
@@ -45,31 +46,31 @@ namespace Chraft.World.Blocks
             switch (targetSide) //Bugged, as the client has a mind of its own for facing
             {
                 case BlockFace.East:
-                    block.MetaData = (byte)MetaData.Furnace.East;
+                    block.MetaData = (byte)MetaData.Container.East;
                     break;
                 case BlockFace.West:
-                    block.MetaData = (byte)MetaData.Furnace.West;
+                    block.MetaData = (byte)MetaData.Container.West;
                     break;
                 case BlockFace.North:
-                    block.MetaData = (byte)MetaData.Furnace.North;
+                    block.MetaData = (byte)MetaData.Container.North;
                     break;
                 case BlockFace.South:
-                    block.MetaData = (byte)MetaData.Furnace.South;
+                    block.MetaData = (byte)MetaData.Container.South;
                     break;
                 default:
                     switch (living.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
-                            block.MetaData = (byte)MetaData.Furnace.North;
+                            block.MetaData = (byte)MetaData.Container.North;
                             break;
                         case "W":
-                            block.MetaData = (byte)MetaData.Furnace.West;
+                            block.MetaData = (byte)MetaData.Container.West;
                             break;
                         case "S":
-                            block.MetaData = (byte)MetaData.Furnace.South;
+                            block.MetaData = (byte)MetaData.Container.South;
                             break;
                         case "E":
-                            block.MetaData = (byte)MetaData.Furnace.East;
+                            block.MetaData = (byte)MetaData.Container.East;
                             break;
                         default:
                             return;
@@ -80,17 +81,10 @@ namespace Chraft.World.Blocks
             base.Place(entity, block, targetBlock, targetSide);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        protected override void UpdateOnDestroy(StructBlock block)
         {
-            Player player = entity as Player;
-            if (player != null)
-            {
-                FurnaceInterface fi = new FurnaceInterface(block.World, block.Coords);
-                fi.Associate(player);
-                fi.DropAll(block.Coords);
-                fi.Save();
-            }
-            base.DropItems(entity, block);
+            ContainerFactory.Destroy(block.World, block.Coords);
+            base.UpdateOnDestroy(block);
         }
 
         public void Interact(EntityBase entity, StructBlock block)
@@ -100,10 +94,7 @@ namespace Chraft.World.Blocks
                 return;
             if (player.CurrentInterface != null)
                 return;
-            player.CurrentInterface= new FurnaceInterface(block.World, block.Coords);
-            player.CurrentInterface.Associate(player);
-            player.CurrentInterface.Open();
+            ContainerFactory.Open(player, block.Coords);
         }
-
     }
 }

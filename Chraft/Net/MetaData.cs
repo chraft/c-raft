@@ -262,7 +262,7 @@ namespace Chraft.Net
         {
             East = 0x2, West, North, South
         }
-        public enum Furnace : byte
+        public enum Container : byte
         {
             East = 0x2, West, North, South
         }
