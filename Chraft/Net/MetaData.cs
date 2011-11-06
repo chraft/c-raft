@@ -122,6 +122,9 @@ namespace Chraft.Net
             byte x;
             while ((x = rx.ReadByte()) != 0x7f)
             {
+                if (rx.Failed)
+                    return;
+
                 switch (x >> 5)
                 {
                     case 0: Data[x & 0x1f] = rx.ReadByte(); break;

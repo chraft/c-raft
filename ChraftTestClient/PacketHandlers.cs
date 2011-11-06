@@ -54,7 +54,7 @@ namespace ChraftTestClient
             Register(PacketType.EntityTeleport, 19, 0, ReadEntityTeleport);
             Register(PacketType.EntityStatus, 6, 0, ReadEntityStatus);
             Register(PacketType.EntityAction, 6, 0, ReadEntityAction);
-            Register(PacketType.MobSpawn, 21, 0, ReadMobSpawn);
+            Register(PacketType.MobSpawn, 0, 21, ReadMobSpawn);
             Register(PacketType.SpawnPosition, 13, 0, ReadSpawnPosition);
             Register(PacketType.PlayerPositionRotation, 42, 0, ReadPlayerPositionRotation);
             Register(PacketType.NewInvalidState, 3, 0, ReadNewInvalidState);
