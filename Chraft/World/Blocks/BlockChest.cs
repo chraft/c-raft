@@ -27,7 +27,7 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockChest : BlockBase, IBlockInteractive
+    class BlockChest : BlockBaseContainer
     {
         public BlockChest()
         {
@@ -37,108 +37,99 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 300;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            LivingEntity living = entity as LivingEntity;
-            if (living == null)
-                return;
-
             Chunk chunk = GetBlockChunk(block);
-            Chunk targetChunk = GetBlockChunk(targetBlock);
+            if (chunk == null)
+                return false;
 
-            if (chunk == null || targetChunk == null)
-                return;
-
-            switch (face) //Bugged for double chests!
+            bool isDoubleChestNearby = false;
+            int chestCount = 0;
+            chunk.ForNSEW(block.Coords, uc =>
             {
-                case BlockFace.East:
-                    block.MetaData = (byte)MetaData.Container.East;
-                    break;
-                case BlockFace.West:
-                    block.MetaData = (byte)MetaData.Container.West;
-                    break;
-                case BlockFace.North:
-                    block.MetaData = (byte)MetaData.Container.North;
-                    break;
-                case BlockFace.South:
-                    block.MetaData = (byte)MetaData.Container.South;
-                    break;
-                default:
-                    switch (living.FacingDirection(4)) // Built on floor, set by facing dir
-                    {
-                        case "N":
-                            block.MetaData = (byte)MetaData.Container.North;
-                            break;
-                        case "W":
-                            block.MetaData = (byte)MetaData.Container.West;
-                            break;
-                        case "S":
-                            block.MetaData = (byte)MetaData.Container.South;
-                            break;
-                        case "E":
-                            block.MetaData = (byte)MetaData.Container.East;
-                            break;
-                        default:
-                            return;
+                byte? nearbyBlockId = block.World.GetBlockId(uc);
 
-                    }
-                    break;
-            }
+                if (nearbyBlockId == null)
+                    return;
 
+                // Cannot place next to a double chest
+                if (nearbyBlockId == (byte)BlockData.Blocks.Chest)
+                {
+                    chestCount++;
+                     if (chunk.IsNSEWTo(uc, (byte)BlockData.Blocks.Chest))
+                        isDoubleChestNearby = true;
+                }
+            });
+
+            if (isDoubleChestNearby || chestCount > 1)
+                return false;
+            return base.CanBePlacedOn(who, block, targetBlock, targetSide);
+        }
+
+        protected override byte GetDirection(LivingEntity living, StructBlock block, StructBlock targetBlock, BlockFace face)
+        {
+            Chunk chunk = GetBlockChunk(block);
             // Load the blocks surrounding the position (NSEW) not diagonals
             BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
             UniversalCoords[] nsewBlockPositions = new UniversalCoords[4];
             int nsewCount = 0;
 
+            int secondChestIndex = -1;
             chunk.ForNSEW(block.Coords, uc =>
             {
                 byte? nearbyBlockId = block.World.GetBlockId(uc);
 
-                if(nearbyBlockId == null)
+                if (nearbyBlockId == null)
                     return;
+
+                if (nearbyBlockId == (byte)BlockData.Blocks.Chest)
+                    secondChestIndex = nsewCount;
 
                 nsewBlocks[nsewCount] = (BlockData.Blocks)nearbyBlockId;
                 nsewBlockPositions[nsewCount] = uc;
                 nsewCount++;
             });
-
-            int count = 0;
-            int secondChest = -1;
-            for (int i = 0; i < 4; i++)
+            byte direction = base.GetDirection(living, block, targetBlock, face);
+            if (secondChestIndex != -1)
             {
-                UniversalCoords p = nsewBlockPositions[i];
-                if (nsewBlocks[i] == BlockData.Blocks.Chest)
+                UniversalCoords secondChestCoords = nsewBlockPositions[secondChestIndex];
+                byte secondChestDirection = chunk.GetData(secondChestCoords);
+                if (secondChestDirection != direction)
                 {
-                    count++;
-                    if (chunk.IsNSEWTo(p, (byte)BlockData.Blocks.Chest) || count > 1)
+                    if (secondChestCoords.WorldX == block.Coords.WorldX)
                     {
-                        // Cannot place next to a double chest
-                        return;
+                        if (direction != (byte)MetaData.Container.South && direction != (byte)MetaData.Container.North)
+                            direction = (byte)MetaData.Container.South;                          
                     }
-                    secondChest = i;
+                    else
+                    {
+                        if (direction != (byte)MetaData.Container.East && direction != (byte)MetaData.Container.West)
+                            direction = (byte)MetaData.Container.West;
+                    }
+                }
+                else
+                {
+
+                    if (secondChestCoords.WorldX == block.Coords.WorldX && block.MetaData != (byte)MetaData.Container.North && block.MetaData != (byte)MetaData.Container.South)
+                        direction = (byte)MetaData.Container.South;
+                    else
+                        if (block.MetaData != (byte)MetaData.Container.West && block.MetaData != (byte)MetaData.Container.East)
+                            direction = (byte)MetaData.Container.West;
                 }
             }
-            if (secondChest != -1)
-            {
-                chunk.SetData(nsewBlockPositions[secondChest], block.MetaData);
-            }
 
-            base.Place(entity, block, targetBlock, face);
+            return direction;
         }
 
-        protected override void UpdateOnDestroy(StructBlock block)
+        public override void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            ContainerFactory.Destroy(block.World, block.Coords);
-            base.UpdateOnDestroy(block);
+            if (sourceBlock.Type == (byte)BlockData.Blocks.Chest)
+                targetBlock.World.SetBlockData(targetBlock.Coords, sourceBlock.MetaData);
+            base.NotifyPlace(entity, sourceBlock, targetBlock);
         }
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Player player = entity as Player;
-            if (player == null)
-                return;
-            if (player.CurrentInterface != null)
-                return;
             if (block.Coords.WorldY < 127)
             {
                 // Cannot open a chest if no space is above it
@@ -146,7 +137,7 @@ namespace Chraft.World.Blocks
                 if (blockId == null || !BlockHelper.Instance((byte)blockId).IsAir)
                     return;
             }
-            ContainerFactory.Open(player, block.Coords);
+            base.Interact(entity, block);
         }
 
     }

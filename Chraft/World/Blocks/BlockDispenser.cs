@@ -27,74 +27,13 @@ using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockDispenser : BlockBase, IBlockInteractive
+    class BlockDispenser : BlockBaseContainer
     {
         public BlockDispenser()
         {
             Name = "Dispenser";
             Type = BlockData.Blocks.Dispenser;
-            IsSolid = true;
             LootTable.Add(new ItemStack((short)Type, 1));
-        }
-
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
-        {
-            LivingEntity living = (entity as LivingEntity);
-            if (living == null)
-                return;
-
-            switch (face) //Bugged, as the client has a mind of its own for facing
-            {
-                case BlockFace.East:
-                    block.MetaData = (byte)MetaData.Container.East;
-                    break;
-                case BlockFace.West:
-                    block.MetaData = (byte)MetaData.Container.West;
-                    break;
-                case BlockFace.North:
-                    block.MetaData = (byte)MetaData.Container.North;
-                    break;
-                case BlockFace.South:
-                    block.MetaData = (byte)MetaData.Container.South;
-                    break;
-                default:
-                    switch (living.FacingDirection(4)) // Built on floor, set by facing dir
-                    {
-                        case "N":
-                            block.MetaData = (byte)MetaData.Container.North;
-                            break;
-                        case "W":
-                            block.MetaData = (byte)MetaData.Container.West;
-                            break;
-                        case "S":
-                            block.MetaData = (byte)MetaData.Container.South;
-                            break;
-                        case "E":
-                            block.MetaData = (byte)MetaData.Container.East;
-                            break;
-                        default:
-                            return;
-
-                    }
-                    break;
-            }
-            base.Place(entity, block, targetBlock, face);
-        }
-
-        protected override void UpdateOnDestroy(StructBlock block)
-        {
-            ContainerFactory.Destroy(block.World, block.Coords);
-            base.UpdateOnDestroy(block);
-        }
-
-        public void Interact(EntityBase entity, StructBlock block)
-        {
-            Player player = entity as Player;
-            if (player == null)
-                return;
-            if (player.CurrentInterface != null)
-                return;
-            ContainerFactory.Open(player, block.Coords);
         }
     }
 }
