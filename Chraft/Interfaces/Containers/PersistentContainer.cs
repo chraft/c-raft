@@ -13,6 +13,7 @@ namespace Chraft.Interfaces.Containers
     public abstract class PersistentContainer
     {
         protected string DataPath { get { return Path.Combine(World.Folder, Settings.Default.ContainersFolder); } }
+        protected string ContainerFolder;
         protected string DataFile;
 
         protected object _savingLock = new object();
@@ -48,10 +49,11 @@ namespace Chraft.Interfaces.Containers
             Coords = coords;
             Slots = new ItemStack[SlotsCount];
             DataFile = string.Format("x{0}y{1}z{2}.dat", Coords.WorldX, Coords.WorldY, Coords.WorldZ);
-
-            if (!Directory.Exists(DataPath))
+            string chunkFolder = string.Format("x{0}z{1}", Coords.ChunkX, Coords.ChunkZ);
+            ContainerFolder = Path.Combine(DataPath, chunkFolder);
+            if (!Directory.Exists(ContainerFolder))
             {
-                Directory.CreateDirectory(DataPath);
+                Directory.CreateDirectory(ContainerFolder);
             }
             Load();
         }
@@ -77,7 +79,7 @@ namespace Chraft.Interfaces.Containers
 
         protected virtual void DoLoad(int slotStart, int slotsCount, string dataFile)
         {
-            string file = Path.Combine(DataPath, dataFile);
+            string file = Path.Combine(ContainerFolder, dataFile);
             if (File.Exists(file))
             {
                 using (FileStream containerStream = File.Open(file, FileMode.Open, FileAccess.Read))
@@ -147,7 +149,7 @@ namespace Chraft.Interfaces.Containers
 
         protected virtual void DoSave(int slotStart, int slotsCount, string dataFile)
         {
-            string file = Path.Combine(DataPath, dataFile);
+            string file = Path.Combine(ContainerFolder, dataFile);
             if (IsEmpty)
             {
                 File.Delete(file);
