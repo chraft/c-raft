@@ -190,6 +190,13 @@ namespace Chraft.Entity
                 return;
 
             BlockBase blockClass = BlockHelper.Instance((byte)blockId);
+
+            if (blockClass == null)
+            {
+                Server.Logger.Log(Logger.LogLevel.Error, "Block class not found for block type Id {0}", blockId);
+                return;
+            }
+
             if (blockClass.IsOpaque && blockClass.IsSolid)
             {
                 // The offset within World (int) coords
@@ -262,9 +269,9 @@ namespace Chraft.Entity
                 if (moveDirection.HasValue)
                 {
                     if (moveDirection.Value == Direction.South)
-                        this.Velocity.X = -motion;
-                    else if (moveDirection.Value == Direction.North)
                         this.Velocity.X = motion;
+                    else if (moveDirection.Value == Direction.North)
+                        this.Velocity.X = -motion;
                     else if (moveDirection.Value == Direction.Down)
                         this.Velocity.Y = -motion;
                     else if (moveDirection.Value == Direction.Up)
@@ -381,9 +388,6 @@ namespace Chraft.Entity
                     }
                 }
             }
-            
-            
-
         }
         
         /// <summary>
