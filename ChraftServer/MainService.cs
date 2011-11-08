@@ -101,8 +101,9 @@ namespace ChraftServer
                 while (true)
                 {
                     string input = Console.ReadLine();
+                    if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(input.Trim()))
+                        continue;
                     if (Server == null) return;
-                    if (input == null) return;
                     string[] inputParts = input.Split();
                     var cleanedtokens = inputParts.Skip(1).ToArray();
                     try
