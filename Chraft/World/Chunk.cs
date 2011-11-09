@@ -51,6 +51,7 @@ namespace Chraft.World
         private ConcurrentDictionary<short, short> BlocksUpdating = new ConcurrentDictionary<short, short>();
 
         private ConcurrentDictionary<short, short> GrowableBlocks = new ConcurrentDictionary<short, short>();
+        private ConcurrentDictionary<short, short> _tempGrowableBlocks = new ConcurrentDictionary<short, short>();
 
         public ConcurrentDictionary<short, string> SignsText = new ConcurrentDictionary<short, string>();
 
@@ -458,6 +459,11 @@ namespace Chraft.World
             this[x, y, z] = type;
             SetData(x, y, z, data, false);
             SetDualLight(x, y, z, ls);
+            if (BlockHelper.IsGrowable(type))
+            {
+                short packedCoords = (short) (x << 12 | z << 8 | y);
+                _tempGrowableBlocks.TryAdd(packedCoords, packedCoords);
+            }
         }
 
         private bool EnterSave()
@@ -634,20 +640,21 @@ namespace Chraft.World
             byte blockMeta = 0;
             UniversalCoords blockCoords;
             StructBlock block;
-            for (int x = 0; x < 16; x++)
-                for (int y = 0; y < 128; y++)
-                    for (int z = 0; z < 16; z++)
-                    {
-                        blockId = (byte)GetType(x, y, z);
-                        if (BlockHelper.IsGrowable(blockId))
-                        {
-                            blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z);
-                            blockMeta = GetData(x, y, z);
-                            block = new StructBlock(blockCoords, blockId, blockMeta, World);
-                            if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
-                                GrowableBlocks.TryAdd(blockCoords.BlockPackedCoords, blockCoords.BlockPackedCoords);
-                        }
-                    }
+            int blockX, blockY, blockZ;
+
+            foreach (var coord in _tempGrowableBlocks)
+            {
+                blockX = coord.Key >> 11;
+                blockY = (coord.Key & 0xff) % 128;
+                blockZ = (coord.Key >> 7) & 0xf;
+                blockId = (byte)GetType(blockX, blockY, blockZ);
+                blockCoords = UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, blockX, blockY, blockZ);
+                blockMeta = GetData(blockX, blockY, blockZ);
+                block = new StructBlock(blockCoords, blockId, blockMeta, World);
+                if ((BlockHelper.Instance(blockId) as IBlockGrowable).CanGrow(block, this))
+                    GrowableBlocks.TryAdd(blockCoords.BlockPackedCoords, blockCoords.BlockPackedCoords);
+            }
+            _tempGrowableBlocks = new ConcurrentDictionary<short, short>();
         }
 
         internal void Grow()
