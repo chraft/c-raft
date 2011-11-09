@@ -24,9 +24,6 @@ namespace Chraft.World.Blocks.Interfaces
 {
     interface IBlockBase
     {
-
-        BlockData.Blocks Type { get; set; }
-
         /// <summary>
         /// Destroy the block and drop the loot (if any)
         /// </summary>
@@ -51,6 +48,5 @@ namespace Chraft.World.Blocks.Interfaces
         /// Place the block
         /// </summary>
         void Place(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace face);
-
     }
 }

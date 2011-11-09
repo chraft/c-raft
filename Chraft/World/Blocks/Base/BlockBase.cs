@@ -78,7 +78,7 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Block type
         /// </summary>
-        public BlockData.Blocks Type { get; set; }
+        public BlockData.Blocks Type { get; protected set; }
 
         /// <summary>
         /// Can we move through the block
