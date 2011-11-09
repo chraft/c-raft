@@ -26,8 +26,8 @@ namespace Chraft.World.Blocks
 {
     public static class BlockHelper
     {
-        private static List<byte> _growableBlocks;
-        private static Dictionary<byte, BlockBase> _blocks;
+        private static ConcurrentDictionary<byte, byte> _growableBlocks;
+        private static ConcurrentDictionary<byte, BlockBase> _blocks;
 
         static BlockHelper()
         {
@@ -36,8 +36,8 @@ namespace Chraft.World.Blocks
 
         private static void Init()
         {
-            _blocks = new Dictionary<byte, BlockBase>();
-            _growableBlocks = new List<byte>();
+            _blocks = new ConcurrentDictionary<byte, BlockBase>();
+            _growableBlocks = new ConcurrentDictionary<byte, byte>();
             BlockBase block;
 
             foreach (Type t in from t in Assembly.GetExecutingAssembly().GetTypes()
@@ -45,9 +45,9 @@ namespace Chraft.World.Blocks
                                select t)
             {
                 block = (BlockBase) t.GetConstructor(Type.EmptyTypes).Invoke(null);
-                _blocks.Add((byte)block.Type, block);
+                _blocks.TryAdd((byte)block.Type, block);
                 if (block is IBlockGrowable)
-                    _growableBlocks.Add((byte)block.Type);
+                    _growableBlocks.TryAdd((byte)block.Type, (byte)block.Type);
             }
         }
 
@@ -61,12 +61,12 @@ namespace Chraft.World.Blocks
 
         public static bool IsGrowable(byte blockId)
         {
-            return _growableBlocks.Contains(blockId);
+            return _growableBlocks.ContainsKey(blockId);
         }
 
         public static bool IsGrowable(BlockData.Blocks blockType)
         {
-            return _growableBlocks.Contains((byte)blockType);
+            return _growableBlocks.ContainsKey((byte)blockType); ;
         }
     }
 }
