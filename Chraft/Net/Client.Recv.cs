@@ -117,7 +117,7 @@ namespace Chraft.Net
                                 // If we are in water, count how many blocks above are also water
                                 BlockData.Blocks block = currentBlock;
                                 int waterCount = 0;
-                                while (BlockHelper.Instance((byte)block).IsLiquid)
+                                while (BlockHelper.IsLiquid((byte)block))
                                 {
                                     waterCount++;
                                     block = (BlockData.Blocks)_player.World.GetBlockId((int)_player.Position.X, (int)_player.Position.Y + waterCount, (int)_player.Position.Z);
@@ -618,7 +618,7 @@ namespace Chraft.Net
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
 #endif
-                    if (BlockHelper.Instance(type).IsSingleHit)
+                    if (BlockHelper.IsSingleHit(type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (BlockHelper.Instance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;

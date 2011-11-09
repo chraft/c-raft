@@ -312,7 +312,7 @@ namespace Chraft.WorldGen
         private bool CanSeeTheSky(int x, int y, int z, byte[] data)
         {
             int by;
-            for (by = y; BlockHelper.Instance(data[x << 11 | z << 7 | by]).Opacity == 0 && by < 128; ++by);
+            for (by = y; BlockHelper.Opacity(data[x << 11 | z << 7 | by]) == 0 && by < 128; ++by);
 
             return by == 128;
         }

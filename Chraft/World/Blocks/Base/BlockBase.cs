@@ -448,8 +448,7 @@ namespace Chraft.World.Blocks
         /// <returns>true if the block can be placed, false otherwise</returns>
         protected virtual bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            BlockBase tBlock = BlockHelper.Instance(targetBlock.Type);
-            if (!tBlock.IsSolid)
+            if (!BlockHelper.IsSolid(targetBlock.Type))
                 return false;
 
             byte? originalBlock = block.World.GetBlockId(block.Coords);
@@ -461,7 +460,7 @@ namespace Chraft.World.Blocks
                 originalBlock != (byte)BlockData.Blocks.Still_Lava))
                 return false;
 
-            if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
+            if (!BlockHelper.IsAir(block.Type) && !BlockHelper.IsLiquid(block.Type))
                 foreach (EntityBase entity in block.World.Server.GetNearbyEntities(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
                     LivingEntity living = entity as LivingEntity;

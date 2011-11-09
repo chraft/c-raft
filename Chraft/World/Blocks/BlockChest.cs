@@ -134,7 +134,7 @@ namespace Chraft.World.Blocks
             {
                 // Cannot open a chest if no space is above it
                 byte? blockId = block.World.GetBlockId(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
-                if (blockId == null || !BlockHelper.Instance((byte)blockId).IsAir)
+                if (blockId == null || !BlockHelper.IsAir((byte)blockId))
                     return;
             }
             base.Interact(entity, block);

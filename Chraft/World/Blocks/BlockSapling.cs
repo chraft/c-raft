@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks
 
         protected override bool CanBePlacedOn(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            if (!BlockHelper.Instance(targetBlock.Type).IsFertile || targetSide != BlockFace.Up)
+            if (!BlockHelper.IsFertile(targetBlock.Type) || targetSide != BlockFace.Up)
                 return false;
             return base.CanBePlacedOn(entity, block, targetBlock, targetSide);
         }

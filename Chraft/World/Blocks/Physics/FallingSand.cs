@@ -64,7 +64,7 @@ namespace Chraft.World.Blocks.Physics
             if (blockId == null)
                 return;
 
-            if (BlockHelper.Instance((byte)blockId).IsAir)
+            if (BlockHelper.IsAir((byte)blockId))
             {
                 World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
             }

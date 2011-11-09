@@ -264,7 +264,7 @@ namespace Chraft.World
                 newSkylight = 15;
             else
             {
-                byte toSubtract = (byte)(1 - vertical + BlockHelper.Instance(Types[x << 11 | z << 7 | y]).Opacity);
+                byte toSubtract = (byte)(1 - vertical + BlockHelper.Opacity(Types[x << 11 | z << 7 | y]));
                 newSkylight -= toSubtract;
 
                 if (newSkylight < 0)

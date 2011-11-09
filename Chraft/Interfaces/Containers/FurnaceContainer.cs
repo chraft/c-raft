@@ -94,7 +94,7 @@ namespace Chraft.Interfaces.Containers
         {
             if (ItemStack.IsVoid(FuelSlot))
                 return false;
-            return ((FuelSlot.Type < 256 && BlockHelper.Instance((byte)FuelSlot.Type).IsIgnitable) ||
+            return ((FuelSlot.Type < 256 && BlockHelper.IsIgnitable((byte)FuelSlot.Type)) ||
                     (FuelSlot.Type >= 256 && BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)FuelSlot.Type)));
         }
 
@@ -136,7 +136,7 @@ namespace Chraft.Interfaces.Containers
             if (ItemStack.IsVoid(FuelSlot))
                 return 0;
 
-            return (FuelSlot.Type < 256 ? BlockHelper.Instance((byte)FuelSlot.Type).BurnEfficiency : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
+            return (FuelSlot.Type < 256 ? BlockHelper.BurnEfficiency((byte)FuelSlot.Type) : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
         }
 
         private void RemoveFuel()

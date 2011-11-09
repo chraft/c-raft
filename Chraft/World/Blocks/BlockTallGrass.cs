@@ -44,7 +44,7 @@ namespace Chraft.World.Blocks
                 return;
             byte? blockId = targetBlock.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
             // We can place the tall grass only on the fertile blocks - dirt, soil, grass)
-            if (blockId == null || !BlockHelper.Instance((byte)blockId).IsFertile)
+            if (blockId == null || !BlockHelper.IsFertile((byte)blockId))
                 return;
             base.Place(entity, block, targetBlock, face);
         }
