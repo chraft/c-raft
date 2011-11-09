@@ -18,6 +18,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
@@ -277,8 +278,11 @@ namespace Chraft.World
                 else
                     chunk = null;
 
-                if(chunk != null)
+                if (chunk != null)
+                {
                     chunk.InitGrowableCache();
+                    ContainerFactory.LoadContainersFromDisk(chunk);
+                }
 
                 return chunk;
             }

@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.IO;
 using Chraft.Entity;
+using Chraft.Properties;
 using Chraft.World;
 
 namespace Chraft.Interfaces.Containers
 {
     public static class ContainerFactory
     {
-        private static ConcurrentDictionary<string, PersistentContainer> _containerInstances = new ConcurrentDictionary<string, PersistentContainer>();
-
         public static PersistentContainer Instance(WorldManager world, UniversalCoords coords)
         {
-            string id = String.Format("{0}-{1},{2},{3}", world.Name, coords.WorldX, coords.WorldY, coords.WorldZ);
             PersistentContainer container;
             Chunk chunk = world.GetChunk(coords, false, false);
             if (chunk == null)
                 return null; 
             BlockData.Blocks block = chunk.GetType(coords);
-            if (!_containerInstances.ContainsKey(id))
+            if (!chunk.Containers.ContainsKey(coords.BlockPackedCoords))
             {
                 switch (block)
                 {
@@ -38,21 +37,13 @@ namespace Chraft.Interfaces.Containers
                             UniversalCoords[] doubleChestCoords = GetDoubleChestCoords(world, coords);
                             if (doubleChestCoords == null)
                                 return null;
-                            string firstId = String.Format("{0}-{1},{2},{3}", world.Name, doubleChestCoords[0].WorldX, doubleChestCoords[0].WorldY, doubleChestCoords[0].WorldZ);
-                            string secondId = String.Format("{0}-{1},{2},{3}", world.Name, doubleChestCoords[1].WorldX, doubleChestCoords[1].WorldY, doubleChestCoords[1].WorldZ);
-                            if (_containerInstances.ContainsKey(firstId))
-                            {
-                                _containerInstances.TryGetValue(firstId, out container);
-                                return container;
-                            }
-                            if (_containerInstances.ContainsKey(secondId))
-                            {
-                                _containerInstances.TryGetValue(secondId, out container);
-                                return container;
-                            }
+                            chunk.Containers.TryRemove(doubleChestCoords[0].BlockPackedCoords, out container);
+                            chunk.Containers.TryRemove(doubleChestCoords[1].BlockPackedCoords, out container);
 
                             container = new LargeChestContainer(doubleChestCoords[1]);
                             container.Initialize(world, doubleChestCoords[0]);
+                            chunk.Containers.TryAdd(doubleChestCoords[0].BlockPackedCoords, container);
+                            chunk.Containers.TryAdd(doubleChestCoords[1].BlockPackedCoords, container);
                         }
                         else
                         {
@@ -63,13 +54,74 @@ namespace Chraft.Interfaces.Containers
                     default:
                         return null;
                 }
-                _containerInstances.TryAdd(id, container);
+                chunk.Containers.TryAdd(coords.BlockPackedCoords, container);
             }
             else
             {
-                _containerInstances.TryGetValue(id, out container);
+                chunk.Containers.TryGetValue(coords.BlockPackedCoords, out container);
             }
             return container;
+        }
+
+        public static void LoadContainersFromDisk(Chunk chunk)
+        {
+            string containerPath = Path.Combine(chunk.World.Folder, Settings.Default.ContainersFolder, "x" + chunk.Coords.ChunkX + "z" + chunk.Coords.ChunkZ);
+            if (!Directory.Exists(containerPath))
+                return;
+            
+            string[] files = Directory.GetFiles(containerPath);
+
+            PersistentContainer container;
+            UniversalCoords containerCoords;
+            BlockData.Blocks containerType;
+            string id;
+            int x, y, z, startPos, endPos;
+            string coordStr;
+            foreach (var file in files)
+            {
+                coordStr = file.Substring(file.LastIndexOf(Path.DirectorySeparatorChar) + 1);
+                startPos = coordStr.IndexOf("x") + 1;
+                endPos = coordStr.IndexOf("y");
+                if (!Int32.TryParse(coordStr.Substring(startPos, endPos - startPos), out x))
+                    continue;
+                startPos = endPos + 1;
+                endPos = coordStr.IndexOf("z");
+                if (!Int32.TryParse(coordStr.Substring(startPos, endPos - startPos), out y))
+                    continue;
+                startPos = endPos + 1;
+                endPos = coordStr.IndexOf(".");
+                if (!Int32.TryParse(coordStr.Substring(startPos, endPos - startPos), out z))
+                    continue;
+                containerCoords = UniversalCoords.FromWorld(x, y, z);
+                containerType = chunk.GetType(containerCoords);
+                switch (containerType)
+                {
+                    case BlockData.Blocks.Dispenser:
+                        container = new DispenserContainer();
+                        container.Initialize(chunk.World, containerCoords);
+                        break;
+                    case BlockData.Blocks.Furnace:
+                    case BlockData.Blocks.Burning_Furnace:
+                        container = new FurnaceContainer();
+                        container.Initialize(chunk.World, containerCoords);
+                        (container as FurnaceContainer).StartBurning();
+                        break;
+                    default:
+                        continue;
+                }
+                chunk.Containers.TryAdd(containerCoords.BlockPackedCoords, container);
+            }
+        }
+
+        public static void UnloadContainers(Chunk chunk)
+        {
+            foreach (var container in chunk.Containers)
+            {
+                container.Value.Save();
+                if (container.Value is FurnaceContainer)
+                    (container.Value as FurnaceContainer).StopBurning();
+            }
+            chunk.Containers = new ConcurrentDictionary<short, PersistentContainer>();
         }
 
         public static void Open(Player player, UniversalCoords coords)
@@ -92,8 +144,7 @@ namespace Chraft.Interfaces.Containers
                     player.CurrentInterface = new DispenserInterface(player.World, coords);
                     break;
                 case BlockData.Blocks.Chest:
-                    // Double chest?
-                    if (IsDoubleChest(chunk, coords))
+                    if (container is LargeChestContainer)
                     {
                         UniversalCoords[] doubleChestCoords = GetDoubleChestCoords(player.World, coords);
                         if (doubleChestCoords == null)
@@ -122,12 +173,16 @@ namespace Chraft.Interfaces.Containers
             if (container == null)
                 return;
             container.RemoveInterface(containerInterface);
-            if (container.IsUnused())
+            Chunk chunk = container.World.GetChunk(coords, false, false);
+            if (chunk == null)
+                return;
+            PersistentContainer unused;
+            if (container is LargeChestContainer && container.IsUnused())
             {
-                PersistentContainer unused;
-                string id = GetContainerId(containerInterface.World, coords);
-                _containerInstances.TryRemove(id, out unused);
-            }
+                chunk.Containers.TryRemove(container.Coords.BlockPackedCoords, out unused);
+                chunk.Containers.TryRemove((container as LargeChestContainer).SecondCoords.BlockPackedCoords, out unused);
+            } else if (container is SmallChestContainer && container.IsUnused())
+                chunk.Containers.TryRemove(container.Coords.BlockPackedCoords, out unused);
         }
 
         public static void Destroy(WorldManager world, UniversalCoords coords)
@@ -135,9 +190,14 @@ namespace Chraft.Interfaces.Containers
             PersistentContainer container = Instance(world, coords);
             if (container == null)
                 return;
-            string id = GetContainerId(world, coords);
+            Chunk chunk = world.GetChunk(coords, false, false);
+            if (chunk == null)
+                return;
+            PersistentContainer unused;
             container.Destroy();
-            _containerInstances.TryRemove(id, out container);
+            chunk.Containers.TryRemove(container.Coords.BlockPackedCoords, out unused);
+            if (container is LargeChestContainer)
+                chunk.Containers.TryRemove((container as LargeChestContainer).SecondCoords.BlockPackedCoords, out unused);
         }
 
         public static bool IsDoubleChest(Chunk chunk, UniversalCoords coords)
@@ -188,11 +248,6 @@ namespace Chraft.Interfaces.Containers
                 secondCoords = nsewBlockPositions[3];
             }
             return new UniversalCoords[] { firstCoords, secondCoords };
-        }
-
-        public static string GetContainerId(WorldManager world, UniversalCoords coords)
-        {
-            return String.Format("{0}-{1},{2},{3}", world.Name, coords.WorldX, coords.WorldY, coords.WorldZ);
         }
     }
 }

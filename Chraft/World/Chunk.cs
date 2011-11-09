@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading;
+using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Properties;
 using Chraft.World.Blocks;
@@ -52,6 +53,8 @@ namespace Chraft.World
         private ConcurrentDictionary<short, short> GrowableBlocks = new ConcurrentDictionary<short, short>();
 
         public ConcurrentDictionary<short, string> SignsText = new ConcurrentDictionary<short, string>();
+
+        public ConcurrentDictionary<short, PersistentContainer> Containers = new ConcurrentDictionary<short, PersistentContainer>();
 
         internal Chunk(WorldManager world, UniversalCoords coords)
             : base(world, coords)
@@ -544,6 +547,7 @@ namespace Chraft.World
 
             if (Clients.Count == 0 && !Persistent)
             {
+                ContainerFactory.UnloadContainers(this);
                 Save();
                 World.RemoveChunk(this);
             }
