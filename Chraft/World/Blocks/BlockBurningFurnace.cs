@@ -39,13 +39,5 @@ namespace Chraft.World.Blocks
         {
             // You can not place the furnace that is already burning.
         }
-
-        protected override void UpdateOnDestroy(StructBlock block)
-        {
-            FurnaceContainer container = ContainerFactory.Instance(block.World, block.Coords) as FurnaceContainer;
-            if (container != null)
-                container.StopBurning();
-            base.UpdateOnDestroy(block);
-        }
     }
 }
