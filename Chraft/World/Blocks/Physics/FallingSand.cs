@@ -24,7 +24,7 @@ using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
 {
-    public class FallingSand : BlockBasePhysics
+    public class FallingSand : BaseFallingPhysics
     {
         protected byte BlockId;
 

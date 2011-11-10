@@ -63,7 +63,7 @@ namespace Chraft.World
 
         public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
 
-        public ConcurrentDictionary<int, BlockBasePhysics> PhysicsBlocks;
+        public ConcurrentDictionary<int, BaseFallingPhysics> PhysicsBlocks;
         private Task _physicsSimulationTask;
         private Task _entityUpdateTask;
         private Task _mobSpawnerTask;
@@ -234,7 +234,7 @@ namespace Chraft.World
 
             _chunkProvider = new ChunkProvider(this);
             _generator = _chunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
-            PhysicsBlocks = new ConcurrentDictionary<int, BlockBasePhysics>();
+            PhysicsBlocks = new ConcurrentDictionary<int, BaseFallingPhysics>();
 
             InitializeSpawn();
             InitializeThreads();

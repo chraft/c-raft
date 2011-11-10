@@ -23,7 +23,7 @@ using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
 {
-    public abstract class BlockBasePhysics
+    public abstract class BaseFallingPhysics
     {
         public int EntityId { get; protected set; }
         public WorldManager World { get; protected set; }
@@ -32,7 +32,7 @@ namespace Chraft.World.Blocks.Physics
         public Vector3 Velocity { get; protected set; }
         public AddObjectVehiclePacket.ObjectType Type;
 
-        protected BlockBasePhysics(WorldManager world, AbsWorldCoords pos)
+        protected BaseFallingPhysics(WorldManager world, AbsWorldCoords pos)
         {
             World = world;
             Position = pos;
@@ -71,7 +71,7 @@ namespace Chraft.World.Blocks.Physics
         public virtual void Stop(bool forceStop = false)
         {
             IsPlaying = false;
-            BlockBasePhysics unused = null;
+            BaseFallingPhysics unused = null;
             World.PhysicsBlocks.TryRemove(EntityId, out unused);
             DestroyEntityPacket entity = new DestroyEntityPacket { EntityId = EntityId };
             World.Server.SendPacketToNearbyPlayers(World,
