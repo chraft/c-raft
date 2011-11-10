@@ -256,6 +256,21 @@ namespace Chraft.Interfaces.Containers
             }
         }
 
+        public override void AddInterface(PersistentContainerInterface containerInterface)
+        {
+            base.AddInterface(containerInterface);
+            FurnaceInterface fi = containerInterface as FurnaceInterface;
+            if (fi == null)
+                return;
+            if (IsBurning)
+            {
+                double fuelTickCost = ((double) (_fuelTicksFull))/FullFire;
+                short fireLevel = (short) (_fuelTicksLeft/fuelTickCost);
+                fi.SendUpdateProgressBar(FurnaceBar.Progress, _progressTicks);
+                fi.SendUpdateProgressBar(FurnaceBar.Fire, fireLevel);
+            }
+        }
+
         public enum FurnaceBar : short
         {
             Progress = 0,

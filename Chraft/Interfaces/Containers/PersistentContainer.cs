@@ -188,7 +188,7 @@ namespace Chraft.Interfaces.Containers
         #endregion
 
         #region Interface management
-        public void AddInterface(PersistentContainerInterface containerInterface)
+        public virtual void AddInterface(PersistentContainerInterface containerInterface)
         {
             lock (_containerLock)
             {
@@ -200,7 +200,7 @@ namespace Chraft.Interfaces.Containers
             }
         }
 
-        public void RemoveInterface(PersistentContainerInterface containerInterface)
+        public virtual void RemoveInterface(PersistentContainerInterface containerInterface)
         {
             lock (_containerLock)
             {
