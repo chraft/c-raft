@@ -23,7 +23,7 @@ using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
 {
-    public abstract class BaseFallingPhysics
+    public abstract class BaseFallingPhysics : IBlockPhysics
     {
         public int EntityId { get; protected set; }
         public WorldManager World { get; protected set; }
