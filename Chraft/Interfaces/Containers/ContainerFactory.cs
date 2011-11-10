@@ -119,9 +119,9 @@ namespace Chraft.Interfaces.Containers
             {
                 container.Value.Save();
                 if (container.Value is FurnaceContainer)
-                    (container.Value as FurnaceContainer).StopBurning();
+                    (container.Value as FurnaceContainer).Unload();
             }
-            chunk.Containers = new ConcurrentDictionary<short, PersistentContainer>();
+            chunk.Containers.Clear();
         }
 
         public static void Open(Player player, UniversalCoords coords)

@@ -15,7 +15,7 @@ namespace Chraft.Interfaces.Containers
         protected const short FullFire = 250;
         protected const short FullProgress = 185;
 
-        public volatile bool IsBurning;
+        public bool IsBurning { get { return _burnerTimer != null; }}
 
         private short _fuelTicksLeft;
         private short _fuelTicksFull;
@@ -111,24 +111,58 @@ namespace Chraft.Interfaces.Containers
             StopBurning();
             base.Destroy();
         }
+
         public void StartBurning()
         {
             lock (_containerLock)
             {
-                if (!IsBurning && HasFuel() && HasIngredient())
+                if (!IsBurning)
                 {
-                    if (_burnerTimer == null)
-                        _burnerTimer = new Timer(Burn, null, 0, 50);
-                }
-                else if (!IsBurning && _burnerTimer == null)
-                {
-                    Chunk chunk = World.GetChunk(Coords, false, false);
-                    if (chunk == null)
-                        return;
-                    if (chunk.GetType(Coords) == BlockData.Blocks.Burning_Furnace)
-                        chunk.SetType(Coords, BlockData.Blocks.Furnace);
+                    if (_fuelTicksLeft > 0)
+                    {
+                        Chunk chunk = World.GetChunk(Coords, false, false);
+                        if (chunk == null)
+                            return;
+                        chunk.SetType(Coords, BlockData.Blocks.Burning_Furnace);
+                    }
+                    if ((HasFuel() && HasIngredient()) || _fuelTicksLeft > 0)
+                        StartBurnerTimer();
                 }
             }
+        }
+
+        protected void StartBurnerTimer()
+        {
+            if (_burnerTimer == null)
+                _burnerTimer = new Timer(Burn, null, 0, 50);
+        }
+
+        protected void StopBurnerTimer()
+        {
+            if (_burnerTimer != null)
+            {
+                _burnerTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _burnerTimer.Dispose();
+                _burnerTimer = null;
+            }
+        }
+
+        public void StopBurning()
+        {
+            StopBurnerTimer();
+            _progressTicks = 0;
+            _fuelTicksLeft = 0;
+            _fuelTicksFull = 0;
+            Save();
+            SendFurnaceProgressPacket(0);
+            SendFurnaceFirePacket(0);
+
+            Chunk chunk = World.GetChunk(Coords, false, false);
+
+            if (chunk == null)
+                return;
+
+            chunk.SetType(Coords, BlockData.Blocks.Furnace);
         }
 
         private short GetFuelEfficiency()
@@ -167,29 +201,6 @@ namespace Chraft.Interfaces.Containers
             OutputSlot = output;
         }
 
-        public void StopBurning()
-        {
-            if (_burnerTimer != null)
-            {
-                _burnerTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                _burnerTimer.Dispose();
-                _burnerTimer = null;
-            }
-            IsBurning = false;
-            _progressTicks = 0;
-            _fuelTicksLeft = 0;
-            _fuelTicksFull = 0;
-            SendFurnaceProgressPacket(0);
-            SendFurnaceFirePacket(0);
-
-            Chunk chunk = World.GetChunk(Coords, false, false);
-
-            if (chunk == null)
-                return;
-
-            chunk.SetType(Coords, BlockData.Blocks.Furnace);
-        }
-
         private void Burn(object state)
         {
             lock (_containerLock)
@@ -222,8 +233,6 @@ namespace Chraft.Interfaces.Containers
 
                         if (blockId == BlockData.Blocks.Furnace)
                             chunk.SetType(Coords, BlockData.Blocks.Burning_Furnace);
-
-                        IsBurning = true;
                     }
                     else
                         StopBurning();
@@ -269,6 +278,28 @@ namespace Chraft.Interfaces.Containers
                 fi.SendUpdateProgressBar(FurnaceBar.Progress, _progressTicks);
                 fi.SendUpdateProgressBar(FurnaceBar.Fire, fireLevel);
             }
+        }
+
+        protected override void SaveExtraData(Net.BigEndianStream stream)
+        {
+            base.SaveExtraData(stream);
+            stream.Write(_progressTicks);
+            stream.Write(_fuelTicksLeft);
+            stream.Write(_fuelTicksFull);
+        }
+
+        protected override void LoadExtraData(Net.BigEndianStream stream)
+        {
+            base.LoadExtraData(stream);
+            _progressTicks = stream.ReadShort();
+            _fuelTicksLeft = stream.ReadShort();
+            _fuelTicksFull = stream.ReadShort();
+        }
+
+        public void Unload()
+        {
+            StopBurnerTimer();
+            Save();
         }
 
         public enum FurnaceBar : short

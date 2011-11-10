@@ -88,6 +88,7 @@ namespace Chraft.Interfaces.Containers
                     {
                         for (int i = slotStart; i < slotsCount; i++)
                             Slots[i] = new ItemStack(bigEndian);
+                        LoadExtraData(bigEndian);
                     }
                 }
             }
@@ -174,6 +175,7 @@ namespace Chraft.Interfaces.Containers
                                 ItemStack.Void.Write(bigEndianStream);
                             }
                         }
+                        SaveExtraData(bigEndianStream);
                     }
 
                 }
@@ -185,6 +187,11 @@ namespace Chraft.Interfaces.Containers
             }
          }
 
+        protected virtual void LoadExtraData(BigEndianStream stream)
+        { }
+
+        protected virtual void SaveExtraData(BigEndianStream stream)
+        { }
         #endregion
 
         #region Interface management
