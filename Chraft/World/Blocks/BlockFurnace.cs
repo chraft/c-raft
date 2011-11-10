@@ -35,11 +35,5 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Furnace;
             LootTable.Add(new ItemStack((short)Type, 1));
         }
-
-        protected override void UpdateOnDestroy(StructBlock block)
-        {
-            ContainerFactory.Destroy(block.World, block.Coords);
-            base.UpdateOnDestroy(block);
-        }
     }
 }
