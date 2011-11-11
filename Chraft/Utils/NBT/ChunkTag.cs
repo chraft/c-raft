@@ -21,28 +21,24 @@ using System.Collections.Generic;
 
 namespace Chraft.Utils.NBT
 {
-    public enum MatertialsType
+    public struct ChunkTag
     {
-        CLASSIC,
-        ALPHA
-    }
+        public byte[] Data;
+        public byte[] Blocks;
 
-    public struct SCHEMATICTag
-    {
-        public short X { get; private set; }
+        public byte[] BlockLight;
+        public byte[] SkyLight;
 
-        public short Z { get; private set; }
+        public byte[] HeightMap;
 
-        public short Y { get; private set; }
+        public List<NBTTag> Entities;
+        public List<NBTTag> TileEntities;
 
-        public MatertialsType MaterialsType { get; set; }
+        public long LastUpdate;
 
-        public byte[] Blocks { get; set; }
+        public int XPos;
+        public int ZPos;
 
-        public byte[] Data { get; set; }
-
-        public List<NBTTag> Entities { get; set; }
-
-        public List<NBTTag> TileEntities { get; set; }
+        public bool TerrainPopulated;
     }
 }

@@ -1,4 +1,4 @@
-﻿/*  Minecraft NBT reader
+﻿﻿/*  Minecraft NBT reader
  * 
  *  Copyright 2010-2011 Michael Ong, all rights reserved.
  *  
@@ -17,32 +17,21 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace Chraft.Utils.NBT
 {
-    public enum MatertialsType
+    /// <summary>
+    /// Indicates the location of a chunk in a region file.
+    /// </summary>
+    public struct McrOffset
     {
-        CLASSIC,
-        ALPHA
-    }
+        /// <summary>
+        /// The sector offset of the chunk.
+        /// </summary>
+        public int SectorOffset { get; set; }
 
-    public struct SCHEMATICTag
-    {
-        public short X { get; private set; }
-
-        public short Z { get; private set; }
-
-        public short Y { get; private set; }
-
-        public MatertialsType MaterialsType { get; set; }
-
-        public byte[] Blocks { get; set; }
-
-        public byte[] Data { get; set; }
-
-        public List<NBTTag> Entities { get; set; }
-
-        public List<NBTTag> TileEntities { get; set; }
+        /// <summary>
+        /// The sector count of a chunk. A one sector is equal to 1024 bytes.
+        /// </summary>
+        public byte SectorSize { get; set; }
     }
 }

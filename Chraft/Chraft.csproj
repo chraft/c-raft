@@ -141,6 +141,16 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Include="Utils\NBT\ChunkTag.cs" />
+    <Compile Include="Utils\NBT\EndiannessConverter.cs" />
+    <Compile Include="Utils\NBT\MCPoint.cs" />
+    <Compile Include="Utils\NBT\MCROffset.cs" />
+    <Compile Include="Utils\NBT\MCRTStamp.cs" />
+    <Compile Include="Utils\NBT\NBTFile.cs" />
+    <Compile Include="Utils\NBT\NBTTag.cs" />
+    <Compile Include="Utils\NBT\RegionFile.cs" />
+    <Compile Include="Utils\NBT\SCHEMATICTag.cs" />
+    <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="Utils\RecipeObject.cs" />
     <Compile Include="Utils\WeightedValue.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
@@ -361,15 +371,6 @@
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
-    <Compile Include="World\NBT\EndianConverter.cs" />
-    <Compile Include="World\NBT\INBTTag.cs" />
-    <Compile Include="World\NBT\MCRegionReader.cs" />
-    <Compile Include="World\NBT\NBTReader.cs" />
-    <Compile Include="World\NBT\NBTWriter.cs" />
-    <Compile Include="World\NBT\TagNode.cs" />
-    <Compile Include="World\NBT\TagNodeList.cs" />
-    <Compile Include="World\NBT\TagNodeListNamed.cs" />
-    <Compile Include="World\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />

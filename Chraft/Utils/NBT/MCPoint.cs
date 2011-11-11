@@ -1,4 +1,4 @@
-﻿/*  Minecraft NBT reader
+﻿﻿/*  Minecraft NBT reader
  * 
  *  Copyright 2010-2011 Michael Ong, all rights reserved.
  *  
@@ -17,32 +17,32 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-
 namespace Chraft.Utils.NBT
 {
-    public enum MatertialsType
+    /// <summary>
+    /// Defines a chunk point in a region file.
+    /// </summary>
+    public struct MCPoint
     {
-        CLASSIC,
-        ALPHA
-    }
+        /// <summary>
+        /// The x-location of the chunk.
+        /// </summary>
+        public int X { get; set; }
 
-    public struct SCHEMATICTag
-    {
-        public short X { get; private set; }
+        /// <summary>
+        /// The y-location of the chunk.
+        /// </summary>
+        public int Y { get; set; }
 
-        public short Z { get; private set; }
-
-        public short Y { get; private set; }
-
-        public MatertialsType MaterialsType { get; set; }
-
-        public byte[] Blocks { get; set; }
-
-        public byte[] Data { get; set; }
-
-        public List<NBTTag> Entities { get; set; }
-
-        public List<NBTTag> TileEntities { get; set; }
+        /// <summary>
+        /// Creates a new point.
+        /// </summary>
+        /// <param name="x">The x-location.</param>
+        /// <param name="y">The y-location.</param>
+        public MCPoint(int x, int y) : this()
+        {
+            X = x;
+            Y = y;
+        }
     }
 }
