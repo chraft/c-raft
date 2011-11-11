@@ -32,6 +32,7 @@ namespace Chraft.World.Blocks
             Name = "Ladder";
             Type = BlockData.Blocks.Ladder;
             IsAir = true;
+            IsWaterProof = true;
             LootTable.Add(new ItemStack((short)Type, 1));
             Opacity = 0x0;
         }

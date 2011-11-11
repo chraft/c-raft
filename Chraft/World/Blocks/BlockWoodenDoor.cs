@@ -31,6 +31,7 @@ namespace Chraft.World.Blocks
         {
             Name = "WoodenDoor";
             Type = BlockData.Blocks.Wooden_Door;
+            IsWaterProof = true;
         }
     }
 }

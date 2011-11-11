@@ -149,6 +149,8 @@ namespace Chraft.World.Blocks
         /// </summary>
         public byte Luminance { get; protected set; }
 
+        public bool IsWaterProof { get; protected set; }
+
         public List<ItemStack> LootTable { get; protected set; }
 
         /// <summary>
@@ -168,6 +170,7 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 0;
             LootTable = new List<ItemStack>();
             Luminance = 0;
+            IsWaterProof = false;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 

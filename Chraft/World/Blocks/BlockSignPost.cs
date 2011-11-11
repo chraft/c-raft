@@ -37,6 +37,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Sign_Post;
             IsAir = true;
             IsSolid = true;
+            IsWaterProof = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
             Opacity = 0x0;
         }

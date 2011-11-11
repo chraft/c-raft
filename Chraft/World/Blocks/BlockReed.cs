@@ -37,6 +37,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             IsSolid = true;
             IsSingleHit = true;
+            IsWaterProof = true;
             LootTable.Add(new ItemStack((short)BlockData.Items.Reeds, 1));
             BlockBoundsOffset = new BoundingBox(0.125, 0, 0.125, 0.875, 1, 0.875);
         }

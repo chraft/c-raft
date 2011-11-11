@@ -37,6 +37,7 @@ namespace Chraft.World.Blocks
         private static ConcurrentDictionary<byte, byte> _blocksOpacity;
         private static ConcurrentDictionary<byte, byte> _blocksLuminance;
         private static ConcurrentDictionary<byte, short> _blocksBurnEfficiency;
+        private static ConcurrentDictionary<byte, byte> _waterProofBlocks;
 
         static BlockHelper()
         {
@@ -56,6 +57,7 @@ namespace Chraft.World.Blocks
             _blocksOpacity = new ConcurrentDictionary<byte, byte>();
             _blocksLuminance = new ConcurrentDictionary<byte, byte>();
             _blocksBurnEfficiency = new ConcurrentDictionary<byte, short>();
+            _waterProofBlocks = new ConcurrentDictionary<byte, byte>();
 
             BlockBase block;
             byte blockId;
@@ -80,6 +82,8 @@ namespace Chraft.World.Blocks
                     _solidBlocks.TryAdd(blockId, blockId);
                 if (block.IsSingleHit)
                     _singleHitBlocks.TryAdd(blockId, blockId);
+                if (block.IsWaterProof)
+                    _waterProofBlocks.TryAdd(blockId, blockId);
                 _blocksOpacity.TryAdd(blockId, block.Opacity);
                 _blocksLuminance.TryAdd(blockId, block.Luminance);
                 _blocksBurnEfficiency.TryAdd(blockId, block.BurnEfficiency);
@@ -238,6 +242,16 @@ namespace Chraft.World.Blocks
             short burnEfficiency;
             _blocksBurnEfficiency.TryGetValue((byte)blockType, out burnEfficiency);
             return burnEfficiency;
+        }
+
+        public static bool IsWaterProof(byte blockId)
+        {
+            return _waterProofBlocks.ContainsKey(blockId);
+        }
+
+        public static bool IsWaterProof(BlockData.Blocks blockType)
+        {
+            return _waterProofBlocks.ContainsKey((byte)blockType);
         }
     }
 }
