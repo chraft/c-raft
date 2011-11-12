@@ -54,7 +54,7 @@ namespace Chraft.Plugins.Commands
                 case "place":
                     if (tokens.Length < 2)
                         break;
-                    Place(client, tokens[1]);
+                    Place(client, tokens);
                     return;
                 case "info":
                     if (tokens.Length < 2)
@@ -104,27 +104,48 @@ namespace Chraft.Plugins.Commands
             }
         }
 
-        protected void Place(Client client, string schematicName)
+        protected void Place(Client client, string[] tokens)
         {
+            string schematicName = tokens[1];
             Schematic schematic = new Schematic(schematicName);
             if (!schematic.LoadFromFile())
             {
                 client.SendMessage("Can not load schematic file");
                 return;
             }
+
+            bool rotateByX = false;
+            bool rotateByZ = false;
+            bool rotateByXZ = false;
+
+            if (tokens.Length >= 3)
+            {
+                string rotation = tokens[2].Trim().ToLower();
+                if (rotation == "x")
+                    rotateByX = true;
+                else if (rotation == "z")
+                    rotateByZ = true;
+                else if (rotation == "xz")
+                    rotateByXZ = true;
+            }
+
             UniversalCoords coords = UniversalCoords.FromAbsWorld(client.Owner.Position);
-            if (!RequiredChunksExist(client.Owner.World, coords, schematic.Width, schematic.Height, schematic.Length))
+            int width = ((rotateByX || rotateByXZ) ? -1*schematic.Width : schematic.Width);
+            int length = ((rotateByZ || rotateByXZ) ? -1*schematic.Length : schematic.Length);
+
+            if (!RequiredChunksExist(client.Owner.World, coords, width, schematic.Height, length))
             {
                 client.SendMessage("The schematic is too big - required chunks are not loaded/created yet");
                 return;
             }
+
             for (int dx = 0; dx < schematic.Width; dx++)
                 for (int dy = 0; dy < schematic.Height; dy++)
                     for (int dz = 0; dz < schematic.Length; dz++)
                     {
-                        int x = coords.WorldX + dx;
+                        int x = coords.WorldX + ((rotateByX || rotateByXZ) ? -dx : dx);
                         int y = coords.WorldY + dy;
-                        int z = coords.WorldZ + dz;
+                        int z = coords.WorldZ + ((rotateByZ || rotateByXZ) ? -dz : dz);
                         client.Owner.World.SetBlockAndData(x, y, z, schematic.BlockIds[schematic.ToIndex(dx, dy, dz)], schematic.BlockMetas[schematic.ToIndex(dx, dy, dz)]);
                     }
             client.SendMessage(string.Format("Schematic {0} ({1} blocks) has been loaded", schematic.SchematicName, schematic.Width * schematic.Height * schematic.Length));
@@ -157,9 +178,13 @@ namespace Chraft.Plugins.Commands
 
         public void Help(Client client)
         {
-            client.SendMessage("/schematic list [pageNumber] - display a list of available schematics");
-            client.SendMessage("/schematic place <schematic name> - place the specified schematic at current position");
-            client.SendMessage("/schematic info <schematic name> - display the info about specified schematic");
+            client.SendMessage("/schematic list [pageNumber] -");
+            client.SendMessage("    display a list of available schematics");
+            client.SendMessage("/schematic place <schematic name> [x|z|xz] -");
+            client.SendMessage("    place the specified schematic at current position");
+            client.SendMessage("    and rotate it by X, Z or X & Z axis (optional)");
+            client.SendMessage("/schematic info <schematic name> -");
+            client.SendMessage("    display the info about specified schematic");
         }
 
         public string Name
