@@ -205,6 +205,18 @@ namespace Chraft.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Resources/Schematics")]
+        public string SchematicsFolder {
+            get {
+                return ((string)(this["SchematicsFolder"]));
+            }
+            set {
+                this["SchematicsFolder"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Default")]
         public string DefaultWorldName {
             get {

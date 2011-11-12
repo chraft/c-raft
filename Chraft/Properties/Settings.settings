@@ -47,6 +47,9 @@
     <Setting Name="WorldsFolder" Type="System.String" Scope="User">
       <Value Profile="(Default)">Worlds</Value>
     </Setting>
+    <Setting Name="SchematicsFolder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Resources/Schematics</Value>
+    </Setting>
     <Setting Name="DefaultWorldName" Type="System.String" Scope="User">
       <Value Profile="(Default)">Default</Value>
     </Setting>
