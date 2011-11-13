@@ -221,7 +221,7 @@ namespace Chraft.Interfaces.Containers
         {
             lock (_containerLock)
             {
-                Chunk chunk = World.GetChunk(Coords, false, false);
+                Chunk chunk = World.GetChunk(Coords);
 
                 if (chunk == null)
                 {

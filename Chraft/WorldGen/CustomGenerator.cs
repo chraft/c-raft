@@ -65,9 +65,9 @@ namespace Chraft.WorldGen
             _FastRandom = new FastRandom(_Seed);
         }
 
-        public void ProvideChunk(int x, int z, Chunk chunk, bool recalculate)
+        public Chunk ProvideChunk(int x, int z, WorldManager world)
         {
-            
+            Chunk chunk = new Chunk(world, UniversalCoords.FromChunk(x,z));
             InitGen();
 
             byte[] data = new byte[32768];
@@ -76,17 +76,19 @@ namespace Chraft.WorldGen
             GenerateTerrain(chunk, data, x, z);
             GenerateFlora(chunk, data, x, z);
             chunk.SetAllBlocks(data);
+                    
+            chunk.RecalculateHeight();
+            chunk.LightToRecalculate = true;
             watch.Stop();
-            if(recalculate)
-                chunk.Recalculate();
            
-
             Console.WriteLine("Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
 
             
             //chunk.Save();
             _World.AddChunk(chunk);
             chunk.MarkToSave();
+
+            return chunk;
         }
 
         private void GenerateTerrain(Chunk c, byte[] data, int x, int z)
@@ -551,20 +553,54 @@ namespace Chraft.WorldGen
 
         }
 
-        private static double lerp(double x, double x1, double x2, double q00, double q01)
+        private static double lerp1(double t, double q00, double q01)
         {
-            return ((x2 - x) / (x2 - x1)) * q00 + ((x - x1) / (x2 - x1)) * q01;
+            return q00 + t * (q01 - q00);
+        }
+
+        private static double triLerp1(double x, double y, double z, double q000, double q001, double q010, double q011, double q100, double q101, double q110, double q111, double x1, double x2, double y1, double y2, double z1, double z2)
+        {
+            double distanceX = x2 - x1;
+            double distanceY = y2 - y1;
+            double distanceZ = z2 - z1;
+
+            double tX = (x - x1) / distanceX;
+
+            double tY = (y - y1) / distanceY;
+
+            double x00 = lerp1(tX, q000, q100);
+            double x10 = lerp1(tX, q010, q110);
+            double x01 = lerp1(tX, q001, q101);
+            double x11 = lerp1(tX, q011, q111);
+            double r0 = lerp1(tY, x00, x01);
+            double r1 = lerp1(tY, x10, x11);
+            return lerp1((z - z1) / distanceZ, r0, r1);
+        }
+
+        private static double lerp(double from, double to, double q00, double q01)
+        {
+            return from * q00 + to * q01;
         }
 
         private static double triLerp(double x, double y, double z, double q000, double q001, double q010, double q011, double q100, double q101, double q110, double q111, double x1, double x2, double y1, double y2, double z1, double z2)
         {
-            double x00 = lerp(x, x1, x2, q000, q100);
-            double x10 = lerp(x, x1, x2, q010, q110);
-            double x01 = lerp(x, x1, x2, q001, q101);
-            double x11 = lerp(x, x1, x2, q011, q111);
-            double r0 = lerp(y, y1, y2, x00, x01);
-            double r1 = lerp(y, y1, y2, x10, x11);
-            return lerp(z, z1, z2, r0, r1);
+            double distanceX = x2 - x1;
+            double distanceY = y2 - y1;
+            double distanceZ = z2 - z1;
+
+            double fromX = 1 - ((x - x1)/distanceX);
+            double toX = (x - x1)/distanceX;
+
+            double fromY = (y2 - y)/distanceY;
+            double toY = (y - y1)/distanceY;
+
+            double x00 = lerp(fromX, toX, q000, q100);
+            double x10 = lerp(fromX, toX, q010, q110);
+            double x01 = lerp(fromX, toX, q001, q101);
+            double x11 = lerp(fromX, toX, q011, q111);
+            double r0 = lerp(fromY, toY, x00, x01);
+            double r1 = lerp(fromY, toY, x10, x11);
+            return lerp((z2 - z) / distanceZ, (z - z1) / distanceZ, r0, r1);
         }
 
         private void triLerpDensityMap(double[, ,] densityMap)
@@ -580,7 +616,7 @@ namespace Chraft.WorldGen
                             int offsetX = (x / 4) * 4;
                             int offsetY = (y / 8) * 8;
                             int offsetZ = (z / 4) * 4;
-                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
+                            densityMap[x, y, z] = triLerp1(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
                         }
                     }
                 }

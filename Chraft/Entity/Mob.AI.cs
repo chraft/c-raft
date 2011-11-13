@@ -71,7 +71,7 @@ namespace Chraft.Entity {
             if (Velocity.Z != 0)
             {
                 double zOffset = (Position.Z + Velocity.Z);
-                Chunk chunk = World.GetChunkFromAbs(Position.X, zOffset, false, false);
+                Chunk chunk = World.GetChunkFromAbs(Position.X, zOffset);
 
                 if (chunk == null)
                     return;
@@ -86,7 +86,7 @@ namespace Chraft.Entity {
             {
                 double xOffset = (Position.X + Velocity.X);
 
-                Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z, false, false);
+                Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z);
 
                 if (chunk == null)
                     return;

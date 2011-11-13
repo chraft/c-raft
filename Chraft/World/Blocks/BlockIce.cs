@@ -43,7 +43,6 @@ namespace Chraft.World.Blocks
 
             chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Still_Water, 0);
             chunk.RecalculateHeight(block.Coords);
-            chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
             chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
             block.World.Update(block.Coords, false);
         }

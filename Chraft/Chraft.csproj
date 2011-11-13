@@ -372,6 +372,7 @@
     <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
+    <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
     <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\UniversalCoords.cs" />

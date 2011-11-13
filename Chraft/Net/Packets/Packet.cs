@@ -33,6 +33,7 @@ namespace Chraft.Net.Packets
 
     public abstract class Packet
     {
+        public static StreamRole Role;
         public abstract void Read(PacketReader reader);
         public abstract void Write();
 
@@ -50,7 +51,6 @@ namespace Chraft.Net.Packets
         protected virtual int Length { get { return _Length; } set { _Length = value; } }
 
         
-
         public PacketType GetPacketType()
         {
             return PacketMap.GetPacketType(GetType());
@@ -58,12 +58,11 @@ namespace Chraft.Net.Packets
 
         protected Packet()
         {
-            
         }
 
         public void SetCapacity()
         {
-            Writer = PacketWriter.CreateInstance(Length, StreamRole.Server);
+            Writer = PacketWriter.CreateInstance(Length);
             Writer.Write((byte)GetPacketType());
         }
 
@@ -86,7 +85,7 @@ namespace Chraft.Net.Packets
                 strings.Enqueue(bytes);
             }
 
-            Writer = PacketWriter.CreateInstance(Length, StreamRole.Server, strings);
+            Writer = PacketWriter.CreateInstance(Length, strings);
             Writer.Write((byte)GetPacketType());
         }
 
@@ -101,6 +100,17 @@ namespace Chraft.Net.Packets
             Shared = true;
             _sharesNum = num;
             Write();
+
+            _buffer = new byte[Length];
+            byte[] underlyingBuffer = Writer.UnderlyingStream.GetBuffer();
+            try
+            {
+                Buffer.BlockCopy(underlyingBuffer, 0, _buffer, 0, Length);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(String.Format("Writer {0}, Request {1} \r\n{2}", underlyingBuffer.Length, Length, e));
+            }
         }
 
         public void Release()
@@ -124,7 +134,7 @@ namespace Chraft.Net.Packets
 
         public byte[] GetBuffer()
         {
-            if (!Shared || _buffer == null)
+            if (!Shared)
             {
                 _buffer = new byte[Length];
                 byte[] underlyingBuffer = Writer.UnderlyingStream.GetBuffer();
@@ -136,7 +146,6 @@ namespace Chraft.Net.Packets
                 {
                     throw new Exception(String.Format("Writer {0}, Request {1} \r\n{2}", underlyingBuffer.Length, Length, e));
                 }
-                
             }
 
             return _buffer;
@@ -481,7 +490,7 @@ namespace Chraft.Net.Packets
         public override void Read(PacketReader stream)
         {
             //X,Y,Stance are in different order for Client->Server vs. Server->Client
-            if (stream.Role == StreamRole.Server)
+            if (Packet.Role == StreamRole.Server)
             {
                 X = stream.ReadDouble();
                 Stance = stream.ReadDouble();
@@ -503,7 +512,7 @@ namespace Chraft.Net.Packets
         {
             SetCapacity();
             //X,Y,Stance are in different order for Client->Server vs. Server->Client
-            if (Writer.Role == StreamRole.Server)
+            if (Packet.Role == StreamRole.Server)
             {
                 Writer.Write(X);
                 Writer.Write(Y);
@@ -871,7 +880,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity(20);
+            SetCapacity(21);
             Writer.Write(EntityId);
             Writer.Write((byte)Type);
             Writer.Write((int)(X * 32));
@@ -1181,7 +1190,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity(5);
+            SetCapacity(6);
             Writer.Write(EntityId);
             Writer.Write(Data);
 

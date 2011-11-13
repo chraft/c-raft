@@ -36,6 +36,7 @@ using Chraft.Irc;
 using Chraft.Commands;
 using Chraft.Plugins.Events.Args;
 using Chraft.Plugins.Events;
+using ICSharpCode.SharpZipLib.Zip.Compression;
 
 namespace Chraft
 {
@@ -153,8 +154,12 @@ namespace Chraft
         /// </summary>
         public bool UseOfficalAuthentication { get; private set; }
 
+        public int ClientsConnectionSlots;
+
         public Server()
         {
+            ClientsConnectionSlots = 30;
+            Packet.Role = StreamRole.Server;
             Rand = new Random();
             ServerHash = GetRandomServerHash();
             UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
@@ -170,10 +175,17 @@ namespace Chraft
             if (Settings.Default.IrcEnabled)
                 InitializeIrc();
 
+            PacketMap.Initialize();
+
             _AcceptEventArgs = new SocketAsyncEventArgs();
             _AcceptEventArgs.Completed += Accept_Completion;
 
             _Listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+            for(int i = 0; i < 10; ++i)
+            {
+                MapChunkPacket.DeflaterPool.Push(new Deflater(5));
+            }
         }
 
         public string GetRandomServerHash()
@@ -386,7 +398,7 @@ namespace Chraft
 
                         if (length >= handler.MinimumLength)
                         {
-                            PacketReader reader = new PacketReader(data, length, StreamRole.Server);
+                            PacketReader reader = new PacketReader(data, length);
 
                             handler.OnReceive(client, reader);
 
@@ -403,21 +415,24 @@ namespace Chraft
                             }
                         }
                         else
+                        {
                             EnqueueFragment(client, data);
+                            length = 0;
+                        }
 
                     }
                     else if (length >= handler.Length)
                     {
                         byte[] data = GetBufferToBeRead(bufferToProcess, client, handler.Length);
 
-                        PacketReader reader = new PacketReader(data, handler.Length, StreamRole.Server);
+                        PacketReader reader = new PacketReader(data, handler.Length);
 
                         handler.OnReceive(client, reader);
 
-                        // If we failed it's because the packet isn't complete
+                        // If we failed it's because the packet is wrong
                         if (reader.Failed)
                         {
-                            EnqueueFragment(client, data);
+                            client.MarkToDispose();
                             length = 0;
                         }
                         else
@@ -495,13 +510,8 @@ namespace Chraft
         {
             while (NetworkSignal.WaitOne())
             {
-                int accepts = Interlocked.CompareExchange(ref _asyncAccepts, 1, 0);
-
-                if (accepts == 0)
-                {
-                    //Logger.Log(Chraft.Logger.LogLevel.Info, "Starting async accept");
-                    _Listener.AcceptAsync(_AcceptEventArgs);
-                }
+                if (TryTakeConnectionSlot())
+                    _Listener.AcceptAsync(_AcceptEventArgs);               
 
                 if (!RecvClientQueue.IsEmpty && (_readClientsPackets == null || _readClientsPackets.IsCompleted))
                 {
@@ -531,6 +541,35 @@ namespace Chraft
 
                 client.Dispose();
             }
+        }
+
+        public void FreeConnectionSlot()
+        {
+            //Logger.Log(Logger.LogLevel.Info, "FreeingSlot ");
+            Interlocked.Increment(ref ClientsConnectionSlots);
+            NetworkSignal.Set();
+        }
+
+        public bool TryTakeConnectionSlot()
+        {            
+            int accepts = Interlocked.Exchange(ref _asyncAccepts, 1);           
+            if (accepts == 0)
+            {
+                int count = Interlocked.Decrement(ref ClientsConnectionSlots);
+
+                if (count >= 0)
+                {
+                    //Logger.Log(Logger.LogLevel.Info, "AcceptTaken");
+                    return true;
+                }
+
+                _asyncAccepts = 0;
+                //Logger.Log(Logger.LogLevel.Info, "AcceptReleased1");
+                Interlocked.Increment(ref ClientsConnectionSlots);
+            }          
+           
+            return false;
+            
         }
 
         private void Accept_Process(SocketAsyncEventArgs e)
@@ -593,7 +632,7 @@ namespace Chraft
             excludeClient = e.ExcludeClient;
             //End Event
 
-            foreach (Client c in GetClients())
+            foreach (Client c in GetAuthenticatedClients())
             {
                 if (c != excludeClient)
                     c.SendMessage(message);
@@ -620,7 +659,7 @@ namespace Chraft
             excludeClient = e.ExcludeClient;
             //End Event
 
-            foreach (Client c in GetClients())
+            foreach (Client c in GetAuthenticatedClients())
             {
                 if (c != excludeClient)
                 {
@@ -648,7 +687,7 @@ namespace Chraft
                 return;
 
             packet.SetShared(Logger, clients.Length);
-            foreach (Client c in GetClients())
+            foreach (Client c in clients)
             {
                 if (excludeClient == null || c.Owner.EntityId != excludeClient.Owner.EntityId)
                     c.SendPacket(packet);
@@ -863,15 +902,17 @@ namespace Chraft
         {
             Client[] nearbyClients = GetNearbyPlayers(world, coords).ToArray();
 
-            if (nearbyClients.Length == 0 || (excludedClient != null && nearbyClients.Length == 1))
+            if (nearbyClients.Length == 0)
                 return;
 
-            packet.SetShared(Logger, excludedClient == null ? nearbyClients.Length : nearbyClients.Length - 1);
+            packet.SetShared(Logger, nearbyClients.Length);
 
             Parallel.ForEach(nearbyClients, (client) =>
             {
                 if (excludedClient != client)
                     client.SendPacket(packet);
+                else
+                    packet.Release();
             });
         }
 
@@ -885,11 +926,11 @@ namespace Chraft
         {
             Client[] nearbyClients = GetNearbyPlayers(world, coords).ToArray();
 
-            if (nearbyClients.Length == 0 || (excludedClient != null && nearbyClients.Length == 1))
+            if (nearbyClients.Length == 0)
                 return;
 
             foreach (Packet packet in packets)
-                packet.SetShared(Logger, excludedClient == null ? nearbyClients.Length : nearbyClients.Length - 1);
+                packet.SetShared(Logger, nearbyClients.Length);
 
             Parallel.ForEach(nearbyClients, (client) =>
             {
@@ -897,6 +938,11 @@ namespace Chraft
                 {
                     foreach (Packet packet in packets)
                         client.SendPacket(packet);
+                }
+                else
+                {
+                    foreach (Packet packet in packets)
+                        packet.Release();
                 }
             });
         }
@@ -1161,7 +1207,7 @@ namespace Chraft
         /// </summary>
         internal void DoPulse()
         {
-            foreach (Client c in GetClients())
+            foreach (Client c in GetAuthenticatedClients())
                 c.SendPulse();
             OnPulse();
         }

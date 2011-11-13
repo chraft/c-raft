@@ -199,7 +199,9 @@ namespace Chraft.Net
 
             try
             {
+                Logger.Log(Logger.LogLevel.Info, "Start receiving");
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
+                Logger.Log(Logger.LogLevel.Info, "received");
 
                 if (!pending)
                     Recv_Completed(null, _recvSocketEvent);
@@ -439,7 +441,7 @@ namespace Chraft.Net
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(baseBlockCoords, false, false);
+            Chunk chunk = player.World.GetChunk(baseBlockCoords);
 
             if (chunk == null)
                 return;
@@ -555,7 +557,7 @@ namespace Chraft.Net
 
             Player player = client.Owner;
 
-            Chunk chunk = player.World.GetChunk(coords, false, false);
+            Chunk chunk = player.World.GetChunk(coords);
 
             if (chunk == null)
                 return;
@@ -598,7 +600,7 @@ namespace Chraft.Net
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(coords, false, false);
+            Chunk chunk = player.World.GetChunk(coords);
 
             if (chunk == null)
                 return;
@@ -749,7 +751,6 @@ namespace Chraft.Net
             if (_updateChunksToken != null)
             {
                 _updateChunksToken.Cancel();
-                Task.WaitAny(_updateChunks);
             }
         }
 

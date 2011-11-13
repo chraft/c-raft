@@ -17,6 +17,7 @@
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using Chraft.Entity;
@@ -58,8 +59,10 @@ namespace Chraft.Net
             if (newValue == 1)
             {
                 Server.SendClientQueue.Enqueue(this);
-                Server.NetworkSignal.Set();
+                
             }
+
+            Server.NetworkSignal.Set();
 
             //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());           
         }
@@ -76,14 +79,11 @@ namespace Chraft.Net
                 _sendSocketEvent.Completed += Disconnected;
 
             _sendSocketEvent.SetBuffer(data, 0, data.Length);
-
             bool pending = _socket.SendAsync(_sendSocketEvent);
-
             if (!pending)
                 Send_Completed(null, _sendSocketEvent);
         }
         
-        private object sendwritelock = new object();
         private void Send_Sync(byte[] data)
         {
             if (!Running || !_socket.Connected)
@@ -93,7 +93,7 @@ namespace Chraft.Net
             }
             try
             {
-                _socket.Send(data, data.Length, 0);
+                _socket.Send(data, 0, data.Length, 0);
 
                 if (DateTime.Now + TimeSpan.FromSeconds(5) > _nextActivityCheck)
                     _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5);
@@ -122,24 +122,32 @@ namespace Chraft.Net
             Packet packet = null;
             try
             {
-                byte[] data;
-
-                
-                if (!PacketsToBeSent.IsEmpty)
-                {
-                    if (!PacketsToBeSent.TryDequeue(out packet))
+                ByteQueue byteQueue = new ByteQueue();
+                int length = 0;
+                    while (!PacketsToBeSent.IsEmpty && length <= 1024)
                     {
-                        Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
-                        return;
+                        if (!PacketsToBeSent.TryDequeue(out packet))
+                        {
+                            Interlocked.Exchange(ref _TimesEnqueuedForSend, 0);
+                            return;
+                        }
+
+                        if (!packet.Shared)
+                            packet.Write();
+
+                        byte[] packetBuffer = packet.GetBuffer();
+                        length += packetBuffer.Length;
+
+                        byteQueue.Enqueue(packetBuffer, 0, packetBuffer.Length);
+                        packet.Release();
+
                     }
 
-                    if (!packet.Shared)
-                        packet.Write();
-                                                   
-                    data = packet.GetBuffer();
-                                               
+                if (byteQueue.Length > 0)
+                {
+                    byte[] data = new byte[length];
+                    byteQueue.Dequeue(data, 0, data.Length);
                     Send_Async(data);
-                    packet.Release();
                 }
                 else
                 {
@@ -192,7 +200,7 @@ namespace Chraft.Net
 
         internal void SendPulse()
         {
-            if(Authenticated && _player.LoggedIn)
+            if (_player != null && _player.LoggedIn)
             {
                 SendPacket(new TimeUpdatePacket
                 {
@@ -211,36 +219,11 @@ namespace Chraft.Net
                     Data = data,
                     Type = type,
                     X = x,
-                    Y = (sbyte)y,
+                    Y = (sbyte) y,
                     Z = z
                 });
             }
         }
-
-        /// <summary>
-        /// Updates a region of blocks
-        /// </summary>
-        /// <param name="x">Start coordinate, X component</param>
-        /// <param name="y">Start coordinate, Y component</param>
-        /// <param name="z">Start coordinate, Z component</param>
-        /// <param name="l">Length (X magnitude)</param>
-        /// <param name="w">Height (Y magnitude)</param>
-        /// <param name="h">Width (Z magnitude)</param>
-        /*public void SendBlockRegion(int x, int y, int z, int l, int h, int w)
-        {
-            for (int dx = 0; dx < l; dx++)
-            {
-                for (int dy = 0; dy < h; dy++)
-                {
-                    for (int dz = 0; dz < w; dz++)
-                    {
-                        byte? type = _player.World.GetBlockId(x + dx, y + dy, z + dz);
-                        if (type != null)
-                            SendBlock(x + dx, y + dy, z + dz, type.Value, _player.World.GetBlockData(x + dx, y + dy, z + dz));
-                    }
-                }
-            }
-        }*/
 
         private void SendMotd()
         {
@@ -335,15 +318,12 @@ namespace Chraft.Net
         public void SendLoginSequence()
         {
             _player = new Player(Server, Server.AllocateEntity(), this);
-            Server.AddEntity(_player, false);
-            Server.AddAuthenticatedClient(this);
-            Authenticated = true;
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
-            _player.UpdateChunks(2, true, CancellationToken.None);
+            _player.UpdateFirstChunks(4);
             SendInitialPosition(false);            
         }
 
@@ -354,11 +334,14 @@ namespace Chraft.Net
             _player.InitializeInventory();
             _player.InitializeHealth();
             _player.OnJoined();
+            Server.AddEntity(_player, false);
+            Server.AddAuthenticatedClient(this);  
             SendMotd();
 
             StartKeepAliveTimer();
             _player.UpdateEntities();
             Server.SendEntityToNearbyPlayers(_player.World, _player);
+            Server.FreeConnectionSlot();
         }
 
         #endregion
@@ -390,11 +373,13 @@ namespace Chraft.Net
                 if (newValue == 1)
                 {
                     if (_lastChunkTimerStart != DateTime.MinValue)
-                        _startDelay = 4000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
+                        _startDelay = 1000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
 
                     if (_startDelay < 0)
                         _startDelay = 0;
-                    _chunkSendTimer.Change(_startDelay, 4000);
+
+                    if(_chunkSendTimer != null)
+                        _chunkSendTimer.Change(_startDelay, 1000);
                 }
             }
             else
@@ -406,7 +391,7 @@ namespace Chraft.Net
 
         internal void SendChunks(object state)
         {
-            for (int i = 0; i < 30 && !ChunksToBeSent.IsEmpty; ++i)
+            for (int i = 0; i < 20 && !ChunksToBeSent.IsEmpty; ++i)
             {
                 Chunk chunk;
                 ChunksToBeSent.TryDequeue(out chunk);
@@ -430,11 +415,11 @@ namespace Chraft.Net
                 if (running == 0)
                 {
                     if (_lastChunkTimerStart != DateTime.MinValue)
-                        _startDelay = 4000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
+                        _startDelay = 1000 - (int)(DateTime.Now - _lastChunkTimerStart).TotalMilliseconds;
 
                     if (_startDelay < 0)
                         _startDelay = 0;
-                    _chunkSendTimer.Change(_startDelay, 4000);
+                    _chunkSendTimer.Change(_startDelay, 1000);
                 }
             }
             _lastChunkTimerStart = DateTime.Now;

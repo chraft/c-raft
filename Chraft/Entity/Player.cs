@@ -16,6 +16,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -586,7 +587,7 @@ namespace Chraft.Entity
 
         public Chunk GetCurrentChunk()
         {
-            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z, false, false);
+            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z);
 
             return chunk;
         }
@@ -604,6 +605,50 @@ namespace Chraft.Entity
         public void UpdateChunks(int radius, CancellationToken token, bool remove)
         {
             UpdateChunks(radius, token, false, remove);
+        }
+
+        public void UpdateFirstChunks(int radius)
+        {
+            int chunkX = (int) (Math.Floor(Position.X)) >> 4;
+            int chunkZ = (int) (Math.Floor(Position.Z)) >> 4;
+
+            Dictionary<int, int> nearbyChunks = new Dictionary<int, int>();
+
+            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
+            {
+                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
+                {
+                    int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
+                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
+                    nearbyChunks.Add(packedChunk, packedChunk);
+
+                    if (!LoadedChunks.ContainsKey(packedChunk))
+                    {
+                        Chunk chunk;
+
+                        chunk = World.GetChunkFromChunkSync(x, z, true, true);
+
+                        LoadedChunks.TryAdd(packedChunk, chunk);
+
+                        if (chunk == null)
+                            continue;
+                    }
+                }
+            }
+
+            foreach(Chunk chunk in LoadedChunks.Values)
+            {
+                if (chunk.LightToRecalculate)
+                    chunk.RecalculateSky();
+
+                chunk.AddClient(Client);
+            }
+
+            foreach(Chunk chunk in LoadedChunks.Values)
+            {
+                _client.SendPreChunk(chunk.Coords.ChunkX, chunk.Coords.ChunkZ, true, true);
+                _client.SendChunk(chunk, true);
+            }
         }
 
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
@@ -626,8 +671,29 @@ namespace Chraft.Entity
 
                     if (!LoadedChunks.ContainsKey(packedChunk))
                     {
-                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                        Chunk chunk;
+                        if (sync)
+                            chunk = World.GetChunkFromChunkSync(x, z, true, true);
+                        else
+                            chunk = World.GetChunkFromChunkAsync(x, z, Client, true, true);
+
                         LoadedChunks.TryAdd(packedChunk, chunk);
+
+                        if (chunk == null)
+                            continue;
+
+
+                        if (chunk.LightToRecalculate)
+                        {
+                            Stopwatch watch = new Stopwatch();
+                            watch.Start();
+                            //chunk.SpreadSkyLight();
+                            chunk.RecalculateSky();
+                            watch.Stop();
+
+                            World.Logger.Log(Logger.LogLevel.Info, "Skylight recalc: {0}", watch.ElapsedMilliseconds);
+                        }
+
                         chunk.AddClient(Client);
                         _client.SendPreChunk(x, z, true, sync);
                         _client.SendChunk(chunk, sync);
@@ -642,11 +708,16 @@ namespace Chraft.Entity
                 {
                     if (token.IsCancellationRequested)
                         return;
-
-                    _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c), UniversalCoords.FromPackedChunkToZ(c), false, sync);
                     Chunk chunk;
                     LoadedChunks.TryRemove(c, out chunk);
-                    chunk.RemoveClient(_client);
+
+
+                    if (chunk != null)
+                    {
+                        chunk.RemoveClient(_client);
+                        _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c),
+                                             UniversalCoords.FromPackedChunkToZ(c), false, sync);
+                    }
                 }
             }
 

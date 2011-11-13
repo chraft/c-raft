@@ -95,7 +95,7 @@ namespace Chraft.World.Blocks
                 for (int j = block.Coords.WorldX - 2; j <= block.Coords.WorldX + 2; j++)
                     for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
                     {
-                        Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k, false, false);
+                        Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k);
                         if (nearbyChunk == null || (nearbyChunk.GetType(j & 0xF, i, k & 0xF) != BlockData.Blocks.Air))
                             continue;
 
@@ -107,7 +107,7 @@ namespace Chraft.World.Blocks
             for (int i = block.Coords.WorldX - 1; i <= block.Coords.WorldX + 1; i++)
                 for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
                 {
-                    Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j, false, false);
+                    Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j);
                     if (nearbyChunk == null || nearbyChunk.GetType(i & 0xF, block.Coords.WorldY + 5, j & 0xF) != BlockData.Blocks.Air)
                         continue;
 

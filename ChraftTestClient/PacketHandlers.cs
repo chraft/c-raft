@@ -57,8 +57,8 @@ namespace ChraftTestClient
             Register(PacketType.MobSpawn, 0, 21, ReadMobSpawn);
             Register(PacketType.SpawnPosition, 13, 0, ReadSpawnPosition);
             Register(PacketType.PlayerPositionRotation, 42, 0, ReadPlayerPositionRotation);
-            Register(PacketType.NewInvalidState, 3, 0, ReadNewInvalidState);
-            Register(PacketType.UpdateSign, 0, 11, ReadUpdateSign);
+            Register(PacketType.NewInvalidState, 0, 2, ReadNewInvalidState);
+            Register(PacketType.UpdateSign, 0, 19, ReadUpdateSign);
             Register(PacketType.SetSlot, 0, 6, ReadSetSlot);
             Register(PacketType.PlayerListItem, 0, 6, ReadPlayerListItem);
             Register(PacketType.UpdateHealth, 9, 0, ReadUpdateHealth);
@@ -68,6 +68,8 @@ namespace ChraftTestClient
             Register(PacketType.PickupSpawn, 25, 0, ReadPickupSpawn);
             Register(PacketType.CollectItem, 9, 0, ReadCollectItem);
             Register(PacketType.UpdateProgressBar, 6, 0, ReadUpdateProgressBar);
+            Register(PacketType.EntityMetadata, 0, 6, ReadEntityMetadata);
+            Register(PacketType.SoundEffect, 18, 0, ReadSoundEffect);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
@@ -295,6 +297,18 @@ namespace ChraftTestClient
         {
             UpdateProgressBarPacket up = new UpdateProgressBarPacket();
             up.Read(reader);
+        }
+
+        public static void ReadEntityMetadata(TestClient client, PacketReader reader)
+        {
+            EntityMetadataPacket em = new EntityMetadataPacket();
+            em.Read(reader);
+        }
+
+        public static void ReadSoundEffect(TestClient client, PacketReader reader)
+        {
+            SoundEffectPacket se = new SoundEffectPacket();
+            se.Read(reader);
         }
     }
 }

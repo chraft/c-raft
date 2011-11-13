@@ -86,7 +86,7 @@ namespace Chraft.World.Blocks
                 int y = block.Coords.WorldY + block.World.Server.Rand.Next(4) - 3;
                 int z = block.Coords.WorldZ + block.World.Server.Rand.Next(2) - 1;
 
-                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z, false, false);
+                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z);
 
                 if (nearbyChunk == null)
                     return;

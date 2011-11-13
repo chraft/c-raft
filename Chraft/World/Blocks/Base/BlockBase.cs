@@ -245,7 +245,7 @@ namespace Chraft.World.Blocks
             byte blockMeta = 0;
             foreach (var coords in blocks)
             {
-                Chunk chunk = block.World.GetChunk(coords, false, false);
+                Chunk chunk = block.World.GetChunk(coords);
 
                 if (chunk == null)
                     break;
@@ -378,7 +378,6 @@ namespace Chraft.World.Blocks
 
             chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
             chunk.RecalculateHeight(block.Coords);
-            chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
             chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
             block.World.Update(block.Coords, false);
         }
@@ -506,7 +505,7 @@ namespace Chraft.World.Blocks
 
         public Chunk GetBlockChunk(StructBlock block)
         {
-            return block.World.GetChunk(block.Coords, false, false);
+            return block.World.GetChunk(block.Coords);
         }
     }
 }

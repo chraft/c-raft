@@ -173,7 +173,9 @@ namespace Chraft.Utils.NBT
                                                      }) {Name = "timestamp calculator thread"};
                 tstampThread.Start();
                 tstampThread.Join();
+#if DEBUG
                 wStart = DateTime.Now;
+#endif
                 byte[][] chunkBuffer = new byte[1024][];
                 {
                     int length;
@@ -235,7 +237,7 @@ namespace Chraft.Utils.NBT
 
                         workerThreads[i].Name = "chunk worker thread " + (index + 1);
 #else
-                        
+                        }));
 #endif
                         workerThreads[i].Start();
                     }

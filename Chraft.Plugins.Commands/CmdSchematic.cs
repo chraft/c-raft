@@ -160,7 +160,7 @@ namespace Chraft.Plugins.Commands
                 return true;
             for (int x = startingPoint.ChunkX; x <= endPoint.ChunkX; x++)
                 for (int z = startingPoint.ChunkZ; z <= endPoint.ChunkZ; z++)
-                    if (world.GetChunkFromChunk(x, z, false, false, false) == null)
+                    if (world.GetChunkFromChunkSync(x, z) == null)
                         return false;
             return true;
         }

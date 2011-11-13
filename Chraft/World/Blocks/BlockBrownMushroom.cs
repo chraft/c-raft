@@ -83,7 +83,7 @@ namespace Chraft.World.Blocks
             for (int dX = -3; dX < 4; dX++)
                 for (int dZ = -3; dZ < 4; dZ++)
                 {
-                    Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX, block.Coords.WorldZ + dZ, false, false);
+                    Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX, block.Coords.WorldZ + dZ);
                     if (currentChunk == null)
                         continue;
 
