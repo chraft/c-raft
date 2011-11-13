@@ -195,13 +195,9 @@ namespace Chraft.Net
                 return;
             }
 
-            //Logger.Log(Chraft.Logger.LogLevel.Info, "Start receiving");
-
             try
             {
-                Logger.Log(Logger.LogLevel.Info, "Start receiving");
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
-                Logger.Log(Logger.LogLevel.Info, "received");
 
                 if (!pending)
                     Recv_Completed(null, _recvSocketEvent);
