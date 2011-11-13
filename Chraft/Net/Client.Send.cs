@@ -317,6 +317,11 @@ namespace Chraft.Net
 
         public void SendLoginSequence()
         {
+            foreach(Client client in Server.GetAuthenticatedClients())
+            {
+                if(client.Username == Username)
+                    client.Stop();
+            }
             _player = new Player(Server, Server.AllocateEntity(), this);
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
