@@ -62,7 +62,7 @@ namespace Chraft.World
         internal Chunk(WorldManager world, UniversalCoords coords)
             : base(world, coords)
         {
-           
+            LightToRecalculate = true;
         }
 
         internal void InitBlockChangesTimer()
@@ -116,6 +116,23 @@ namespace Chraft.World
                     RecalculateSky(x, z);
                 }
             }
+
+            StackSize = 0;
+
+            while (World.ChunksToRecalculate.Count > 0)
+            {
+                ChunkLightUpdate chunkUpdate;
+                World.ChunksToRecalculate.TryDequeue(out chunkUpdate);
+                if (chunkUpdate != null && chunkUpdate.Chunk != null && !chunkUpdate.Chunk.Deleted)
+                {
+                    chunkUpdate.Chunk.StackSize = 0;
+                    chunkUpdate.Chunk.SpreadSkyLightFromBlock((byte)chunkUpdate.X, (byte)chunkUpdate.Y, (byte)chunkUpdate.Z);
+                }
+            }
+
+            LightToRecalculate = false;
+
+            MarkToSave();
         }
 
         public void RecalculateSky(int x, int z)
@@ -137,21 +154,6 @@ namespace Chraft.World
                     SpreadSkyLightFromBlock((byte)x, y, (byte)z, true);
             }
             while (--y > 0 && sky > 0);
-
-            StackSize = 0;
-
-            while (World.ChunksToRecalculate.Count > 0)
-            {
-                ChunkLightUpdate chunkUpdate;
-                World.ChunksToRecalculate.TryDequeue(out chunkUpdate);
-                if (chunkUpdate != null && chunkUpdate.Chunk != null && !chunkUpdate.Chunk.Deleted)
-                {
-                    chunkUpdate.Chunk.StackSize = 0;                   
-                    chunkUpdate.Chunk.SpreadSkyLightFromBlock((byte)chunkUpdate.X, (byte)chunkUpdate.Y, (byte)chunkUpdate.Z);
-                }
-            }
-
-            LightToRecalculate = false;
         }
 
         public int StackSize;
@@ -445,6 +447,8 @@ namespace Chraft.World
             try
             {
                 zip = new DeflateStream(File.Open(path, FileMode.Open), CompressionMode.Decompress);
+
+                chunk.LightToRecalculate = Convert.ToBoolean(zip.ReadByte());
                 chunk.HeightMap = new byte[16, 16];
                 for (int x = 0; x < 16; ++x)
                 {
@@ -559,6 +563,7 @@ namespace Chraft.World
             Stream zip = new DeflateStream(File.Create(DataFile + ".tmp"), CompressionMode.Compress);
             try
             {
+                zip.WriteByte(Convert.ToByte(LightToRecalculate));
                 for (int x = 0; x < 16; ++x)
                 {
                     for (int z = 0; z < 16; ++z)

@@ -607,50 +607,6 @@ namespace Chraft.Entity
             UpdateChunks(radius, token, false, remove);
         }
 
-        public void UpdateFirstChunks(int radius)
-        {
-            int chunkX = (int) (Math.Floor(Position.X)) >> 4;
-            int chunkZ = (int) (Math.Floor(Position.Z)) >> 4;
-
-            Dictionary<int, int> nearbyChunks = new Dictionary<int, int>();
-
-            for (int x = chunkX - radius; x <= chunkX + radius; ++x)
-            {
-                for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
-                {
-                    int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
-                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
-                    nearbyChunks.Add(packedChunk, packedChunk);
-
-                    if (!LoadedChunks.ContainsKey(packedChunk))
-                    {
-                        Chunk chunk;
-
-                        chunk = World.GetChunkFromChunkSync(x, z, true, true);
-
-                        LoadedChunks.TryAdd(packedChunk, chunk);
-
-                        if (chunk == null)
-                            continue;
-                    }
-                }
-            }
-
-            foreach(Chunk chunk in LoadedChunks.Values)
-            {
-                if (chunk.LightToRecalculate)
-                    chunk.RecalculateSky();
-
-                chunk.AddClient(Client);
-            }
-
-            foreach(Chunk chunk in LoadedChunks.Values)
-            {
-                _client.SendPreChunk(chunk.Coords.ChunkX, chunk.Coords.ChunkZ, true, true);
-                _client.SendChunk(chunk, true);
-            }
-        }
-
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
         {
             int chunkX = (int)(Math.Floor(Position.X)) >> 4;
@@ -666,7 +622,7 @@ namespace Chraft.Entity
                         return;
 
                     int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
-                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
+
                     nearbyChunks.Add(packedChunk, packedChunk);
 
                     if (!LoadedChunks.ContainsKey(packedChunk))
@@ -685,13 +641,18 @@ namespace Chraft.Entity
 
                         if (chunk.LightToRecalculate)
                         {
+#if PROFILE
                             Stopwatch watch = new Stopwatch();
                             watch.Start();
-                            //chunk.SpreadSkyLight();
+
                             chunk.RecalculateSky();
+
                             watch.Stop();
 
                             World.Logger.Log(Logger.LogLevel.Info, "Skylight recalc: {0}", watch.ElapsedMilliseconds);
+#else
+                            chunk.RecalculateSky();
+#endif
                         }
 
                         chunk.AddClient(Client);

@@ -71,20 +71,22 @@ namespace Chraft.WorldGen
             InitGen();
 
             byte[] data = new byte[32768];
+#if PROFILE
             Stopwatch watch = new Stopwatch();
             watch.Start();
+#endif
             GenerateTerrain(chunk, data, x, z);
             GenerateFlora(chunk, data, x, z);
             chunk.SetAllBlocks(data);
                     
             chunk.RecalculateHeight();
             chunk.LightToRecalculate = true;
+#if PROFILE
             watch.Stop();
-           
-            Console.WriteLine("Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
 
-            
-            //chunk.Save();
+            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", false, x, z, watch.ElapsedMilliseconds);
+#endif
+
             _World.AddChunk(chunk);
             chunk.MarkToSave();
 

@@ -134,7 +134,7 @@ namespace Chraft.World
             if ((chunk = Chunks[chunkX, chunkZ]) != null)
                 return chunk;
 
-            return load ? LoadChunk(UniversalCoords.FromChunk(chunkX, chunkZ), create, client) : null;
+            return load ? LoadChunk(UniversalCoords.FromChunk(chunkX, chunkZ), create, client, false) : null;
         }
 
         public Chunk GetChunkFromWorld(int worldX, int worldZ, bool create = false, bool load = false)
@@ -429,15 +429,44 @@ namespace Chraft.World
 
         private void InitializeSpawn()
         {
+            Logger.LogOnOneLine(Logger.LogLevel.Info, "Initializing spawn area...", true);
             Spawn = UniversalCoords.FromWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
-            for (int i = 127; i > 0; i--)
+
+            Queue<Chunk> toRecalculate = new Queue<Chunk>();           
+            Chunk chunk = GetChunkFromWorld(Spawn.WorldX, Spawn.WorldZ, true, true);
+            chunk.Persistent = true;
+            toRecalculate.Enqueue(chunk);
+
+            Spawn = UniversalCoords.FromWorld(Spawn.WorldX, chunk.HeightMap[Spawn.WorldX, Spawn.WorldZ] + 4, Spawn.WorldZ);
+
+            int chunkX = Spawn.ChunkX;
+            int chunkZ = Spawn.ChunkZ;
+
+            
+            for(int x = chunkX - 4; x < chunkX + 4; ++x)
             {
-                if (GetBlockOrLoad(Spawn.WorldX, i, Spawn.WorldZ) != 0)
+                for(int z = chunkZ - 4; z < chunkZ + 4; ++z)
                 {
-                    Spawn = UniversalCoords.FromWorld(Spawn.WorldX, i + 4, Spawn.WorldZ);
-                    break;
+                    if(x == chunkX && z == chunkZ)
+                        continue;
+
+                    chunk = GetChunkFromChunkSync(x, z, true, true);
+                    chunk.Persistent = true;
+                    toRecalculate.Enqueue(chunk);
                 }
             }
+
+            while(toRecalculate.Count > 0)
+            {
+                chunk = toRecalculate.Dequeue();
+
+                if (chunk.LightToRecalculate)
+                    chunk.RecalculateSky();
+
+                AddChunk(chunk);
+            }
+
+            Logger.LogOnOneLine(Logger.LogLevel.Info, " Done\n", false);
         }
 
         private void CollectProc()

@@ -320,10 +320,17 @@ namespace Chraft.Net
             _player = new Player(Server, Server.AllocateEntity(), this);
             _player.Permissions = _player.PermHandler.LoadClientPermission(this);
             Load();
+
+            if (!_player.World.Running)
+            {
+                Stop();
+                return;
+            }
+
             SendLoginRequest();
             SendSpawnPosition(false);
             SendInitialTime(false);
-            _player.UpdateFirstChunks(4);
+            _player.UpdateChunks(4, CancellationToken.None, true, false);
             SendInitialPosition(false);            
         }
 

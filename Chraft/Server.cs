@@ -558,13 +558,10 @@ namespace Chraft
                 int count = Interlocked.Decrement(ref ClientsConnectionSlots);
 
                 if (count >= 0)
-                {
-                    //Logger.Log(Logger.LogLevel.Info, "AcceptTaken");
                     return true;
-                }
 
                 _asyncAccepts = 0;
-                //Logger.Log(Logger.LogLevel.Info, "AcceptReleased1");
+
                 Interlocked.Increment(ref ClientsConnectionSlots);
             }          
            
