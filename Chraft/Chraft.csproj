@@ -149,7 +149,6 @@
     <Compile Include="Utils\NBT\NBTFile.cs" />
     <Compile Include="Utils\NBT\NBTTag.cs" />
     <Compile Include="Utils\NBT\RegionFile.cs" />
-    <Compile Include="Utils\Schematic.cs" />
     <Compile Include="Utils\NBT\SCHEMATICTag.cs" />
     <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="Utils\RecipeObject.cs" />
@@ -398,9 +397,6 @@
     </None>
     <None Include="Resources\Recipes.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Resources\Schematics\c-raft.schematic">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Resources\Smelting.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

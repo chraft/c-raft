@@ -69,8 +69,7 @@ namespace Chraft.Plugins.Commands
                                 new CmdPos2(this),
                                 new CmdSpawnMob(this),
                                 new CmdMute(this),
-                                new CmdSetHealth(this),
-                                new CmdSchematic(this)
+                                new CmdSetHealth(this)
                             };
         }
 
