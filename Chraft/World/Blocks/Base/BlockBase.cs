@@ -379,7 +379,7 @@ namespace Chraft.World.Blocks
             chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
             if (chunk.HeightMap[block.Coords.BlockX, block.Coords.BlockZ] <= block.Coords.BlockY)
                 chunk.RecalculateHeight(block.Coords);
-            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
+            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ));
             block.World.Update(block.Coords, false);
         }
 
