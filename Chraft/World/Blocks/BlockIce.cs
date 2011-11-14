@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -34,17 +27,16 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        protected override void UpdateOnDestroy(StructBlock block)
+        protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)
         {
-            Chunk chunk = GetBlockChunk(block);
-
-            if (chunk == null)
+            if (!isDestroyed)
+            {
+                base.UpdateWorld(block, isDestroyed);
                 return;
+            }
 
-            chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Still_Water, 0);
-            chunk.RecalculateHeight(block.Coords);
-            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
-            block.World.Update(block.Coords, false);
+            StructBlock water = new StructBlock(block.Coords, (byte)BlockData.Blocks.Water, 0, block.World);
+            BlockHelper.Instance((byte)BlockData.Blocks.Water).Spawn(water);
         }
     }
 }

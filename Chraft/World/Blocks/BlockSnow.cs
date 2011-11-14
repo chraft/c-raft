@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -36,9 +32,9 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
 
-        protected override void  DropItems(EntityBase entity, StructBlock block)
+        protected override void  DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            LootTable = new List<ItemStack>();
+            overridedLoot = new List<ItemStack>();
             Player player = entity as Player;
             if (player != null)
             {
@@ -48,10 +44,10 @@ namespace Chraft.World.Blocks
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
                 {
-                    LootTable.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
+                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
                 }
             }
-            base.DropItems(entity, block);
+            base.DropItems(entity, block, overridedLoot);
         }
     }
 }

@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
-using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.Plugins.Events.Args;
-using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
@@ -71,12 +64,12 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(who, block, targetBlock, targetSide);
         }
 
-        protected override void UpdateOnPlace(StructBlock block)
+        protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)
         {
-            base.UpdateOnPlace(block);
-            UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
-                                                                   block.Coords.WorldZ);
-            if ((block.MetaData & 8) != 0)
+            base.UpdateWorld(block, isDestroyed);
+            if (isDestroyed)
+                return;
+            if ((block.MetaData & 8) != 0 && block.Coords.WorldY < 127)
             {
                 UniversalCoords upperBlock = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                        block.Coords.WorldZ);

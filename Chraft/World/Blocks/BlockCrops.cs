@@ -15,12 +15,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Net;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
@@ -50,24 +46,24 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        protected override void DropItems(EntityBase who, StructBlock block)
+        protected override void DropItems(EntityBase who, StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            LootTable = new List<ItemStack>();
+            overridedLoot = new List<ItemStack>();
             // TODO: Fully grown drops 1 Wheat & 0-3 Seeds. 0 seeds - very rarely
             if (block.MetaData == 7)
             {
-                LootTable.Add(new ItemStack((short)BlockData.Items.Wheat, 1));
+                overridedLoot.Add(new ItemStack((short)BlockData.Items.Wheat, 1));
                 sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
                 if (seeds > 0)
-                    LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
             }
             else if (block.MetaData >= 5)
             {
                 sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
                 if (seeds > 0)
-                    LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
             }
-            base.DropItems(who, block);
+            base.DropItems(who, block, overridedLoot);
         }
 
         public void Grow(StructBlock block, Chunk chunk)
@@ -81,10 +77,7 @@ namespace Chraft.World.Blocks
 
             // TODO: Check if the blocks nearby are hydrated and grow faster
             if (block.World.Server.Rand.Next(10) == 0)
-            {
-                block.MetaData++;
-                chunk.SetData(block.Coords, block.MetaData);
-            }
+                chunk.SetData(block.Coords, ++block.MetaData);
         }
 
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)

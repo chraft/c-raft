@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Net;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -49,25 +44,19 @@ namespace Chraft.World.Blocks
             base.Place(entity, block, targetBlock, face);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            LootTable = new List<ItemStack>();
+            overridedLoot = new List<ItemStack>();
             Player player = entity as Player;
             if (player != null)
             {
                 // If hit by a shear - drop the grass
                 if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
-                {
-                    LootTable.Add(new ItemStack((short) Type, 1, block.MetaData));
-                }
-                else
-                {
-                    // Chance of dropping seeds, 25% ?
-                    if (player.Server.Rand.Next(3) == 0)
-                        LootTable.Add(new ItemStack((short)BlockData.Items.Seeds, 1));
-                }
+                    overridedLoot.Add(new ItemStack((short) Type, 1, block.MetaData));
+                else if (player.Server.Rand.Next(3) == 0)
+                        overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, 1));
             }
-            base.DropItems(entity, block);
+            base.DropItems(entity, block, overridedLoot);
         }
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)

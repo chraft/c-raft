@@ -15,13 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {

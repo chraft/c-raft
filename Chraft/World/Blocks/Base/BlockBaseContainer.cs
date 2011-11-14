@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
@@ -94,10 +90,11 @@ namespace Chraft.World.Blocks
             return direction;
         }
 
-        protected override void UpdateOnDestroy(StructBlock block)
+        protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)
         {
-            ContainerFactory.Destroy(block.World, block.Coords);
-            base.UpdateOnDestroy(block);
+            if (isDestroyed)
+                ContainerFactory.Destroy(block.World, block.Coords);
+            base.UpdateWorld(block, isDestroyed);
         }
 
         public void Interact(EntityBase entity, StructBlock block)

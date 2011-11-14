@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
@@ -46,11 +42,11 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(entity, block, targetBlock, targetSide);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            LootTable = new List<ItemStack>();
-            LootTable.Add(new ItemStack((short)Type, 1, block.MetaData));
-            base.DropItems(entity, block);
+            overridedLoot = new List<ItemStack>();
+            overridedLoot.Add(new ItemStack((short)Type, 1, block.MetaData));
+            base.DropItems(entity, block, overridedLoot);
         }
 
         public bool CanGrow(StructBlock block, Chunk chunk)

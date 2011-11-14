@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
@@ -153,7 +148,8 @@ namespace Chraft.World.Blocks
             chunk.SetData(block.Coords, 0);
             UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                    block.Coords.WorldZ);
-            chunk.SetBlockAndData(blockAbove, (byte)BlockData.Blocks.Reed, 0x0);
+            StructBlock newReed = new StructBlock(blockAbove, (byte)Type, 0, block.World);
+            BlockHelper.Instance((byte)Type).Spawn(newReed);
         }
     }
 }
