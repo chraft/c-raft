@@ -16,13 +16,8 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Net;
-using Chraft.Plugins;
-using Chraft.Plugins.Events;
+using System.Reflection;
 using Chraft.Commands;
-using Chraft.Plugins.Listener;
 
 
 namespace Chraft.Plugins.Commands
@@ -51,7 +46,7 @@ namespace Chraft.Plugins.Commands
             get { return "http://www.c-raft.com"; }
         }
 
-        public Version Version { get; private set; }
+        public Version Version { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
 
         public Server Server { get; set; }
 
@@ -83,7 +78,7 @@ namespace Chraft.Plugins.Commands
         {
             IsPluginEnabled = true;
             PluginManager.RegisterCommands(_commands, this);
-            Console.WriteLine("ChraftCommands Enabled");
+            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
 
         }
 
@@ -91,12 +86,12 @@ namespace Chraft.Plugins.Commands
         {
             IsPluginEnabled = false;
             PluginManager.UnregisterCommands(_commands, this);
-            Console.WriteLine("ChraftCommands Disabled");
+            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
         }
 
         public override string ToString()
         {
-            return "ChraftCommands " + Version;
+            return Name + " " + Version;
         }
     }
 }
