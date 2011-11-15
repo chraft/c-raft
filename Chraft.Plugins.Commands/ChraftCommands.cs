@@ -86,7 +86,7 @@ namespace Chraft.Plugins.Commands
         {
             IsPluginEnabled = false;
             PluginManager.UnregisterCommands(_commands, this);
-            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
+            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
         }
 
         public override string ToString()
