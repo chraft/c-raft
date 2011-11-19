@@ -263,7 +263,7 @@ namespace Chraft.Net
         {
             if (client.Owner.GameMode == 1)
 
-                if (packet.ItemID == -1 && packet.Damage == 0 && packet.Quantity == 0) // We are adding an item to our mouse cursor from the quick bar
+                if (packet.Item.Type == -1 && packet.Item.Durability == 0 && packet.Item.Count == 0) // We are adding an item to our mouse cursor from the quick bar
                 {
                     //may need to do something here
                     return;
@@ -272,7 +272,7 @@ namespace Chraft.Net
                 {
                     if (packet.Slot != -1)// mouse cursor mode
                     {
-                        client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                        client.Owner.Inventory[packet.Slot] = packet.Item;
                     }
 
 

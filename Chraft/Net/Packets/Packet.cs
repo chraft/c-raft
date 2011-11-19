@@ -1542,27 +1542,23 @@ namespace Chraft.Net.Packets
     public class CreativeInventoryActionPacket : Packet
     {
         public short Slot { get; set; }
-        public short ItemID { get; set; }
-        public short Quantity { get; set; }
-        public short Damage { get; set; }
-
-        protected override int Length { get { return 9; } }
+        public ItemStack Item { get; set; }
 
         public override void Read(PacketReader stream)
         {
             Slot = stream.ReadShort();
-            ItemID = stream.ReadShort();
-            Quantity = stream.ReadShort();
-            Damage = stream.ReadShort();
+            Item = ItemStack.Read(stream);
         }
 
         public override void Write()
         {
-            SetCapacity();
             Writer.Write(Slot);
-            Writer.Write(ItemID);
-            Writer.Write(Quantity);
-            Writer.Write(Damage);
+            if(Item == null || Item.Type == -1)
+                SetCapacity(5);
+            else
+                SetCapacity(8);
+
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
