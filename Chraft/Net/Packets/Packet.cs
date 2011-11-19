@@ -585,11 +585,17 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
+            if (Item == null || Item.Type == -1)
+                SetCapacity(13);
+            else
+                SetCapacity(16);
+            
             Writer.Write(X);
             Writer.Write(Y);
             Writer.Write(Z);
             Writer.Write((sbyte)Face);
             (Item ?? ItemStack.Void).Write(Writer);
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -846,6 +852,7 @@ namespace Chraft.Net.Packets
             StorageCart = 11,
             PoweredCart = 12,
             ActivatedTNT = 50,
+            EnderCrystal = 51,
             Arrow = 60,
             ThrownSnowball = 61,
             ThrownEgg = 62,
@@ -1595,12 +1602,18 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
+            if (Item == null || Item.Type == -1)
+                SetCapacity(10);
+            else
+                SetCapacity(13);
+
             Writer.Write(WindowId);
             Writer.Write(Slot);
             Writer.Write(RightClick);
             Writer.Write(Transaction);
             Writer.Write(Shift);
             (Item ?? ItemStack.Void).Write(Writer);
+            Length = (int) Writer.UnderlyingStream.Length;
         }
     }
 
@@ -1609,8 +1622,6 @@ namespace Chraft.Net.Packets
         public sbyte WindowId { get; set; }
         public short Slot { get; set; }
         public ItemStack Item { get; set; }
-
-        protected override int Length { get { return (Item == null || Item.Type == -1) ? 6 : 9; } }
 
         public override void Read(PacketReader stream)
         {
@@ -1621,10 +1632,15 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity();
+            if(Item == null || Item.Type == -1)
+                SetCapacity(6);
+            else
+                SetCapacity(9);
+
             Writer.Write(WindowId);
             Writer.Write(Slot);
             (Item ?? ItemStack.Void).Write(Writer);
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -1836,7 +1852,8 @@ namespace Chraft.Net.Packets
             InvalidBed = 0,
             BeginRaining = 1,
             EndRaining = 2,
-            ChangeGameMode = 3
+            ChangeGameMode = 3,
+            EndGameCredits = 4
         }
     }
 
@@ -2021,5 +2038,51 @@ namespace Chraft.Net.Packets
         Hunger = 17, //Food bar turns green - Caused by poisoning from Rotten Flesh or Raw Chicken
         Weakness = 18,
         Poison = 19 //Hearts turn yellow - Caused by poisoning from cave (blue) spider
+    }
+
+    public class EnchantItemPacket : Packet
+    {
+        public byte WindowId { get; set; }
+        public byte Enchantment { get; set; }
+
+        protected override int Length{ get { return 3; } }
+
+        public override void Read(PacketReader reader)
+        {
+            WindowId = reader.ReadByte();
+            Enchantment = reader.ReadByte();
+        }
+
+        public override void Write()
+        {
+            SetCapacity();
+            Writer.WriteByte(WindowId);
+            Writer.WriteByte(Enchantment);
+        }
+    }
+
+    public class ExperiencePacket : Packet
+    {
+        public float Experience { get; set; }
+        public short Level { get; set; }
+        public short TotExperience { get; set; }
+
+        protected override int Length { get { return 9; } }
+
+        public override void Read(PacketReader reader)
+        {
+            Experience = reader.ReadFloat();
+            Level = reader.ReadShort();
+            TotExperience = reader.ReadShort();
+        }
+
+        public override void Write()
+        {
+            SetCapacity();
+
+            Writer.Write(Experience);
+            Writer.Write(Level);
+            Writer.Write(TotExperience);
+        }
     }
 }

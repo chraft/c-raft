@@ -190,10 +190,10 @@ namespace Chraft
 
         public string GetRandomServerHash()
         {
-            byte[] bytes = new byte[8];
+            byte[] bytes = new byte[7];
             Rand.NextBytes(bytes);
 
-            return BitConverter.ToString(bytes).Replace("-", String.Empty);
+            return "23" + BitConverter.ToString(bytes).Replace("-", String.Empty);
         }
 
         public static Recipe[] GetRecipes()

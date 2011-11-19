@@ -248,6 +248,7 @@ namespace Chraft.Net
             }
         }
 
+#region Misc
         public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
         {
             client.LastClientResponse = DateTime.Now;
@@ -315,6 +316,13 @@ namespace Chraft.Net
         {
             //todo-something?
         }
+
+        public static void HandlePacketEnchantItem(Client client, EnchantItemPacket packet)
+        {
+            // TODO: Implement item enchantment
+        }
+
+#endregion
 
         #region Use
 

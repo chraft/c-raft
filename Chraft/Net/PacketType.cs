@@ -45,6 +45,7 @@ namespace Chraft.Net
         AddObjectVehicle = 0x17,            //   <--
         MobSpawn = 0x18,                    //   <--
         EntityPainting = 0x19,              //   <--
+        ExperienceOrb = 0x1A,               //   <--
         UnknownA = 0x1B,                    //   ???
         EntityVelocity = 0x1C,              //   <--
         DestroyEntity = 0x1D,               //   <--
@@ -54,11 +55,11 @@ namespace Chraft.Net
         EntityLookAndRelativeMove = 0x21,   //   <--
         EntityTeleport = 0x22,              //   <--
         EntityStatus = 0x26,                //   <--
-        ExperienceOrb = 0x1A,               //   <--
         AttachEntity = 0x27,                //   <--
         EntityMetadata = 0x28,              //   <--
         EntityEffect = 0x29,                //   <->
         RemoveEntityEffect = 0x2A,          //   <->
+        Experience = 0x2B,                  //   <--
         PreChunk = 0x32,                    //   <--
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
@@ -75,6 +76,7 @@ namespace Chraft.Net
         WindowItems = 0x68,                 //   <--
         UpdateProgressBar = 0x69,           //   <--
         Transaction = 0x6A,                 //   <->
+        EnchantItem = 0x6C,                 //   -->
         UpdateSign = 0x82,                  //   <->
         MapData = 0x83,                     //   -->
         IncrementStatistic = 0xC8,          //   ???

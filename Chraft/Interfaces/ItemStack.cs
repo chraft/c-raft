@@ -85,6 +85,10 @@ namespace Chraft.Interfaces
             {
                 Count = stream.ReadSByte();
                 Durability = stream.ReadShort();
+
+                // TODO: Implement extra data read (enchantment) and items
+                if (Durability > 0 || Type > 255)
+                    stream.ReadShort();
             }
         }
 
@@ -95,6 +99,10 @@ namespace Chraft.Interfaces
             {
                 Count = stream.ReadSByte();
                 Durability = stream.ReadShort();
+
+                // TODO: Implement extra data read (enchantment) and items
+                if (Durability > 0 || Type > 255)
+                    stream.ReadShort();
             }
         }
 
@@ -132,6 +140,19 @@ namespace Chraft.Interfaces
             {
                 stream.Write(Count);
                 stream.Write(Durability);
+
+                if (Durability > 0 || Type > 255)
+                    stream.Write((short)-1);
+                // TODO: Remove the two lines above and implement items and enchantments write
+                /* 
+                 * if (Item.CanBeDamaged())
+                 * {
+                 *      if(_enchantments != null)
+                 *          WriteEnchantmentsToNBT(stream);
+                 *      else
+                 *          stream.Write(-1);
+                 * }
+                 */
             }
         }
 
@@ -142,7 +163,48 @@ namespace Chraft.Interfaces
             {
                 stream.Write(Count);
                 stream.Write(Durability);
-            }
+
+                if (Durability > 0 || Type > 255)
+                    stream.Write((short)-1);
+                // TODO: Remove the two lines above and implement items and enchantments write
+                /* 
+                 * if (Item.CanBeDamaged())
+                 * {
+                 *      if(_enchantments != null)
+                 *          WriteEnchantmentsToNBT(stream);
+                 *      else
+                 *          stream.Write(-1);
+                 * }
+                 */
+            }            
+        }       
+
+        internal void ReadEnchantmentsFromNBT(PacketWriter stream)
+        {
+            // TODO: Implement this and choose return value
+        } 
+
+        internal void ReadEnchantmentsFromNBT(BigEndianStream stream)
+        {
+            // TODO: Implement this and choose return value
+        }
+
+        internal void WriteEnchantmentsToNBT(PacketWriter stream)
+        {
+            // TODO: Implement this
+            /*      Gzip the nbt representing enchantments
+             *      write the gzipped output length
+             *      write output 
+             */
+        }
+
+        internal void WriteEnchantmentsToNBT(BigEndianStream stream)
+        {
+            // TODO: Implement this
+            /*      Gzip the nbt representing enchantments
+             *      write the gzipped output length
+             *      write output 
+             */
         }
 
         public byte ToBlock()
@@ -187,6 +249,11 @@ namespace Chraft.Interfaces
             {
                 retval.Count = stream.ReadSByte();
                 retval.Durability = stream.ReadShort();
+
+                // TODO: Implement extra data read (enchantment) and items
+
+                if (retval.Durability > 0 || retval.Type > 255)
+                    stream.ReadShort();
             }
             return retval;
 
