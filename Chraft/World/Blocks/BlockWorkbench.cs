@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
@@ -46,31 +41,31 @@ namespace Chraft.World.Blocks
             switch (face) //Bugged, as the client has a mind of its own for facing
             {
                 case BlockFace.East:
-                    block.MetaData = (byte)MetaData.Furnace.East;
+                    block.MetaData = (byte)MetaData.Container.East;
                     break;
                 case BlockFace.West:
-                    block.MetaData = (byte)MetaData.Furnace.West;
+                    block.MetaData = (byte)MetaData.Container.West;
                     break;
                 case BlockFace.North:
-                    block.MetaData = (byte)MetaData.Furnace.North;
+                    block.MetaData = (byte)MetaData.Container.North;
                     break;
                 case BlockFace.South:
-                    block.MetaData = (byte)MetaData.Furnace.South;
+                    block.MetaData = (byte)MetaData.Container.South;
                     break;
                 default:
                     switch (living.FacingDirection(4)) // Built on floor, set by facing dir
                     {
                         case "N":
-                            block.MetaData = (byte)MetaData.Furnace.North;
+                            block.MetaData = (byte)MetaData.Container.North;
                             break;
                         case "W":
-                            block.MetaData = (byte)MetaData.Furnace.West;
+                            block.MetaData = (byte)MetaData.Container.West;
                             break;
                         case "S":
-                            block.MetaData = (byte)MetaData.Furnace.South;
+                            block.MetaData = (byte)MetaData.Container.South;
                             break;
                         case "E":
-                            block.MetaData = (byte)MetaData.Furnace.East;
+                            block.MetaData = (byte)MetaData.Container.East;
                             break;
                         default:
                             return;

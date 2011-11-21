@@ -193,7 +193,7 @@ namespace Chraft.World
 
         private static bool CanMobTypeSpawnAtLocation(MobType mobType, WorldManager world, int worldX, int worldY, int worldZ)
         {
-            Chunk chunk = world.GetChunkFromWorld(worldX, worldZ, false, false);
+            Chunk chunk = world.GetChunkFromWorld(worldX, worldZ);
             if (chunk == null)
                 return false;
 

@@ -29,8 +29,6 @@ namespace Chraft.Net
     {
         private static ConcurrentStack<PacketWriter> _Pool = new ConcurrentStack<PacketWriter>();
 
-        public StreamRole Role { get; private set; }
-
         private int _Capacity;
         public int Capacity
         {
@@ -52,26 +50,25 @@ namespace Chraft.Net
             set { _Strings = value; }
         }
 
-        public PacketWriter(int capacity, StreamRole role)
+        public PacketWriter(int capacity)
         {
             _Stream = new MemoryStream(capacity);
             _Capacity = capacity;
-            Role = role;
         }
 
-        public static PacketWriter CreateInstance(int capacity, StreamRole role, Queue<byte[]> strings)
+        public static PacketWriter CreateInstance(int capacity, Queue<byte[]> strings)
         {
-            PacketWriter pw = CreateInstance(capacity, role);
+            PacketWriter pw = CreateInstance(capacity);
             pw.Strings = strings;
             return pw;
         }
 
-        public static PacketWriter CreateInstance(StreamRole role)
+        public static PacketWriter CreateInstance()
         {
-            return CreateInstance(32, role);
+            return CreateInstance(32);
         }
 
-        public static PacketWriter CreateInstance(int capacity, StreamRole role)
+        public static PacketWriter CreateInstance(int capacity)
         {
             PacketWriter pw = null;
 
@@ -83,11 +80,12 @@ namespace Chraft.Net
                 {
                     pw._Capacity = capacity;
                     pw._Stream.SetLength(0);
+                    pw._Stream.Position = 0;
                 }
             }
 
             if (pw == null)
-                pw = new PacketWriter(capacity, role);
+                pw = new PacketWriter(capacity);
 
             return pw;
         }

@@ -15,14 +15,17 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Collections.Generic;
 using Chraft.World;
+using ICSharpCode.SharpZipLib.Zip.Compression;
 
 namespace Chraft.Net.Packets
 {
     public class MapChunkPacket : Packet
     {
+        private const int DataDimension = 81920;
         public UniversalCoords Coords { get { return Chunk.Coords; } }
         public byte SizeX { get { return 15; } }
         public byte SizeY { get { return 127; } }
@@ -42,25 +45,23 @@ namespace Chraft.Net.Packets
             Chunk = new Chunk(null, UniversalCoords.FromWorld(posX, posY, posZ));
 
             int len = stream.ReadInt();
-            byte[] data = new byte[o * 5 / 2];
-            byte[] comp = stream.ReadBytes(len);
+            stream.ReadBytes(len);
         }
 
 #if PROFILE
         private static System.Collections.Generic.List<int> writeDiffsLength = new List<int>();
         private static System.Collections.Generic.List<double> writeDiffsTime = new List<double>();
 #endif
-
-        private static object _deflaterLock = new object();
         
         // Compression level 5 gives 0.3ms faster than the Java version, and exact same size
         // Using the static instance gives another 0.3ms
-        private static readonly ICSharpCode.SharpZipLib.Zip.Compression.Deflater Deflater = new ICSharpCode.SharpZipLib.Zip.Compression.Deflater(5);
+        //private static readonly ICSharpCode.SharpZipLib.Zip.Compression.Deflater Deflater = new ICSharpCode.SharpZipLib.Zip.Compression.Deflater(5);
+
+        public static ConcurrentStack<Deflater> DeflaterPool = new ConcurrentStack<Deflater>();
 
         public override void Write()
         {
-            int o = 16 * 16 * 128;
-            byte[] data = new byte[o * 5 / 2];
+            byte[] data = new byte[DataDimension];
 
             int i = 0;
 
@@ -74,9 +75,8 @@ namespace Chraft.Net.Packets
             i += Chunk.Light.Data.Length;
 
             Chunk.SkyLight.Data.CopyTo(data, i);
-            i += Chunk.SkyLight.Data.Length;
 
-            byte[] comp = new byte[o * 5 / 2];
+            byte[] comp = new byte[DataDimension];
             int len;
 
 #if PROFILE
@@ -99,13 +99,19 @@ namespace Chraft.Net.Packets
             
             // Compression level 5 gives 0.3ms faster than the Java version, and exact same size
             // Using the static instance gives another 0.3ms
-            lock (_deflaterLock)
-            {
-                Deflater.SetInput(data);
-                Deflater.Finish();
-                len = Deflater.Deflate(comp);
-                Deflater.Reset();
-            }
+
+            Deflater deflater;
+            DeflaterPool.TryPop(out deflater);
+
+            if(deflater == null)
+                deflater = new Deflater(5);
+
+            deflater.SetInput(data);
+            deflater.Finish();
+            len = deflater.Deflate(comp);
+            deflater.Reset();
+
+            DeflaterPool.Push(deflater);
             
 #if PROFILE
             DateTime end = DateTime.Now;

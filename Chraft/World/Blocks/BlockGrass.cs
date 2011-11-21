@@ -14,14 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
-using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
@@ -86,7 +79,7 @@ namespace Chraft.World.Blocks
                 int y = block.Coords.WorldY + block.World.Server.Rand.Next(4) - 3;
                 int z = block.Coords.WorldZ + block.World.Server.Rand.Next(2) - 1;
 
-                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z, false, false);
+                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z);
 
                 if (nearbyChunk == null)
                     return;

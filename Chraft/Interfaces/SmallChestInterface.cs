@@ -22,10 +22,10 @@ using Chraft.World;
 
 namespace Chraft.Interfaces
 {
-    public class SmallChestInterface : SingleContainerInterface
+    public class SmallChestInterface : PersistentContainerInterface
     {
-        public SmallChestInterface(World.WorldManager world, UniversalCoords coords)
-            : base(world, InterfaceType.Chest, coords, 27)
+        public SmallChestInterface(WorldManager world, UniversalCoords coords)
+            : base(world, coords, InterfaceType.Chest, 27)
         {
         }
 

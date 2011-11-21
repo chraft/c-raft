@@ -14,19 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
-using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
-    class BlockChest : BlockBase, IBlockInteractive
+    class BlockChest : BlockBaseContainer
     {
         public BlockChest()
         {
@@ -36,120 +30,107 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 300;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
             Chunk chunk = GetBlockChunk(block);
-            Chunk targetChunk = GetBlockChunk(targetBlock);
+            if (chunk == null)
+                return false;
 
-            if (chunk == null || targetChunk == null)
-                return;
+            bool isDoubleChestNearby = false;
+            int chestCount = 0;
+            chunk.ForNSEW(block.Coords, uc =>
+            {
+                byte? nearbyBlockId = block.World.GetBlockId(uc);
 
+                if (nearbyBlockId == null)
+                    return;
+
+                // Cannot place next to a double chest
+                if (nearbyBlockId == (byte)BlockData.Blocks.Chest)
+                {
+                    chestCount++;
+                     if (chunk.IsNSEWTo(uc, (byte)BlockData.Blocks.Chest))
+                        isDoubleChestNearby = true;
+                }
+            });
+
+            if (isDoubleChestNearby || chestCount > 1)
+                return false;
+            return base.CanBePlacedOn(who, block, targetBlock, targetSide);
+        }
+
+        protected override byte GetDirection(LivingEntity living, StructBlock block, StructBlock targetBlock, BlockFace face)
+        {
+            Chunk chunk = GetBlockChunk(block);
             // Load the blocks surrounding the position (NSEW) not diagonals
             BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
             UniversalCoords[] nsewBlockPositions = new UniversalCoords[4];
             int nsewCount = 0;
 
-            chunk.ForNSEW(block.Coords, (uc) =>
+            int secondChestIndex = -1;
+            chunk.ForNSEW(block.Coords, uc =>
             {
                 byte? nearbyBlockId = block.World.GetBlockId(uc);
 
-                if(nearbyBlockId == null)
+                if (nearbyBlockId == null)
                     return;
+
+                if (nearbyBlockId == (byte)BlockData.Blocks.Chest)
+                    secondChestIndex = nsewCount;
 
                 nsewBlocks[nsewCount] = (BlockData.Blocks)nearbyBlockId;
                 nsewBlockPositions[nsewCount] = uc;
                 nsewCount++;
             });
-
-            // Count chests in list
-            if (nsewBlocks.Where((b) => b == BlockData.Blocks.Chest).Count() > 1)
+            byte direction = base.GetDirection(living, block, targetBlock, face);
+            if (secondChestIndex != -1)
             {
-                // Cannot place next to two chests
-                return;
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                UniversalCoords p = nsewBlockPositions[i];
-                if (nsewBlocks[i] == BlockData.Blocks.Chest && chunk.IsNSEWTo(p, (byte)BlockData.Blocks.Chest))
+                UniversalCoords secondChestCoords = nsewBlockPositions[secondChestIndex];
+                byte secondChestDirection = chunk.GetData(secondChestCoords);
+                if (secondChestDirection != direction)
                 {
-                    // Cannot place next to a double chest
-                    return;
+                    if (secondChestCoords.WorldX == block.Coords.WorldX)
+                    {
+                        if (direction != (byte)MetaData.Container.South && direction != (byte)MetaData.Container.North)
+                            direction = (byte)MetaData.Container.South;                          
+                    }
+                    else
+                    {
+                        if (direction != (byte)MetaData.Container.East && direction != (byte)MetaData.Container.West)
+                            direction = (byte)MetaData.Container.West;
+                    }
+                }
+                else
+                {
+
+                    if (secondChestCoords.WorldX == block.Coords.WorldX && block.MetaData != (byte)MetaData.Container.North && block.MetaData != (byte)MetaData.Container.South)
+                        direction = (byte)MetaData.Container.South;
+                    else
+                        if (block.MetaData != (byte)MetaData.Container.West && block.MetaData != (byte)MetaData.Container.East)
+                            direction = (byte)MetaData.Container.West;
                 }
             }
-            base.Place(entity, block, targetBlock, face);
+
+            return direction;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        public override void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            Player player = entity as Player;
-            if (player != null)
-            {
-                SmallChestInterface sci = new SmallChestInterface(block.World, block.Coords);
-                sci.Associate(player);
-                sci.DropAll(block.Coords);
-                sci.Save();
-            }
-            base.DropItems(entity, block);
+            if (sourceBlock.Type == (byte)BlockData.Blocks.Chest)
+                targetBlock.World.SetBlockData(targetBlock.Coords, sourceBlock.MetaData);
+            base.NotifyPlace(entity, sourceBlock, targetBlock);
         }
 
         public void Interact(EntityBase entity, StructBlock block)
         {
-            Player player = entity as Player;
-            if (player == null)
-                return;
-            if (player.CurrentInterface != null)
-                return;
-
-            byte? blockId = block.World.GetBlockId(block.Coords);
-
-            if (blockId == null || !BlockHelper.Instance((byte)blockId).IsAir)
+            if (block.Coords.WorldY < 127)
             {
                 // Cannot open a chest if no space is above it
-                return;
+                byte? blockId = block.World.GetBlockId(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+                if (blockId == null || !BlockHelper.IsAir((byte)blockId))
+                    return;
             }
-
-            Chunk chunk = GetBlockChunk(block);
-
-            // Double chest?
-            if (chunk.IsNSEWTo(block.Coords, block.Type))
-            {
-                // Is this chest the "North or East", or the "South or West"
-                BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
-                UniversalCoords[] nsewBlockPositions = new UniversalCoords[4];
-                int nsewCount = 0;
-                chunk.ForNSEW(block.Coords, (uc) =>
-                {
-                    nsewBlocks[nsewCount] = (BlockData.Blocks)block.World.GetBlockId(uc);
-                    nsewBlockPositions[nsewCount] = uc;
-                    nsewCount++;
-                });
-
-                if ((byte)nsewBlocks[0] == block.Type) // North
-                {
-                    player.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[0], block.Coords);
-                }
-                else if ((byte)nsewBlocks[2] == block.Type) // East
-                {
-                    player.CurrentInterface = new LargeChestInterface(block.World, nsewBlockPositions[2], block.Coords);
-                }
-                else if ((byte)nsewBlocks[1] == block.Type) // South
-                {
-                    player.CurrentInterface = new LargeChestInterface(block.World, block.Coords, nsewBlockPositions[1]);
-                }
-                else if ((byte)nsewBlocks[3] == block.Type) // West
-                {
-                    player.CurrentInterface = new LargeChestInterface(block.World, block.Coords, nsewBlockPositions[3]);
-                }
-            }
-            else
-            {
-                player.CurrentInterface = new SmallChestInterface(block.World, block.Coords);
-            }
-
-            player.CurrentInterface.Associate(player);
-            player.CurrentInterface.Open();
+            base.Interact(entity, block);
         }
-
     }
 }

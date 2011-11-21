@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
-using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
 {
@@ -31,6 +23,7 @@ namespace Chraft.World.Blocks
         {
             Name = "WoodenDoor";
             Type = BlockData.Blocks.Wooden_Door;
+            IsWaterProof = true;
         }
     }
 }

@@ -14,14 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -61,8 +56,8 @@ namespace Chraft.World.Blocks
 
         public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
-            if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY)
-                Destroy(targetBlock);
+            // TODO: Destroy if adjacent block is destroyed
+                //Destroy(targetBlock);
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
     }

@@ -16,6 +16,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -292,13 +293,13 @@ namespace Chraft.Entity
         public void StartSprinting()
         {
             Data.IsSprinting = true;
-            SendMetadataUpdate(false);
+            SendMetadataUpdate();
         }
 
         public void StopSprinting()
         {
             Data.IsSprinting = false;
-            SendMetadataUpdate(false);
+            SendMetadataUpdate();
         }
         #endregion
 
@@ -586,7 +587,7 @@ namespace Chraft.Entity
 
         public Chunk GetCurrentChunk()
         {
-            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z, false, false);
+            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z);
 
             return chunk;
         }
@@ -621,13 +622,39 @@ namespace Chraft.Entity
                         return;
 
                     int packedChunk = UniversalCoords.FromChunkToPackedChunk(x, z);
-                    //_Client.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1} Packed: {2}", x, z, packedChunk);
+
                     nearbyChunks.Add(packedChunk, packedChunk);
 
                     if (!LoadedChunks.ContainsKey(packedChunk))
                     {
-                        Chunk chunk = World.GetChunkFromChunk(x, z, true, true);
+                        Chunk chunk;
+                        if (sync)
+                            chunk = World.GetChunkFromChunkSync(x, z, true, true);
+                        else
+                            chunk = World.GetChunkFromChunkAsync(x, z, Client, true, true);
+
                         LoadedChunks.TryAdd(packedChunk, chunk);
+
+                        if (chunk == null)
+                            continue;
+
+
+                        if (chunk.LightToRecalculate)
+                        {
+#if PROFILE
+                            Stopwatch watch = new Stopwatch();
+                            watch.Start();
+
+                            chunk.RecalculateSky();
+
+                            watch.Stop();
+
+                            World.Logger.Log(Logger.LogLevel.Info, "Skylight recalc: {0}", watch.ElapsedMilliseconds);
+#else
+                            chunk.RecalculateSky();
+#endif
+                        }
+
                         chunk.AddClient(Client);
                         _client.SendPreChunk(x, z, true, sync);
                         _client.SendChunk(chunk, sync);
@@ -642,11 +669,16 @@ namespace Chraft.Entity
                 {
                     if (token.IsCancellationRequested)
                         return;
-
-                    _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c), UniversalCoords.FromPackedChunkToZ(c), false, sync);
                     Chunk chunk;
                     LoadedChunks.TryRemove(c, out chunk);
-                    chunk.RemoveClient(_client);
+
+
+                    if (chunk != null)
+                    {
+                        chunk.RemoveClient(_client);
+                        _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c),
+                                             UniversalCoords.FromPackedChunkToZ(c), false, sync);
+                    }
                 }
             }
 

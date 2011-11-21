@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using System.Reflection;
 using Chraft.Plugins.Events;
 
 namespace Chraft.Plugins.SamplePlugin
@@ -45,7 +46,7 @@ namespace Chraft.Plugins.SamplePlugin
             get { return "http://www.c-raft.com"; }
         }
 
-        public Version Version { get; private set; }
+        public Version Version { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
 
         public Server Server { get; set; }
         public PluginManager PluginManager { get; set; }
@@ -71,7 +72,7 @@ namespace Chraft.Plugins.SamplePlugin
             PluginManager.RegisterEvent(Event.PlayerChat, _playerListener, this);
             PluginManager.RegisterEvent(Event.PlayerDied, _playerListener, this);
             PluginManager.RegisterEvent(Event.EntitySpawn, _entitiyListener, this);
-            Console.WriteLine(Name + " " + Version + " Enabled");
+            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
         }
 
         public void OnDisabled()
@@ -80,7 +81,7 @@ namespace Chraft.Plugins.SamplePlugin
             PluginManager.UnregisterEvent(Event.PlayerChat, _playerListener, this);
             PluginManager.UnregisterEvent(Event.PlayerDied, _playerListener, this);
             PluginManager.UnregisterEvent(Event.EntitySpawn, _entitiyListener, this);
-            Console.WriteLine(Name + " " + Version + " Disabled");
+            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
         }
     }
 }

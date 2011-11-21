@@ -14,31 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
-    class BlockRedstoneOreGlowing : BlockBase
+    class BlockRedstoneOreGlowing : BlockRedstoneOre
     {
         public BlockRedstoneOreGlowing()
         {
             Name = "RedstoneOreGlowing";
             Type = BlockData.Blocks.Redstone_Ore_Glowing;
-            IsSolid = true;
             Luminance = 0x7;
-        }
-
-        protected override void DropItems(EntityBase entity, StructBlock block)
-        {
-            LootTable = new List<ItemStack>();
-            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone, (sbyte)(2 + block.World.Server.Rand.Next(4))));
-            base.DropItems(entity, block);
         }
     }
 }

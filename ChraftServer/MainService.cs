@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
@@ -24,6 +25,7 @@ using Chraft.Commands;
 using Chraft.Plugins.Events;
 using Chraft.Plugins.Events.Args;
 using Chraft.Properties;
+using Chraft.Utils;
 
 namespace ChraftServer
 {
@@ -83,6 +85,8 @@ namespace ChraftServer
             AppDomain.CurrentDomain.UnhandledException += UnhandledException_Handler;
             //Configure service current directory and managers
             Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            if (!Directory.Exists("Converter"))
+                Directory.CreateDirectory("Converter");
 
             //run as service
             if (args.Any(a => a.Equals("-service", StringComparison.InvariantCultureIgnoreCase)))
@@ -92,35 +96,45 @@ namespace ChraftServer
             else
             {
                 Version version = Assembly.GetExecutingAssembly().GetName().Version;
-
                 if (!IsRunningInMono)
                     Console.Title = "C#raft v" + version;
-                   
+
                 Console.WriteLine("C#raft v{0}", version);
+
+                PlayerNBTConverter a = new PlayerNBTConverter();
+                foreach (var s in Directory.GetFiles("Converter", "*.dat", SearchOption.TopDirectoryOnly))
+                {
+                    Console.WriteLine("Converting {0} to C#raft format", s);
+                    a.ConvertPlayerNBT(s);
+                }
+
                 OnStart(args);
+
+
                 while (true)
                 {
                     string input = Console.ReadLine();
+                    if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(input.Trim()))
+                        continue;
                     if (Server == null) return;
-                    if (input == null) return;
                     string[] inputParts = input.Split();
                     var cleanedtokens = inputParts.Skip(1).ToArray();
                     try
                     {
                         var cmd = Server.ServerCommandHandler.Find(inputParts[0]) as IServerCommand;
                         if (cmd == null) return;
-                            //todo - make this better
+                        //todo - make this better
                         if (cmd is CmdStop)
                         {
                             Server.Stop();
                         }
-                        
+
                         //Event Start
                         ServerCommandEventArgs e = new ServerCommandEventArgs(Server, cmd, inputParts);
                         Server.PluginManager.CallEvent(Event.ServerCommand, e);
-                        if (e.EventCanceled) { return;}
+                        if (e.EventCanceled) { return; }
                         //Event End
-                        
+
                         cmd.Use(Server, inputParts[0], cleanedtokens);
                     }
                     catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }

@@ -16,11 +16,6 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.Serialization;
-using Chraft.Net;
-using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
 using Chraft.Entity;
 
@@ -81,7 +76,7 @@ namespace Chraft.Interfaces
 				yield return this[i];
 		}
 
-		internal void AddItem(short id, sbyte count, short durability)
+		internal void AddItem(short id, sbyte count, short durability, bool isInGame =true)
 		{
 			// Quickslots, stacking
             for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
@@ -118,8 +113,11 @@ namespace Chraft.Interfaces
 			{
 				if (ItemStack.IsVoid(Slots[i]))
 				{
-					Owner.Client.SendPacket(new ChatMessagePacket { Message = "Placing in slot " + i });
-					this[i] = new ItemStack(id, count, durability) { Slot = i };
+                    if (isInGame)
+                    {
+                        Owner.Client.SendPacket(new ChatMessagePacket {Message = "Placing in slot " + i});
+                    }
+				    this[i] = new ItemStack(id, count, durability) { Slot = i };
 					return;
 				}
 			}

@@ -34,6 +34,7 @@ namespace ChraftTestClient
         private PacketReader _packetReader;
         private bool _running;
         private string _userName;
+        public const StreamRole Role = StreamRole.Client;
 
         public string UserName
         {
@@ -66,8 +67,13 @@ namespace ChraftTestClient
 
         private int _time;
 
-        public TestClient(string name)
+        public bool WaitInitialPositionRequest = true;
+
+        private Random _rand;
+
+        public TestClient(string name, Random rand)
         {
+            _rand = rand;
             _userName = name;
             _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _receiveBufferQueue = new ByteQueue();
@@ -75,14 +81,24 @@ namespace ChraftTestClient
             _fragPackets = new ByteQueue();
             _socketAsyncArgs = new SocketAsyncEventArgs();
             _receiveQueueReader = new Thread(ProcessReadQueue);
-            
+            Packet.Role = StreamRole.Client;
         }
 
         public void Start(IPEndPoint ipEnd)
         {
             _running = true;
 
-            _socket.Connect(ipEnd);
+            try
+            {
+                _socket.Connect(ipEnd);          
+            }
+            catch(Exception e)
+            {
+                using (StreamWriter sw = new StreamWriter("TC" + UserName, true))
+                {
+                    sw.WriteLine("ConnectionExc: {0}", e);
+                }
+            }
 
             _socketAsyncArgs.Completed += RecvCompleted;
             _socketAsyncArgs.SetBuffer(_recvBuffer, 0, 2048);
@@ -102,16 +118,27 @@ namespace ChraftTestClient
         {
             int time = Interlocked.Increment(ref _time);
 
-            if(time % 5 == 0)
+            if (!WaitInitialPositionRequest && (time % 5) == 0)
             {
-                Random randGen = new Random();
-                double randX = 0.05 + randGen.NextDouble()*0.1;
-                double randZ = 0.05 + randGen.NextDouble() * 0.1;
+                int factor = 1;
+                double rand1;
+                double rand2;
+
+                if ((rand1 = _rand.NextDouble()) > (rand2 = _rand.NextDouble()))
+                    factor = -1;
+
+                double randX = (0.1 + rand1 * 0.2) * factor;
+                double randZ = (0.1 + rand2 * 0.2) * factor;
 
                 Position = new AbsWorldCoords(Position.X + randX, Position.Y, Position.Z + randZ);
 
                 SendPacket(new PlayerPacket{OnGround = true});
                 SendPacket(new PlayerPositionPacket{OnGround = true, X = Position.X, Y = Position.Y, Z = Position.Z});
+            }
+
+            if((time % 50) == 0)
+            {
+                SendPacket(new KeepAlivePacket{KeepAliveID = 1});
             }
         }
         public void SendMessage(string Message)
@@ -280,10 +307,15 @@ namespace ChraftTestClient
 
                     /*using(StreamWriter sw = new StreamWriter(String.Format("recv_packets{0}.log", _userName), true))
                     {
-                        sw.WriteLine("{0} - Received packet {1}", DateTime.Now, ((PacketType)packetType));
+                        byte[] enums = (byte[])Enum.GetValues(typeof (PacketType));
+                        int i = Array.BinarySearch(enums, 0, enums.Length, packetType);
+
+                        if(i != -1)
+                            sw.WriteLine("{0} - Received packet {1}", DateTime.Now, ((PacketType)packetType));
+                        else
+                            sw.WriteLine("{0} - Received packet {1}", DateTime.Now, packetType);
                     }*/
 
-                    bool result = false;
                     //result = HandlePacket(packetType, length);
 
                     ClientPacketHandler handler = PacketHandlers.GetHandler((PacketType)packetType);
@@ -294,7 +326,7 @@ namespace ChraftTestClient
                         {
                             byte[] unhandled = GetBufferToBeRead(length);
 
-                            sw.WriteLine("PacketType: {0}", unhandled[0]);
+                            sw.WriteLine("{0} - PacketType: {1}", DateTime.Now, unhandled[0]);
                             sw.WriteLine(BitConverter.ToString(unhandled));
                         }
 
@@ -303,34 +335,46 @@ namespace ChraftTestClient
                     else if (handler.Length == 0)
                     {
                         byte[] data = GetBufferToBeRead(length);
-
-                        if (length >= handler.MinimumLength)
-                        {
-                            PacketReader reader = new PacketReader(data, length, StreamRole.Client);
-
-                            handler.OnReceive(this, reader);
-
-                            // If we failed it's because the packet isn't complete
-                            if (reader.Failed)
+                        /*using (StreamWriter sw = new StreamWriter(String.Format("recv_packets{0}.log", _userName), true))
+                        {*/
+                            if (length >= handler.MinimumLength)
                             {
-                                EnqueueFragment(data);
-                                length = 0;
+                                PacketReader reader = new PacketReader(data, length);
+
+                                handler.OnReceive(this, reader);
+                                
+                                // If we failed it's because the packet isn't complete
+                                if (reader.Failed)
+                                {
+                                    //sw.WriteLine("Failed Fragmented: {0}", BitConverter.ToString(data));
+                                    EnqueueFragment(data);
+                                    length = 0;
+                                }
+                                else
+                                {
+                                    //sw.WriteLine("Variable length: {0}", BitConverter.ToString(data, 0, reader.Index));
+                                    _readingBufferQueue.Enqueue(data, reader.Index, data.Length - reader.Index);
+                                    length = _readingBufferQueue.Length;
+                                }
                             }
                             else
                             {
-                                _readingBufferQueue.Enqueue(data, reader.Index, data.Length - reader.Index);
-                                length = _readingBufferQueue.Length;
+                                //sw.WriteLine("Fragmented variable: {0}", BitConverter.ToString(data));
+                                // Not enough data
+                                EnqueueFragment(data);
+                                length = 0;
                             }
-                        }
-                        else
-                            EnqueueFragment(data); // Not enough data
+                        //}
 
                     }
                     else if (length >= handler.Length)
                     {
                         byte[] data = GetBufferToBeRead(handler.Length);
-
-                        PacketReader reader = new PacketReader(data, handler.Length, StreamRole.Client);
+                        /*using (StreamWriter sw = new StreamWriter(String.Format("recv_packets{0}.log", _userName), true))
+                        {                          
+                            sw.WriteLine("Fixed length: {0}", BitConverter.ToString(data));
+                        }*/
+                        PacketReader reader = new PacketReader(data, handler.Length);
 
                         handler.OnReceive(this, reader);
 
@@ -350,9 +394,13 @@ namespace ChraftTestClient
                     }
                     else
                     {
-                        byte[] data = GetBufferToBeRead(length);
-                        EnqueueFragment(data);
-                        length = 0;
+                        /*using (StreamWriter sw = new StreamWriter(String.Format("recv_packets{0}.log", _userName), true))
+                        { */                          
+                            byte[] data = GetBufferToBeRead(length);
+                            //sw.WriteLine("Fragmented fixed: {0}", BitConverter.ToString(data));
+                            EnqueueFragment(data);
+                            length = 0;
+                        //}
                     }
                 }
             }
@@ -392,6 +440,9 @@ namespace ChraftTestClient
         public static void HandlePacketPlayerPositionRotation(TestClient client, PlayerPositionRotationPacket ppr)
         {
             client.Position = new AbsWorldCoords(ppr.X, ppr.Y, ppr.Z);
+
+            client.SendPacket(ppr);
+            client.WaitInitialPositionRequest = false;
         }
 
         public static void HandlePacketSpawnPosition(TestClient client, SpawnPositionPacket sp)

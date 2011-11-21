@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -33,13 +29,13 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
             // SnowBlock requires 9 snowballs to craft and drops 4-6 snowballs upon destruction.
             // No tools required.
-            LootTable = new List<ItemStack>();
-            LootTable.Add(new ItemStack((short)BlockData.Items.Snowball, (sbyte)(4 + block.World.Server.Rand.Next(2))));
-            base.DropItems(entity, block);
+            overridedLoot = new List<ItemStack>();
+            overridedLoot.Add(new ItemStack((short)BlockData.Items.Snowball, (sbyte)(4 + block.World.Server.Rand.Next(2))));
+            base.DropItems(entity, block, overridedLoot);
         }
     }
 }

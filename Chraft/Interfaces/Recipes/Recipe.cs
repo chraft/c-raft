@@ -183,10 +183,7 @@ namespace Chraft.Interfaces.Recipes
 			foreach (Recipe r in recipes)
 			{
 				if (r.Matches(ingredients))
-				{
-					Console.WriteLine("Matches recipe: " + r.Result.Type + " " + r.Result.Count);
 					return r;
-				}
 			}
 			return null;
 		}

@@ -15,13 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -83,7 +79,7 @@ namespace Chraft.World.Blocks
             for (int dX = -3; dX < 4; dX++)
                 for (int dZ = -3; dZ < 4; dZ++)
                 {
-                    Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX, block.Coords.WorldZ + dZ, false, false);
+                    Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX, block.Coords.WorldZ + dZ);
                     if (currentChunk == null)
                         continue;
 

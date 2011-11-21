@@ -14,28 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 
-namespace Chraft.World.NBT
+namespace Chraft.World.Blocks.Physics
 {
-    /// <summary>
-    /// Identifier for a NBT node.
-    /// </summary>
-    public interface INBTTag
+    interface IBlockPhysics
     {
-        /// <summary>
-        /// The name of the node.
-        /// </summary>
-        string Name { get; set; }
-
-        /// <summary>
-        /// The payload (value) of the node.
-        /// </summary>
-        dynamic Payload { get; set; }
-
-        /// <summary>
-        /// The tag type of the node.
-        /// </summary>
-        TagNodeType Type { get; set; }
+        void Start();
+        void Simulate();
+        void Stop(bool forceStop = false);
     }
 }

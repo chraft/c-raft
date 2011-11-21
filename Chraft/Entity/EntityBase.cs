@@ -319,7 +319,7 @@ namespace Chraft.Entity
                 {                 
                     for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
                     {
-                        Chunk chunk = World.GetChunkFromWorld(x, z, false, false);
+                        Chunk chunk = World.GetChunkFromWorld(x, z);
 
                         if (chunk == null)
                             continue;

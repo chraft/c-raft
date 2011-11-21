@@ -15,10 +15,13 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using Chraft.Interfaces.Containers;
+using Chraft.Net.Packets;
 using Chraft.Properties;
 using System.IO;
 using System.Threading;
 using Chraft.Net;
+using Chraft.World;
 
 namespace Chraft.Interfaces
 {
@@ -30,159 +33,61 @@ namespace Chraft.Interfaces
     /// </remarks>
     public abstract class PersistentContainerInterface: Interface
     {
-        private object _savingLock = new object();
-        private static volatile bool _saving = false;
+        public WorldManager World { get; private set; }
+        public UniversalCoords Coords { get; private set; }
 
-        protected String DataPath { get { return Path.Combine(this.World.Folder, Settings.Default.ContainersFolder); } }
+        public PersistentContainer Container;
 
-        protected World.WorldManager World { get; private set; }
-
-        internal PersistentContainerInterface(World.WorldManager world, InterfaceType interfaceType, sbyte slotCount)
+        internal PersistentContainerInterface(WorldManager world, UniversalCoords coords, InterfaceType interfaceType, sbyte slotCount)
             : base(interfaceType, slotCount)
         {
-            this.World = world;
-
-            EnsureDirectory();
-        }
-
-        static bool directoryInitialised = false;
-        private void EnsureDirectory()
-        {
-            if (!directoryInitialised)
-            {
-                if (!Directory.Exists(DataPath))
-                {
-                    Directory.CreateDirectory(DataPath);
-                }
-                directoryInitialised = true;
-            }
+            World = world;
+            Coords = coords;
         }
 
         protected override void DoClose()
         {
+            ContainerFactory.Close(this, Coords);
             base.DoClose();
-
-            Save();
         }
 
-        protected virtual bool CanLoad()
+        internal override void OnClicked(WindowClickPacket packet)
         {
-            return Settings.Default.LoadFromSave;
-        }
-
-        protected virtual void DoLoadFromFile(ItemStack[] itemStack, string file)
-        {
-            if (File.Exists(file))
+            if (IsSharedSlot(packet.Slot))
             {
-                using (FileStream containerStream = File.Open(file, FileMode.Open, FileAccess.Read))
-                {
-                    using (BigEndianStream bigEndian = new BigEndianStream(containerStream, StreamRole.Server))
-                    {
-                        for (int i = 0; i < itemStack.Length; i++)
-                        {
-                            itemStack[i] = new ItemStack(bigEndian);
-                        }
-                    }
-                }
-            }
-        }
-
-        protected abstract void DoLoad();
-        
-        protected void Load()
-        {
-            if (!CanLoad())
-                return;
-
-            Monitor.Enter(_savingLock);
-            try
-            {
-                DoLoad();
-                return;
-            }
-            catch (Exception ex)
-            {
-                World.Logger.Log(ex);
-                return;
-            }
-            finally
-            {
-                Monitor.Exit(_savingLock);
-            }
-        }
-
-        private bool EnterSave()
-        {
-            lock (_savingLock)
-            {
-                if (_saving)
-                    return false;
-                _saving = true;
-                return true;
-            }
-        }
-
-        private void ExitSave()
-        {
-            _saving = false;
-        }
-
-        protected virtual void DoSaveToFile(ItemStack[] itemStack, string file)
-        {
-            if (this.IsEmpty())
-            {
-                File.Delete(file);
+                if (!SharedSlotClicked(packet))
+                    return;
+                base.OnClicked(packet);
+                Container.ChangeSlot(packet.WindowId, packet.Slot, Slots[packet.Slot]);
             }
             else
-            {
-                try
-                {
-                    using (FileStream fileStream = File.Create(file + ".tmp"))
-                    {
-                        using (BigEndianStream bigEndianStream = new BigEndianStream(fileStream, StreamRole.Server))
-                        {
-                            foreach (ItemStack stack in itemStack)
-                            {
-                                if (stack != null)
-                                {
-                                    stack.Write(bigEndianStream);
-                                }
-                                else
-                                {
-                                    ItemStack.Void.Write(bigEndianStream);
-                                }
-                            }
-                        }
-
-                    }
-                }
-                finally
-                {
-                    File.Delete(file);
-                    File.Move(file + ".tmp", file);
-                }
-            }
+                base.OnClicked(packet);
         }
 
-        protected abstract void DoSave();
-
-        public void Save()
+        protected virtual bool IsSharedSlot(short slot)
         {
-            if (!EnterSave())
-                return;
+            return (slot >= 0 && slot < SlotCount);
+        }
 
-            try
+        protected virtual bool SharedSlotClicked(WindowClickPacket packet)
+        {
+            if (Container.SlotCanBeChanged(packet))
+                return true;
+
+            Owner.Client.SendPacket(new TransactionPacket
             {
-                DoSave();
-            }
-            catch
-            {
-                // TODO: some form of logging
-            }
-            finally
-            {
-                ExitSave();
-            }
+                Accepted = false,
+                Transaction = packet.Transaction,
+                WindowId = packet.WindowId
+            });
+            return false;
+        }
+
+        protected override void DoOpen()
+        {
+            for (int i = 0; i < Container.SlotsCount; i++)
+                Slots[i] = Container[i];
+            base.DoOpen();
         }
     }
 }

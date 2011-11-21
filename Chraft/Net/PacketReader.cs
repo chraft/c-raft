@@ -29,8 +29,6 @@ namespace Chraft.Net
 		private int _Index;
         private bool _Failed;
 
-        public StreamRole Role { get; private set; }
-
         public int Index
         {
             get
@@ -53,13 +51,12 @@ namespace Chraft.Net
             set { _Failed = value; }
         }
 
-        public PacketReader(byte[] data, int size, StreamRole role)
+        public PacketReader(byte[] data, int size)
         {
             _Data = data;
             _Size = size;
             _Index = 1;
             _Failed = false;
-            Role = role;
         }
 
         public bool CheckBoundaries(int size)

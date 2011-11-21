@@ -1,19 +1,21 @@
-#region C#raft License
-// This file is part of C#raft. Copyright C#raft Team 
-// 
-// C#raft is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-// 
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
-#endregion
+/*
+* Copyright 2011 Benjamin Glatzel <benjamin.glatzel@me.com>.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
+/* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
+
 using Chraft.World;
 using System;
 using System.Diagnostics;
@@ -63,28 +65,32 @@ namespace Chraft.WorldGen
             _FastRandom = new FastRandom(_Seed);
         }
 
-        public void ProvideChunk(int x, int z, Chunk chunk, bool recalculate)
+        public Chunk ProvideChunk(int x, int z, WorldManager world)
         {
-            
+            Chunk chunk = new Chunk(world, UniversalCoords.FromChunk(x,z));
             InitGen();
 
             byte[] data = new byte[32768];
+#if PROFILE
             Stopwatch watch = new Stopwatch();
             watch.Start();
+#endif
             GenerateTerrain(chunk, data, x, z);
             GenerateFlora(chunk, data, x, z);
             chunk.SetAllBlocks(data);
+                    
+            chunk.RecalculateHeight();
+            chunk.LightToRecalculate = true;
+#if PROFILE
             watch.Stop();
-            if(recalculate)
-                chunk.Recalculate();
-           
 
-            Console.WriteLine("Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
+            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", false, x, z, watch.ElapsedMilliseconds);
+#endif
 
-            
-            //chunk.Save();
             _World.AddChunk(chunk);
             chunk.MarkToSave();
+
+            return chunk;
         }
 
         private void GenerateTerrain(Chunk c, byte[] data, int x, int z)
@@ -310,7 +316,7 @@ namespace Chraft.WorldGen
         private bool CanSeeTheSky(int x, int y, int z, byte[] data)
         {
             int by;
-            for (by = y; BlockHelper.Instance(data[x << 11 | z << 7 | by]).Opacity == 0 && by < 128; ++by);
+            for (by = y; BlockHelper.Opacity(data[x << 11 | z << 7 | by]) == 0 && by < 128; ++by);
 
             return by == 128;
         }
@@ -549,20 +555,28 @@ namespace Chraft.WorldGen
 
         }
 
-        private static double lerp(double x, double x1, double x2, double q00, double q01)
+        private static double lerp(double t, double q00, double q01)
         {
-            return ((x2 - x) / (x2 - x1)) * q00 + ((x - x1) / (x2 - x1)) * q01;
+            return q00 + t * (q01 - q00);
         }
 
         private static double triLerp(double x, double y, double z, double q000, double q001, double q010, double q011, double q100, double q101, double q110, double q111, double x1, double x2, double y1, double y2, double z1, double z2)
         {
-            double x00 = lerp(x, x1, x2, q000, q100);
-            double x10 = lerp(x, x1, x2, q010, q110);
-            double x01 = lerp(x, x1, x2, q001, q101);
-            double x11 = lerp(x, x1, x2, q011, q111);
-            double r0 = lerp(y, y1, y2, x00, x01);
-            double r1 = lerp(y, y1, y2, x10, x11);
-            return lerp(z, z1, z2, r0, r1);
+            double distanceX = x2 - x1;
+            double distanceY = y2 - y1;
+            double distanceZ = z2 - z1;
+
+            double tX = (x - x1) / distanceX;
+
+            double tY = (y - y1) / distanceY;
+
+            double x00 = lerp(tX, q000, q100);
+            double x10 = lerp(tX, q010, q110);
+            double x01 = lerp(tX, q001, q101);
+            double x11 = lerp(tX, q011, q111);
+            double r0 = lerp(tY, x00, x01);
+            double r1 = lerp(tY, x10, x11);
+            return lerp((z - z1) / distanceZ, r0, r1);
         }
 
         private void triLerpDensityMap(double[, ,] densityMap)
@@ -578,7 +592,7 @@ namespace Chraft.WorldGen
                             int offsetX = (x / 4) * 4;
                             int offsetY = (y / 8) * 8;
                             int offsetZ = (z / 4) * 4;
-                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
+                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
                         }
                     }
                 }

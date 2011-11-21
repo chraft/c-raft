@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Interfaces;
 
 namespace Chraft.World.Blocks
@@ -128,13 +124,13 @@ namespace Chraft.World.Blocks
 
             if (block.MetaData < 0xe) // 14
             {
-
                 chunk.SetData(block.Coords, ++block.MetaData, false);
                 return;
             }
 
             chunk.SetData(block.Coords, 0);
-            chunk.SetBlockAndData(oneUp, (byte)BlockData.Blocks.Cactus, 0x0);
+            StructBlock newCactus = new StructBlock(oneUp, (byte)Type, 0, block.World);
+            Spawn(newCactus);
         }
 
         public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
@@ -144,7 +140,8 @@ namespace Chraft.World.Blocks
             if (entity is ItemEntity)
             {
                 entity.Server.RemoveEntity(entity);
-            } else if (entity is LivingEntity)
+            }
+            else if (entity is LivingEntity)
             {
                 LivingEntity living = entity as LivingEntity;
                 living.TouchedCactus();

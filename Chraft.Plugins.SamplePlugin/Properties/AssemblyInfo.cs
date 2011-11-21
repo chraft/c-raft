@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Chraft.Plugins.SamplePlugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("C#raft")]
+[assembly: AssemblyCompany("C#raft Team")]
 [assembly: AssemblyProduct("Chraft.Plugins.SamplePlugin")]
 [assembly: AssemblyCopyright("Copyright © C#raft Team 2011")]
 [assembly: AssemblyTrademark("")]

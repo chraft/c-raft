@@ -177,22 +177,22 @@ namespace Chraft.World
 
         public byte GetLuminance(UniversalCoords coords)
 		{
-            return BlockHelper.Instance((byte)GetType(coords)).Luminance;
+            return BlockHelper.Luminance((byte)GetType(coords));
 		}
 
         public byte GetLuminance(int blockX, int blockY, int blockZ)
         {
-            return BlockHelper.Instance((byte)GetType(blockX, blockY, blockZ)).Luminance;
+            return BlockHelper.Luminance((byte)GetType(blockX, blockY, blockZ));
         }
 
         public byte GetOpacity(UniversalCoords coords)
         {
-            return BlockHelper.Instance((byte)GetType(coords)).Opacity;
+            return BlockHelper.Opacity((byte)GetType(coords));
         }
 
         public byte GetOpacity(int blockX, int blockY, int blockZ)
 		{
-            return BlockHelper.Instance((byte)GetType(blockX, blockY, blockZ)).Opacity;
+            return BlockHelper.Opacity((byte)GetType(blockX, blockY, blockZ));
 		}
 
 		public void SetAllBlocks(byte[] data)
@@ -336,7 +336,7 @@ namespace Chraft.World
 
         public bool IsAir(UniversalCoords coords)
 		{
-			return BlockHelper.Instance((byte)GetType(coords)).IsAir;
+            return BlockHelper.IsAir((byte)GetType(coords));
 		}
 
         public void MarkToSave()

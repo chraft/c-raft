@@ -15,16 +15,13 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
 {
-    public class FallingSand : BlockBasePhysics
+    public class FallingSand : BaseFallingPhysics
     {
         protected byte BlockId;
 
@@ -64,7 +61,7 @@ namespace Chraft.World.Blocks.Physics
             if (blockId == null)
                 return;
 
-            if (BlockHelper.Instance((byte)blockId).IsAir)
+            if (BlockHelper.IsAir((byte)blockId))
             {
                 World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
             }
