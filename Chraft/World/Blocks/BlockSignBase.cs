@@ -15,10 +15,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Net.Packets;
 
@@ -30,7 +28,7 @@ namespace Chraft.World.Blocks
         private object folderLock = new object();
         public void SaveText(UniversalCoords coords, Player player, string[] lines)
         {
-            string folderPath = player.World.SignsFolder + "/x" + coords.ChunkX + "_z" + coords.ChunkZ;
+            string folderPath = Path.Combine(player.World.SignsFolder, "x" + coords.ChunkX + "_z" + coords.ChunkZ);
 
             // Here it's possible that two or more different signs lead to the same folder, so we need to lock
             lock (folderLock)
@@ -42,7 +40,7 @@ namespace Chraft.World.Blocks
             string text = string.Join(String.Empty, lines.ToArray());
             /* Here it's "impossible" that we receive two updates of the same sign at the same time. We don't need to lock also
              * because we can't write a sign not loaded (so the read of the sign file can't happen at the same time of a write) */
-            using (StreamWriter sw = new StreamWriter(String.Format("{0}/sign_{1}_{2}_{3}.txt", folderPath, coords.BlockX, coords.BlockY, coords.BlockZ)))
+            using (StreamWriter sw = new StreamWriter(String.Format("{0}{1}sign_{2}_{3}_{4}.txt", folderPath, Path.DirectorySeparatorChar, coords.BlockX, coords.BlockY, coords.BlockZ)))
             {
                 sw.WriteLine("{0}, {1}, {2} {3} {4}", text, player.DisplayName, coords.WorldX, coords.WorldY, coords.WorldZ);
             }
@@ -54,7 +52,7 @@ namespace Chraft.World.Blocks
 
         public void LoadSignsFromDisk(Chunk chunk, string signFolder)
         {
-            string folderPath = signFolder + "/x" + chunk.Coords.ChunkX + "_z" + chunk.Coords.ChunkZ;
+            string folderPath = Path.Combine(signFolder, "x" + chunk.Coords.ChunkX + "_z" + chunk.Coords.ChunkZ);
 
             if (Directory.Exists(folderPath))
             {
@@ -97,12 +95,12 @@ namespace Chraft.World.Blocks
 
         public override void Destroy(EntityBase entity, StructBlock block)
         {
-            string folderPath = entity.World.SignsFolder + "/x" + block.Coords.ChunkX + "_z" + block.Coords.ChunkZ;
+            string folderPath = Path.Combine(entity.World.SignsFolder, "x" + block.Coords.ChunkX + "_z" + block.Coords.ChunkZ);
 
             if (Directory.Exists(folderPath))
             {
                 string unused;
-                File.Delete(String.Format("{0}/sign_{1}_{2}_{3}.txt", folderPath, block.Coords.BlockX,
+                File.Delete(String.Format("{0}{1}sign_{2}_{3}_{4}.txt", folderPath, Path.DirectorySeparatorChar, block.Coords.BlockX,
                                           block.Coords.BlockY, block.Coords.BlockZ));
 
                 Chunk chunk = GetBlockChunk(block);

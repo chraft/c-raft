@@ -113,6 +113,12 @@
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Monster.cs" />
+    <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
+    <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
+    <Compile Include="Interfaces\Containers\FurnaceContainer.cs" />
+    <Compile Include="Interfaces\Containers\PersistentContainer.cs" />
+    <Compile Include="Interfaces\Containers\SmallChestContainer.cs" />
+    <Compile Include="Interfaces\Containers\LargeChestContainer.cs" />
     <Compile Include="Net\BigEndianStream.cs" />
     <Compile Include="Net\BufferPool.cs" />
     <Compile Include="Net\ByteQueue.cs" />
@@ -135,6 +141,16 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
+    <Compile Include="Utils\NBT\ChunkTag.cs" />
+    <Compile Include="Utils\NBT\EndiannessConverter.cs" />
+    <Compile Include="Utils\NBT\MCPoint.cs" />
+    <Compile Include="Utils\NBT\MCROffset.cs" />
+    <Compile Include="Utils\NBT\MCRTStamp.cs" />
+    <Compile Include="Utils\NBT\NBTFile.cs" />
+    <Compile Include="Utils\NBT\NBTTag.cs" />
+    <Compile Include="Utils\NBT\RegionFile.cs" />
+    <Compile Include="Utils\NBT\SCHEMATICTag.cs" />
+    <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="Utils\RecipeObject.cs" />
     <Compile Include="Utils\WeightedValue.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
@@ -145,6 +161,7 @@
     <Compile Include="WorldGen\Noises.cs" />
     <Compile Include="World\AbsWorldCoords.cs" />
     <Compile Include="World\Blocks\Base\BlockBase.cs" />
+    <Compile Include="World\Blocks\Base\BlockBaseContainer.cs" />
     <Compile Include="World\Blocks\Base\BlockBaseDoor.cs" />
     <Compile Include="World\Blocks\Base\BlockBaseMushroom.cs" />
     <Compile Include="World\Blocks\BlockAir.cs" />
@@ -246,11 +263,13 @@
     <Compile Include="World\Blocks\BlockPistonHead.cs" />
     <Compile Include="World\Blocks\BlockSponge.cs" />
     <Compile Include="World\Blocks\BlockStickyPiston.cs" />
-    <Compile Include="World\Blocks\Physics\BlockBasePhysics.cs" />
+    <Compile Include="World\Blocks\Physics\BaseFallingPhysics.cs" />
     <Compile Include="World\Blocks\Physics\FallingSand.cs" />
     <Compile Include="World\Blocks\Physics\FallingGravel.cs" />
     <Compile Include="World\Blocks\BlockRedMushroomCap.cs" />
     <Compile Include="World\Blocks\BlockBrownMushroomCap.cs" />
+    <Compile Include="World\Blocks\Physics\IBlockPhysics.cs" />
+    <Compile Include="World\ChunkEntry.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="Entity\Mob.cs" />
     <Compile Include="Entity\Mob.AI.cs" />
@@ -286,7 +305,6 @@
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
     <Compile Include="Interfaces\Recipes\SmeltingRecipe.cs" />
-    <Compile Include="Interfaces\SingleContainerInterface.cs" />
     <Compile Include="Interfaces\SmallChestInterface.cs" />
     <Compile Include="Interfaces\WorkbenchInterface.cs" />
     <Compile Include="Irc\HostMask.cs" />
@@ -353,16 +371,8 @@
     <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
+    <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
-    <Compile Include="World\NBT\EndianConverter.cs" />
-    <Compile Include="World\NBT\INBTTag.cs" />
-    <Compile Include="World\NBT\MCRegionReader.cs" />
-    <Compile Include="World\NBT\NBTReader.cs" />
-    <Compile Include="World\NBT\NBTWriter.cs" />
-    <Compile Include="World\NBT\TagNode.cs" />
-    <Compile Include="World\NBT\TagNodeList.cs" />
-    <Compile Include="World\NBT\TagNodeListNamed.cs" />
-    <Compile Include="World\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />

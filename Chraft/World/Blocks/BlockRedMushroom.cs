@@ -90,7 +90,7 @@ namespace Chraft.World.Blocks
                 for (int dZ = -2; dZ < 3; dZ++)
                 {
                     Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX,
-                                                                       block.Coords.WorldZ + dZ, false, false);
+                                                                       block.Coords.WorldZ + dZ);
 
                     if(currentChunk == null)
                         continue;

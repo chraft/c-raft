@@ -25,6 +25,8 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
+using Chraft.Net;
 
 namespace ChraftTestClient
 {
@@ -34,9 +36,12 @@ namespace ChraftTestClient
         private IPEndPoint _ip;
         private int _port;
 
+        private System.Threading.Timer _clientStartTimer;
+
         public ClientsLauncher()
         {
             InitializeComponent();
+            PacketMap.Initialize();
         }
 
         private void launchButton_Click(object sender, EventArgs e)
@@ -103,22 +108,43 @@ namespace ChraftTestClient
 
         private void StartAndCreateClients(int numClients)
         {
+            Random randGen = new Random();
             for (int i = 0; i < numClients; ++i)
-                _testClients[i] = new TestClient("TestClient" + i);
+                _testClients[i] = new TestClient("TC" + i, randGen);
 
+            _numClients = numClients;
+
+            _clientStartTimer = new System.Threading.Timer(StartClients,null, 0, 20000);
+        }
+
+        private int _lastIndex;
+        private int _numClients;
+        private void StartClients(object state)
+        {
+            if (_lastIndex == _numClients)
+            {
+                _clientStartTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                _clientStartTimer.Dispose();
+                _clientStartTimer = null;
+                _lastIndex = 0;
+                return;
+            }
             try
             {
-                for (int i = 0; i < numClients; ++i)
+                int end = _lastIndex + 20;
+                int i;
+                for (i = _lastIndex; i < end && i < _numClients; ++i)
                     _testClients[i].Start(_ip);
+
+                _lastIndex = i;
             }
             catch (Exception e)
-            {               
-                using(StreamWriter sw = new StreamWriter("clientlauncher_error.log", true))
+            {
+                using (StreamWriter sw = new StreamWriter("clientlauncher_error.log", true))
                 {
-                    sw.WriteLine(DateTime.Now + " - " + e.Message);
+                    sw.WriteLine(DateTime.Now + " - " + e);
                 }
             }
-            
         }
 
         private void ClientsLauncher_FormClosing(object sender, FormClosingEventArgs e)
@@ -136,13 +162,18 @@ namespace ChraftTestClient
 
         private void disposeButton_Click(object sender, EventArgs e)
         {
+            if(_clientStartTimer != null)
+            {
+                _clientStartTimer.Dispose();
+                _clientStartTimer = null;
+            }
             if (_testClients != null)
             {
                 for (int i = 0; i < _testClients.Length; ++i)
                 {
                     _testClients[i].Dispose();
                 }
-
+                _lastIndex = 0;
                 _testClients = null;
             }
         }

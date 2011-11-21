@@ -14,27 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
-    class BlockRedstoneRepeaterOn : BlockBase
+    class BlockRedstoneRepeaterOn : BlockRedstoneRepeater
     {
         public BlockRedstoneRepeaterOn()
         {
             Name = "RedstoneRepeaterOn";
             Type = BlockData.Blocks.Redstone_Repeater_On;
-            Opacity = 0x0;
-            IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone_Repeater, 1));
             Luminance = 0x7;
-            BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
     }
 }

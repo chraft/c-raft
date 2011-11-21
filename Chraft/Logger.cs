@@ -52,7 +52,24 @@ namespace Chraft
 			}
 		}
 
-        public void Log(LogLevel level, string format, params object[] arguments)
+        public void LogOnOneLine(LogLevel level, string format, bool header, params object[] arguments)
+        {
+            LogOnOneLine(level, string.Format(format, arguments), header);
+        }
+
+        public void LogOnOneLine(LogLevel level, string message, bool header)
+        {
+            //Event
+            LoggerEventArgs e = new LoggerEventArgs(this, level, message);
+            Server.PluginManager.CallEvent(Event.LoggerLog, e);
+            // do not allow cancellation or altering of log messages
+            //End Event
+
+            LogToConsole(level, message, false, header);
+            LogToFile(level, message, false, header);
+        }
+
+	    public void Log(LogLevel level, string format, params object[] arguments)
         {
 			Log(level, string.Format(format, arguments));
         }
@@ -65,20 +82,40 @@ namespace Chraft
             // do not allow cancellation or altering of log messages
             //End Event
 
-            LogToConsole(level, message);
-			LogToFile(level, message);
+            LogToConsole(level, message, true);
+			LogToFile(level, message, true);
 		}
 
-		private void LogToConsole(LogLevel level, string message)
+		private void LogToConsole(LogLevel level, string message, bool newLine, bool header = true)
 		{
-			if ((int)level >= Settings.Default.LogConsoleLevel)
-				Console.WriteLine(Settings.Default.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
+            if ((int)level >= Settings.Default.LogConsoleLevel)
+            {
+                if (newLine)
+                    Console.WriteLine(Settings.Default.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                else
+                {
+                    if (header)
+                        Console.Write(Settings.Default.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                    else
+                        Console.Write("{0}", message);
+                }
+            }
 		}
 
-		private void LogToFile(LogLevel level, string message)
+		private void LogToFile(LogLevel level, string message, bool newLine, bool header = true)
 		{
-			if ((int)level >= Settings.Default.LogFileLevel && WriteLog != null)
-				WriteLog.WriteLine(Settings.Default.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
+            if ((int)level >= Settings.Default.LogFileLevel && WriteLog != null)
+            {
+                if (newLine)
+                    WriteLog.WriteLine(Settings.Default.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                else
+                {
+                    if (header)
+                        WriteLog.Write(Settings.Default.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                    else
+                        WriteLog.Write("{0}", message);
+                }
+            }
 		}
 
 		public void Log(Exception ex)

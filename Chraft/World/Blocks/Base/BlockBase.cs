@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
@@ -78,7 +77,7 @@ namespace Chraft.World.Blocks
         /// <summary>
         /// Block type
         /// </summary>
-        public BlockData.Blocks Type { get; set; }
+        public BlockData.Blocks Type { get; protected set; }
 
         /// <summary>
         /// Can we move through the block
@@ -149,6 +148,8 @@ namespace Chraft.World.Blocks
         /// </summary>
         public byte Luminance { get; protected set; }
 
+        public bool IsWaterProof { get; protected set; }
+
         public List<ItemStack> LootTable { get; protected set; }
 
         /// <summary>
@@ -168,6 +169,7 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 0;
             LootTable = new List<ItemStack>();
             Luminance = 0;
+            IsWaterProof = false;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
@@ -188,11 +190,12 @@ namespace Chraft.World.Blocks
         public virtual void Destroy(EntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
-            if (eventArgs.EventCanceled) return;
+            if (eventArgs.EventCanceled)
+                return;
             
             PlaySoundOnDestroy(entity, block);
 
-            UpdateOnDestroy(block);
+            UpdateWorld(block, true);
 
             DropItems(entity, block);
 
@@ -207,7 +210,7 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that is being removed</param>
         public virtual void Remove(StructBlock block)
         {
-            UpdateOnDestroy(block);
+            UpdateWorld(block, true);
             NotifyNearbyBlocks(null, block);
         }
 
@@ -217,7 +220,7 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that is being spawned</param>
         public virtual void Spawn(StructBlock block)
         {
-            UpdateOnPlace(block);
+            UpdateWorld(block);
             NotifyNearbyBlocks(null, block, false);
         }
 
@@ -242,7 +245,7 @@ namespace Chraft.World.Blocks
             byte blockMeta = 0;
             foreach (var coords in blocks)
             {
-                Chunk chunk = block.World.GetChunk(coords, false, false);
+                Chunk chunk = block.World.GetChunk(coords);
 
                 if (chunk == null)
                     break;
@@ -305,7 +308,7 @@ namespace Chraft.World.Blocks
                 return;
             }
 
-            UpdateOnPlace(block);
+            UpdateWorld(block);
             RemoveItem(entity);
             NotifyNearbyBlocks(entity, block, false);
         }
@@ -355,7 +358,7 @@ namespace Chraft.World.Blocks
                 {
                     EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
                     X = block.Coords.WorldX,
-                    Y = (byte)block.Coords.WorldY,
+                    Y = block.Coords.WorldY,
                     Z = block.Coords.WorldZ,
                     SoundData = block.Type
                 });
@@ -366,27 +369,24 @@ namespace Chraft.World.Blocks
         /// Updates world data upon block destruction
         /// </summary>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void UpdateOnDestroy(StructBlock block)
+        protected virtual void UpdateWorld(StructBlock block, bool isDestroyed = false)
+        {
+            byte newType = (isDestroyed ? (byte)BlockData.Blocks.Air : block.Type);
+            byte newMeta = (isDestroyed ? (byte)0 : block.MetaData);
+            block.World.SetBlockAndData(block.Coords, newType, newMeta);
+            RecalculateChunkValues(block);
+        }
+
+        public virtual void RecalculateChunkValues(StructBlock block)
         {
             Chunk chunk = GetBlockChunk(block);
 
             if (chunk == null)
                 return;
 
-            chunk.SetBlockAndData(block.Coords, (byte)BlockData.Blocks.Air, 0);
-            chunk.RecalculateHeight(block.Coords);
-            chunk.RecalculateSky(block.Coords.BlockX, block.Coords.BlockZ);
-            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ & 0xf));
-            block.World.Update(block.Coords, false);
-        }
-
-        /// <summary>
-        /// Updates the world data upon block placement
-        /// </summary>
-        /// <param name="block">block that has been placed</param>
-        protected virtual void UpdateOnPlace(StructBlock block)
-        {
-            block.World.SetBlockAndData(block.Coords, block.Type, block.MetaData);
+            if (chunk.HeightMap[block.Coords.BlockX, block.Coords.BlockZ] <= block.Coords.BlockY)
+                chunk.RecalculateHeight(block.Coords);
+            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ));
             block.World.Update(block.Coords, false);
         }
 
@@ -394,9 +394,9 @@ namespace Chraft.World.Blocks
         /// Invoked to drop the loot after block destruction
         /// </summary>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(StructBlock block)
+        protected virtual void DropItems(StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            DropItems(null, block);
+            DropItems(null, block, overridedLoot);
         }
 
         /// <summary>
@@ -404,15 +404,19 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity that destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(EntityBase entity, StructBlock block)
+        protected virtual void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
-            if (LootTable != null && LootTable.Count > 0)
+            List<ItemStack> toDrop;
+            if (overridedLoot != null && overridedLoot.Count > 0)
+                toDrop = overridedLoot;
+            else if (LootTable != null && LootTable.Count > 0)
+                toDrop = LootTable;
+            else
+                return;
+            foreach (var lootEntry in toDrop)
             {
-                foreach (var lootEntry in LootTable)
-                {
-                    if (lootEntry.Count > 0)
-                        block.World.Server.DropItem(block.World, block.Coords, lootEntry);
-                }              
+                if (lootEntry.Count > 0)
+                    block.World.Server.DropItem(block.World, block.Coords, lootEntry);
             }
         }
 
@@ -448,8 +452,7 @@ namespace Chraft.World.Blocks
         /// <returns>true if the block can be placed, false otherwise</returns>
         protected virtual bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            BlockBase tBlock = BlockHelper.Instance(targetBlock.Type);
-            if (!tBlock.IsSolid)
+            if (!BlockHelper.IsSolid(targetBlock.Type))
                 return false;
 
             byte? originalBlock = block.World.GetBlockId(block.Coords);
@@ -461,7 +464,7 @@ namespace Chraft.World.Blocks
                 originalBlock != (byte)BlockData.Blocks.Still_Lava))
                 return false;
 
-            if (!BlockHelper.Instance(block.Type).IsAir && !BlockHelper.Instance(block.Type).IsLiquid)
+            if (!BlockHelper.IsAir(block.Type) && !BlockHelper.IsLiquid(block.Type))
                 foreach (EntityBase entity in block.World.Server.GetNearbyEntities(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
                 {
                     LivingEntity living = entity as LivingEntity;
@@ -504,7 +507,7 @@ namespace Chraft.World.Blocks
 
         public Chunk GetBlockChunk(StructBlock block)
         {
-            return block.World.GetChunk(block.Coords, false, false);
+            return block.World.GetChunk(block.Coords);
         }
     }
 }

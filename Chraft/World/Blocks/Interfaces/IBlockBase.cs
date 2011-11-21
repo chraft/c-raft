@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 
 namespace Chraft.World.Blocks.Interfaces
 {
     interface IBlockBase
     {
-
-        BlockData.Blocks Type { get; set; }
-
         /// <summary>
         /// Destroy the block and drop the loot (if any)
         /// </summary>
@@ -51,6 +44,5 @@ namespace Chraft.World.Blocks.Interfaces
         /// Place the block
         /// </summary>
         void Place(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace face);
-
     }
 }

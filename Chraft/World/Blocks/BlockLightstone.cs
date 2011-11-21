@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.World.Blocks
 {
@@ -35,22 +31,18 @@ namespace Chraft.World.Blocks
 
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
         {
             Player player = entity as Player;
-            LootTable = new List<ItemStack>();
+            overridedLoot = new List<ItemStack>();
             if (player != null)
-            {
                 if (player.Inventory.ActiveItem.Type == (short) BlockData.Items.Wooden_Pickaxe ||
                     player.Inventory.ActiveItem.Type == (short) BlockData.Items.Stone_Pickaxe ||
                     player.Inventory.ActiveItem.Type == (short) BlockData.Items.Iron_Pickaxe ||
                     player.Inventory.ActiveItem.Type == (short) BlockData.Items.Gold_Pickaxe ||
                     player.Inventory.ActiveItem.Type == (short) BlockData.Items.Diamond_Pickaxe)
-                {
-                    LootTable.Add(new ItemStack((short)BlockData.Items.Lightstone_Dust, 1, (sbyte)(2 + block.World.Server.Rand.Next(2))));
-                }
-            }
-            base.DropItems(entity, block);
+                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Lightstone_Dust, 1, (sbyte)(2 + block.World.Server.Rand.Next(2))));
+            base.DropItems(entity, block, overridedLoot);
         }
     }
 }

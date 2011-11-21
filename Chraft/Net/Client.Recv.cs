@@ -66,9 +66,13 @@ namespace Chraft.Net
                 if (_onGround != value)
                 {
                     _onGround = value;
+                   
+                    byte? blockId = _player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
 
-                    // TODO: For some reason the GetBlockId using an integer will sometime get the block adjacent to where the character is standing therefore falling down near a wall could cause issues (or falling into a 1x1 water might not pick up the water block)
-                    BlockData.Blocks currentBlock = (BlockData.Blocks)_player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
+                    if (blockId == null)
+                        return;
+
+                    BlockData.Blocks currentBlock = (BlockData.Blocks) blockId;
 
                     if (!_onGround)
                     {
@@ -113,7 +117,7 @@ namespace Chraft.Net
                                 // If we are in water, count how many blocks above are also water
                                 BlockData.Blocks block = currentBlock;
                                 int waterCount = 0;
-                                while (BlockHelper.Instance((byte)block).IsLiquid)
+                                while (BlockHelper.IsLiquid((byte)block))
                                 {
                                     waterCount++;
                                     block = (BlockData.Blocks)_player.World.GetBlockId((int)_player.Position.X, (int)_player.Position.Y + waterCount, (int)_player.Position.Z);
@@ -191,8 +195,6 @@ namespace Chraft.Net
                 return;
             }
 
-            //Logger.Log(Chraft.Logger.LogLevel.Info, "Start receiving");
-
             try
             {
                 bool pending = _socket.ReceiveAsync(_recvSocketEvent);
@@ -246,6 +248,7 @@ namespace Chraft.Net
             }
         }
 
+#region Misc
         public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
         {
             client.LastClientResponse = DateTime.Now;
@@ -260,7 +263,7 @@ namespace Chraft.Net
         {
             if (client.Owner.GameMode == 1)
 
-                if (packet.ItemID == -1 && packet.Damage == 0 && packet.Quantity == 0) // We are adding an item to our mouse cursor from the quick bar
+                if (packet.Item.Type == -1 && packet.Item.Durability == 0 && packet.Item.Count == 0) // We are adding an item to our mouse cursor from the quick bar
                 {
                     //may need to do something here
                     return;
@@ -269,7 +272,7 @@ namespace Chraft.Net
                 {
                     if (packet.Slot != -1)// mouse cursor mode
                     {
-                        client.Owner.Inventory[packet.Slot] = new ItemStack(packet.ItemID, (sbyte)packet.Quantity, packet.Damage);
+                        client.Owner.Inventory[packet.Slot] = packet.Item;
                     }
 
 
@@ -313,6 +316,13 @@ namespace Chraft.Net
         {
             //todo-something?
         }
+
+        public static void HandlePacketEnchantItem(Client client, EnchantItemPacket packet)
+        {
+            // TODO: Implement item enchantment
+        }
+
+#endregion
 
         #region Use
 
@@ -435,7 +445,7 @@ namespace Chraft.Net
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(baseBlockCoords, false, false);
+            Chunk chunk = player.World.GetChunk(baseBlockCoords);
 
             if (chunk == null)
                 return;
@@ -551,7 +561,7 @@ namespace Chraft.Net
 
             Player player = client.Owner;
 
-            Chunk chunk = player.World.GetChunk(coords, false, false);
+            Chunk chunk = player.World.GetChunk(coords);
 
             if (chunk == null)
                 return;
@@ -594,7 +604,7 @@ namespace Chraft.Net
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(coords, false, false);
+            Chunk chunk = player.World.GetChunk(coords);
 
             if (chunk == null)
                 return;
@@ -605,6 +615,7 @@ namespace Chraft.Net
             switch (packet.Action)
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
+#if DEBUG
                     UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                     client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
                     client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
@@ -612,7 +623,8 @@ namespace Chraft.Net
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
-                    if (BlockHelper.Instance(type).IsSingleHit)
+#endif
+                    if (BlockHelper.IsSingleHit(type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (BlockHelper.Instance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -743,7 +755,6 @@ namespace Chraft.Net
             if (_updateChunksToken != null)
             {
                 _updateChunksToken.Cancel();
-                Task.WaitAny(_updateChunks);
             }
         }
 

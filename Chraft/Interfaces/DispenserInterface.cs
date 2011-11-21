@@ -22,10 +22,10 @@ using Chraft.World;
 
 namespace Chraft.Interfaces
 {
-	public class DispenserInterface : SingleContainerInterface
+	public class DispenserInterface : PersistentContainerInterface
 	{
-        public DispenserInterface(World.WorldManager world, UniversalCoords coords)
-            : base(world, InterfaceType.Dispenser, coords, 9)
+        public DispenserInterface(WorldManager world, UniversalCoords coords)
+            : base(world, coords, InterfaceType.Dispenser, 9)
 		{
 		}
 

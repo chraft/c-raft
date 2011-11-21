@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,16 @@ namespace Chraft.Net
 {
     public static class PacketMap
     {
-        private static readonly Dictionary<Type, PacketType> _Map = new Dictionary<Type, PacketType>
+        public static void Initialize()
+        {
+            foreach(KeyValuePair<Type, PacketType> kvp in _map)
+                _concurrentMap.TryAdd(kvp.Key, kvp.Value);
+
+            // Lets free some memory
+            _map = null;
+
+        }
+        private static Dictionary<Type, PacketType> _map = new Dictionary<Type, PacketType>
         {
             { typeof(AddObjectVehiclePacket), PacketType.AddObjectVehicle },
             { typeof(AnimationPacket), PacketType.Animation },
@@ -37,6 +47,7 @@ namespace Chraft.Net
 			{ typeof(CreativeInventoryActionPacket), PacketType.CreativeInventoryAction },
             { typeof(DestroyEntityPacket), PacketType.DestroyEntity },
             { typeof(DisconnectPacket), PacketType.Disconnect },
+            { typeof(EnchantItemPacket), PacketType.EnchantItem},
             { typeof(CreateEntityPacket), PacketType.Entity },
             { typeof(EntityActionPacket), PacketType.EntityAction },
             { typeof(EntityEffectPacket), PacketType.EntityEffect },
@@ -49,6 +60,7 @@ namespace Chraft.Net
             { typeof(EntityStatusPacket), PacketType.EntityStatus },
             { typeof(EntityTeleportPacket), PacketType.EntityTeleport },
             { typeof(EntityVelocityPacket), PacketType.EntityVelocity },
+            { typeof(ExperiencePacket), PacketType.Experience },
             { typeof(ExperienceOrbPacket), PacketType.ExperienceOrb },
             { typeof(ExplosionPacket), PacketType.Explosion },
             { typeof(HandshakePacket), PacketType.Handshake },
@@ -91,12 +103,13 @@ namespace Chraft.Net
             { typeof(WindowItemsPacket), PacketType.WindowItems }
         };
 
-        public static Dictionary<Type, PacketType> Map { get { return _Map; } }
+        private readonly static ConcurrentDictionary<Type, PacketType> _concurrentMap = new ConcurrentDictionary<Type, PacketType>();
+        public static ConcurrentDictionary<Type, PacketType> Map { get { return _concurrentMap; } }
 
         public static PacketType GetPacketType(Type type)
         {
             PacketType packetType;
-            if(_Map.TryGetValue(type, out packetType))
+            if(_concurrentMap.TryGetValue(type, out packetType))
                 return packetType;
             
             throw new KeyNotFoundException();

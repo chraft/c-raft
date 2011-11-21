@@ -102,12 +102,12 @@ namespace Chraft.World
 
 		public byte GetLuminence(int x, int y, int z)
 		{
-			return BlockHelper.Instance(this[x, y, z]).Luminance;
+            return BlockHelper.Luminance(this[x, y, z]);
 		}
 
 		public byte GetOpacity(int x, int y, int z)
 		{
-			return BlockHelper.Instance(this[x, y, z]).Opacity;
+            return BlockHelper.Opacity(this[x, y, z]);
 		}
 
 		public void SetAllBlocks(byte[] data)

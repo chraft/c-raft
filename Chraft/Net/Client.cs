@@ -64,8 +64,6 @@ namespace Chraft.Net
 
         internal int SessionID { get; private set; }
 
-        public bool Authenticated;
-
         /// <summary>
         /// The mixed-case, clean username of the client.
         /// </summary>
@@ -96,9 +94,10 @@ namespace Chraft.Net
             _currentBuffer = new ByteQueue();
             _processedBuffer = new ByteQueue();
             _fragPackets = new ByteQueue();
-            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(5.0);
+            _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(10);
             SessionID = sessionId;
             Server = server;
+            _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
             //PacketHandler = new PacketHandler(Server, socket);
         }
 
@@ -198,7 +197,7 @@ namespace Chraft.Net
             reason = e.Message;
             //End Event
 
-            if(Authenticated && _player.LoggedIn)
+            if(_player != null && _player.LoggedIn)
                 Save();
 
             SendPacket(new DisconnectPacket
@@ -209,7 +208,7 @@ namespace Chraft.Net
 
         public void Disconnected(object sender, SocketAsyncEventArgs e)
         {
-            if (Authenticated && _player.LoggedIn)
+            if (_player != null && _player.LoggedIn)
                 Save();
             // Just wait a bit since it's possible that we close the socket before the packet reached the client
             Thread.Sleep(200);
@@ -221,7 +220,7 @@ namespace Chraft.Net
         /// </summary>
         public void Dispose()
         {
-            if (Authenticated)
+            if (_player != null)
             {
                 Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", _player.DisplayName);
                 string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
@@ -238,12 +237,14 @@ namespace Chraft.Net
                     Save();
                 }
 
-                foreach (int packedCoords in _player.LoadedChunks.Keys)
+                Task.Factory.StartNew(() =>
                 {
-                    Chunk chunk = _player.World.GetChunk(UniversalCoords.FromPackedChunk(packedCoords), false, false);
-                    if (chunk != null)
-                        chunk.RemoveClient(this);
-                }
+                    foreach (Chunk chunk in _player.LoadedChunks.Values)
+                    {
+                        if (chunk != null)
+                            chunk.RemoveClient(this);
+                    }
+                });
 
                 Server.RemoveAuthenticatedClient(this);
 
@@ -269,7 +270,7 @@ namespace Chraft.Net
 
                 if (_keepAliveTimer != null)
                 {
-                    _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _keepAliveTimer.Dispose();
                     _keepAliveTimer = null;
                 }
             }
@@ -279,8 +280,11 @@ namespace Chraft.Net
                 Running = false;
                 Server.RemoveClient(this);
                 Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
+                Server.FreeConnectionSlot();
             }
 
+            _chunkSendTimer.Dispose();
+            _chunkSendTimer = null;
 
             RecvBufferPool.ReleaseBuffer(_recvBuffer);
             SendSocketEventPool.Push(_sendSocketEvent);

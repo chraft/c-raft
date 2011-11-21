@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks.Physics;
 
 namespace Chraft.World.Blocks
@@ -40,25 +35,14 @@ namespace Chraft.World.Blocks
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                     targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
                     targetBlock.Coords.WorldZ == sourceBlock.Coords.WorldZ)
-            {
                 StartPhysics(targetBlock);
-            }
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)
         {
-            if (!CanBePlacedOn(entity, block, targetBlock, face))
-                return;
-
-            if (!RaisePlaceEvent(entity, block))
-                return;
-
-            UpdateOnPlace(block);
-
-            RemoveItem(entity);
-
-            if (block.Coords.WorldY > 1)
+            base.UpdateWorld(block, isDestroyed);
+            if (!isDestroyed && block.Coords.WorldY > 1)
                 if (block.World.GetBlockId(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ) == (byte)BlockData.Blocks.Air)
                     StartPhysics(block);
         }

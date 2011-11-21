@@ -60,6 +60,7 @@ namespace Chraft.Net
             Register(PacketType.Disconnect, 0, 3, ReadDisconnect);
             Register(PacketType.Transaction,5,0, ReadTransaction);
             Register(PacketType.UpdateSign, 0, 11, ReadUpdateSign);
+            Register(PacketType.EnchantItem, 3, 0, ReadEnchantItem);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
@@ -267,6 +268,15 @@ namespace Chraft.Net
 
             if (!reader.Failed)
                 Client.HandlePacketUpdateSign(client, us);
+        }
+
+        public static void ReadEnchantItem(Client client, PacketReader reader)
+        {
+            EnchantItemPacket ei = new EnchantItemPacket();
+            ei.Read(reader);
+
+            if(!reader.Failed)
+                Client.HandlePacketEnchantItem(client, ei);
         }
     }
 }

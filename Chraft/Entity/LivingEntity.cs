@@ -294,7 +294,7 @@ namespace Chraft.Entity
             if (!CanDrown || IsDead)
                 return;
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsLiquid)
+            if (headBlockId != null && BlockHelper.IsLiquid((byte)headBlockId))
             {
                 if (DrowningTimer == null)
                 {
@@ -306,7 +306,7 @@ namespace Chraft.Entity
         protected virtual void Drown(object state)
         {
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsLiquid || !CanDrown)
+            if (headBlockId == null || IsDead || !BlockHelper.IsLiquid((byte)headBlockId) || !CanDrown)
             {
                 StopDrowningTimer();
                 return;
@@ -335,7 +335,7 @@ namespace Chraft.Entity
             if (!CanSuffocate || IsDead)
                 return;
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (headBlockId != null && BlockHelper.Instance((byte)headBlockId).IsOpaque)
+            if (headBlockId != null && BlockHelper.IsOpaque((byte)headBlockId))
             {
                 if (SuffocationTimer == null)
                 {
@@ -347,7 +347,7 @@ namespace Chraft.Entity
         protected virtual void Suffocate(object state)
         {
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (headBlockId == null || IsDead || !BlockHelper.Instance((byte)headBlockId).IsOpaque || !CanSuffocate)
+            if (headBlockId == null || IsDead || !BlockHelper.IsOpaque((byte)headBlockId) || !CanSuffocate)
             {
                 StopSuffocationTimer();
                 return;
@@ -603,7 +603,7 @@ namespace Chraft.Entity
         public virtual bool CanSpawnHere()
         {
             return World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox).All(entity => !entity.PreventMobSpawning)
-                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance(block.Type).IsLiquid);
+                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.IsLiquid(block.Type));
         }
     }
 }
