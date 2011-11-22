@@ -867,11 +867,12 @@ namespace Chraft.World
 
         public Player GetClosestPlayer(AbsWorldCoords coords, double radius)
         {
+            var radiusSqrd = radius * radius;
             Vector3 coordVector = coords.ToVector();
             return (from c in Server.GetAuthenticatedClients().Where(client => client.Owner.World == this)
-                    let distanceVector = coordVector - c.Owner.Position.ToVector()
-                    where distanceVector.X <= radius && distanceVector.Y <= radius && distanceVector.Z <= radius
-                    orderby distanceVector
+                    let distance = coordVector.DistanceSquared(c.Owner.Position.ToVector())
+                    where distance <= radiusSqrd
+                    orderby distance
                     select c.Owner).FirstOrDefault();
         }
 

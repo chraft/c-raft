@@ -182,7 +182,7 @@ namespace Chraft.World
         public double DistanceToSquared(UniversalCoords coords)
         {
             UniversalCoords diff = coords - this;
-            return WorldX * WorldX + WorldY * WorldY + WorldZ * WorldZ;
+            return diff.WorldX * diff.WorldX + diff.WorldY * diff.WorldY + diff.WorldZ * diff.WorldZ;
         }
         
         public UniversalCoords Offset(int offsetX, int offsetY, int offsetZ)
