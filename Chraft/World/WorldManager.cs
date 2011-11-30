@@ -61,7 +61,8 @@ namespace Chraft.World
         private readonly ChunkSet _chunks;
         private ChunkSet Chunks { get { return _chunks; } }
 
-        public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
+        public ConcurrentQueue<ChunkLightUpdate> InitialChunkLightToRecalculate;
+        public ConcurrentQueue<ChunkLightUpdate> ChunkLightToRecalculate;
 
         public ConcurrentDictionary<int, BaseFallingPhysics> PhysicsBlocks;
         private Task _physicsSimulationTask;
@@ -218,7 +219,8 @@ namespace Chraft.World
         {          
             _chunks = new ChunkSet();
             Server = server;
-            ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
+            InitialChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
+            ChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             ChunksToSave = new ConcurrentQueue<ChunkBase>();
             Load();
 
@@ -455,13 +457,26 @@ namespace Chraft.World
                     toRecalculate.Enqueue(chunk);
                 }
             }
-
+#if PROFILE
+            Stopwatch watch = new Stopwatch();
+#endif
             while(toRecalculate.Count > 0)
             {
                 chunk = toRecalculate.Dequeue();
 
                 if (chunk.LightToRecalculate)
+#if PROFILE
+                {
+                    watch.Reset();
+                    watch.Start();
+#endif
+                    chunk.RecalculateHeight();
                     chunk.RecalculateSky();
+#if PROFILE
+                    watch.Stop();
+                    Console.WriteLine("Chunk {0} - {1} skylight recalc: {2} ms", chunk.Coords.ChunkX, chunk.Coords.ChunkZ, watch.ElapsedMilliseconds);
+                }
+#endif
 
                 AddChunk(chunk);
             }
@@ -536,8 +551,6 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
-        public static int LightUpdateCounter;
-
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count
@@ -566,7 +579,7 @@ namespace Chraft.World
 
                 Task.Factory.StartNew(FullSave);
             }
-            else if(WorldTicks % 20 == 0 && !FullSaving && ChunksToSave.Count > 0)
+            else if(WorldTicks % 20 == 0 && !FullSaving && !ChunksToSave.IsEmpty)
             {
                 if(_saveTask == null || _saveTask.IsCompleted)
                 {

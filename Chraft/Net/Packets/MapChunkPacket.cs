@@ -133,7 +133,7 @@ namespace Chraft.Net.Packets
 
 #if PROFILE
             start = DateTime.Now;
-            comp = new byte[o * 5 / 2];
+            comp = new byte[DataDimension];
 
             // Original Java compression version
             //java.util.zip.Deflater deflater = new java.util.zip.Deflater(-1);

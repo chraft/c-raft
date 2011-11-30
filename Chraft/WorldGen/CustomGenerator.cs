@@ -85,7 +85,7 @@ namespace Chraft.WorldGen
 #if PROFILE
             watch.Stop();
 
-            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", false, x, z, watch.ElapsedMilliseconds);
+            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
 #endif
 
             _World.AddChunk(chunk);
