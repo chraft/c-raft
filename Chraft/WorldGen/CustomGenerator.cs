@@ -37,6 +37,7 @@ namespace Chraft.WorldGen
 
         private long _Seed;
         private WorldManager _World;
+        Random r = new Random();
 
         public CustomChunkGenerator(WorldManager world, long seed)
         {
@@ -67,7 +68,7 @@ namespace Chraft.WorldGen
 
         public Chunk ProvideChunk(int x, int z, WorldManager world)
         {
-            Chunk chunk = new Chunk(world, UniversalCoords.FromChunk(x,z));
+            Chunk chunk = new Chunk(world, UniversalCoords.FromChunk(x, z));
             InitGen();
 
             byte[] data = new byte[32768];
@@ -78,7 +79,7 @@ namespace Chraft.WorldGen
             GenerateTerrain(chunk, data, x, z);
             GenerateFlora(chunk, data, x, z);
             chunk.SetAllBlocks(data);
-                    
+
             chunk.RecalculateHeight();
             chunk.LightToRecalculate = true;
 #if PROFILE
@@ -181,12 +182,27 @@ namespace Chraft.WorldGen
 
         private void GenerateResource(int x, int y, int z, byte[] data)
         {
-            // TODO: Find formula similar to original one
+
+            if (data[x << 11 | z << 7 | y] == 1)
+            {
+                if (r.Next(100*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Diamond_Ore;
+                else if (r.Next(100*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Lapis_Lazuli_Ore;
+                else if (r.Next(40*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Gold_Ore;
+                else if (r.Next(10*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Redstone_Ore_Glowing;
+                else if (r.Next(4*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Iron_Ore;
+                else if (r.Next(2*y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Coal_Ore;
+            }
         }
 
         private void GenerateFlora(Chunk c, byte[] data, int x, int z)
         {
-            BIOME_TYPE biome = CalcBiomeType(x, z); 
+            BIOME_TYPE biome = CalcBiomeType(x, z);
             for (int bx = 0; bx < 16; ++bx)
             {
                 int worldX = bx + x * 16;
@@ -210,8 +226,8 @@ namespace Chraft.WorldGen
                                     data[index] = (byte)BlockData.Blocks.TallGrass;
                                     c.Data.setNibble(bx, by + 1, bz, 1);
                                 }
-                                
-                        
+
+
                                 //Generate flowers.
                                 if (_FastRandom.standNormalDistrDouble() < -2)
                                 {
@@ -222,7 +238,7 @@ namespace Chraft.WorldGen
                                 }
                             }
 
-                            if(by < 110 && bx % 4 == 0 && bz % 4 == 0)
+                            if (by < 110 && bx % 4 == 0 && bz % 4 == 0)
                             {
                                 double forestDens = CalcForestDensity(worldX, worldZ);
 
@@ -232,9 +248,9 @@ namespace Chraft.WorldGen
                                     int randZ = bz + _FastRandom.randomInt() % 12 + 4;
 
                                     if (randX < 3)
-                                       randX = 3;
+                                        randX = 3;
                                     else if (randX > 12)
-                                       randX = 12;
+                                        randX = 12;
 
                                     if (randZ < 3)
                                         randZ = 3;
@@ -277,7 +293,7 @@ namespace Chraft.WorldGen
             double r2 = _FastRandom.standNormalDistrDouble();
             /*if (r2 > -2 && r2 < -1)
             {*/
-                // Standard tree
+            // Standard tree
 
             for (int by = y + 4; by < y + 6; by++)
                 for (int bx = x - 2; bx <= x + 2; bx++)
@@ -316,7 +332,7 @@ namespace Chraft.WorldGen
         private bool CanSeeTheSky(int x, int y, int z, byte[] data)
         {
             int by;
-            for (by = y; BlockHelper.Opacity(data[x << 11 | z << 7 | by]) == 0 && by < 128; ++by);
+            for (by = y; BlockHelper.Opacity(data[x << 11 | z << 7 | by]) == 0 && by < 128; ++by) ;
 
             return by == 128;
         }
@@ -517,9 +533,9 @@ namespace Chraft.WorldGen
 
             if (lakeIntens < 0.2)
             {
-                if(heightPercentage < 0.001)
+                if (heightPercentage < 0.001)
                     data[currentIndex] = (byte)BlockData.Blocks.Air;
-                else if(heightPercentage < 0.04)
+                else if (heightPercentage < 0.04)
                 {
                     if (type == BIOME_TYPE.SNOW)
                     {
@@ -592,7 +608,7 @@ namespace Chraft.WorldGen
                             int offsetX = (x / 4) * 4;
                             int offsetY = (y / 8) * 8;
                             int offsetZ = (z / 4) * 4;
-                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
+                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
                         }
                     }
                 }
