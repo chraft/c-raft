@@ -32,6 +32,14 @@ namespace Chraft.Interfaces
         internal short Slot { get; set; }
         public static ItemStack Void { get { return new ItemStack(-1, 0, 0); } } // Needs to send -1 via 0x05
 
+        public bool IsEnchantable()
+        {
+            if ((Type >= 256 && Type <= 258) || Type == 261 || (Type >= 267 && Type <= 279)
+                || (Type >= 283 && Type <= 286) || (Type >= 290 && Type <= 294) || (Type >= 298 && Type <= 317))
+                return true;
+            return false;
+        }
+
         private short _Type;
         public short Type
         {
@@ -87,7 +95,7 @@ namespace Chraft.Interfaces
                 Durability = stream.ReadShort();
 
                 // TODO: Implement extra data read (enchantment) and items
-                if (Durability > 0 || Type > 255)
+                if (Durability > 0 || IsEnchantable())
                     stream.ReadShort();
             }
         }
@@ -101,7 +109,7 @@ namespace Chraft.Interfaces
                 Durability = stream.ReadShort();
 
                 // TODO: Implement extra data read (enchantment) and items
-                if (Durability > 0 || Type > 255)
+                if (Durability > 0 || IsEnchantable())
                     stream.ReadShort();
             }
         }
@@ -141,7 +149,7 @@ namespace Chraft.Interfaces
                 stream.Write(Count);
                 stream.Write(Durability);
 
-                if (Durability > 0 || Type > 255)
+                if (Durability > 0 || IsEnchantable())
                     stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 
@@ -164,7 +172,7 @@ namespace Chraft.Interfaces
                 stream.Write(Count);
                 stream.Write(Durability);
 
-                if (Durability > 0 || Type > 255)
+                if (Durability > 0 || IsEnchantable())
                     stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 
@@ -252,7 +260,7 @@ namespace Chraft.Interfaces
 
                 // TODO: Implement extra data read (enchantment) and items
 
-                if (retval.Durability > 0 || retval.Type > 255)
+                if (retval.Durability > 0 || retval.IsEnchantable())
                     stream.ReadShort();
             }
             return retval;

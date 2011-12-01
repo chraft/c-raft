@@ -52,7 +52,13 @@ namespace Chraft.World.Blocks
             }
             base.Place(entity, block, targetBlock, face);
         }
-
+  
+        public virtual bool IsOpen(StructBlock block)
+        {
+            // TODO: correctly implement block state for doors
+            return false;
+        }
+                    
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
             if (block.Coords.WorldY > 125)

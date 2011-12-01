@@ -61,7 +61,8 @@ namespace Chraft.World
         private readonly ChunkSet _chunks;
         private ChunkSet Chunks { get { return _chunks; } }
 
-        public ConcurrentQueue<ChunkLightUpdate> ChunksToRecalculate;
+        public ConcurrentQueue<ChunkLightUpdate> InitialChunkLightToRecalculate;
+        public ConcurrentQueue<ChunkLightUpdate> ChunkLightToRecalculate;
 
         public ConcurrentDictionary<int, BaseFallingPhysics> PhysicsBlocks;
         private Task _physicsSimulationTask;
@@ -218,7 +219,8 @@ namespace Chraft.World
         {          
             _chunks = new ChunkSet();
             Server = server;
-            ChunksToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
+            InitialChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
+            ChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             ChunksToSave = new ConcurrentQueue<ChunkBase>();
             Load();
 
@@ -455,13 +457,26 @@ namespace Chraft.World
                     toRecalculate.Enqueue(chunk);
                 }
             }
-
+#if PROFILE
+            Stopwatch watch = new Stopwatch();
+#endif
             while(toRecalculate.Count > 0)
             {
                 chunk = toRecalculate.Dequeue();
 
                 if (chunk.LightToRecalculate)
+#if PROFILE
+                {
+                    watch.Reset();
+                    watch.Start();
+#endif
+                    chunk.RecalculateHeight();
                     chunk.RecalculateSky();
+#if PROFILE
+                    watch.Stop();
+                    Console.WriteLine("Chunk {0} - {1} skylight recalc: {2} ms", chunk.Coords.ChunkX, chunk.Coords.ChunkZ, watch.ElapsedMilliseconds);
+                }
+#endif
 
                 AddChunk(chunk);
             }
@@ -536,8 +551,6 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
-        public static int LightUpdateCounter;
-
         private void GlobalTickProc(object state)
         {
             // Increment the world tick count
@@ -566,7 +579,7 @@ namespace Chraft.World
 
                 Task.Factory.StartNew(FullSave);
             }
-            else if(WorldTicks % 20 == 0 && !FullSaving && ChunksToSave.Count > 0)
+            else if(WorldTicks % 20 == 0 && !FullSaving && !ChunksToSave.IsEmpty)
             {
                 if(_saveTask == null || _saveTask.IsCompleted)
                 {
@@ -867,11 +880,12 @@ namespace Chraft.World
 
         public Player GetClosestPlayer(AbsWorldCoords coords, double radius)
         {
+            var radiusSqrd = radius * radius;
             Vector3 coordVector = coords.ToVector();
             return (from c in Server.GetAuthenticatedClients().Where(client => client.Owner.World == this)
-                    let distanceVector = coordVector - c.Owner.Position.ToVector()
-                    where distanceVector.X <= radius && distanceVector.Y <= radius && distanceVector.Z <= radius
-                    orderby distanceVector
+                    let distance = coordVector.DistanceSquared(c.Owner.Position.ToVector())
+                    where distance <= radiusSqrd
+                    orderby distance
                     select c.Owner).FirstOrDefault();
         }
 
@@ -1058,7 +1072,11 @@ namespace Chraft.World
                     
         public long GetSeed()
         {
-            return Settings.Default.WorldSeed.GetHashCode();
+            if (Settings.Default.WorldSeed == string.Empty)
+            {
+                return DateTime.Now.ToString().GetHashCode();
+            }
+                return Settings.Default.WorldSeed.GetHashCode();
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)

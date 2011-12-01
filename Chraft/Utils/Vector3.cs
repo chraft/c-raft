@@ -119,7 +119,7 @@ namespace Chraft.Utils
             double yawRadians = yaw.ToRadians();
             double cosPitch = Math.Cos(pitch.ToRadians());
 
-            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch. We negate because a yaw of -90 or 270 (north) should be +1 not -1 (+yaw is clockwise whereas radians are normally counter-clockwise)
+            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch. We negate because a yaw of -90 or 270 (South) should be +1 not -1 (+yaw is clockwise whereas radians are normally counter-clockwise)
             Y = -Math.Sin(pitch.ToRadians());       // Y based on the angle of pitch. We negate because -90 points up and should be +1 not -1
             Z = cosPitch * Math.Cos(yawRadians);    // Shorten Z down from 1 based on the angle of pitch
         }
@@ -1052,10 +1052,10 @@ namespace Chraft.Utils
         /// </remarks>
         public static Vector3 Yaw(Vector3 v1, double angle)
         {
-            // Negate Sine as X+ is south in trigonometry rules and we need it to be north, Z+ is east, angle+ is clockwise (as per remark above)
+            // Negate Sine as X+ is North in trigonometry rules and we need it to be South, Z+ is east, angle+ is clockwise (as per remark above)
             double x = (v1.Z * -Math.Sin(angle)) + (v1.X * Math.Cos(angle));
             double y = v1.Y;
-            // Negate Sine as X+ is south in trigonometry rules and we need it to be north, Z+ is east, angle+ is clockwise (as per remark above)
+            // Negate Sine as X+ is North in trigonometry rules and we need it to be South, Z+ is east, angle+ is clockwise (as per remark above)
             double z = (v1.Z * Math.Cos(angle)) - (v1.X * -Math.Sin(angle));
             return new Vector3(x, y, z);
         }
