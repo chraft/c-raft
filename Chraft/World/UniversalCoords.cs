@@ -114,7 +114,29 @@ namespace Chraft.World
         {
             return !(left == right);
         }
+        
+        /// <summary>
+        /// Subtracts a <see cref="UniversalCoords"/> from a <see cref="UniversalCoords"/>, yielding a new <see cref="UniversalCoords"/>.
+        /// </summary>
+        /// <param name='left'>
+        /// The <see cref="UniversalCoords"/> to subtract from (the minuend).
+        /// </param>
+        /// <param name='right'>
+        /// The <see cref="UniversalCoords"/> to subtract (the subtrahend).
+        /// </param>
+        /// <returns>
+        /// The <see cref="UniversalCoords"/> that is the <c>left</c> minus <c>right</c>.
+        /// </returns>
+        public static UniversalCoords operator -(UniversalCoords left, UniversalCoords right)
+        {
+            return UniversalCoords.FromWorld(left.WorldX - right.WorldX, left.WorldY - right.WorldY, left.WorldZ - right.WorldZ);
+        }
   
+        public static UniversalCoords operator +(UniversalCoords left, UniversalCoords right)
+        {
+            return UniversalCoords.FromWorld(left.WorldX + right.WorldX, left.WorldY + right.WorldY, left.WorldZ + right.WorldZ);
+        }  
+      
         /// <summary>
         /// The empty UniversalCoords (0,0,0).
         /// </summary>
@@ -128,14 +150,49 @@ namespace Chraft.World
         /// </param>
         public void ForAdjacent(Action<UniversalCoords, Direction> action)
         {
-            action(UniversalCoords.FromWorld(this.WorldX - 1, this.WorldY, this.WorldZ), Direction.South);
-            action(UniversalCoords.FromWorld(this.WorldX + 1, this.WorldY, this.WorldZ), Direction.North);
+            action(UniversalCoords.FromWorld(this.WorldX + 1, this.WorldY, this.WorldZ), Direction.South);
+            action(UniversalCoords.FromWorld(this.WorldX - 1, this.WorldY, this.WorldZ), Direction.North);
             if (this.BlockY > 0)
                 action(UniversalCoords.FromWorld(this.WorldX, this.WorldY - 1, this.WorldZ), Direction.Down);
             if (this.BlockY < 127)
                 action(UniversalCoords.FromWorld(this.WorldX, this.WorldY + 1, this.WorldZ), Direction.Up);
             action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ - 1), Direction.East);
             action(UniversalCoords.FromWorld(this.WorldX, this.WorldY, this.WorldZ + 1), Direction.West);
+        }
+        
+        /// <summary>
+        /// The distance between this coordinate and <paramref name="coords"/>
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <returns></returns>
+        public double DistanceTo(UniversalCoords coords)
+        {
+            return Math.Sqrt(this.DistanceToSquared(coords));
+        }
+        
+        /// <summary>
+        /// Distance to coords squared. Quicker than <see cref="UniversalCoords.DistanceTo"/> but really only useful for comparing what might be closer than another coord.
+        /// </summary>
+        /// <returns>
+        /// The to squared.
+        /// </returns>
+        /// <param name='coords'>
+        /// Coords.
+        /// </param>
+        public double DistanceToSquared(UniversalCoords coords)
+        {
+            UniversalCoords diff = coords - this;
+            return diff.WorldX * diff.WorldX + diff.WorldY * diff.WorldY + diff.WorldZ * diff.WorldZ;
+        }
+        
+        public UniversalCoords Offset(int offsetX, int offsetY, int offsetZ)
+        {
+            return UniversalCoords.FromWorld(this.WorldX + offsetX, this.WorldY + offsetY, this.WorldZ + offsetZ);
+        }
+        
+        public override int GetHashCode()
+        {
+            return (int)(WorldY & 0xff | (WorldX & 0x7fff) << 8 | (WorldZ & 0x7fff) << 24 | (WorldX >= 0 ? 0 : 0x80000000) | (WorldZ >= 0 ? 0 : 0x8000));
         }
         
         public override string ToString()

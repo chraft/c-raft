@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System.Collections.Generic;
+using System.Diagnostics;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
@@ -383,10 +384,26 @@ namespace Chraft.World.Blocks
 
             if (chunk == null)
                 return;
+            byte blockX, blockY, blockZ;
 
-            if (chunk.HeightMap[block.Coords.BlockX, block.Coords.BlockZ] <= block.Coords.BlockY)
+            blockX = (byte)block.Coords.BlockX;
+            blockY = (byte)block.Coords.BlockY;
+            blockZ = (byte)block.Coords.BlockZ;
+
+            byte oldHeight = chunk.HeightMap[blockX, blockZ];
+
+            if (blockY + 1 >= chunk.HeightMap[blockX, blockZ])
                 chunk.RecalculateHeight(block.Coords);
-            chunk.SpreadSkyLightFromBlock((byte)(block.Coords.BlockX), (byte)block.Coords.BlockY, (byte)(block.Coords.BlockZ));
+#if PROFILE
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+#endif
+            chunk.SpreadLightFromBlock(blockX, blockY, blockZ, chunk.GetBlockLight(blockX, blockY, blockZ), oldHeight);
+#if PROFILE
+            watch.Stop();
+
+            block.World.Logger.Log(Logger.LogLevel.Info, "Block skylight recalc: {0}ms", watch.ElapsedMilliseconds);
+#endif
             block.World.Update(block.Coords, false);
         }
 

@@ -1170,22 +1170,34 @@ namespace Chraft
         /// Drops an item at the given location.
         /// </summary>
         /// <param name="world">The world in which the coordinates reside.</param>
-        /// <param name="x">The target X coordinate.</param>
-        /// <param name="y">The target Y coordinate.</param>
-        /// <param name="z">The target Z coordinate.</param>
+        /// <param name="coords">The target coordinate</param>
         /// <param name="stack">The stack to be dropped</param>
+        /// <param name="velocity">An optional velocity (the velocity will be clamped to -0.4 and 0.4 on each axis)</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(WorldManager world, UniversalCoords coords, ItemStack stack)
+        public int DropItem(WorldManager world, UniversalCoords coords, ItemStack stack, Vector3 velocity = new Vector3())
         {
             int entityId = AllocateEntity();
+
+            bool sendVelocity = false;
+            if (velocity != Vector3.Origin)
+            {
+                velocity = new Vector3(velocity.X.Clamp(-0.4, 0.4), velocity.Y.Clamp(-0.4, 0.4), velocity.Z.Clamp(-0.4, 0.4));
+                sendVelocity = true;
+            }
+
             AddEntity(new ItemEntity(this, entityId)
             {
                 World = world,
                 Position = new AbsWorldCoords(new Vector3(coords.WorldX + 0.5, coords.WorldY, coords.WorldZ + 0.5)), // Put in the middle of the block (ignoring Y)
                 ItemId = stack.Type,
                 Count = stack.Count,
+                Velocity = velocity,
                 Durability = stack.Durability
             });
+
+            if (sendVelocity)
+                SendPacketToNearbyPlayers(world, coords, new EntityVelocityPacket { EntityId = entityId, VelocityX = (short)(velocity.X * 8000), VelocityY = (short)(velocity.Y * 8000), VelocityZ = (short)(velocity.Z * 8000) });
+
             return entityId;
         }
 

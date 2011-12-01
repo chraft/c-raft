@@ -190,6 +190,13 @@ namespace Chraft.Entity
                 return;
 
             BlockBase blockClass = BlockHelper.Instance((byte)blockId);
+
+            if (blockClass == null)
+            {
+                Server.Logger.Log(Logger.LogLevel.Error, "Block class not found for block type Id {0}", blockId);
+                return;
+            }
+
             if (blockClass.IsOpaque && blockClass.IsSolid)
             {
                 // The offset within World (int) coords
@@ -262,9 +269,9 @@ namespace Chraft.Entity
                 if (moveDirection.HasValue)
                 {
                     if (moveDirection.Value == Direction.South)
-                        this.Velocity.X = -motion;
-                    else if (moveDirection.Value == Direction.North)
                         this.Velocity.X = motion;
+                    else if (moveDirection.Value == Direction.North)
+                        this.Velocity.X = -motion;
                     else if (moveDirection.Value == Direction.Down)
                         this.Velocity.Y = -motion;
                     else if (moveDirection.Value == Direction.Up)
@@ -381,9 +388,6 @@ namespace Chraft.Entity
                     }
                 }
             }
-            
-            
-
         }
         
         /// <summary>
@@ -618,7 +622,38 @@ namespace Chraft.Entity
         {
             return other.EntityId == EntityId;
         }
+
+        public void ApplyEntityCollision(EntityBase entity)
+        {
+            if (this.RiddenBy == entity || entity.RiddenBy == this)
+                return;
+
+            // Apply collision on X/Z ignore Y
+            double d = entity.Position.X - Position.X;
+            double d1 = entity.Position.Z - Position.Z;
+            double d2 = Math.Max(Math.Abs(d), Math.Abs(d1));
+            if (d2 >= 0.01)
+            {
+                d2 = Math.Sqrt(d2);
+                d /= d2;
+                d1 /= d2;
+                double d3 = 1.0 / d2;
+                if (d3 > 1.0)
+                {
+                    d3 = 1.0;
+                }
+                d *= d3;
+                d1 *= d3;
+                d *= 0.05;
+                d1 *= 0.05;
+                d *= 1.0;
+                d1 *= 1.0;
+                this.Velocity += new Vector3(-d, 0.0, -d1);
+                entity.Velocity += new Vector3(d, 0.0D, d1);
+            }
+        }
     }
+
     public enum DamageCause
     {
         Contact,
