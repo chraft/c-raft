@@ -1072,7 +1072,11 @@ namespace Chraft.World
                     
         public long GetSeed()
         {
-            return Settings.Default.WorldSeed.GetHashCode();
+            if (Settings.Default.WorldSeed == string.Empty)
+            {
+                return DateTime.Now.ToString().GetHashCode();
+            }
+                return Settings.Default.WorldSeed.GetHashCode();
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)

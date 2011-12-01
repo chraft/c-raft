@@ -85,7 +85,7 @@ namespace Chraft.WorldGen
 #if PROFILE
             watch.Stop();
 
-            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", x, z, watch.ElapsedMilliseconds);
+            _World.Logger.Log(Logger.LogLevel.Info, "Chunk {0} {1}, {2}", false, x, z, watch.ElapsedMilliseconds);
 #endif
 
             _World.AddChunk(chunk);
@@ -185,18 +185,18 @@ namespace Chraft.WorldGen
 
             if (data[x << 11 | z << 7 | y] == 1)
             {
-                if (r.Next(100*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Diamond_Ore;
-                else if (r.Next(100*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Lapis_Lazuli_Ore;
-                else if (r.Next(40*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Gold_Ore;
-                else if (r.Next(10*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Redstone_Ore_Glowing;
-                else if (r.Next(4*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Iron_Ore;
-                else if (r.Next(2*y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte) BlockData.Blocks.Coal_Ore;
+                if (r.Next(100 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Diamond_Ore;
+                else if (r.Next(100 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Lapis_Lazuli_Ore;
+                else if (r.Next(40 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Gold_Ore;
+                else if (r.Next(10 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Redstone_Ore_Glowing;
+                else if (r.Next(4 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Iron_Ore;
+                else if (r.Next(2 * y) == 0)
+                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Coal_Ore;
             }
         }
 
@@ -531,11 +531,11 @@ namespace Chraft.WorldGen
             double lakeIntens = CalcLakeIntensity(x + c.Coords.ChunkX * 16, z + c.Coords.ChunkZ * 16);
             short currentIndex = (short)(x << 11 | z << 7 | y);
 
-            if (lakeIntens < 0.2)
+            if (lakeIntens < 0.2 )
             {
                 if (heightPercentage < 0.001)
                     data[currentIndex] = (byte)BlockData.Blocks.Air;
-                else if (heightPercentage < 0.04)
+                else if (heightPercentage < 0.02)
                 {
                     if (type == BIOME_TYPE.SNOW)
                     {
@@ -554,7 +554,7 @@ namespace Chraft.WorldGen
         protected double CalcLakeIntensity(double x, double z)
         {
             double result = 0.0;
-            result += _Gen3.fBm(x * 0.004, 0, 0.004 * z, 4, 2.1836171, 0.7631);
+            result += _Gen3.fBm(x * 0.0085, 0, 0.0085 * z, 2, 1.98755, 0.98);
             return Math.Sqrt(Math.Abs(result));
         }
 
