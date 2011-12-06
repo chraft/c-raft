@@ -398,7 +398,7 @@ namespace Chraft.World.Blocks
             Stopwatch watch = new Stopwatch();
             watch.Start();
 #endif
-            chunk.SpreadLightFromBlock(blockX, blockY, blockZ, chunk.GetBlockLight(blockX, blockY, blockZ), oldHeight);
+            //chunk.SpreadLightFromBlock(blockX, blockY, blockZ, chunk.GetBlockLight(blockX, blockY, blockZ), oldHeight);
 #if PROFILE
             watch.Stop();
 
