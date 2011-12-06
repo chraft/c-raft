@@ -75,7 +75,7 @@ namespace Chraft.Net
             _player.LoginPosition = _player.Position;
         }
 
-        private void Save()
+        public void Save()
         {
             if (string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(_player.DisplayName)) { return;} //we are the server ping
             if (!Directory.Exists(Folder))

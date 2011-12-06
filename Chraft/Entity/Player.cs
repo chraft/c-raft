@@ -45,6 +45,11 @@ namespace Chraft.Entity
         public Interface CurrentInterface = null;
         public AbsWorldCoords LoginPosition;
 
+        public DateTime LastSaveTime;
+        public DateTime EnqueuedForSaving;
+        public TimeSpan SaveSpan = TimeSpan.FromSeconds(60.0);
+        public int ChangesToSave;
+
         private Client _client;
 
         public Client Client
@@ -682,6 +687,20 @@ namespace Chraft.Entity
                 }
             }
 
+        }
+
+        public void MarkToSave()
+        {
+            int changes = Interlocked.Increment(ref ChangesToSave);
+
+            if(changes == 1)
+            {
+                EnqueuedForSaving = DateTime.Now;
+                if ((DateTime.Now - LastSaveTime) > SaveSpan)
+                    Server.PlayersToSave.Enqueue(Client);
+                else
+                    Server.PlayersToSavePostponed.Enqueue(Client);   
+            }
         }
 
         public void OnJoined()

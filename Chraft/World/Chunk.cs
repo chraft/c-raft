@@ -50,6 +50,11 @@ namespace Chraft.World
         public bool LightToRecalculate;
         public int SpreadingSkylight;
 
+        public int ChangesToSave;
+        public DateTime LastSaveTime;
+        public DateTime EnqueuedForSaving;
+        public static TimeSpan SaveSpan = TimeSpan.FromSeconds(1.0);
+
         private ConcurrentDictionary<short, short> BlocksUpdating = new ConcurrentDictionary<short, short>();
 
         private ConcurrentDictionary<short, short> GrowableBlocks = new ConcurrentDictionary<short, short>();
@@ -805,7 +810,21 @@ namespace Chraft.World
             strm.Write(SkyLight.Data, 0, HALFSIZE);
         }
 
-        public override void Save()
+        public override void MarkToSave()
+        {
+            int changes = Interlocked.Increment(ref ChangesToSave);
+
+            if (changes == 1)
+            {
+                EnqueuedForSaving = DateTime.Now;
+                if ((DateTime.Now - LastSaveTime) > SaveSpan)
+                    World.ChunksToSave.Enqueue(this);                
+                else
+                    World.ChunksToSavePostponed.Enqueue(this);                
+            }
+        }
+
+        public void Save()
         {
             if (!EnterSave())
                 return;

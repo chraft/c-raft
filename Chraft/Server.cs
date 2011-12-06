@@ -54,6 +54,14 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
+        private Timer _globalTick;
+        private Task _playerSaveTask;
+        private CancellationTokenSource _playerSaveToken;
+        public bool NeedsFullSave;
+        public bool FullSaving;
+        public ConcurrentQueue<Client> PlayersToSave;
+        public ConcurrentQueue<Client> PlayersToSavePostponed; 
+
 #if PROFILE
         public static PerformanceCounter CpuPerfCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName);
         public static DateTime ProfileStartTime = DateTime.MinValue;
@@ -186,6 +194,9 @@ namespace Chraft
             {
                 MapChunkPacket.DeflaterPool.Push(new Deflater(5));
             }
+
+            PlayersToSave = new ConcurrentQueue<Client>();
+            PlayersToSavePostponed = new ConcurrentQueue<Client>();
         }
 
         public string GetRandomServerHash()
@@ -273,8 +284,130 @@ namespace Chraft
                 Client.RecvSocketEventPool.Push(new SocketAsyncEventArgs());
             }
 
+            _globalTick = new Timer(GlobalTickProc, null, 50, 50);
+
             while (Running)
                 RunProc();
+        }
+
+        private int _globalTicks;
+
+        private void GlobalTickProc(object state)
+        {
+            ++_globalTicks;
+
+            foreach (WorldManager worldManager in Worlds)
+            {
+                worldManager.WorldTick();
+                worldManager.StartSaveProc(20 / Worlds.Count);
+            }
+
+            if ((_globalTicks % 10) == 0)
+                Task.Factory.StartNew(DoPulse);            
+            
+
+            if (NeedsFullSave)
+            {
+                FullSaving = true;
+                Task.Factory.StartNew(FullSave);
+            }
+            else if ((_globalTicks % 200) == 0 && (_playerSaveTask == null || _playerSaveTask.IsCompleted))
+            {
+                _playerSaveToken = new CancellationTokenSource();
+                var token = _playerSaveToken.Token;
+                _playerSaveTask = Task.Factory.StartNew(()=> SavePlayers(50, token), token);
+            }
+        }
+        
+        private void SavePlayers(int playersToSave, CancellationToken token)
+        {
+            if (token.IsCancellationRequested)
+                return;
+
+            int count = PlayersToSave.Count;
+
+            if (count > playersToSave)
+                count = playersToSave;
+
+            playersToSave -= count;
+            for (int i = 0; i < count && Running && !token.IsCancellationRequested; ++i)
+            {
+                Client client;
+                PlayersToSave.TryDequeue(out client);
+
+                if (client == null)
+                    continue;
+
+                /* Better to "signal" that the chunk can be queued again before saving, 
+                 * we don't know which signaled changes will be saved during the save */
+                Interlocked.Exchange(ref client.Owner.ChangesToSave, 0);
+
+                client.Save();
+            }
+
+            count = PlayersToSavePostponed.Count;
+
+            if (count > playersToSave)
+                count = playersToSave;
+
+            for (int i = 0; i < count && Running && !token.IsCancellationRequested; ++i)
+            {
+                Client client;
+                PlayersToSavePostponed.TryDequeue(out client);
+
+                if (client == null)
+                    continue;
+
+
+                if (client.Owner.ChangesToSave > 0 && client.Owner.EnqueuedForSaving > client.Owner.LastSaveTime)
+                {
+                    if ((DateTime.Now - client.Owner.LastSaveTime) > Chunk.SaveSpan)
+                    {
+                        PlayersToSavePostponed.Enqueue(client);
+                        continue;
+                    }
+                    /* Better to "signal" that the chunk can be queued again before saving, 
+                     * we don't know which signaled changes will be saved during the save */
+                    Interlocked.Exchange(ref client.Owner.ChangesToSave, 0);
+
+                    client.Save();
+                }
+            }
+            
+        }
+
+        private void FullSave()
+        {
+            foreach(WorldManager world in Worlds)
+            {
+                if (world.IsSaving())
+                    world.StopSave();
+
+
+                Chunk[] chunks = world.GetChunks();
+
+                world.ChunksToSave = new ConcurrentQueue<Chunk>();
+                world.ChunksToSavePostponed = new ConcurrentQueue<Chunk>();
+                foreach (Chunk chunk in chunks)
+                {
+                    chunk.ChangesToSave = 0;
+                    chunk.Save();
+                }
+            }
+
+            if (!_playerSaveTask.IsCompleted)
+                _playerSaveTask.Wait();
+
+            Client[] clients = GetClients();
+
+            foreach(Client client in clients)
+            {
+                client.Owner.ChangesToSave = 0;
+                client.Save();
+            }
+
+            NeedsFullSave = false;
+            FullSaving = false;
         }
 
         private void PlayerListProc()

@@ -773,11 +773,15 @@ namespace Chraft.Net
             {
                 double distance = Math.Pow(Math.Abs(packetX - _lastX), 2.0) + Math.Pow(Math.Abs(packetZ - _lastZ), 2.0);
                 _movementsArrived = 0;
-                if (distance > 16 && (_updateChunks == null || _updateChunks.IsCompleted))
+                if (distance > 16)
                 {
-                    _lastX = packetX;
-                    _lastZ = packetZ;
-                    ScheduleUpdateChunks();
+                    Owner.MarkToSave();
+                    if (_updateChunks == null || _updateChunks.IsCompleted)
+                    {
+                        _lastX = packetX;
+                        _lastZ = packetZ;
+                        ScheduleUpdateChunks();
+                    }
                 }
             }
         }

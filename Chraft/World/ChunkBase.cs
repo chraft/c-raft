@@ -45,7 +45,6 @@ namespace Chraft.World
         public NibbleArray SkyLight = new NibbleArray(HALFSIZE);
 
         protected int NumBlocksToUpdate;
-	    public int ChangesToSave;
 
         protected int _TimerStarted;
         protected Timer _UpdateTimer;
@@ -340,17 +339,9 @@ namespace Chraft.World
             return BlockHelper.IsAir((byte)GetType(coords));
         }
 
-        public void MarkToSave()
+        public virtual void MarkToSave()
         {
-            int changes = Interlocked.Increment(ref ChangesToSave);
 
-            if(changes == 1)
-                World.ChunksToSave.Enqueue(this);
-        }
-
-        public virtual void Save()
-        {
-            
         }
 
         public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)
