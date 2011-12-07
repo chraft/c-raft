@@ -60,25 +60,31 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Invist.Persistence, Version=2.4.0.0, Culture=neutral, PublicKeyToken=e4481389e7a11099, processorArchitecture=MSIL" />
+    <Reference Include="Invist.Persistence.Database, Version=2.4.0.0, Culture=neutral, PublicKeyToken=e4481389e7a11099, processorArchitecture=MSIL" />
+    <Reference Include="Nini">
+      <HintPath>.\Nini.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="IKVM.OpenJDK.Core, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>IKVM.OpenJDK.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="IKVM.OpenJDK.Util, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>IKVM.OpenJDK.Util.dll</HintPath>
-    </Reference>
-    <Reference Include="IKVM.Runtime, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>IKVM.Runtime.dll</HintPath>
-    </Reference>
+	<Reference Include="IKVM.OpenJDK.Core, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+     <SpecificVersion>False</SpecificVersion>
+     <HintPath>IKVM.OpenJDK.Core.dll</HintPath>
+   </Reference>
+   <Reference Include="IKVM.OpenJDK.Util, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+     <SpecificVersion>False</SpecificVersion>
+     <HintPath>IKVM.OpenJDK.Util.dll</HintPath>
+   </Reference>
+   <Reference Include="IKVM.Runtime, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+     <SpecificVersion>False</SpecificVersion>
+     <HintPath>IKVM.Runtime.dll</HintPath>
+   </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
       <HintPath>ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -136,11 +142,7 @@
     <Compile Include="Plugins\Events\Args\BlockEventArgs.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\Listener\BlockListener.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-    </Compile>
+    <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="Utils\NBT\ChunkTag.cs" />
     <Compile Include="Utils\NBT\EndiannessConverter.cs" />
     <Compile Include="Utils\NBT\MCPoint.cs" />
@@ -346,7 +348,7 @@
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Utils\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
-    <Compile Include="Utils\Configuration.cs" />
+    <Compile Include="Utils\Config\Configuration.cs" />
     <Compile Include="Utils\MathExtensions.cs" />
     <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="Utils\Hash.cs" />
@@ -373,6 +375,15 @@
     <Compile Include="Utils\MathHelper.cs" />
     <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
+    <Compile Include="Utils\NBT\EndianConverter.cs" />
+    <Compile Include="Utils\NBT\INBTTag.cs" />
+    <Compile Include="Utils\NBT\MCRegionReader.cs" />
+    <Compile Include="Utils\NBT\NBTReader.cs" />
+    <Compile Include="Utils\NBT\NBTWriter.cs" />
+    <Compile Include="Utils\NBT\TagNode.cs" />
+    <Compile Include="Utils\NBT\TagNodeList.cs" />
+    <Compile Include="Utils\NBT\TagNodeListNamed.cs" />
+    <Compile Include="Utils\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />
@@ -388,10 +399,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>PublicSettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <None Include="Resources\Items.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -410,6 +417,7 @@
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
