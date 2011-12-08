@@ -14,13 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using Chraft.Interfaces.Containers;
 using Chraft.Net.Packets;
-using Chraft.Properties;
-using System.IO;
-using System.Threading;
-using Chraft.Net;
 using Chraft.World;
 
 namespace Chraft.Interfaces

@@ -15,10 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using Chraft.Entity;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.World;
 
 namespace Chraft.Interfaces.Containers
@@ -81,7 +80,7 @@ namespace Chraft.Interfaces.Containers
 
         public static void LoadContainersFromDisk(Chunk chunk)
         {
-            string containerPath = Path.Combine(chunk.World.Folder, Settings.Default.ContainersFolder, "x" + chunk.Coords.ChunkX + "z" + chunk.Coords.ChunkZ);
+            string containerPath = Path.Combine(chunk.World.Folder, ChraftConfig.ContainersFolder, "x" + chunk.Coords.ChunkX + "z" + chunk.Coords.ChunkZ);
             if (!Directory.Exists(containerPath))
                 return;
             

@@ -23,7 +23,7 @@ using System.Net.Sockets;
 using Chraft.Entity;
 using Chraft.Net.Packets;
 using Chraft.World;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using System.Threading;
 using Chraft.World.Blocks;
 using Chraft.World.Weather;
@@ -227,7 +227,7 @@ namespace Chraft.Net
 
         private void SendMotd()
         {
-            string MOTD = Settings.Default.MOTD.Replace("%u", _player.DisplayName);
+            string MOTD = ChraftConfig.MOTD.Replace("%u", _player.DisplayName);
             SendMessage(MOTD);
         }
 

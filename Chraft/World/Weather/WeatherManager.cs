@@ -15,10 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 
 namespace Chraft.World.Weather
 {
@@ -37,7 +34,7 @@ namespace Chraft.World.Weather
 
 		private void Server_Pulse(object sender, EventArgs e)
 		{
-			if (0 == Rand.Next(Settings.Default.WeatherChangeFrequency))
+			if (0 == Rand.Next(ChraftConfig.WeatherChangeFrequency))
 				RandomizeWeather();
 			UpdateChunks();
 		}

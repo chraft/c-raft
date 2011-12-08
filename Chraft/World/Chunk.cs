@@ -15,13 +15,12 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Interfaces;
 using Ionic.Zlib;
@@ -695,7 +694,7 @@ namespace Chraft.World
 
         private static bool CanLoad(string path)
         {
-            return Settings.Default.LoadFromSave && File.Exists(path);
+            return ChraftConfig.LoadFromSave && File.Exists(path);
         }
 
         public static Stopwatch watch = new Stopwatch();

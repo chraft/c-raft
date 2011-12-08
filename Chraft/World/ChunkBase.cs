@@ -22,7 +22,7 @@ using Chraft.Entity;
 using System.Threading;
 using System.Collections.Concurrent;
 using Chraft.Net;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.Net.Packets;
 using Chraft.World.Blocks;
 

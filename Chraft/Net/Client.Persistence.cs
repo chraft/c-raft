@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Properties;
 using System.IO;
 using System.Xml.Serialization;
 using Chraft.Persistence;
 using Chraft.Interfaces;
+using Chraft.Utils.Config;
 using Chraft.World;
 
 namespace Chraft.Net
@@ -26,7 +26,7 @@ namespace Chraft.Net
     public partial class Client
     {
         private static XmlSerializer Xml = new XmlSerializer(typeof(ClientSurrogate));
-        internal string Folder { get { return Settings.Default.PlayersFolder; } }
+        internal string Folder { get { return ChraftConfig.PlayersFolder; } }
         internal string DataFile { get { return Folder + Path.DirectorySeparatorChar + Username + ".xml"; } }
         // TODO: Move a bunch of this to DataFile.cs
         private void Load()

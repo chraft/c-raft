@@ -22,7 +22,7 @@ using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using System.IO;
 using Chraft.Entity;
 using Chraft.World.Blocks;
@@ -52,8 +52,8 @@ namespace Chraft.World
         public bool Running { get; private set; }
         public Server Server { get; private set; }
         public Logger Logger { get { return Server.Logger; } }
-        public string Name { get { return Settings.Default.DefaultWorldName; } }
-        public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
+        public string Name { get { return ChraftConfig.DefaultWorldName; } }
+        public string Folder { get { return ChraftConfig.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
         public string SignsFolder { get { return Folder + Path.DirectorySeparatorChar + "Signs"; } }
 
         public WeatherManager Weather { get; private set; }
@@ -427,7 +427,7 @@ namespace Chraft.World
         private void InitializeSpawn()
         {
             Logger.LogOnOneLine(Logger.LogLevel.Info, "Initializing spawn area...", true);
-            Spawn = UniversalCoords.FromWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
+            Spawn = UniversalCoords.FromWorld(ChraftConfig.SpawnX, ChraftConfig.SpawnY, ChraftConfig.SpawnZ);
 
             Queue<Chunk> toRecalculate = new Queue<Chunk>();           
             Chunk chunk = GetChunkFromWorld(Spawn.WorldX, Spawn.WorldZ, true, true);
@@ -558,8 +558,8 @@ namespace Chraft.World
 
         private void EnsureDirectory()
         {
-            if (!Directory.Exists(Settings.Default.WorldsFolder))
-                Directory.CreateDirectory(Settings.Default.WorldsFolder);
+            if (!Directory.Exists(ChraftConfig.WorldsFolder))
+                Directory.CreateDirectory(ChraftConfig.WorldsFolder);
             if (!Directory.Exists(Folder))
                 Directory.CreateDirectory(Folder);
         }
@@ -1092,11 +1092,11 @@ namespace Chraft.World
                     
         public long GetSeed()
         {
-            if (Settings.Default.WorldSeed == string.Empty)
+            if (ChraftConfig.WorldSeed == string.Empty)
             {
                 return DateTime.Now.ToString().GetHashCode();
             }
-                return Settings.Default.WorldSeed.GetHashCode();
+                return ChraftConfig.WorldSeed.GetHashCode();
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)

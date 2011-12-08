@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Chraft.Interfaces;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 
 namespace Chraft.Utils
 {
@@ -39,7 +39,7 @@ namespace Chraft.Utils
                     {
                         item = ItemName(numeric);
                     }
-                    return Contains(item) ? new ItemStack(Items[item], Settings.Default.DefaultStackSize, Durabilities[item]) : ItemStack.Void;
+                    return Contains(item) ? new ItemStack(Items[item], ChraftConfig.DefaultStackSize, Durabilities[item]) : ItemStack.Void;
                 }
                 catch (Exception)
                 {

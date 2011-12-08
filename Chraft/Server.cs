@@ -24,10 +24,11 @@ using System.Threading.Tasks;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using System.Net;
 using System.Threading;
 using Chraft.Utils;
+using Chraft.Utils.Config;
 using Chraft.World;
 using Chraft.Entity;
 using Chraft.Net;
@@ -42,7 +43,7 @@ namespace Chraft
 {
     public class Server
     {
-
+        
         private int NextEntityId;
         private int NextSessionId;
         private bool Running = true;
@@ -164,23 +165,25 @@ namespace Chraft
 
         public int ClientsConnectionSlots;
 
+        
         public Server()
         {
+            ChraftConfig.Load();
             ClientsConnectionSlots = 30;
             Packet.Role = StreamRole.Server;
             Rand = new Random();
             ServerHash = GetRandomServerHash();
-            UseOfficalAuthentication = Settings.Default.UseOfficalAuthentication;
+            UseOfficalAuthentication = ChraftConfig.UseOfficalAuthentication;
             Clients = new ConcurrentDictionary<int, Client>();
             AuthClients = new ConcurrentDictionary<int, Client>();
-            Logger = new Logger(this, Settings.Default.LogFile);
-            PluginManager = new PluginManager(this, Settings.Default.PluginFolder);
-            Items = new ItemDb(Settings.Default.ItemsFile);
-            Recipes = Recipe.FromFile(Settings.Default.RecipesFile);
-            SmeltingRecipes = SmeltingRecipe.FromFile(Settings.Default.SmeltingRecipesFile);
+            Logger = new Logger(this, ChraftConfig.LogFile);
+            PluginManager = new PluginManager(this, ChraftConfig.PluginFolder);
+            Items = new ItemDb(ChraftConfig.ItemsFile);
+            Recipes = Recipe.FromFile(ChraftConfig.RecipesFile);
+            SmeltingRecipes = SmeltingRecipe.FromFile(ChraftConfig.SmeltingRecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
             ServerCommandHandler = new ServerCommandHandler();
-            if (Settings.Default.IrcEnabled)
+            if (ChraftConfig.IrcEnabled)
                 InitializeIrc();
 
             PacketMap.Initialize();
@@ -221,8 +224,8 @@ namespace Chraft
 
         private void InitializeIrc()
         {
-            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(Settings.Default.IrcServer).AddressList[0], Settings.Default.IrcPort);
-            Irc = new IrcClient(ep, Settings.Default.IrcNickname);
+            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(ChraftConfig.IrcServer).AddressList[0], ChraftConfig.IrcPort);
+            Irc = new IrcClient(ep, ChraftConfig.IrcNickname);
             Irc.Received += new IrcEventHandler(Irc_Received);
         }
 
@@ -242,7 +245,7 @@ namespace Chraft
         private void OnIrcPrivMsg(object sender, IrcEventArgs e)
         {
             for (int i = 0; i < e.Args[1].Length; i++)
-                if (!Settings.Default.AllowedChatChars.Contains(e.Args[1][i]))
+                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
                     return;
 
             Broadcast("§7[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
@@ -252,7 +255,7 @@ namespace Chraft
         private void OnIrcNotice(object sender, IrcEventArgs e)
         {
             for (int i = 0; i < e.Args[1].Length; i++)
-                if (!Settings.Default.AllowedChatChars.Contains(e.Args[1][i]))
+                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
                     return;
 
             Broadcast("§c[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
@@ -261,7 +264,7 @@ namespace Chraft
 
         private void OnIrcWelcome(object sender, IrcEventArgs e)
         {
-            Irc.Join(Settings.Default.IrcChannel);
+            Irc.Join(ChraftConfig.IrcChannel);
         }
 
         public void Run()
@@ -447,11 +450,11 @@ namespace Chraft
 
         private void RunProc()
         {
-            Logger.Log(Logger.LogLevel.Info, "Using IP Address {0}.", Settings.Default.IPAddress);
-            Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", Settings.Default.Port);
+            Logger.Log(Logger.LogLevel.Info, "Using IP Address {0}.", ChraftConfig.IPAddress);
+            Logger.Log(Logger.LogLevel.Info, "Listening on port {0}.", ChraftConfig.Port);
 
-            IPAddress address = IPAddress.Parse(Settings.Default.IPAddress);
-            IPEndPoint ipEndPoint = new IPEndPoint(address, Settings.Default.Port);
+            IPAddress address = IPAddress.Parse(ChraftConfig.IPAddress);
+            IPEndPoint ipEndPoint = new IPEndPoint(address, ChraftConfig.Port);
 
             _Listener.Bind(ipEndPoint);
             _Listener.Listen(5);
@@ -770,7 +773,7 @@ namespace Chraft
 
             if (sendToIrc && Irc != null)
             {
-                Irc.WriteLine("PRIVMSG {0} :{1}", Settings.Default.IrcChannel, message.Replace('§', '\x3'));
+                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
             }
         }
 
@@ -800,7 +803,7 @@ namespace Chraft
 
             if (sendToIrc && Irc != null)
             {
-                Irc.WriteLine("PRIVMSG {0} :{1}", Settings.Default.IrcChannel, message.Replace('§', '\x3'));
+                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
             }
         }
 
@@ -1130,7 +1133,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby players.</returns>
         public IEnumerable<Client> GetNearbyPlayers(WorldManager world, AbsWorldCoords absCoords)
         {
-            int radius = Settings.Default.SightRadius << 4;
+            int radius = ChraftConfig.SightRadius << 4;
             foreach (Client c in GetAuthenticatedClients())
             {
                 if (c.Owner.World == world && Math.Abs(absCoords.X - c.Owner.Position.X) <= radius && Math.Abs(absCoords.Z - c.Owner.Position.Z) <= radius)
@@ -1146,7 +1149,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby players.</returns>
         public IEnumerable<Client> GetNearbyPlayers(WorldManager world, UniversalCoords coords)
         {
-            int radius = Settings.Default.SightRadius;
+            int radius = ChraftConfig.SightRadius;
             foreach (Client c in GetAuthenticatedClients())
             {
                 int playerChunkX = (int)Math.Floor(c.Owner.Position.X) >> 4;
@@ -1166,7 +1169,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby entities.</returns>
         public IEnumerable<EntityBase> GetNearbyEntities(WorldManager world, AbsWorldCoords coords)
         {
-            int radius = Settings.Default.SightRadius << 4;
+            int radius = ChraftConfig.SightRadius << 4;
             foreach (EntityBase e in GetEntities())
             {
                 if (e.World == world && Math.Abs(coords.X - e.Position.X) <= radius && Math.Abs(coords.Y - e.Position.Y) <= radius && Math.Abs(coords.Z - e.Position.Z) <= radius)
@@ -1184,7 +1187,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby entities.</returns>
         public IEnumerable<EntityBase> GetNearbyEntities(WorldManager world, UniversalCoords coords)
         {
-            int radius = Settings.Default.SightRadius;
+            int radius = ChraftConfig.SightRadius;
 
             foreach (EntityBase e in GetEntities())
             {
@@ -1206,7 +1209,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby entities.</returns>
         public Dictionary<int, EntityBase> GetNearbyEntitiesDict(WorldManager world, UniversalCoords coords)
         {
-            int radius = Settings.Default.SightRadius;
+            int radius = ChraftConfig.SightRadius;
 
             Dictionary<int, EntityBase> dict = new Dictionary<int, EntityBase>();
 
@@ -1234,7 +1237,7 @@ namespace Chraft
 
         public IEnumerable<EntityBase> GetNearbyLivings(WorldManager world, AbsWorldCoords coords)
         {
-            int radius = Settings.Default.SightRadius << 4;
+            int radius = ChraftConfig.SightRadius << 4;
             foreach (EntityBase entity in GetEntities())
             {
                 if (!(entity is LivingEntity))
@@ -1247,7 +1250,7 @@ namespace Chraft
 
         public IEnumerable<LivingEntity> GetNearbyLivings(WorldManager world, UniversalCoords coords)
         {
-            int radius = Settings.Default.SightRadius;
+            int radius = ChraftConfig.SightRadius;
             foreach (EntityBase entity in GetEntities())
             {
                 if (!(entity is LivingEntity))

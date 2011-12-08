@@ -24,7 +24,7 @@ using Chraft.Utils;
 using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Interfaces;
@@ -762,7 +762,7 @@ namespace Chraft.Net
         {
             _updateChunksToken = new CancellationTokenSource();
             var token = _updateChunksToken.Token;
-            _updateChunks = Task.Factory.StartNew(() => _player.UpdateChunks(Settings.Default.SightRadius, token), token);
+            _updateChunks = Task.Factory.StartNew(() => _player.UpdateChunks(ChraftConfig.SightRadius, token), token);
         }
 
         private void CheckAndUpdateChunks(double packetX, double packetZ)
@@ -793,8 +793,8 @@ namespace Chraft.Net
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
             var clientCount = client.Server.GetAuthenticatedClients().Count();
-            //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.Settings.Default.MaxPlayers) });
-            client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, Chraft.Properties.Settings.Default.MaxPlayers));
+            //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.ChraftConfig.MaxPlayers) });
+            client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, ChraftConfig.MaxPlayers));
         }
 
         public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)

@@ -73,18 +73,18 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-	<Reference Include="IKVM.OpenJDK.Core, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-     <SpecificVersion>False</SpecificVersion>
-     <HintPath>IKVM.OpenJDK.Core.dll</HintPath>
-   </Reference>
-   <Reference Include="IKVM.OpenJDK.Util, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-     <SpecificVersion>False</SpecificVersion>
-     <HintPath>IKVM.OpenJDK.Util.dll</HintPath>
-   </Reference>
-   <Reference Include="IKVM.Runtime, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
-     <SpecificVersion>False</SpecificVersion>
-     <HintPath>IKVM.Runtime.dll</HintPath>
-   </Reference>
+    <Reference Include="IKVM.OpenJDK.Core, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>IKVM.OpenJDK.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.OpenJDK.Util, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>IKVM.OpenJDK.Util.dll</HintPath>
+    </Reference>
+    <Reference Include="IKVM.Runtime, Version=0.44.0.5, Culture=neutral, PublicKeyToken=13235d27fcbfff58">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>IKVM.Runtime.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73">
       <HintPath>ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
@@ -142,7 +142,7 @@
     <Compile Include="Plugins\Events\Args\BlockEventArgs.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\Listener\BlockListener.cs" />
-    <Compile Include="Utils\PlayerNBTConverter.cs" />
+    <Compile Include="Utils\Config\ChraftConfig.cs" />
     <Compile Include="Utils\NBT\ChunkTag.cs" />
     <Compile Include="Utils\NBT\EndiannessConverter.cs" />
     <Compile Include="Utils\NBT\MCPoint.cs" />
@@ -375,15 +375,6 @@
     <Compile Include="Utils\MathHelper.cs" />
     <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
-    <Compile Include="Utils\NBT\EndianConverter.cs" />
-    <Compile Include="Utils\NBT\INBTTag.cs" />
-    <Compile Include="Utils\NBT\MCRegionReader.cs" />
-    <Compile Include="Utils\NBT\NBTReader.cs" />
-    <Compile Include="Utils\NBT\NBTWriter.cs" />
-    <Compile Include="Utils\NBT\TagNode.cs" />
-    <Compile Include="Utils\NBT\TagNodeList.cs" />
-    <Compile Include="Utils\NBT\TagNodeListNamed.cs" />
-    <Compile Include="Utils\NBT\TagNodeType.cs" />
     <Compile Include="Utils\Vector3.cs" />
     <Compile Include="World\UniversalCoords.cs" />
     <Compile Include="World\Weather\WeatherManager.cs" />
@@ -410,6 +401,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Chraft.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
