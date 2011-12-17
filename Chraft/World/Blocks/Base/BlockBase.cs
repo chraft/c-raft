@@ -153,6 +153,8 @@ namespace Chraft.World.Blocks
 
         public List<ItemStack> LootTable { get; protected set; }
 
+        public double Slipperiness { get; protected set; }
+
         /// <summary>
         /// Base contructor
         /// </summary>
@@ -171,6 +173,7 @@ namespace Chraft.World.Blocks
             LootTable = new List<ItemStack>();
             Luminance = 0;
             IsWaterProof = false;
+            Slipperiness = 0.6;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
