@@ -68,6 +68,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -373,6 +374,7 @@
     <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
+    <Compile Include="World\Paths\PathCoordinate.cs" />
     <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
     <Compile Include="Utils\Vector3.cs" />
@@ -385,6 +387,7 @@
     <Compile Include="Entity\LivingEntity.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="World\RayTraceHit.cs" />
+    <Compile Include="World\Paths\PathFinder.cs" />
     <Compile Include="Commands\Debug\DbgRayTrace.cs" />
     <Compile Include="Commands\Debug\DbgMob.cs" />
   </ItemGroup>
@@ -411,7 +414,6 @@
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
