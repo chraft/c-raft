@@ -41,7 +41,6 @@ namespace Chraft.World
 {
     public partial class WorldManager : IDisposable
     {
-        private Timer _globalTick;
         private IChunkGenerator _generator;
         public object ChunkGenLock = new object();
         private ChunkProvider _chunkProvider;
@@ -675,7 +674,6 @@ namespace Chraft.World
         public void Dispose()
         {
             this.Running = false;
-            this._globalTick.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         public byte GetBlockOrLoad(int x, int y, int z)
