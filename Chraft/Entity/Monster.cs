@@ -35,6 +35,7 @@ namespace Chraft.Entity
         {
             return 0.5 - World.GetBlockLightBrightness(coords); // // stay in lower half of brightness spectrum
         }
+
         public override bool CanSpawnHere()
         {
             if (World.GetSkyLight(this.BlockPosition) > World.Server.Rand.Next(32))
@@ -49,6 +50,23 @@ namespace Chraft.Entity
             // TODO: if world Thundering adjust light value
 
             return light <= World.Server.Rand.Next(8) && base.CanSpawnHere();
+        }
+
+        protected override List<World.Paths.PathCoordinate> GetNewPath()
+        {
+            var pathFinder = new Chraft.World.Paths.PathFinder(this.World);
+            var player = this.World.GetClosestPlayer(this.Position, 24.0);
+            Target = player;
+            if (Target != null)
+            {
+                var path = pathFinder.CreatePathToEntity(this, Target, SightRange);
+                if (path != null)
+                    Server.Logger.Log(Logger.LogLevel.Debug, "Found player within {0}, can reach in {1} blocks", SightRange, path.Count);
+
+                return path;
+            }
+
+            return null;
         }
     }
 }
