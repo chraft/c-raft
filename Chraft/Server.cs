@@ -179,7 +179,7 @@ namespace Chraft
             Logger = new Logger(this, ChraftConfig.LogFile);
             PluginManager = new PluginManager(this, ChraftConfig.PluginFolder);
             Items = new ItemDb(ChraftConfig.ItemsFile);
-            Recipes = Recipe.FromFile(ChraftConfig.RecipesFile);
+            Recipes = Recipe.FromXmlFile(ChraftConfig.RecipesFile);
             SmeltingRecipes = SmeltingRecipe.FromFile(ChraftConfig.SmeltingRecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
             ServerCommandHandler = new ServerCommandHandler();

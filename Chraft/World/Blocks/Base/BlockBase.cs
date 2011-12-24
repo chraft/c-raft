@@ -201,8 +201,20 @@ namespace Chraft.World.Blocks
 
             UpdateWorld(block, true);
 
+            // Check if the entity is a player
+            if ((entity != null) && (entity.GetType() == typeof(Player)))
+            {
+                // Check if the player is in creative mode
+                if (((Player)entity).GameMode == System.Convert.ToByte(1))
+                {
+                    // Don't drop any items as the player is in creative mode
+                    goto skipDrop;
+                }
+            }
+
             DropItems(entity, block);
 
+            skipDrop:
             DamageItem(entity);
 
             NotifyNearbyBlocks(entity, block);
