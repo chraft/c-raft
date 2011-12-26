@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Xml.Linq;
 
 namespace Chraft.Interfaces.Recipes
 {
@@ -187,6 +188,77 @@ namespace Chraft.Interfaces.Recipes
 			}
 			return null;
 		}
+
+        public static Recipe[] FromXmlFile(string file)
+        {
+            // Define variables
+            List<Recipe> loadedRecipes = new List<Recipe>();
+            XDocument document;
+
+            // Load the recipes file
+            document = XDocument.Load(file);
+
+            // Get all of the recipe elements
+            var recipes = document.Descendants("Recipes").Descendants("Recipe");
+
+            // Loop through the recipe elements
+            foreach (XElement recipe in recipes)
+            {
+                // Define variables
+                ItemStack result;
+                ItemStack[,] ingredients;
+                bool freeformRecipe = false;
+                int rowCount = 0, row = 0;
+
+                // Determine the resulting item
+                string amount = recipe.Descendants("Amount").First().Value;
+                string id = recipe.Attribute("Id").Value;
+
+                // - Create the stack
+                result = ItemStack.Parse(string.Format("{0}#{1}", id, amount));
+
+                // Determine whether or not this is a free-from recipe
+                string match = recipe.Attribute("Match").Value;
+
+                // - Check the value
+                if (match.ToLower() == "any")
+                    freeformRecipe = true;
+
+                // Load the rows
+                var rows = recipe.Descendants("Rows").Descendants("Row");
+                rowCount = rows.Count<XElement>();
+
+                // Initialize the ingredients array
+                ingredients = new ItemStack[rowCount, 3];
+
+                // Loop through the row elements
+                foreach (XElement r in rows)
+                {
+                    // Define variables
+                    string value = r.Value;
+                    string[] items = value.Split(',');
+
+                    // Loop through the items
+                    for (int i = 0; i < items.Length; i++)
+                    {
+                        // Define variables
+                        string item = items[i];
+
+                        // Add the item stack to the ingredients list
+                        ingredients[row, i] = ItemStack.Parse(item);
+                    }
+
+                    // Increment the row variable
+                    row++;
+                }
+
+                // Add the recipe to the list
+                loadedRecipes.Add(new Recipe(result, ingredients, new ItemStack[3, 3], freeformRecipe));
+            }
+
+            // Return the loaded recipes
+            return loadedRecipes.ToArray();
+        }
 
 		public static Recipe[] FromFile(string file)
 		{
