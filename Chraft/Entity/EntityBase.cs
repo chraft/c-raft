@@ -396,40 +396,38 @@ namespace Chraft.Entity
         /// <param name='velocity'>
         /// Velocity.
         /// </param>
-        public virtual void ApplyVelocity(Vector3 velocity)
+        public virtual AbsWorldCoords ApplyVelocity(Vector3 velocity)
         {
             if (this.NoClip)
             {
-                this.BoundingBox = this.BoundingBox + velocity;
-                _position = new AbsWorldCoords(this.Position.ToVector() + velocity);
-                return;
+                return new AbsWorldCoords(this.Position.ToVector() + velocity);
             }
             
             Vector3 initialVelocity = velocity;
             
             // TODO: if sneaking and onground prevent falling off edges
             
-            this.BoundingBox = this.BoundingBox.OffsetWithClipping(ref velocity, this.World.GetCollidingBoundingBoxes(this, this.BoundingBox + velocity));
+            var boundingBox = this.BoundingBox.OffsetWithClipping(ref velocity, this.World.GetCollidingBoundingBoxes(this, this.BoundingBox + velocity));
             
             // Set the new position to the centre point of the base of the BoundingBox
-            _position = new AbsWorldCoords((this.BoundingBox.Minimum.X + this.BoundingBox.Maximum.X) / 2.0, this.BoundingBox.Minimum.Y, (this.BoundingBox.Minimum.Z + this.BoundingBox.Maximum.Z) / 2.0);
-            
+            var newPosition = new AbsWorldCoords((boundingBox.Minimum.X + boundingBox.Maximum.X) / 2.0, boundingBox.Minimum.Y, (boundingBox.Minimum.Z + boundingBox.Maximum.Z) / 2.0);
+
             #region Update Collision States
-            this.HasCollidedHorizontally = initialVelocity.X != velocity.X || initialVelocity.Z != velocity.Z;
-            this.HasCollidedVertically = initialVelocity.Y != velocity.Y;
+            this.HasCollidedHorizontally = !initialVelocity.X.DoubleIsEqual(velocity.X) || !initialVelocity.Z.DoubleIsEqual(velocity.Z);
+            this.HasCollidedVertically = !initialVelocity.Y.DoubleIsEqual(velocity.Y);
             this.HasCollided = this.HasCollidedHorizontally || this.HasCollidedVertically;
             this.OnGround = this.HasCollidedVertically && initialVelocity.Y < 0.0;
             AddFallingDistance(velocity.Y, this.OnGround);
             
-            if (initialVelocity.X != velocity.X)
+            if (!initialVelocity.X.DoubleIsEqual(velocity.X))
             {
                 Velocity.X = 0.0;
             }
-            if (initialVelocity.Y != velocity.Y)
+            if (!initialVelocity.Y.DoubleIsEqual(velocity.Y))
             {
                 Velocity.Y = 0.0;
             }
-            if (initialVelocity.Z != velocity.Z)
+            if (!initialVelocity.Z.DoubleIsEqual(velocity.Z))
             {
                 Velocity.Z = 0.0;
             }
@@ -437,6 +435,8 @@ namespace Chraft.Entity
 
             TouchNearbyBlocks();
             // TODO: check for proximity to fire
+
+            return newPosition;
         }
         
         /// <summary>
@@ -650,6 +650,9 @@ namespace Chraft.Entity
                 d1 *= 1.0;
                 this.Velocity += new Vector3(-d, 0.0, -d1);
                 entity.Velocity += new Vector3(d, 0.0D, d1);
+				// TODO: MoveTo might be called to frequently - this needs review
+                this.MoveTo(this.ApplyVelocity(this.Velocity));
+                entity.MoveTo(entity.ApplyVelocity(entity.Velocity));
             }
         }
     }

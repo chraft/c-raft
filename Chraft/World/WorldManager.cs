@@ -22,7 +22,7 @@ using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Plugins.Events;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using System.IO;
 using Chraft.Entity;
 using Chraft.World.Blocks;
@@ -41,7 +41,6 @@ namespace Chraft.World
 {
     public partial class WorldManager : IDisposable
     {
-        private Timer _globalTick;
         private IChunkGenerator _generator;
         public object ChunkGenLock = new object();
         private ChunkProvider _chunkProvider;
@@ -52,8 +51,8 @@ namespace Chraft.World
         public bool Running { get; private set; }
         public Server Server { get; private set; }
         public Logger Logger { get { return Server.Logger; } }
-        public string Name { get { return Settings.Default.DefaultWorldName; } }
-        public string Folder { get { return Settings.Default.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
+        public string Name { get { return ChraftConfig.DefaultWorldName; } }
+        public string Folder { get { return ChraftConfig.WorldsFolder + Path.DirectorySeparatorChar + Name; } }
         public string SignsFolder { get { return Folder + Path.DirectorySeparatorChar + "Signs"; } }
 
         public WeatherManager Weather { get; private set; }
@@ -69,17 +68,17 @@ namespace Chraft.World
         private Task _entityUpdateTask;
         private Task _mobSpawnerTask;
 
-        public ConcurrentQueue<ChunkBase> ChunksToSave;
+        public ConcurrentQueue<Chunk> ChunksToSave;
+        public ConcurrentQueue<Chunk> ChunksToSavePostponed;
 
         public ConcurrentDictionary<int, ChunkEntry> PendingChunks = new ConcurrentDictionary<int, ChunkEntry>();
 
         private CancellationTokenSource _saveToken;
-        public bool NeedsFullSave;
-        public bool FullSaving;
 
         private Task _growStuffTask;
         private Task _collectTask;
-        private Task _saveTask;
+        private Task _chunkSaveTask;
+
         private Task _profile;
 
         private int _time;
@@ -221,7 +220,8 @@ namespace Chraft.World
             Server = server;
             InitialChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
             ChunkLightToRecalculate = new ConcurrentQueue<ChunkLightUpdate>();
-            ChunksToSave = new ConcurrentQueue<ChunkBase>();
+            ChunksToSave = new ConcurrentQueue<Chunk>();
+            ChunksToSavePostponed = new ConcurrentQueue<Chunk>();
             Load();
 
             // Create the light brightness table
@@ -248,8 +248,8 @@ namespace Chraft.World
             PhysicsBlocks = new ConcurrentDictionary<int, BaseFallingPhysics>();
 
             InitializeSpawn();
-            InitializeThreads();
             InitializeWeather();
+            Running = true;
             return true;
         }
         
@@ -423,16 +423,10 @@ namespace Chraft.World
             });
         }
 
-        private void InitializeThreads()
-        {
-            Running = true;
-            _globalTick = new Timer(GlobalTickProc, null, 50, 50);
-        }
-
         private void InitializeSpawn()
         {
             Logger.LogOnOneLine(Logger.LogLevel.Info, "Initializing spawn area...", true);
-            Spawn = UniversalCoords.FromWorld(Settings.Default.SpawnX, Settings.Default.SpawnY, Settings.Default.SpawnZ);
+            Spawn = UniversalCoords.FromWorld(ChraftConfig.SpawnX, ChraftConfig.SpawnY, ChraftConfig.SpawnZ);
 
             Queue<Chunk> toRecalculate = new Queue<Chunk>();           
             Chunk chunk = GetChunkFromWorld(Spawn.WorldX, Spawn.WorldZ, true, true);
@@ -505,17 +499,6 @@ namespace Chraft.World
             Parallel.ForEach(Server.GetClients(), c => c.CheckAlive());
         }
 
-        private void FullSave()
-        {
-            // Wait until the task has been canceled
-            _saveTask.Wait();
-
-            int count = ChunksToSave.Count;
-            _saveTask = Task.Factory.StartNew(() => SaveProc(count, CancellationToken.None));
-            NeedsFullSave = false;
-            FullSaving = false;
-        }
-
         private void SaveProc(int chunkToSave, CancellationToken token)
         {
             if (token.IsCancellationRequested)
@@ -526,9 +509,10 @@ namespace Chraft.World
             if (count > chunkToSave)
                 count = chunkToSave;
 
+            chunkToSave -= count;
             for (int i = 0; i < count && Running && !token.IsCancellationRequested; ++i)
             {
-                ChunkBase chunk;
+                Chunk chunk;
                 ChunksToSave.TryDequeue(out chunk);
 
                 if (chunk == null)
@@ -538,20 +522,73 @@ namespace Chraft.World
                  * we don't know which signaled changes will be saved during the save */
                 Interlocked.Exchange(ref chunk.ChangesToSave, 0);
 
-                chunk.Save();
-                
+                chunk.Save();               
+            }
+
+            count = ChunksToSavePostponed.Count;
+
+            if (count > chunkToSave)
+                count = chunkToSave;
+
+            for(int i = 0; i < count && Running && !token.IsCancellationRequested; ++i)
+            {
+                Chunk chunk;
+                ChunksToSavePostponed.TryDequeue(out chunk);
+
+                if (chunk == null)
+                    continue;
+
+
+                if (chunk.ChangesToSave > 0 && chunk.EnqueuedForSaving > chunk.LastSaveTime)
+                {
+                    if ((DateTime.Now - chunk.LastSaveTime) > Chunk.SaveSpan)
+                    {
+                        ChunksToSavePostponed.Enqueue(chunk);
+                        continue;
+                    }
+                    /* Better to "signal" that the chunk can be queued again before saving, 
+                     * we don't know which signaled changes will be saved during the save */
+                    Interlocked.Exchange(ref chunk.ChangesToSave, 0);
+
+                    chunk.Save();
+                }
             }
         }
 
         private void EnsureDirectory()
         {
-            if (!Directory.Exists(Settings.Default.WorldsFolder))
-                Directory.CreateDirectory(Settings.Default.WorldsFolder);
+            if (!Directory.Exists(ChraftConfig.WorldsFolder))
+                Directory.CreateDirectory(ChraftConfig.WorldsFolder);
             if (!Directory.Exists(Folder))
                 Directory.CreateDirectory(Folder);
         }
 
-        private void GlobalTickProc(object state)
+        public void StartSaveProc(int chunksToSave)
+        {
+            if (WorldTicks % 20 == 0 && !Server.NeedsFullSave && !Server.FullSaving && (!ChunksToSave.IsEmpty || !ChunksToSavePostponed.IsEmpty))
+            {
+                if (_chunkSaveTask == null || _chunkSaveTask.IsCompleted)
+                {
+                    _saveToken = new CancellationTokenSource();
+                    var token = _saveToken.Token;
+                    _chunkSaveTask = Task.Factory.StartNew(() => SaveProc(chunksToSave, token), token);
+                }
+            }
+        }
+
+        public bool IsSaving()
+        {
+            return _chunkSaveTask != null && _chunkSaveTask.IsCompleted;
+        }
+
+        public void StopSave()
+        {
+            _saveToken.Cancel();
+            if (!_chunkSaveTask.IsCompleted)
+                _chunkSaveTask.Wait();
+        }
+
+        public void WorldTick()
         {
             // Increment the world tick count
             Interlocked.Increment(ref _worldTicks);
@@ -569,24 +606,6 @@ namespace Chraft.World
             {
                 // Triggered once every half second
                 Task.Factory.StartNew(Server.DoPulse);
-            }
-
-            if (NeedsFullSave)
-            {
-                FullSaving = true;
-                if(_saveTask != null && !_saveTask.IsCompleted)
-                    _saveToken.Cancel();
-
-                Task.Factory.StartNew(FullSave);
-            }
-            else if(WorldTicks % 20 == 0 && !FullSaving && !ChunksToSave.IsEmpty)
-            {
-                if(_saveTask == null || _saveTask.IsCompleted)
-                {
-                    _saveToken = new CancellationTokenSource();
-                    var token = _saveToken.Token;
-                    _saveTask = Task.Factory.StartNew(() => SaveProc(20, token), token);
-                }
             }
            
             // Every 5 seconds
@@ -655,7 +674,6 @@ namespace Chraft.World
         public void Dispose()
         {
             this.Running = false;
-            this._globalTick.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         public byte GetBlockOrLoad(int x, int y, int z)
@@ -1072,11 +1090,11 @@ namespace Chraft.World
                     
         public long GetSeed()
         {
-            if (Settings.Default.WorldSeed == string.Empty)
+            if (ChraftConfig.WorldSeed == string.Empty)
             {
                 return DateTime.Now.ToString().GetHashCode();
             }
-                return Settings.Default.WorldSeed.GetHashCode();
+                return ChraftConfig.WorldSeed.GetHashCode();
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)

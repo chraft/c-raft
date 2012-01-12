@@ -131,6 +131,8 @@ namespace Chraft.Interfaces
 					return;
 				}
 			}
+
+            Owner.MarkToSave();
 		}
 
         internal void RemoveItem(short slot)
@@ -146,6 +148,8 @@ namespace Chraft.Interfaces
                     this[slot].Count -= 1;
                 }
             }
+
+            Owner.MarkToSave();
         }
 
         internal bool DamageItem(short slot, short damageAmount = 1)
@@ -161,18 +165,21 @@ namespace Chraft.Interfaces
                     if (this[slot].Count == 1)
                     {
                         this[slot] = ItemStack.Void;
+                        Owner.MarkToSave();
                         return true;
                     }
                     else // This will allow stacked tools to work properly.
                     {
                         this[slot].Durability = 0;
                         this[slot].Count--;
+                        Owner.MarkToSave();
                         return true;
                     }
                 }
                 else
                 {
                     this[slot].Durability += damageAmount;
+                    Owner.MarkToSave();
                     return true;
                 }
             }

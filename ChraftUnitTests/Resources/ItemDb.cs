@@ -20,7 +20,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Chraft.Interfaces;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 
 namespace Chraft.Resources
 {
@@ -34,7 +34,7 @@ namespace Chraft.Resources
 			get
 			{
 				if (Contains(item))
-					return new ItemStack(Items[item], Settings.Default.DefaultStackSize, Durabilities[item]);
+					return new ItemStack(Items[item], ChraftConfig.DefaultStackSize, Durabilities[item]);
 				else
 					return ItemStack.Void;
 			}

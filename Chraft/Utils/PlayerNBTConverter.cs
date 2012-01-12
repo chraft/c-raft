@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Persistence;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.Utils.NBT;
 
 namespace Chraft.Utils
@@ -80,7 +80,7 @@ namespace Chraft.Utils
         private void SavePlayerXml(ClientSurrogate cs, string fileName)
         {
             XmlSerializer xml = new XmlSerializer(typeof(ClientSurrogate));
-            string folder = Settings.Default.PlayersFolder;
+            string folder = ChraftConfig.PlayersFolder;
             string dataFile = folder + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(fileName) + ".xml";
 
             if (!Directory.Exists(folder))

@@ -25,6 +25,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Ice;
             Opacity = 0x2;
             IsSolid = true;
+            Slipperiness = 0.98;
         }
 
         protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)

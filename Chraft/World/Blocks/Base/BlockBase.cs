@@ -153,6 +153,8 @@ namespace Chraft.World.Blocks
 
         public List<ItemStack> LootTable { get; protected set; }
 
+        public double Slipperiness { get; protected set; }
+
         /// <summary>
         /// Base contructor
         /// </summary>
@@ -171,6 +173,7 @@ namespace Chraft.World.Blocks
             LootTable = new List<ItemStack>();
             Luminance = 0;
             IsWaterProof = false;
+            Slipperiness = 0.6;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
@@ -198,8 +201,20 @@ namespace Chraft.World.Blocks
 
             UpdateWorld(block, true);
 
+            // Check if the entity is a player
+            if ((entity != null) && (entity.GetType() == typeof(Player)))
+            {
+                // Check if the player is in creative mode
+                if (((Player)entity).GameMode == System.Convert.ToByte(1))
+                {
+                    // Don't drop any items as the player is in creative mode
+                    goto skipDrop;
+                }
+            }
+
             DropItems(entity, block);
 
+            skipDrop:
             DamageItem(entity);
 
             NotifyNearbyBlocks(entity, block);
@@ -398,7 +413,7 @@ namespace Chraft.World.Blocks
             Stopwatch watch = new Stopwatch();
             watch.Start();
 #endif
-            chunk.SpreadLightFromBlock(blockX, blockY, blockZ, chunk.GetBlockLight(blockX, blockY, blockZ), oldHeight);
+            //chunk.SpreadLightFromBlock(blockX, blockY, blockZ, chunk.GetBlockLight(blockX, blockY, blockZ), oldHeight);
 #if PROFILE
             watch.Stop();
 

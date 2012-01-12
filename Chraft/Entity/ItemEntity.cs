@@ -44,7 +44,7 @@ namespace Chraft.Entity
             
             PushOutOfBlocks(new AbsWorldCoords(this.Position.X, (this.BoundingBox.Minimum.Y + this.BoundingBox.Maximum.Y) / 2.0, this.Position.Z));
             
-            ApplyVelocity(this.Velocity);
+            this.MoveTo(ApplyVelocity(this.Velocity));
             
             double friction = 0.98;
             if (OnGround)

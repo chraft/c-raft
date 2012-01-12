@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Properties;
 
 namespace Chraft.World
 {
@@ -229,7 +226,7 @@ namespace Chraft.World
 				return;
 			if (BlockData.Air.Contains(Up.Type))
 			{
-				if (World.Server.Rand.Next(Settings.Default.AnimalSpawnInterval) == 0)
+				if (World.Server.Rand.Next(ChraftConfig.AnimalSpawnInterval) == 0)
 					World.SpawnAnimal(Up.X, Up.Y, Up.Z);
 			}
 			else if (World.Server.Rand.Next(30) != 0)

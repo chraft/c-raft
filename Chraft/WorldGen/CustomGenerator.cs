@@ -16,6 +16,7 @@
 
 /* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
 
+using System.Threading.Tasks;
 using Chraft.World;
 using System;
 using System.Diagnostics;
@@ -597,22 +598,30 @@ namespace Chraft.WorldGen
 
         private void triLerpDensityMap(double[, ,] densityMap)
         {
-            for (int x = 0; x < 16; x++)
+            Parallel.For(0, 16, x =>
             {
+                int offsetX = (x / 4) * 4;
                 for (int y = 0; y < 128; y++)
                 {
+                    int offsetY = (y / 8) * 8;
                     for (int z = 0; z < 16; z++)
                     {
-                        if (!(x % 4 == 0 && y % 8 == 0 && z % 4 == 0))
+                        if (!(x%4 == 0 && y%8 == 0 && z%4 == 0))
                         {
-                            int offsetX = (x / 4) * 4;
-                            int offsetY = (y / 8) * 8;
-                            int offsetZ = (z / 4) * 4;
-                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ], densityMap[offsetX, offsetY + 8, offsetZ], densityMap[offsetX, offsetY, offsetZ + 4], densityMap[offsetX, offsetY + 8, offsetZ + 4], densityMap[4 + offsetX, offsetY, offsetZ], densityMap[4 + offsetX, offsetY + 8, offsetZ], densityMap[4 + offsetX, offsetY, offsetZ + 4], densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX, 4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
+                            int offsetZ = (z/4)*4;
+                            densityMap[x, y, z] = triLerp(x, y, z, densityMap[offsetX, offsetY, offsetZ],
+                                                          densityMap[offsetX, offsetY + 8, offsetZ],
+                                                          densityMap[offsetX, offsetY, offsetZ + 4],
+                                                          densityMap[offsetX, offsetY + 8, offsetZ + 4],
+                                                          densityMap[4 + offsetX, offsetY, offsetZ],
+                                                          densityMap[4 + offsetX, offsetY + 8, offsetZ],
+                                                          densityMap[4 + offsetX, offsetY, offsetZ + 4],
+                                                          densityMap[4 + offsetX, offsetY + 8, offsetZ + 4], offsetX,
+                                                          4 + offsetX, offsetY, 8 + offsetY, offsetZ, offsetZ + 4);
                         }
                     }
                 }
-            }
+            });
         }
     }
 }

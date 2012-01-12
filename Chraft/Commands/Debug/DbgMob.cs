@@ -58,6 +58,13 @@ namespace Chraft.Commands.Debug
                         theMob.Position = new AbsWorldCoords(client.Owner.World.FromFace(hit.TargetBlock, hit.FaceHit));
                         client.Server.AddEntity(theMob);
                     }
+                    else if (tokens[0] == "update")
+                    {
+                        foreach (var entity in client.Server.GetNearbyEntities(client.Owner.World, client.Owner.Position))
+                        {
+                            entity.TeleportTo(entity.Position);
+                        }
+                    }
                     else
                     {
                         client.SendMessage(String.Format("Unrecognised mob type: '{0}'", tokens[0]));

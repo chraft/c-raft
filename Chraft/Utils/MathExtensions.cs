@@ -33,14 +33,37 @@ namespace Chraft.Utils
         private const double _180OverPi = 180.0 / Math.PI;
         private const double _PiOver180 = Math.PI / 180.0;
 
+        /// <summary>
+        /// Converts a double from degrees to radians
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
         public static double ToRadians(this double val)
         {
             return val * _PiOver180;
         }
 
+        /// <summary>
+        /// Converts a double from radians to degrees
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
         public static double ToDegrees(this double val)
         {
             return val * _180OverPi;
+        }
+
+        private const double EqualityTolerence = Double.Epsilon;
+
+        /// <summary>
+        /// Compares two doubles for equality, returning true if the absolute difference is less than or equal to Double.Epsilon
+        /// </summary>
+        /// <param name="val1"></param>
+        /// <param name="val2"></param>
+        /// <returns></returns>
+        public static bool DoubleIsEqual(this double val1, double val2)
+        {
+            return Math.Abs(val1 - val2) <= EqualityTolerence;
         }
     }
 }

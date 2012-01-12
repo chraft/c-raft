@@ -22,7 +22,7 @@ namespace Chraft
         public byte[] Data;
         public NibbleArray(int i)
         {
-            Data = new byte[i >> 1];
+            Data = new byte[i];
         }
 
         public NibbleArray(byte[] data)

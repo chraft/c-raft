@@ -16,18 +16,21 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using Chraft.Commands;
 using Chraft.Net;
 using Chraft.Entity;
+using Chraft.Utils.Config;
 
 
 namespace Chraft.Utils
 {
     public class PermissionHandler : IPermissions
     {
-        private static Configuration _permissionConfig;
+    
         private static XDocument _permissionXml;
         private const string Permfile = "Resources/Permissions.xml";
         private static Server _server;
@@ -35,36 +38,40 @@ namespace Chraft.Utils
         public PermissionHandler(Server server)
         {
             _server = server;
-            _permissionConfig = new Configuration(server, Permfile);
-            _permissionXml = _permissionConfig.Load(Permfile);
+            _permissionXml = Load(Permfile);
         }
 
         public ClientPermission LoadClientPermission(Client client)
         {
             //TODO - use ConfigurationClass for loading things
             var p = new ClientPermission
-            {
-                Groups = new List<string>(),
-                AllowedPermissions = new List<string>(),
-                DeniedPermissions = new List<string>()
-            };
+                        {
+                            Groups = new List<string>(),
+                            AllowedPermissions = new List<string>(),
+                            DeniedPermissions = new List<string>()
+                        };
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm = _permissionXml.Descendants("Users").Descendants("User").Where(n => (string)n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
+            var perm =
+                _permissionXml.Descendants("Users").Descendants("User").Where(
+                    n => (string) n.Attribute("Name") == client.Username.ToLower()).FirstOrDefault();
 
             //default group we grab the first with default attrbute defined
-            var gperm = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("IsDefault") == "true").FirstOrDefault();
+            var gperm =
+                _permissionXml.Descendants("Groups").Descendants("Group").Where(
+                    n => (string) n.Attribute("IsDefault") == "true").FirstOrDefault();
             if (gperm == null)
             {
                 //no default defined
-                _server.Logger.Log(Logger.LogLevel.Warning, "Required default group is not defined in permissions file. Add IsDefault=\"true\" to a group");
+                _server.Logger.Log(Logger.LogLevel.Warning,
+                                   "Required default group is not defined in permissions file. Add IsDefault=\"true\" to a group");
                 return null;
             }
             if (perm != null)
             {
                 if (perm.Attribute("Groups") == null)
                 {
-                    p.Groups.Add((string)gperm.Attribute("Name"));
+                    p.Groups.Add((string) gperm.Attribute("Name"));
                 }
                 else
                 {
@@ -86,7 +93,13 @@ namespace Chraft.Utils
                 }
                 if (p.Groups != null)
                 {
-                    foreach (var el in p.Groups.Select(s => _permissionXml.Descendants("Groups").Descendants("Group").Where(n => (string)n.Attribute("Name") == s.ToLower())).SelectMany(groupPerm => groupPerm))
+                    foreach (
+                        var el in
+                            p.Groups.Select(
+                                s =>
+                                _permissionXml.Descendants("Groups").Descendants("Group").Where(
+                                    n => (string) n.Attribute("Name") == s.ToLower())).SelectMany(groupPerm => groupPerm)
+                        )
                     {
                         if (string.IsNullOrEmpty(p.Prefix))
                         {
@@ -117,11 +130,11 @@ namespace Chraft.Utils
             }
             else
             {
-                p.Groups.Add((string)gperm.Attribute("Name"));
+                p.Groups.Add((string) gperm.Attribute("Name"));
                 p.Prefix = gperm.Element("Prefix") == null ? string.Empty : gperm.Element("Prefix").Value;
                 p.Suffix = gperm.Element("Suffix") == null ? string.Empty : gperm.Element("Suffix").Value;
                 bool bCanBuild;
-                bool.TryParse((string)gperm.Element("CanBuild"), out bCanBuild);
+                bool.TryParse((string) gperm.Element("CanBuild"), out bCanBuild);
                 p.CanBuild = bCanBuild;
                 if (gperm.Element("Permission") != null)
                 {
@@ -143,7 +156,7 @@ namespace Chraft.Utils
             return p;
         }
 
-        static List<string> RemoveDuplicates(IEnumerable<string> inputList)
+        private static List<string> RemoveDuplicates(IEnumerable<string> inputList)
         {
             var uniqueStore = new Dictionary<string, int>();
             var finalList = new List<string>();
@@ -157,7 +170,8 @@ namespace Chraft.Utils
 
         public bool HasPermission(Player player, ICommand command)
         {
-            return player.Permissions.AllowedPermissions.Contains(command.Permission.ToLower()) && !player.Permissions.DeniedPermissions.Contains(command.Permission.ToLower());
+            return player.Permissions.AllowedPermissions.Contains(command.Permission.ToLower()) &&
+                   !player.Permissions.DeniedPermissions.Contains(command.Permission.ToLower());
         }
 
         /// <summary>
@@ -169,7 +183,10 @@ namespace Chraft.Utils
         public bool HasPermission(string playerName, string permissionNode)
         {
             var client = _server.GetClients(playerName).FirstOrDefault();
-            return client != null && (client.Owner.Permissions.AllowedPermissions.Contains("*") || client.Owner.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) && !client.Owner.Permissions.DeniedPermissions.Contains(permissionNode.ToLower()));
+            return client != null &&
+                   (client.Owner.Permissions.AllowedPermissions.Contains("*") ||
+                    client.Owner.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) &&
+                    !client.Owner.Permissions.DeniedPermissions.Contains(permissionNode.ToLower()));
         }
 
 
@@ -190,6 +207,7 @@ namespace Chraft.Utils
         {
             return client.Owner.Permissions.Groups.Contains(groupName.ToLower());
         }
+
         /// <summary>
         /// Return the suffix of a specific player
         /// </summary>
@@ -205,6 +223,7 @@ namespace Chraft.Utils
         {
             return player.Permissions.Suffix;
         }
+
         /// <summary>
         /// Return the prefix of a specific player
         /// </summary>
@@ -220,6 +239,7 @@ namespace Chraft.Utils
         {
             return player.Permissions.Prefix;
         }
+
         /// <summary>
         /// Return the prefix of a specific group
         /// </summary>
@@ -272,7 +292,9 @@ namespace Chraft.Utils
         /// <returns>bool</returns>
         private bool GroupExists(string groupName)
         {
-            var count = _permissionXml.Descendants("Groups").Descendants("Group").Where(n => n.Attribute("Name").Value.ToLower() == groupName.ToLower()).Count();
+            var count =
+                _permissionXml.Descendants("Groups").Descendants("Group").Where(
+                    n => n.Attribute("Name").Value.ToLower() == groupName.ToLower()).Count();
             return count > 0;
         }
 
@@ -310,6 +332,47 @@ namespace Chraft.Utils
         public IEnumerable<string> GetPlayerGroups(Client client)
         {
             return client.Owner.Permissions.Groups;
+        }
+
+        /// <summary>
+        /// Loads permission file into an xdoc
+        /// </summary>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        private XDocument Load(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                try
+                {
+                    return XDocument.Load(fileName);
+                }
+                catch
+                {
+                    return null;
+                }
+
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Saves the configuration file, will create file if it does not exist
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <returns>bool whether file created successfully</returns>
+        private bool Save(string filename)
+        {
+
+            try
+            {
+                _permissionXml.Save(filename);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
