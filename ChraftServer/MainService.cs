@@ -24,8 +24,8 @@ using Chraft;
 using Chraft.Commands;
 using Chraft.Plugins.Events;
 using Chraft.Plugins.Events.Args;
-using Chraft.Properties;
 using Chraft.Utils;
+using Chraft.Utils.Config;
 
 namespace ChraftServer
 {
@@ -47,10 +47,10 @@ namespace ChraftServer
                 switch (args[i])
                 {
                     case "-port":
-                        Settings.Default.Port = Convert.ToInt32(args[++i]);
+                        ChraftConfig.Port = Convert.ToInt32(args[++i]);
                         break;
                     case "-ip":
-                        Settings.Default.IPAddress = args[++i];
+                        ChraftConfig.IPAddress = args[++i];
                         break;
                 }
             }

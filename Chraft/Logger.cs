@@ -15,10 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using Chraft.Properties;
 using System.IO;
 using Chraft.Plugins.Events.Args;
 using Chraft.Plugins.Events;
+using Chraft.Utils.Config;
 
 namespace Chraft
 {
@@ -88,14 +88,14 @@ namespace Chraft
 
 		private void LogToConsole(LogLevel level, string message, bool newLine, bool header = true)
 		{
-            if ((int)level >= Settings.Default.LogConsoleLevel)
+            if ((int)level >= ChraftConfig.LogConsoleLevel)
             {
                 if (newLine)
-                    Console.WriteLine(Settings.Default.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                    Console.WriteLine(ChraftConfig.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
                 else
                 {
                     if (header)
-                        Console.Write(Settings.Default.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                        Console.Write(ChraftConfig.LogConsoleFormat, DateTime.Now, level.ToString().ToUpper(), message);
                     else
                         Console.Write("{0}", message);
                 }
@@ -104,14 +104,14 @@ namespace Chraft
 
 		private void LogToFile(LogLevel level, string message, bool newLine, bool header = true)
 		{
-            if ((int)level >= Settings.Default.LogFileLevel && WriteLog != null)
+            if ((int)level >= ChraftConfig.LogFileLevel && WriteLog != null)
             {
                 if (newLine)
-                    WriteLog.WriteLine(Settings.Default.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                    WriteLog.WriteLine(ChraftConfig.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
                 else
                 {
                     if (header)
-                        WriteLog.Write(Settings.Default.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
+                        WriteLog.Write(ChraftConfig.LogFileFormat, DateTime.Now, level.ToString().ToUpper(), message);
                     else
                         WriteLog.Write("{0}", message);
                 }

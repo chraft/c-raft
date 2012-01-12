@@ -22,88 +22,88 @@ using Chraft.Entity;
 using System.Threading;
 using System.Collections.Concurrent;
 using Chraft.Net;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.Net.Packets;
 using Chraft.World.Blocks;
 
 namespace Chraft.World
 {
-	public partial class ChunkBase
-	{
-		public const int SIZE = 16 * 16 * 128;
+    public partial class ChunkBase
+    {
+        public const int SIZE = 16 * 16 * 128;
+        public const int HALFSIZE = SIZE / 2;
 
-		public delegate void ForEachBlock(UniversalCoords coords);
+        public delegate void ForEachBlock(UniversalCoords coords);
 
-		protected List<Client> Clients = new List<Client>();
-		protected List<EntityBase> Entities = new List<EntityBase>();
-		protected List<TileEntity> TileEntities = new List<TileEntity>();
+        protected List<Client> Clients = new List<Client>();
+        protected List<EntityBase> Entities = new List<EntityBase>();
+        protected List<TileEntity> TileEntities = new List<TileEntity>();
         public byte[] Types = new byte[SIZE];
 
-        public NibbleArray Light = new NibbleArray(SIZE);
-        public NibbleArray Data = new NibbleArray(SIZE);
-        public NibbleArray SkyLight = new NibbleArray(SIZE);
+        public NibbleArray Light = new NibbleArray(HALFSIZE);
+        public NibbleArray Data = new NibbleArray(HALFSIZE);
+        public NibbleArray SkyLight = new NibbleArray(HALFSIZE);
 
         protected int NumBlocksToUpdate;
-	    public int ChangesToSave;
 
         protected int _TimerStarted;
         protected Timer _UpdateTimer;
         protected ConcurrentDictionary<short, short> BlocksToBeUpdated = new ConcurrentDictionary<short, short>();
         protected ReaderWriterLockSlim BlocksUpdateLock = new ReaderWriterLockSlim();
 
-		public WorldManager World { get; private set; }
+        public WorldManager World { get; private set; }
 
-	    public UniversalCoords Coords { get; set; }
+        public UniversalCoords Coords { get; set; }
 
         internal ChunkBase(WorldManager world, UniversalCoords coords)
-		{
-			World = world;
-		    Coords = coords;
-		}
+        {
+            World = world;
+            Coords = coords;
+        }
 
-		/// <summary>
-		/// Gets a thead-safe array of clients that have the chunk loaded.
-		/// </summary>
-		/// <returns>Array of clients that have the chunk loaded.</returns>
-		public Client[] GetClients()
-		{
-			lock (Clients)
-				return Clients.ToArray();
-		}
+        /// <summary>
+        /// Gets a thead-safe array of clients that have the chunk loaded.
+        /// </summary>
+        /// <returns>Array of clients that have the chunk loaded.</returns>
+        public Client[] GetClients()
+        {
+            lock (Clients)
+                return Clients.ToArray();
+        }
 
-		/// <summary>
-		/// Gets a thead-safe array of entities in the chunk.
-		/// </summary>
-		/// <returns>Array of entities in the chunk.</returns>
-		public EntityBase[] GetEntities()
-		{
-			lock (Entities)
-				return Entities.ToArray();
-		}
+        /// <summary>
+        /// Gets a thead-safe array of entities in the chunk.
+        /// </summary>
+        /// <returns>Array of entities in the chunk.</returns>
+        public EntityBase[] GetEntities()
+        {
+            lock (Entities)
+                return Entities.ToArray();
+        }
 
-		/// <summary>
-		/// Gets a thead-safe array of tile entities in the chunk.
-		/// </summary>
-		/// <returns>Array of tile entities in the chunk.</returns>
-		public TileEntity[] GetTileEntities()
-		{
-			lock (TileEntities)
-				return TileEntities.ToArray();
-		}
+        /// <summary>
+        /// Gets a thead-safe array of tile entities in the chunk.
+        /// </summary>
+        /// <returns>Array of tile entities in the chunk.</returns>
+        public TileEntity[] GetTileEntities()
+        {
+            lock (TileEntities)
+                return TileEntities.ToArray();
+        }
 
-		public unsafe byte this[UniversalCoords coords]
-		{
-			get
-			{
-				fixed (byte* types = Types)
-					return types[coords.BlockPackedCoords];
-			}
-			set
-			{
-				fixed (byte* types = Types)
+        public unsafe byte this[UniversalCoords coords]
+        {
+            get
+            {
+                fixed (byte* types = Types)
+                    return types[coords.BlockPackedCoords];
+            }
+            set
+            {
+                fixed (byte* types = Types)
                     types[coords.BlockPackedCoords] = value;
-			}
-		}
+            }
+        }
 
         public unsafe byte this[int blockX, int blockY, int blockZ]
         {
@@ -176,9 +176,9 @@ namespace Chraft.World
         }
 
         public byte GetLuminance(UniversalCoords coords)
-		{
+        {
             return BlockHelper.Luminance((byte)GetType(coords));
-		}
+        }
 
         public byte GetLuminance(int blockX, int blockY, int blockZ)
         {
@@ -191,43 +191,43 @@ namespace Chraft.World
         }
 
         public byte GetOpacity(int blockX, int blockY, int blockZ)
-		{
+        {
             return BlockHelper.Opacity((byte)GetType(blockX, blockY, blockZ));
-		}
+        }
 
-		public void SetAllBlocks(byte[] data)
-		{
-			Types = data;
-		}
+        public void SetAllBlocks(byte[] data)
+        {
+            Types = data;
+        }
 
-		/*public void ForAdjacentSameChunk(int x, int y, int z, ForEachBlock predicate)
-		{
-			if (x > 0)
-				predicate(x - 1, y, z);
-			if (x < 15)
-				predicate(x + 1, y, z);
-			if (y > 0)
-				predicate(x, y - 1, z);
-			if (y < 127)
-				predicate(x, y + 1, z);
-			if (z > 0)
-				predicate(x, y, z - 1);
-			if (z < 15)
-				predicate(x, y, z + 1);
-		}*/
+        /*public void ForAdjacentSameChunk(int x, int y, int z, ForEachBlock predicate)
+        {
+            if (x > 0)
+                predicate(x - 1, y, z);
+            if (x < 15)
+                predicate(x + 1, y, z);
+            if (y > 0)
+                predicate(x, y - 1, z);
+            if (y < 127)
+                predicate(x, y + 1, z);
+            if (z > 0)
+                predicate(x, y, z - 1);
+            if (z < 15)
+                predicate(x, y, z + 1);
+        }*/
 
-		public void ForEach(ForEachBlock predicate)
-		{
-			for (int x = 0; x < 16; x++)
-				for (int z = 0; z < 16; z++)
-					for (int y = 127; y >=0; --y)
-						predicate(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z));
-		}
+        public void ForEach(ForEachBlock predicate)
+        {
+            for (int x = 0; x < 16; x++)
+                for (int z = 0; z < 16; z++)
+                    for (int y = 127; y >= 0; --y)
+                        predicate(UniversalCoords.FromBlock(Coords.ChunkX, Coords.ChunkZ, x, y, z));
+        }
 
-		public BlockData.Blocks GetType(UniversalCoords coords)
-		{
-			return (BlockData.Blocks)this[coords];
-		}
+        public BlockData.Blocks GetType(UniversalCoords coords)
+        {
+            return (BlockData.Blocks)this[coords];
+        }
 
         public BlockData.Blocks GetType(int blockX, int blockY, int blockZ)
         {
@@ -235,26 +235,26 @@ namespace Chraft.World
         }
 
         public void SetType(UniversalCoords coords, BlockData.Blocks value, bool needsUpdate = true)
-		{
-			this[coords] = (byte)value;            
+        {
+            this[coords] = (byte)value;
             OnSetType(coords, value);
 
-            if(needsUpdate)
+            if (needsUpdate)
                 BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
-		}
+        }
 
         public void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value, bool needsUpdate = true)
         {
-            this[blockX, blockY, blockZ] = (byte)value;            
+            this[blockX, blockY, blockZ] = (byte)value;
             OnSetType(blockX, blockY, blockZ, value);
 
-            if(needsUpdate)
+            if (needsUpdate)
                 BlockNeedsUpdate(blockX, blockY, blockZ);
         }
 
         public virtual void OnSetType(UniversalCoords coords, BlockData.Blocks value)
         {
-            
+
         }
 
         public virtual void OnSetType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
@@ -335,21 +335,13 @@ namespace Chraft.World
         }
 
         public bool IsAir(UniversalCoords coords)
-		{
-            return BlockHelper.IsAir((byte)GetType(coords));
-		}
-
-        public void MarkToSave()
         {
-            int changes = Interlocked.Increment(ref ChangesToSave);
-
-            if(changes == 1)
-                World.ChunksToSave.Enqueue(this);
+            return BlockHelper.IsAir((byte)GetType(coords));
         }
 
-        public virtual void Save()
+        public virtual void MarkToSave()
         {
-            
+
         }
 
         public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)
@@ -361,7 +353,7 @@ namespace Chraft.World
             BlocksUpdateLock.EnterReadLock();
             if (num <= 20)
             {
-                short packedCoords = (short) (blockX << 12 | blockZ << 8 | blockY);
+                short packedCoords = (short)(blockX << 12 | blockZ << 8 | blockY);
                 BlocksToBeUpdated.AddOrUpdate(packedCoords, packedCoords, (key, oldValue) => packedCoords);
             }
             BlocksUpdateLock.ExitReadLock();
@@ -387,5 +379,5 @@ namespace Chraft.World
                 _UpdateTimer = null;
             }
         }
-	}
+    }
 }

@@ -15,13 +15,12 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Interfaces;
 using Ionic.Zlib;
@@ -49,6 +48,11 @@ namespace Chraft.World
         public DateTime CreationDate;
         public bool LightToRecalculate;
         public int SpreadingSkylight;
+
+        public int ChangesToSave;
+        public DateTime LastSaveTime;
+        public DateTime EnqueuedForSaving;
+        public static TimeSpan SaveSpan = TimeSpan.FromSeconds(1.0);
 
         private ConcurrentDictionary<short, short> BlocksUpdating = new ConcurrentDictionary<short, short>();
 
@@ -690,7 +694,7 @@ namespace Chraft.World
 
         private static bool CanLoad(string path)
         {
-            return Settings.Default.LoadFromSave && File.Exists(path);
+            return ChraftConfig.LoadFromSave && File.Exists(path);
         }
 
         public static Stopwatch watch = new Stopwatch();
@@ -709,21 +713,36 @@ namespace Chraft.World
             {
                 zip = new DeflateStream(File.Open(path, FileMode.Open), CompressionMode.Decompress);
 
-                chunk.LightToRecalculate = Convert.ToBoolean(zip.ReadByte());
-                chunk.HeightMap = new byte[16, 16];
-                int height;
-                chunk.MaxHeight = 0;
-                for (int x = 0; x < 16; ++x)
-                {
-                    for (int z = 0; z < 16; ++z)
-                    {
-                        height = chunk.HeightMap[x, z] = (byte)zip.ReadByte();
+                int version = zip.ReadByte();
 
-                        if (chunk.MaxHeight < height)
-                            chunk.MaxHeight = height;
+                switch(version)
+                {
+                    /* When there's a new mod you do:
+                    case 1:
+                    {
+                     * dosomething
+                     * goto case 0;
+                    }*/
+                    case 0:
+                    {
+                        chunk.LightToRecalculate = Convert.ToBoolean(zip.ReadByte());
+                        chunk.HeightMap = new byte[16,16];
+                        int height;
+                        chunk.MaxHeight = 0;
+                        for (int x = 0; x < 16; ++x)
+                        {
+                            for (int z = 0; z < 16; ++z)
+                            {
+                                height = chunk.HeightMap[x, z] = (byte) zip.ReadByte();
+
+                                if (chunk.MaxHeight < height)
+                                    chunk.MaxHeight = height;
+                            }
+                        }
+                        chunk.LoadAllBlocks(zip);
+                        break;
                     }
                 }
-                chunk.LoadAllBlocks(zip);
             }
             catch (Exception ex)
             {
@@ -743,20 +762,13 @@ namespace Chraft.World
 
         private void LoadAllBlocks(Stream strm)
         {
-            strm.Read(_readBuffer, 0, _readBuffer.Length);
-            try
-            {
-                for (_index = 0; _index < 16 * 16 * 128; ++_index)
-                    LoadBlock(_index);
-            }
-            catch (Exception e)
-            {
-                World.Server.Logger.Log(Logger.LogLevel.Info, "Index: {0}", _index);
-                World.Server.Logger.Log(Logger.LogLevel.Error, "{0}", e);
-            }
+            strm.Read(Types, 0, SIZE);
+            strm.Read(Data.Data, 0, HALFSIZE);
+            strm.Read(Light.Data, 0, HALFSIZE);
+            strm.Read(SkyLight.Data, 0, HALFSIZE);
         }
 
-        private void LoadBlock(int x, int y, int z, Stream strm)
+        /*private void LoadBlock(int x, int y, int z, Stream strm)
         {
             byte type = (byte)strm.ReadByte();
             byte data = (byte)strm.ReadByte();
@@ -769,29 +781,16 @@ namespace Chraft.World
                 short packedCoords = (short) (x << 12 | z << 8 | y);
                 _tempGrowableBlocks.TryAdd(packedCoords, packedCoords);
             }
-        }
-
-        private void LoadBlock(int index)
-        {
-            int bufferIndex = index*3;
-            byte type = _readBuffer[bufferIndex++];
-            byte data = _readBuffer[bufferIndex++];
-            byte ls = _readBuffer[bufferIndex];
-            Types[index] = type;
-            Data.setNibble(index, data);
-
-            byte low = (byte)(ls & 0x0F);
-            byte high = (byte)((ls & 0x0F) >> 4);
-
-            SkyLight.setNibble(index, low);
-            Light.setNibble(index, high);
-        }
+        }*/
 
         private bool EnterSave()
         {
             Monitor.Enter(_SavingLock);
             if (Saving)
+            {
+                Monitor.Exit(_SavingLock);
                 return false;
+            }
             Saving = true;
             return true;
         }
@@ -802,26 +801,29 @@ namespace Chraft.World
             Monitor.Exit(_SavingLock);
         }
 
-        private void WriteBlock(int x, int y, int z, Stream strm)
-        {
-            strm.WriteByte(this[x, y, z]);
-            strm.WriteByte(GetData(x, y, z));
-            strm.WriteByte(GetDualLight(x, y, z));
-        }
-
         private void WriteAllBlocks(Stream strm)
         {
-            for (int x = 0; x < 16; x++)
+            strm.Write(Types, 0, SIZE);
+            strm.Write(Data.Data, 0, HALFSIZE);
+            strm.Write(Light.Data, 0, HALFSIZE);
+            strm.Write(SkyLight.Data, 0, HALFSIZE);
+        }
+
+        public override void MarkToSave()
+        {
+            int changes = Interlocked.Increment(ref ChangesToSave);
+
+            if (changes == 1)
             {
-                for (int z = 0; z < 16; z++)
-                {
-                    for (int y = 0; y < 128; y++)
-                        WriteBlock(x, y, z, strm);
-                }
+                EnqueuedForSaving = DateTime.Now;
+                if ((DateTime.Now - LastSaveTime) > SaveSpan)
+                    World.ChunksToSave.Enqueue(this);                
+                else
+                    World.ChunksToSavePostponed.Enqueue(this);                
             }
         }
 
-        public override void Save()
+        public void Save()
         {
             if (!EnterSave())
                 return;
@@ -829,6 +831,8 @@ namespace Chraft.World
             Stream zip = new DeflateStream(File.Create(DataFile + ".tmp"), CompressionMode.Compress);
             try
             {
+                zip.WriteByte(0); // version
+
                 zip.WriteByte(Convert.ToByte(LightToRecalculate));
                 for (int x = 0; x < 16; ++x)
                 {

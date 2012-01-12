@@ -60,8 +60,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Invist.Persistence, Version=2.4.0.0, Culture=neutral, PublicKeyToken=e4481389e7a11099, processorArchitecture=MSIL" />
+    <Reference Include="Invist.Persistence.Database, Version=2.4.0.0, Culture=neutral, PublicKeyToken=e4481389e7a11099, processorArchitecture=MSIL" />
+    <Reference Include="Nini">
+      <HintPath>.\Nini.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -136,11 +143,7 @@
     <Compile Include="Plugins\Events\Args\BlockEventArgs.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\Listener\BlockListener.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-    </Compile>
+    <Compile Include="Utils\Config\ChraftConfig.cs" />
     <Compile Include="Utils\NBT\ChunkTag.cs" />
     <Compile Include="Utils\NBT\EndiannessConverter.cs" />
     <Compile Include="Utils\NBT\MCPoint.cs" />
@@ -346,7 +349,7 @@
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Utils\ItemDb.cs" />
     <Compile Include="Utils\Chat.cs" />
-    <Compile Include="Utils\Configuration.cs" />
+    <Compile Include="Utils\Config\Configuration.cs" />
     <Compile Include="Utils\MathExtensions.cs" />
     <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="Utils\Hash.cs" />
@@ -371,6 +374,7 @@
     <Compile Include="World\ChunkBase.cs" />
     <Compile Include="World\ChunkSet.cs" />
     <Compile Include="Utils\MathHelper.cs" />
+    <Compile Include="World\Paths\PathCoordinate.cs" />
     <Compile Include="World\ClientRequest.cs" />
     <Compile Include="World\WorldMobSpawner.cs" />
     <Compile Include="Utils\Vector3.cs" />
@@ -383,31 +387,30 @@
     <Compile Include="Entity\LivingEntity.cs" />
     <Compile Include="Entity\Player.cs" />
     <Compile Include="World\RayTraceHit.cs" />
+    <Compile Include="World\Paths\PathFinder.cs" />
     <Compile Include="Commands\Debug\DbgRayTrace.cs" />
     <Compile Include="Commands\Debug\DbgMob.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Properties\Settings.settings">
-      <Generator>PublicSettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
     <None Include="Resources\Items.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Resources\Recipes.dat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="Resources\Recipes.dat" />
     <None Include="Resources\Smelting.dat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Chraft.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Recipes.xml">
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

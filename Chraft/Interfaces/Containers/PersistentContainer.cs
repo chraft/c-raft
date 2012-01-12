@@ -18,17 +18,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using Chraft.Net;
-using Chraft.Properties;
+using Chraft.Utils.Config;
 using Chraft.World;
 
 namespace Chraft.Interfaces.Containers
 {
     public abstract class PersistentContainer
     {
-        protected string DataPath { get { return Path.Combine(World.Folder, Settings.Default.ContainersFolder); } }
+        protected string DataPath { get { return Path.Combine(World.Folder, ChraftConfig.ContainersFolder); } }
         protected string ContainerFolder;
         protected string DataFile;
 
