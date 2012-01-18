@@ -174,6 +174,7 @@ namespace Chraft.Net.Packets
         public int ProtocolOrEntityId { get; set; }
         public string Username { get; set; }
         public long MapSeed { get; set; }
+        public string Level_Type { get; set; }
         public int ServerMode { get; set; }
         public sbyte Dimension { get; set; }
         public sbyte Unknown { get; set; }
@@ -185,6 +186,7 @@ namespace Chraft.Net.Packets
             ProtocolOrEntityId = reader.ReadInt();
             Username = reader.ReadString16(16);
             MapSeed = reader.ReadLong();
+            Level_Type = reader.ReadString16(9);
             ServerMode = reader.ReadInt();
             Dimension = reader.ReadSByte();
             Unknown = reader.ReadSByte();
@@ -194,15 +196,22 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity(23, Username);
+            SetCapacity(25, Username);
             Writer.Write(ProtocolOrEntityId);
             Writer.Write(Username);
             Writer.Write(MapSeed);
+            Writer.Write("DEFAULT"); //todo get from config
             Writer.Write(ServerMode);
             Writer.Write(Dimension);
             Writer.Write(Unknown);
             Writer.Write(WorldHeight);
             Writer.Write(MaxPlayers);
+        }
+
+        public enum LevelType
+        {
+            DEFAULT,
+            SUPERFLAT
         }
     }
 
@@ -358,6 +367,7 @@ namespace Chraft.Net.Packets
         public sbyte CreativeMode { get; set; } // 0 for survival, 1 for creative.
         public short WorldHeight { get; set; } // Default 128
         public long MapSeed { get; set; }
+        public string LevelType { get; set; } //todo - read from config
 
         protected override int Length { get { return 14; } }
 
@@ -368,6 +378,7 @@ namespace Chraft.Net.Packets
             CreativeMode = stream.ReadSByte();
             WorldHeight = stream.ReadShort();
             MapSeed = stream.ReadLong();
+            LevelType = stream.ReadString16(9);
         }
 
         public override void Write()
@@ -378,6 +389,7 @@ namespace Chraft.Net.Packets
             Writer.Write(CreativeMode);
             Writer.Write(WorldHeight);
             Writer.Write(MapSeed);
+            Writer.Write("DEFAULT");
         }
     }
 
@@ -929,36 +941,6 @@ namespace Chraft.Net.Packets
             Writer.Write(Y);
             Writer.Write(Z);
             Writer.Write(GraphicId);
-        }
-    }
-
-    public class UnknownAPacket : Packet
-    {
-        public float Sink1 { get; set; }
-        public float Sink2 { get; set; }
-        public float Sink3 { get; set; }
-        public float Sink4 { get; set; }
-        public bool Sink5 { get; set; }
-        public bool Sink6 { get; set; }
-
-        public override void Read(PacketReader stream)
-        {
-            Sink1 = stream.ReadFloat();
-            Sink2 = stream.ReadFloat();
-            Sink3 = stream.ReadFloat();
-            Sink4 = stream.ReadFloat();
-            Sink5 = stream.ReadBool();
-            Sink6 = stream.ReadBool();
-        }
-
-        public override void Write()
-        {
-            Writer.Write(Sink1);
-            Writer.Write(Sink2);
-            Writer.Write(Sink3);
-            Writer.Write(Sink4);
-            Writer.Write(Sink5);
-            Writer.Write(Sink6);
         }
     }
 
@@ -2079,6 +2061,32 @@ namespace Chraft.Net.Packets
             Writer.Write(Experience);
             Writer.Write(Level);
             Writer.Write(TotExperience);
+        }
+    }
+
+    public class PLuginMessagePacket : Packet
+    {
+        public string Channel { get; set; }
+        public short ByteLength { get; set; }
+        public byte[] Data { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            Channel = reader.ReadString16(260);
+            ByteLength = reader.ReadShort();
+            Data = reader.ReadBytes(ByteLength);
+        }
+
+        public override void Write()
+        {
+            SetCapacity();
+            Writer.Write(Channel);
+            Writer.Write(ByteLength);
+            for (int i = 0; i < ByteLength; i++)
+            {
+                Writer.WriteByte(Data[i]);
+            }
+           
         }
     }
 }
