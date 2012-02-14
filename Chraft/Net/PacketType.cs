@@ -46,7 +46,6 @@ namespace Chraft.Net
         MobSpawn = 0x18,                    //   <--
         EntityPainting = 0x19,              //   <--
         ExperienceOrb = 0x1A,               //   <--
-        UnknownA = 0x1B,                    //   ???
         EntityVelocity = 0x1C,              //   <--
         DestroyEntity = 0x1D,               //   <--
         Entity = 0x1E,                      //   <--
@@ -81,6 +80,7 @@ namespace Chraft.Net
         MapData = 0x83,                     //   -->
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
+        PluginMessage = 0xFA,               //  
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->
     }
