@@ -27,7 +27,7 @@ namespace Chraft.Net
     {
         public static void Initialize()
         {
-            foreach(KeyValuePair<Type, PacketType> kvp in _map)
+            foreach (KeyValuePair<Type, PacketType> kvp in _map)
                 _concurrentMap.TryAdd(kvp.Key, kvp.Value);
 
             // Lets free some memory
@@ -52,6 +52,7 @@ namespace Chraft.Net
             { typeof(EntityActionPacket), PacketType.EntityAction },
             { typeof(EntityEffectPacket), PacketType.EntityEffect },
             { typeof(EntityEquipmentPacket), PacketType.EntityEquipment },
+            { typeof(EntityHeadLook), PacketType.EntityHeadLook},
             { typeof(EntityLookPacket), PacketType.EntityLook },
             { typeof(EntityLookAndRelativeMovePacket), PacketType.EntityLookAndRelativeMove },
             { typeof(EntityMetadataPacket), PacketType.EntityMetadata },
@@ -83,7 +84,7 @@ namespace Chraft.Net
             { typeof(PlayerPositionPacket), PacketType.PlayerPosition },
             { typeof(PlayerPositionRotationPacket), PacketType.PlayerPositionRotation },
             { typeof(PlayerRotationPacket), PacketType.PlayerRotation },
-            { typeof(PLuginMessagePacket), PacketType.PluginMessage},
+            { typeof(PluginMessagePacket), PacketType.PluginMessage},
             { typeof(PreChunkPacket), PacketType.PreChunk },
             { typeof(RemoveEntityEffectPacket), PacketType.RemoveEntityEffect },
             { typeof(RespawnPacket), PacketType.Respawn },
@@ -99,6 +100,7 @@ namespace Chraft.Net
             { typeof(UpdateSignPacket), PacketType.UpdateSign },
             { typeof(UseBedPacket), PacketType.UseBed },
             { typeof(UseEntityPacket), PacketType.UseEntity },
+            { typeof(UpdateTileEntity), PacketType.UpdateTileEntity},
             { typeof(WindowClickPacket), PacketType.WindowClick },
             { typeof(WindowItemsPacket), PacketType.WindowItems }
         };
@@ -109,9 +111,9 @@ namespace Chraft.Net
         public static PacketType GetPacketType(Type type)
         {
             PacketType packetType;
-            if(_concurrentMap.TryGetValue(type, out packetType))
+            if (_concurrentMap.TryGetValue(type, out packetType))
                 return packetType;
-            
+
             throw new KeyNotFoundException();
         }
     }

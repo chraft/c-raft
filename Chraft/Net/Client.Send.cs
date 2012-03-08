@@ -241,7 +241,6 @@ namespace Chraft.Net
                 ProtocolOrEntityId = _player.EntityId,
                 Dimension = _player.World.Dimension,
                 Username = "",
-                MapSeed = _player.World.Seed,
                 WorldHeight = 128,
                 MaxPlayers = 50,
                 Unknown = 2
@@ -307,7 +306,7 @@ namespace Chraft.Net
             SendPacket(new HandshakePacket
             {
 
-                UsernameOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
+                UsernameAndIpOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
                 //UsernameOrHash = "-" // No authentication
                 //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
             });

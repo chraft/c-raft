@@ -69,6 +69,8 @@ namespace Chraft.Net
         /// </summary>
         public string Username { get; set; }
 
+        public string Host { get; set; }
+
         public Player Owner
         {
             get { return _player; }
