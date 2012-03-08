@@ -194,10 +194,11 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
+            string levelType = "DEFAULT"; //todo get from config
             SetCapacity(20, Username);
             Writer.Write(ProtocolOrEntityId);
             Writer.Write(Username);
-            Writer.Write("DEFAULT"); //todo get from config
+            Writer.Write(levelType); 
             Writer.Write(ServerMode);
             Writer.Write(Dimension);
             Writer.Write(Unknown);
