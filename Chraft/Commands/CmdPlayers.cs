@@ -18,6 +18,7 @@ using Chraft.Net;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
+using Chraft.Utilities;
 
 namespace Chraft.Commands
 {

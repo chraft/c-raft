@@ -19,7 +19,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.World.Blocks;
+using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
 using System;
 using System.Diagnostics;

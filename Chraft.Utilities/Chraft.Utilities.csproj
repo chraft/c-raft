@@ -55,6 +55,7 @@
     <Compile Include="Math\WeightedPercentValue.cs" />
     <Compile Include="Math\WeightedValue.cs" />
     <Compile Include="Misc\Chat.cs" />
+    <Compile Include="Misc\CommandType.cs" />
     <Compile Include="Misc\DamageCause.cs" />
     <Compile Include="Misc\Direction.cs" />
     <Compile Include="Misc\Hash.cs" />

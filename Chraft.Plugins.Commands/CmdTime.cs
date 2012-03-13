@@ -16,6 +16,7 @@
 #endregion
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
+using Chraft.Utilities;
 
 namespace Chraft.PluginSystem.Commands
 {

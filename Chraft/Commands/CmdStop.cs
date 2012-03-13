@@ -21,6 +21,7 @@ using Chraft.Net;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
+using Chraft.Utilities;
 
 [assembly: InternalsVisibleTo("ChraftServer")]
 namespace Chraft.Commands

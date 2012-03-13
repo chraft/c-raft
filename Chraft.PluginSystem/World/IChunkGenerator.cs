@@ -15,7 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.PluginSystem.World.Blocks;
+using Chraft.PluginSystem.Blocks;
 
 namespace Chraft.PluginSystem
 {
