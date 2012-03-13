@@ -14,19 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Plugins.Listener;
 
-namespace Chraft.Plugins.SamplePlugin
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
+
+namespace Chraft.PluginSystem.SamplePlugin
 {
-    class SamplePluginEntitiyListener : EntityListener
+    class SamplePluginEntitiyListener : IEntityListener
     {
 
         private readonly IPlugin _plugin;
 
-        public override void OnSpawn(Events.Args.EntitySpawnEventArgs e)
+        public void OnDeath(EntityDeathEventArgs e)
+        {
+         
+        }
+
+        public void OnSpawn(EntitySpawnEventArgs e)
         {
             if (e.EventCanceled) return;
             _plugin.Server.Broadcast(e.Entity.GetType() + " Spawned");
+        }
+
+        public void OnMove(EntityMoveEventArgs e)
+        {
+        
+        }
+
+        public void OnDamaged(EntityDamageEventArgs e)
+        {
+        
+        }
+
+        public void OnAttack(EntityAttackEventArgs e)
+        {
+        
         }
 
         public SamplePluginEntitiyListener(IPlugin plugin)

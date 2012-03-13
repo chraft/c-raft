@@ -15,12 +15,12 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity.Mobs;
 using System.Reflection;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
+using Chraft.World;
 
 namespace Chraft.Entity
 {
@@ -28,9 +28,13 @@ namespace Chraft.Entity
     /// <summary>
     /// Factory for creating mobs
     /// </summary>
-    public static class MobFactory
+    public class MobFactory : IMobFactory
     {
-        public static Type GetMobClass(Chraft.World.WorldManager world, MobType type)
+        private static readonly MobFactory _instance = new MobFactory();
+
+        public static MobFactory Instance { get { return _instance; } }   
+
+        public Type GetMobClass(IWorldManager world, MobType type)
         {
             // TODO: extension point to allow plugin to override class for MobType for world
             Type mobType = null;
@@ -88,7 +92,7 @@ namespace Chraft.Entity
                 }
             }
 
-            if (mobType != null && typeof(Mob).IsAssignableFrom(mobType) && mobType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(Chraft.World.WorldManager), typeof(int), typeof(Chraft.Net.MetaData) }, null) != null)
+            if (mobType != null && typeof(Mob).IsAssignableFrom(mobType) && mobType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[] { typeof(WorldManager), typeof(int), typeof(MetaData) }, null) != null)
             {
                 return mobType;
             }
@@ -104,21 +108,22 @@ namespace Chraft.Entity
         /// <param name="type"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Mob CreateMob(Chraft.World.WorldManager world, int entityId, MobType type, Chraft.Net.MetaData data = null)
+        public IMob CreateMob(IWorldManager world, IServer iServer, MobType type, IMetaData data = null)
         {
             Type mobType = GetMobClass(world, type);
-
+            Server server = iServer as Server;
             if (mobType != null)
             {
+
                 ConstructorInfo ci =
                     mobType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null,
                                            new Type[]
                                             {
-                                                typeof (Chraft.World.WorldManager), typeof (int),
-                                                typeof (Chraft.Net.MetaData)
+                                                typeof (WorldManager), typeof (int),
+                                                typeof (MetaData)
                                             }, null);
                 if (ci != null)
-                    return (Mob)ci.Invoke(new object[] {world, entityId, data});
+                    return (Mob)ci.Invoke(new object[] {world, server.AllocateEntity(), data});
             }
 
             return null;

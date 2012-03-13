@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Plugins.Listener;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Plugins.Events.Args;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class ClientEvent : IChraftEventHandler
     {
@@ -79,7 +80,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerJoined)
                     pl.OnPlayerJoined(e);
             }
@@ -88,7 +89,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerLeft)
                     pl.OnPlayerLeft(e);
             }
@@ -97,7 +98,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerCommand)
                     pl.OnPlayerCommand(e);
             }
@@ -106,7 +107,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerPreCommand)
                     pl.OnPlayerPreCommand(e);
             }
@@ -115,7 +116,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerChat)
                     pl.OnPlayerChat(e);
             }
@@ -124,7 +125,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                PlayerListener pl = (PlayerListener)bl.Listener;
+                IPlayerListener pl = (IPlayerListener)bl.Listener;
                 if (bl.Event == Event.PlayerPreChat)
                     pl.OnPlayerPreChat(e);
             }
@@ -133,7 +134,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PlayerListener pl = (PlayerListener)el.Listener;
+                IPlayerListener pl = (IPlayerListener)el.Listener;
                 if (el.Event == Event.PlayerKicked)
                     pl.OnPlayerKicked(e);
             }
@@ -142,7 +143,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PlayerListener pl = (PlayerListener)el.Listener;
+                IPlayerListener pl = (IPlayerListener)el.Listener;
                 if (el.Event == Event.PlayerMove)
                     pl.OnPlayerMoved(e);
             }
@@ -151,7 +152,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PlayerListener pl = (PlayerListener)el.Listener;
+                IPlayerListener pl = (IPlayerListener)el.Listener;
                 if (el.Event == Event.PlayerDied)
                     pl.OnPlayerDeath(e);
             }

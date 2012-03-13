@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Plugins.Events.Args;
-using Chraft.Plugins.Listener;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     /// <summary>
     /// This class contains all the possible block events
@@ -30,7 +31,7 @@ namespace Chraft.Plugins.Events
     {
         public BlockEvent()
         {
-            events.AddRange(new Event[]{Event.BlockDestroy, Event.BlockPlace,
+            events.AddRange(new Event[]{Event.BlockDestroy, PluginSystem.Events.Event.BlockPlace,
                 Event.BlockTouch });
         }
         public EventType Type
@@ -71,7 +72,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockDestroy)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnDestroy(e);
                 }
             }
@@ -82,7 +83,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockPlace)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnPlace(e);
                 }
             }
@@ -93,7 +94,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockTouch)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnTouch(e);
                 }
             }

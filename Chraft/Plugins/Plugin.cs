@@ -18,8 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Plugins;
 
-namespace Chraft.Plugins
+namespace Chraft.PluginSystem
 {
 	public abstract class Plugin : IPlugin
 	{
@@ -61,7 +62,7 @@ namespace Chraft.Plugins
 		/// <summary>
 		/// The Server associated with the plugin.
 		/// </summary>
-		public Server Server { get; private set; }
+		public IServer Server { get; private set; }
 
 		/// <summary>
 		/// Indicates whether the plugin is currently loaded.
@@ -71,7 +72,7 @@ namespace Chraft.Plugins
         /// <summary>
         /// The PluginManager associated with the plugin. 
         /// </summary>
-        public PluginManager PluginManager { get; private set; }
+        public IPluginManager PluginManager { get; private set; }
 
 		/// <summary>
 		/// Instantiate a new plugin via .ctor
@@ -92,7 +93,7 @@ namespace Chraft.Plugins
 		/// </summary>
 		/// <param name="server">The Server object to be associated with the plugin.</param>
         /// <param name="pluginManager">The PluginManager to be associated with the plugin.</param>
-		public void Associate(Server server, PluginManager pluginManager)
+		public void Associate(IServer server, IPluginManager pluginManager)
 		{
 			Server = server;
             PluginManager = pluginManager;

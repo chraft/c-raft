@@ -18,21 +18,24 @@ using System.Collections.Generic;
 using System.Linq;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
     internal class CmdGive : IClientCommand
     {
-       public ClientCommandHandler ClientCommandHandler { get; set; }
+       public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iclient, string commandName, string[] tokens)
         {
+            Client client = (Client)iclient;
             ItemStack item;
             string itemName = string.Empty;
             short metaData = 0;
             uint amount = 0;
-            List<Client> who = new List<Client>();
+            List<IClient> who = new List<IClient>();
 
             if (tokens.Length < 1)
             {
@@ -62,7 +65,7 @@ namespace Chraft.Commands
                 // Trying to give yourself an item with amount specified
                 if (uint.TryParse(tokens[1], out amount))
                 {
-                    if (!ItemStack.IsVoid(item))
+                    if (item != null && !item.IsVoid())
                         who.Add(client);
                     else
                     {
@@ -120,7 +123,7 @@ namespace Chraft.Commands
 
             }
 
-            if (ItemStack.IsVoid(item))
+            if (item == null || item.IsVoid())
             {
                 client.SendMessage("§cUnknown item.");
                 return;
@@ -140,7 +143,7 @@ namespace Chraft.Commands
             client.SendMessage("§7Item given to " + who.Count + " player" + (who.Count > 1 ? "s" : ""));
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage(
                 "/give <Player> <Item OR Block>[:MetaData] [Amount] - Gives <Player> [Amount] of <Item OR Block>.");

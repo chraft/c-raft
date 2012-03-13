@@ -18,10 +18,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Plugins.Listener;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class ServerEvent : IChraftEventHandler
     {
@@ -94,7 +94,7 @@ namespace Chraft.Plugins.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == Event.ServerCommand)
+                if (el.Event == PluginSystem.Events.Event.ServerCommand)
                     sl.OnCommand(e);
             }
         }

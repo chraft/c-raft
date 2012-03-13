@@ -16,6 +16,9 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -28,8 +31,9 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock)iBlock;
             LivingEntity living = entity as LivingEntity;
             if (living == null)
                 return;
@@ -50,7 +54,7 @@ namespace Chraft.World.Blocks
                 default:
                     return;
             }
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
   
         public virtual bool IsOpen(StructBlock block)
@@ -80,7 +84,7 @@ namespace Chraft.World.Blocks
                 UniversalCoords upperBlock = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                        block.Coords.WorldZ);
                 StructBlock upperHalf = new StructBlock(upperBlock, (byte)Type, (byte)(block.MetaData | 8), block.World);
-                BlockHelper.Instance((byte)Type).Spawn(upperHalf);
+                BlockHelper.Instance.CreateBlockInstance((byte)Type).Spawn(upperHalf);
             }
         }
     }

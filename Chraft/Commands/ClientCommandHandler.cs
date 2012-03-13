@@ -19,11 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using Chraft.Commands;
 using Chraft.Plugins;
 
-namespace Chraft.Commands
+namespace Chraft.PluginSystem.Commands
 {
-    public class ClientCommandHandler : ICommandHandler
+    public class ClientCommandHandler : IClientCommandHandler
     {
         private List<IClientCommand> commands;
         private List<IClientCommand> fallBackCommands;

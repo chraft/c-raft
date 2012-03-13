@@ -18,11 +18,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
-    public static class BlockHelper
+    public sealed class BlockHelper : IBlockHelper
     {
         private static ConcurrentDictionary<byte, BlockBase> _blocks;
         private static ConcurrentDictionary<byte, byte> _growableBlocks;
@@ -37,7 +38,12 @@ namespace Chraft.World.Blocks
         private static ConcurrentDictionary<byte, short> _blocksBurnEfficiency;
         private static ConcurrentDictionary<byte, byte> _waterProofBlocks;
 
-        static BlockHelper()
+        private static readonly BlockHelper _instance = new BlockHelper();
+
+        public static BlockHelper Instance { get { return _instance; } }
+
+
+        private BlockHelper()
         {
             Init();
         }
@@ -94,7 +100,7 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="blockId"></param>
         /// <returns></returns>
-        public static BlockBase Instance(byte blockId)
+        internal BlockBase CreateBlockInstance(byte blockId)
         {
             BlockBase block = null;
             if (_blocks.ContainsKey(blockId))
@@ -102,152 +108,152 @@ namespace Chraft.World.Blocks
             return block;
         }
 
-        public static bool IsGrowable(byte blockId)
+        public bool IsGrowable(byte blockId)
         {
             return _growableBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsGrowable(BlockData.Blocks blockType)
+        public bool IsGrowable(BlockData.Blocks blockType)
         {
             return _growableBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsFertile(byte blockId)
+        public bool IsFertile(byte blockId)
         {
             return _fertileBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsFertile(BlockData.Blocks blockType)
+        public bool IsFertile(BlockData.Blocks blockType)
         {
             return _fertileBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsPlowed(byte blockId)
+        public bool IsPlowed(byte blockId)
         {
             return _plowedBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsPlowed(BlockData.Blocks blockType)
+        public bool IsPlowed(BlockData.Blocks blockType)
         {
             return _plowedBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsAir(byte blockId)
+        public bool IsAir(byte blockId)
         {
             return _airBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsAir(BlockData.Blocks blockType)
+        public bool IsAir(BlockData.Blocks blockType)
         {
             return _airBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsLiquid(byte blockId)
+        public bool IsLiquid(byte blockId)
         {
             return _liquidBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsLiquid(BlockData.Blocks blockType)
+        public bool IsLiquid(BlockData.Blocks blockType)
         {
             return _liquidBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsSolid(byte blockId)
+        public bool IsSolid(byte blockId)
         {
             return _solidBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsSolid(BlockData.Blocks blockType)
+        public bool IsSolid(BlockData.Blocks blockType)
         {
             return _solidBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsSingleHit(byte blockId)
+        public bool IsSingleHit(byte blockId)
         {
             return _singleHitBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsSingleHit(BlockData.Blocks blockType)
+        public bool IsSingleHit(BlockData.Blocks blockType)
         {
             return _singleHitBlocks.ContainsKey((byte)blockType);
         }
 
-        public static bool IsOpaque(byte blockId)
+        public bool IsOpaque(byte blockId)
         {
             byte opacity;
             _blocksOpacity.TryGetValue(blockId, out opacity);
             return (opacity == 0xF);
         }
 
-        public static bool IsOpaque(BlockData.Blocks blockType)
+        public bool IsOpaque(BlockData.Blocks blockType)
         {
             byte opacity;
             _blocksOpacity.TryGetValue((byte)blockType, out opacity);
             return (opacity == 0xF);
         }
 
-        public static byte Opacity(byte blockId)
+        public byte Opacity(byte blockId)
         {
             byte opacity;
             _blocksOpacity.TryGetValue(blockId, out opacity);
             return opacity;
         }
 
-        public static byte Opacity(BlockData.Blocks blockType)
+        public byte Opacity(BlockData.Blocks blockType)
         {
             byte opacity;
             _blocksOpacity.TryGetValue((byte)blockType, out opacity);
             return opacity;
         }
 
-        public static byte Luminance(byte blockId)
+        public byte Luminance(byte blockId)
         {
             byte luminance;
             _blocksLuminance.TryGetValue(blockId, out luminance);
             return luminance;
         }
 
-        public static byte Luminance(BlockData.Blocks blockType)
+        public byte Luminance(BlockData.Blocks blockType)
         {
             byte luminance;
             _blocksLuminance.TryGetValue((byte)blockType, out luminance);
             return luminance;
         }
 
-        public static bool IsIgnitable(byte blockId)
+        public bool IsIgnitable(byte blockId)
         {
             short burnEfficiency;
             _blocksBurnEfficiency.TryGetValue(blockId, out burnEfficiency);
             return (burnEfficiency > 0);
         }
 
-        public static bool IsIgnitable(BlockData.Blocks blockType)
+        public bool IsIgnitable(BlockData.Blocks blockType)
         {
             short burnEfficiency;
             _blocksBurnEfficiency.TryGetValue((byte)blockType, out burnEfficiency);
             return (burnEfficiency > 0);
         }
 
-        public static short BurnEfficiency(byte blockId)
+        public short BurnEfficiency(byte blockId)
         {
             short burnEfficiency;
             _blocksBurnEfficiency.TryGetValue(blockId, out burnEfficiency);
             return burnEfficiency;
         }
 
-        public static short BurnEfficiency(BlockData.Blocks blockType)
+        public short BurnEfficiency(BlockData.Blocks blockType)
         {
             short burnEfficiency;
             _blocksBurnEfficiency.TryGetValue((byte)blockType, out burnEfficiency);
             return burnEfficiency;
         }
 
-        public static bool IsWaterProof(byte blockId)
+        public bool IsWaterProof(byte blockId)
         {
             return _waterProofBlocks.ContainsKey(blockId);
         }
 
-        public static bool IsWaterProof(BlockData.Blocks blockType)
+        public bool IsWaterProof(BlockData.Blocks blockType)
         {
             return _waterProofBlocks.ContainsKey((byte)blockType);
         }

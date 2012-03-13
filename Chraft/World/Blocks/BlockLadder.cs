@@ -17,6 +17,9 @@
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks; 
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -32,8 +35,9 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock)iBlock;
             switch (face)
             {
                 case BlockFace.East:
@@ -51,7 +55,7 @@ namespace Chraft.World.Blocks
                 default:
                     return;
             }
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
     }
 }

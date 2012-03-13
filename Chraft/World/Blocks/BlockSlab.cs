@@ -16,6 +16,9 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -30,11 +33,11 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5, 1);
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
             // TODO : If (Block  Y - 1 = Stair && Block Y = Air) Then DoubleStair
             // Else if (Buildblock = Stair) Then DoubleStair
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, iBlock, targetIBlock, face);
         }
     }
 }

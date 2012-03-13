@@ -19,16 +19,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Chraft.Interfaces;
+using Chraft.PluginSystem;
 using Chraft.Utils.Config;
 
 namespace Chraft.Utils
 {
-    public class ItemDb
+    public class ItemDb : IItemDb
     {
         private Dictionary<string, short> Items = new Dictionary<string, short>();
         private Dictionary<string, short> Durabilities = new Dictionary<string, short>();
 
-        public ItemStack this[string item]
+        internal ItemStack this[string item]
         {
             get
             {
@@ -46,6 +47,11 @@ namespace Chraft.Utils
                     return ItemStack.Void;
                 }
             }
+        }
+
+        public IItemStack GetItemStack(string item)
+        {
+            return this[item];
         }
 
         public ItemDb(string file)

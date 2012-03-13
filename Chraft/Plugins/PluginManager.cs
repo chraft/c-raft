@@ -20,15 +20,16 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
-using Chraft.Plugins.Events;
-using Chraft.Plugins.Events.Args;
-using Chraft.Plugins.Listener;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Commands;
 
-namespace Chraft.Plugins
+namespace Chraft.PluginSystem
 {
-    public class PluginManager
-    {
+    public class PluginManager : IPluginManager
+    { 
         private List<IPlugin> Plugins = new List<IPlugin>();
         private Server Server;
         /// <summary>
@@ -135,7 +136,7 @@ namespace Chraft.Plugins
             }
             catch (Exception ex)
             {
-                Server.Logger.Log(Logger.LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
+                Server.Logger.Log(LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
                 Server.Logger.Log(ex);
             }
         }
@@ -238,7 +239,7 @@ namespace Chraft.Plugins
             catch (EventNotFoundException e)
             {
                 //Use the plugin's Chraft.Server to log the error.
-                Listener.Plugin.Server.Logger.Log(e);
+                Listener.Plugin.Server.GetLogger().Log(e);
             }
         }
         /// <summary>
@@ -289,7 +290,7 @@ namespace Chraft.Plugins
             catch (EventNotFoundException e)
             {
                 //Use the plugin's Chraft.Server to log the error.
-                Listener.Plugin.Server.Logger.Log(e);
+                Listener.Plugin.Server.GetLogger().Log(e);
             }
             catch (Exception) { }
         }
@@ -319,6 +320,7 @@ namespace Chraft.Plugins
         /// <param name="plugin">The plugin to associate the command with.</param>
         public void RegisterCommand(ICommand cmd, IPlugin plugin)
         {
+            Server server = plugin.Server as Server;
             if (cmd is IClientCommand)
             {
                 try
@@ -330,11 +332,11 @@ namespace Chraft.Plugins
                     //End Event
 
                     PluginCommands.Add(cmd,plugin);
-                    plugin.Server.ClientCommandHandler.RegisterCommand(cmd);
+                    server.ClientCommandHandler.RegisterCommand(cmd);
                 }
                 catch (CommandAlreadyExistsException e)
                 {
-                    plugin.Server.Logger.Log(e);
+                    server.Logger.Log(e);
                 }
             }
             else if (cmd is IServerCommand)
@@ -348,11 +350,11 @@ namespace Chraft.Plugins
                     //End Event
 
                     PluginCommands.Add(cmd, plugin);
-                    plugin.Server.ServerCommandHandler.RegisterCommand(cmd);
+                    server.ServerCommandHandler.RegisterCommand(cmd);
                 }
                 catch (CommandAlreadyExistsException e)
                 {
-                    plugin.Server.Logger.Log(e);
+                    server.Logger.Log(e);
                 }
             }
         }
@@ -381,29 +383,30 @@ namespace Chraft.Plugins
         /// Unregisters a command.
         /// </summary>
         /// <param name="cmd">The command to unregister.</param>
-        /// <param name="Plugin">The plugin that the command is associated with.</param>
-        public void UnregisterCommand(ICommand cmd, IPlugin Plugin)
+        /// <param name="plugin">The plugin that the command is associated with.</param>
+        public void UnregisterCommand(ICommand cmd, IPlugin plugin)
         {
+            Server server = plugin.Server as Server;
             //Event
-            CommandRemovedEventArgs e = new CommandRemovedEventArgs(Plugin, cmd);
+            CommandRemovedEventArgs e = new CommandRemovedEventArgs(plugin, cmd);
             CallEvent(Event.CommandAdded, e);
             if (e.EventCanceled) return;
             //End Event
 
             if (PluginCommands.ContainsKey(cmd))
             {
-                IPlugin plugin;
-                PluginCommands.TryGetValue(cmd, out plugin);
-                if (Plugin != plugin)
+                IPlugin pluginFound;
+                PluginCommands.TryGetValue(cmd, out pluginFound);
+                if (plugin != pluginFound)
                     return;
                 PluginCommands.Remove(cmd);
             }
             try
             {
-                if (cmd is IClientCommand) Plugin.Server.ClientCommandHandler.UnregisterCommand(cmd);
-                else if (cmd is IServerCommand) Plugin.Server.ServerCommandHandler.UnregisterCommand(cmd);
+                if (cmd is IClientCommand) server.ClientCommandHandler.UnregisterCommand(cmd);
+                else if (cmd is IServerCommand) server.ServerCommandHandler.UnregisterCommand(cmd);
             }
-            catch (CommandNotFoundException ex) { Plugin.Server.Logger.Log(ex); }
+            catch (CommandNotFoundException ex) { server.Logger.Log(ex); }
         }
         /// <summary>
         /// Unregisters an Array of Commands.

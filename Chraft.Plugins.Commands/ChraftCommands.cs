@@ -17,10 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Chraft.Commands;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 
 
-namespace Chraft.Plugins.Commands
+namespace Chraft.PluginSystem.Commands
 {
     [Plugin]
     public class ChraftCommands : IPlugin
@@ -48,9 +49,9 @@ namespace Chraft.Plugins.Commands
 
         public Version Version { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
 
-        public Server Server { get; set; }
+        public IServer Server { get; set; }
 
-        public PluginManager PluginManager { get; set; }
+        public IPluginManager PluginManager { get; set; }
 
         public bool IsPluginEnabled { get; set; }
 
@@ -69,7 +70,7 @@ namespace Chraft.Plugins.Commands
                             };
         }
 
-        public void Associate(Server server, PluginManager pluginManager)
+        public void Associate(IServer server, IPluginManager pluginManager)
         {
             Server = server;
             PluginManager = pluginManager;
@@ -79,7 +80,7 @@ namespace Chraft.Plugins.Commands
         {
             IsPluginEnabled = true;
             PluginManager.RegisterCommands(_commands, this);
-            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
+            Server.GetLogger().Log(LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
 
         }
 
@@ -87,7 +88,7 @@ namespace Chraft.Plugins.Commands
         {
             IsPluginEnabled = false;
             PluginManager.UnregisterCommands(_commands, this);
-            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
+            Server.GetLogger().Log(LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
         }
 
         public override string ToString()

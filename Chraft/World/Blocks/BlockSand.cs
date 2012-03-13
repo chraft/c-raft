@@ -16,6 +16,9 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 using Chraft.World.Blocks.Physics;
 
 namespace Chraft.World.Blocks
@@ -30,7 +33,7 @@ namespace Chraft.World.Blocks
             LootTable.Add(new ItemStack((short)Type, 1));
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                     targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
@@ -50,7 +53,7 @@ namespace Chraft.World.Blocks
         protected void StartPhysics(StructBlock block)
         {
             Remove(block);
-            FallingSand fsBlock = new FallingSand(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            FallingSand fsBlock = new FallingSand((WorldManager)block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fsBlock.Start();
             block.World.PhysicsBlocks.TryAdd(fsBlock.EntityId, fsBlock);
         }

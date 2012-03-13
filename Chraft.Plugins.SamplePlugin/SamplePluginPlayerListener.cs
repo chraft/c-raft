@@ -14,25 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Plugins.Listener;
-using Chraft.Utils;
 
-namespace Chraft.Plugins.SamplePlugin
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
+using Chraft.Utilities;
+
+namespace Chraft.PluginSystem.SamplePlugin
 {
-    class SamplePluginPlayerListener : PlayerListener
+    class SamplePluginPlayerListener : IPlayerListener
     {
         private readonly IPlugin _plugin;
-        public override void OnPlayerChat(Events.Args.ClientChatEventArgs e)
+        public void OnPlayerJoined(ClientJoinedEventArgs e)
+        {
+        }
+
+        public void OnPlayerLeft(ClientLeftEventArgs e)
+        {
+        }
+
+        public void OnPlayerCommand(ClientCommandEventArgs e)
+        {
+        }
+
+        public void OnPlayerPreCommand(ClientCommandEventArgs e)
+        {
+        }
+
+        public void OnPlayerChat(Events.Args.ClientChatEventArgs e)
         {
             if (e.EventCanceled) return;
             e.Message = ChatColor.Blue + e.Message;
         }
 
-        public override void OnPlayerDeath(Events.Args.ClientDeathEventArgs e)
+        public void OnPlayerPreChat(ClientPreChatEventArgs e)
+        {
+        }
+
+        public void OnPlayerKicked(ClientKickedEventArgs e)
+        {
+        }
+
+        public void OnPlayerMoved(ClientMoveEventArgs e)
+        {
+        }
+
+        public void OnPlayerDeath(ClientDeathEventArgs e)
         {
             if (e.EventCanceled) return;
-            _plugin.Server.Broadcast(e.Client.Owner.DisplayName + " went splat");
+            _plugin.Server.Broadcast(e.Client.GetOwner().DisplayName + " went splat");
         }
+
+
 
         public SamplePluginPlayerListener(IPlugin plugin)
         {

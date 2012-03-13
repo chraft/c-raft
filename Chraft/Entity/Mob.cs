@@ -20,6 +20,9 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.Interfaces;
 using Chraft.Plugins.Events.Args;
@@ -29,7 +32,7 @@ using Chraft.World.Paths;
 
 namespace Chraft.Entity
 {
-	public abstract partial class Mob : LivingEntity
+	public abstract partial class Mob : LivingEntity, IMob
 	{
         public MobType Type { get; set; }
 
@@ -88,7 +91,7 @@ namespace Chraft.Entity
             this.Speed = 0.7;
 		}
 
-        protected virtual void DoInteraction(Client client, ItemStack item)
+        protected virtual void DoInteraction(IClient client, IItemStack item)
         {
         }
 
@@ -110,7 +113,7 @@ namespace Chraft.Entity
 
                     // TODO: this.MoveTo might be called to frequently - this needs to be reviewed
                     this.MoveTo(ApplyVelocity(this.Velocity), (float) this.Yaw, (float) this.Pitch);
-                    //Server.Logger.Log(Logger.LogLevel.Debug, this.Velocity.ToString());
+                    //Server.Logger.Log(LogLevel.Debug, this.Velocity.ToString());
 
                     double friction = 0.98;
                     if (OnGround)
@@ -202,7 +205,7 @@ namespace Chraft.Entity
                             double turnDirection = ((previousYaw - Yaw)).ToRadians();// + 90.0).ToRadians();
                             _strafingMovement = -Math.Sin(turnDirection) * Speed * 1.0;
                             _forwardMovement = Math.Cos(turnDirection) * Speed * 1.0;
-                            //Server.Logger.Log(Logger.LogLevel.Debug, "PrevYaw: {0}, NewYaw: {1}, Turn: {2}", previousYaw, Yaw, turnDirection);
+                            //Server.Logger.Log(LogLevel.Debug, "PrevYaw: {0}, NewYaw: {1}, Turn: {2}", previousYaw, Yaw, turnDirection);
                         }
 
                         if (difference.Y > 0.0)
@@ -214,7 +217,7 @@ namespace Chraft.Entity
                     if (Target != null)
                     {
                         this.FaceEntity(Target, 30, 30);
-                        //Server.Logger.Log(Logger.LogLevel.Debug, "FacingYaw: {0}", Yaw);
+                        //Server.Logger.Log(LogLevel.Debug, "FacingYaw: {0}", Yaw);
                     }
                 }
 
@@ -227,10 +230,10 @@ namespace Chraft.Entity
                 {
                     blockFrictionFactor = 0.55;
 
-                    StructBlock block = World.GetBlock(UniversalCoords.FromAbsWorld(this.Position.X, this.Position.Y - 1, this.Position.Z));
+                    StructBlock block = (StructBlock)World.GetBlock(UniversalCoords.FromAbsWorld(this.Position.X, this.Position.Y - 1, this.Position.Z));
                     if (block.Type > 0)
                     {
-                        BlockBase blockInstance = BlockHelper.Instance(block.Type);
+                        BlockBase blockInstance = BlockHelper.Instance.CreateBlockInstance(block.Type);
 
                         if (blockInstance != null)
                         {
@@ -245,8 +248,9 @@ namespace Chraft.Entity
                 
                 ApplyStrafingToVelocity(_strafingMovement, _forwardMovement, f4);
                 
-                foreach (var entity in World.GetEntitiesWithinBoundingBoxExcludingEntity(this, BoundingBox.Expand(new Vector3(0.2, 0.0, 0.2))))
+                foreach (var e in World.GetEntitiesWithinBoundingBoxExcludingEntity(this, BoundingBox.Expand(new Vector3(0.2, 0.0, 0.2))))
                 {
+                    EntityBase entity = e as EntityBase;
                     if (entity.Pushable)
                     {
                         entity.ApplyEntityCollision(this);
@@ -300,7 +304,7 @@ namespace Chraft.Entity
         /// <returns></returns>
         protected Player FindPlayerToAttack()
         {
-            Player player = World.GetClosestPlayer(this.Position, this.SightRange);
+            Player player = World.GetClosestPlayer(this.Position, this.SightRange) as Player;
             if (player != null && CanSee(player))
             {
                 return player;
@@ -313,14 +317,14 @@ namespace Chraft.Entity
         /// </summary>
         /// <param name="client">The client that is interacting</param>
         /// <param name="item">The item being used (could be Void e.g. Hand)</param>
-        public void InteractWith(Client client, ItemStack item)
+        public void InteractWith(IClient client, IItemStack item)
         {
             // TODO: create a plugin event for this action
 
             DoInteraction(client, item);
         }
 
-        public override void Attack(LivingEntity target)
+        public override void Attack(ILivingEntity target)
         {
             if (target == null)
                 return;

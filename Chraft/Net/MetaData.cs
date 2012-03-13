@@ -19,10 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
 
 namespace Chraft.Net
 {
-    public class MetaData
+    public class MetaData : IMetaData
     {
         private Dictionary<int, object> Data = new Dictionary<int, object>();
 

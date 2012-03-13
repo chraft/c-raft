@@ -15,6 +15,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -29,7 +31,7 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0.3, 0, 0.3, 0.7, 0.4, 0.7);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&

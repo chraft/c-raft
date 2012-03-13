@@ -16,10 +16,10 @@
 #endregion
 using System;
 using System.Reflection;
-using Chraft.Commands;
-using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 
-namespace Chraft.Plugins.Commands
+namespace Chraft.PluginSystem.Commands
 {
     public class CmdVersion : IClientCommand
     {
@@ -50,15 +50,15 @@ namespace Chraft.Plugins.Commands
             Iplugin = plugin;
         }
 
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             Version version = Assembly.GetExecutingAssembly().GetName().Version;
             client.SendMessage("Server is powered by C#raft v" + version);
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/version - output the version of the server");
         }

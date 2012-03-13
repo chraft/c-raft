@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Commands;
-using Chraft.Net;
-using Chraft.World;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.Utilities;
 
-namespace Chraft.Plugins.Commands
+namespace Chraft.PluginSystem.Commands
 {
     public class CmdPos1 : IClientCommand
     {
@@ -26,15 +26,15 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
-            client.Point2 = UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
+            client.Point2 = UniversalCoords.FromAbsWorld(client.GetOwner().Position);
             client.SendMessage("§7First position set.");
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/pos1 - Sets the first cuboid position to your current location.");
         }
@@ -67,15 +67,15 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
-            client.Point1 = UniversalCoords.FromAbsWorld(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z);
+            client.Point1 = UniversalCoords.FromAbsWorld(client.GetOwner().Position);
             client.SendMessage("§7Second position set.");
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/pos2 - Sets the first cuboid position to your current location.");
         }

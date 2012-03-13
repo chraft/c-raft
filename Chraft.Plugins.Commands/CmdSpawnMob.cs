@@ -15,12 +15,13 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using Chraft.Commands;
-using Chraft.Entity;
-using Chraft.Net;
-using Chraft.World;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.Utilities;
 
-namespace Chraft.Plugins.Commands
+namespace Chraft.PluginSystem.Commands
 {
     public class CmdSpawnMob : IClientCommand
     {
@@ -28,9 +29,9 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             MobType type = MobType.Sheep;
             int amount = 1;
@@ -67,24 +68,27 @@ namespace Chraft.Plugins.Commands
                 return;
             }
 
+            IServer server = client.GetServer();
+            AbsWorldCoords position = client.GetOwner().Position;
+            IMobFactory mobFactory = server.GetMobFactory();
             for (int i = 0; i < amount; i++)
-            {
-                var mob = MobFactory.CreateMob(client.Owner.World, client.Server.AllocateEntity(), type, null);
-                mob.Position = client.Owner.Position;
+            {                
+                var mob = mobFactory.CreateMob(client.GetOwner().GetWorld(), server, type, null);
+                mob.Position = position;
                 
                 //Event
-                Chraft.Plugins.Events.Args.EntitySpawnEventArgs e = new Chraft.Plugins.Events.Args.EntitySpawnEventArgs(mob, mob.Position);
-                client.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
+                EntitySpawnEventArgs e = new EntitySpawnEventArgs(mob, mob.Position);
+                server.GetPluginManager().CallEvent(Event.EntitySpawn, e);
                 if (e.EventCanceled)
                     continue;
                 mob.Position = e.Location;
                 //End Event
                 
-                client.Server.AddEntity(mob);
+                server.AddEntity(mob);
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/spawnmob <Mob> [Amount] - Spawns a mob at your position.");
         }

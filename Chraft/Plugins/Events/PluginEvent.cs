@@ -18,12 +18,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Plugins;
-using Chraft.Plugins.Listener;
 using Chraft.Commands;
 using Chraft.Plugins.Events.Args;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class PluginEvent : IChraftEventHandler
     {

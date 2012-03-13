@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.Interfaces;
 
@@ -92,11 +94,12 @@ namespace Chraft.Entity.Mobs
             base.DoDeath(killedBy);
         }
 
-        protected override void DoInteraction(Client client, Chraft.Interfaces.ItemStack item)
+        protected override void DoInteraction(IClient iClient, IItemStack item)
         {
-            base.DoInteraction(client, item);
+            base.DoInteraction(iClient, item);
 
-            if (!ItemStack.IsVoid(item))
+            Client client = iClient as Client;
+            if (item != null && !item.IsVoid())
             {
                 if ((item.Type == (short)BlockData.Items.Pork || item.Type == (short)BlockData.Items.Grilled_Pork))
                 {

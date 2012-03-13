@@ -22,10 +22,12 @@ using System.ServiceProcess;
 using System.Threading.Tasks;
 using Chraft;
 using Chraft.Commands;
-using Chraft.Plugins.Events;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
 using Chraft.Utils;
 using Chraft.Utils.Config;
+using Chraft.PluginSystem;
 
 namespace ChraftServer
 {
@@ -137,10 +139,10 @@ namespace ChraftServer
 
                         cmd.Use(Server, inputParts[0], cleanedtokens);
                     }
-                    catch (CommandNotFoundException e) { Server.Logger.Log(Logger.LogLevel.Info, e.Message); }
+                    catch (CommandNotFoundException e) { Server.Logger.Log(LogLevel.Info, e.Message); }
                     catch (Exception e)
                     {
-                        Server.Logger.Log(Logger.LogLevel.Error, "There was an error while executing the command.");
+                        Server.Logger.Log(LogLevel.Error, "There was an error while executing the command.");
                         Server.Logger.Log(e);
                     }
                 }

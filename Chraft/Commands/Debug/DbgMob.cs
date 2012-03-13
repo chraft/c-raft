@@ -19,7 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
+using Chraft.Utilities;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Entity;
@@ -28,10 +31,11 @@ namespace Chraft.Commands.Debug
 {
     public class DbgMob : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             Vector3 facing = new Vector3(client.Owner.Yaw, client.Owner.Pitch);
 
             Vector3 start = new Vector3(client.Owner.Position.X, client.Owner.Position.Y + client.Owner.EyeHeight, client.Owner.Position.Z);
@@ -53,14 +57,15 @@ namespace Chraft.Commands.Debug
                 {
                     MobType mobType;
                     if (Enum.TryParse<MobType>(tokens[0], true, out mobType))
-                    {
-                        Mob theMob = MobFactory.CreateMob(client.Owner.World, client.Server.AllocateEntity(), mobType, null);
+                    {                  
+                        Mob theMob = MobFactory.Instance.CreateMob(client.Owner.World, client.Server, mobType, null) as Mob;
                         theMob.Position = new AbsWorldCoords(client.Owner.World.FromFace(hit.TargetBlock, hit.FaceHit));
                         client.Server.AddEntity(theMob);
                     }
                     else if (tokens[0] == "update")
                     {
-                        foreach (var entity in client.Server.GetNearbyEntities(client.Owner.World, client.Owner.Position))
+                        UniversalCoords coords = UniversalCoords.FromAbsWorld(client.Owner.Position);
+                        foreach (EntityBase entity in client.Server.GetNearbyEntitiesInternal(client.Owner.World, coords))
                         {
                             entity.TeleportTo(entity.Position);
                         }
@@ -73,7 +78,7 @@ namespace Chraft.Commands.Debug
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
 
         }

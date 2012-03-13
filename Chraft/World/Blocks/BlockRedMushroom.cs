@@ -21,7 +21,9 @@ using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.PluginSystem.Blocks;
 using Chraft.Plugins.Events.Args;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -90,7 +92,7 @@ namespace Chraft.World.Blocks
                 for (int dZ = -2; dZ < 3; dZ++)
                 {
                     Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX,
-                                                                       block.Coords.WorldZ + dZ);
+                                                                       block.Coords.WorldZ + dZ) as Chunk;
 
                     if(currentChunk == null)
                         continue;

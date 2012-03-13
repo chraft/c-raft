@@ -17,10 +17,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Collections;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class EventList : IEnumerable<IChraftEventHandler>
     {

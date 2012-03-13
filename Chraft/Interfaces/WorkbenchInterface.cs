@@ -21,6 +21,7 @@ using System.Text;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.Entity;
 
@@ -33,7 +34,7 @@ namespace Chraft.Interfaces
 		{
 		}
 
-		public override void Associate(Player player)
+		internal override void Associate(Player player)
 		{
 			base.Associate(player);
 		}
@@ -67,7 +68,7 @@ namespace Chraft.Interfaces
             }
             else
             {
-                base.DropAll(UniversalCoords.FromAbsWorld((int)Owner.Position.X, (int)Owner.Position.Y, (int)Owner.Position.Z));
+                base.DropAll(UniversalCoords.FromAbsWorld(Owner.Position));
             }
         }
 

@@ -15,6 +15,8 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using Chraft.Utilities;
+
 namespace Chraft.World.Blocks
 {
     class BlockBookshelf : BlockBase

@@ -17,6 +17,8 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 using Chraft.World.Blocks.Physics;
 
 namespace Chraft.World.Blocks
@@ -52,7 +54,7 @@ namespace Chraft.World.Blocks
             base.DropItems(entity, block);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                     targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
@@ -71,10 +73,11 @@ namespace Chraft.World.Blocks
 
         protected void StartPhysics(StructBlock block)
         {
+            WorldManager world = (WorldManager)block.World;
             Remove(block);
-            FallingGravel fgBlock = new FallingGravel(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            FallingGravel fgBlock = new FallingGravel(world, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fgBlock.Start();
-            block.World.PhysicsBlocks.TryAdd(fgBlock.EntityId, fgBlock);
+            world.PhysicsBlocks.TryAdd(fgBlock.EntityId, fgBlock);
         }
     }
 }

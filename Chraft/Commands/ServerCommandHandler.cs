@@ -19,11 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using Chraft.Commands;
 using Chraft.Plugins;
 
-namespace Chraft.Commands
+namespace Chraft.PluginSystem.Commands
 {
-    public class ServerCommandHandler : ICommandHandler
+    public class ServerCommandHandler : IServerCommandHandler
     {
         private List<IServerCommand> Commands;
 

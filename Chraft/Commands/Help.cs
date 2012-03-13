@@ -19,15 +19,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
+using Chraft.Utilities;
 using Chraft.Utils;
 
 namespace Chraft.Commands
 {
     public class CmdHelp : IClientCommand, IServerCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
-        public ServerCommandHandler ServerCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
+        public IServerCommandHandler ServerCommandHandler { get; set; }
         public string Name { get { return "help"; } }
         public string Shortcut { get { return ""; } }
         public CommandType Type { get { return CommandType.Information; } }
@@ -35,8 +38,9 @@ namespace Chraft.Commands
 
         public IPlugin Iplugin { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             if (tokens.Length == 0)
             {
                 client.SendMessage("Use " + ChatColor.Teal + "/help build" + ChatColor.White + " for a list of building commands.");
@@ -131,21 +135,22 @@ namespace Chraft.Commands
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("helps");
         }
 
-        public void Use(Server server, string commandName, string[] tokens)
+        public void Use(IServer iServer, string commandName, string[] tokens)
         {
+            Server server = iServer as Server;
             if (tokens.Length == 0)
             {
 
-                server.Logger.Log(Logger.LogLevel.Info, "Use /help build for a list of building commands.");
-                server.Logger.Log(Logger.LogLevel.Info, "Use /help mod for a list of moderation commands.");
-                server.Logger.Log(Logger.LogLevel.Info, "Use /help information for a list of information commands.");
-                server.Logger.Log(Logger.LogLevel.Info, "Use /help other for a list of other commands.");
-                server.Logger.Log(Logger.LogLevel.Info, "Use /help short for a list of shortcuts.");
+                server.Logger.Log(LogLevel.Info, "Use /help build for a list of building commands.");
+                server.Logger.Log(LogLevel.Info, "Use /help mod for a list of moderation commands.");
+                server.Logger.Log(LogLevel.Info, "Use /help information for a list of information commands.");
+                server.Logger.Log(LogLevel.Info, "Use /help other for a list of other commands.");
+                server.Logger.Log(LogLevel.Info, "Use /help short for a list of shortcuts.");
             }
             else if (tokens.Length > 0)
             {
@@ -156,52 +161,52 @@ namespace Chraft.Commands
                         message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
+                            server.Logger.Log(LogLevel.Info, "There are no commands of this type that you can use.");
                             return;
                         }
                         message = message.Remove(0, 1);
-                        server.Logger.Log(Logger.LogLevel.Info, message);
+                        server.Logger.Log(LogLevel.Info, message);
                         break;
                     case "mod":
                         message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
+                            server.Logger.Log(LogLevel.Info, "There are no commands of this type that you can use.");
                             return;
                         }
                         message = message.Remove(0, 1);
-                        server.Logger.Log(Logger.LogLevel.Info, message);
+                        server.Logger.Log(LogLevel.Info, message);
                         break;
                     case "information":
                     case "info":
                         message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
+                            server.Logger.Log(LogLevel.Info, "There are no commands of this type that you can use.");
                             return;
                         }
                         message = message.Remove(0, 1);
-                        server.Logger.Log(Logger.LogLevel.Info, message);
+                        server.Logger.Log(LogLevel.Info, message);
                         break;
                     case "other":
                         message = (from IServerCommand c in ServerCommandHandler.GetCommands() where c.Type == CommandType.Build select c).Aggregate("", (current, c) => current + (", " + c.Name));
                         if (message == "")
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
+                            server.Logger.Log(LogLevel.Info, "There are no commands of this type that you can use.");
                             return;
                         }
                         message = message.Remove(0, 1);
-                        server.Logger.Log(Logger.LogLevel.Info, message);
+                        server.Logger.Log(LogLevel.Info, message);
                         break;
                     case "short":
                         message = (from IServerCommand c in ServerCommandHandler.GetCommands() where !string.IsNullOrEmpty(c.Shortcut) select c).Aggregate("", (current, c) => current + (", " + c.Shortcut));
                         if (message == "")
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There are no commands of this type that you can use.");
+                            server.Logger.Log(LogLevel.Info, "There are no commands of this type that you can use.");
                             return;
                         }
                         message = message.Remove(0, 1);
-                        server.Logger.Log(Logger.LogLevel.Info, message);
+                        server.Logger.Log(LogLevel.Info, message);
                         break;
                     default:
                         IServerCommand cmd;
@@ -209,15 +214,15 @@ namespace Chraft.Commands
                         {
                             cmd = ServerCommandHandler.Find(tokens[0]) as IServerCommand;
                         }
-                        catch (CommandNotFoundException e) { server.Logger.Log(Logger.LogLevel.Info, e.Message); return; }
+                        catch (CommandNotFoundException e) { server.Logger.Log(LogLevel.Info, e.Message); return; }
                         try
                         {
                             cmd.Help(server);
-                            server.Logger.Log(Logger.LogLevel.Info, "Type: " + cmd.Type.ToString());
+                            server.Logger.Log(LogLevel.Info, "Type: " + cmd.Type.ToString());
                         }
                         catch (Exception e)
                         {
-                            server.Logger.Log(Logger.LogLevel.Info, "There was an error while accessing the help for this command.");
+                            server.Logger.Log(LogLevel.Info, "There was an error while accessing the help for this command.");
                             server.Logger.Log(e);
                         }
                         break;
@@ -225,9 +230,9 @@ namespace Chraft.Commands
             }
         }
 
-        public void Help(Server server)
+        public void Help(IServer server)
         {
-            server.Logger.Log(Logger.LogLevel.Info, "helps");
+            server.GetLogger().Log(LogLevel.Info, "helps");
         }
     }
 }

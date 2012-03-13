@@ -23,15 +23,21 @@ using System.Threading;
 using Chraft.Commands;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
 using Chraft.Plugins.Events;
 using Chraft.Plugins.Events.Args;
+using Chraft.Utilities;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Net;
+using Chraft.World.Blocks;
 
 namespace Chraft.Entity
 {
-    public class Player : LivingEntity
+    public class Player : LivingEntity, IPlayer
     {
         public override string Name
         {
@@ -98,10 +104,20 @@ namespace Chraft.Entity
             PermHandler = new PermissionHandler(server);
         }
 
+        public IClient GetClient()
+        {
+            return _client;
+        }
+
+        public IInventory GetInventory()
+        {
+            return Inventory;
+        }
+
         #region Initialization
         public void InitializePosition()
         {
-            World = Server.GetDefaultWorld();
+            World = Server.GetDefaultWorld() as WorldManager;
             Position = new AbsWorldCoords(
                 World.Spawn.WorldX,
                 World.Spawn.WorldY + this.EyeHeight,
@@ -228,7 +244,7 @@ namespace Chraft.Entity
             UpdateEntities();
         }
 
-        public override void OnTeleportTo(AbsWorldCoords absCoords)
+        internal override void OnTeleportTo(AbsWorldCoords absCoords)
         {
             base.OnTeleportTo(absCoords);
 
@@ -252,14 +268,14 @@ namespace Chraft.Entity
             Client.ScheduleUpdateChunks();
         }
 
-        public override bool ToSkip(Client c)
+        internal override bool ToSkip(Client c)
         {
-            return c.Owner.Equals(this);
+            return c.GetOwner().Equals(this);
         }
 
-        public void UpdateEntities()
+        internal void UpdateEntities()
         {
-            Dictionary<int, EntityBase> nearbyEntities = Server.GetNearbyEntitiesDict(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+            Dictionary<int, IEntityBase> nearbyEntities = Server.GetNearbyEntitiesDict(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
 
             foreach (EntityBase e in nearbyEntities.Values)
             {
@@ -310,7 +326,7 @@ namespace Chraft.Entity
 
         #region Attack & damage
 
-        public override void Attack(LivingEntity target)
+        public override void Attack(ILivingEntity target)
         {
             if (target == null)
                 return;
@@ -335,7 +351,7 @@ namespace Chraft.Entity
         /// <param name="damageAmount"></param>
         /// <param name="hitBy">The Client hurting the current Client.</param>
         /// <param name="args">First argument should always be the damage amount.</param>
-        public override void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
+        public override void Damage(DamageCause cause, short damageAmount, IEntityBase hitBy = null, params object[] args)
         {
             if (GameMode == 1)
                 return;
@@ -417,7 +433,7 @@ namespace Chraft.Entity
         {
             for (int i = 5; i < 9; i++)
             {
-                if (!ItemStack.IsVoid(Inventory.Slots[i]))
+                if (Inventory.Slots[i] != null && !Inventory.Slots[i].IsVoid())
                 {
                     if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
                         continue;
@@ -435,7 +451,7 @@ namespace Chraft.Entity
             short effectiveArmor = 0;
 
             // Helmet
-            if (!ItemStack.IsVoid(Inventory.Slots[5]))
+            if (Inventory.Slots[5] != null && !Inventory.Slots[5].IsVoid())
             {
                 // We can wear a pumpkin, but it'll not give us any armor
                 if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
@@ -446,21 +462,21 @@ namespace Chraft.Entity
                 }
             }
             // Chest
-            if (!ItemStack.IsVoid(Inventory.Slots[6]))
+            if (Inventory.Slots[6] != null && !Inventory.Slots[6].IsVoid())
             {
                 baseArmorPoints += 8;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
                 totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
             }
             // Pants
-            if (!ItemStack.IsVoid(Inventory.Slots[7]))
+            if (Inventory.Slots[7] != null && !Inventory.Slots[7].IsVoid())
             {
                 baseArmorPoints += 6;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
                 totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
             }
             // Boots
-            if (!ItemStack.IsVoid(Inventory.Slots[8]))
+            if (Inventory.Slots[8] != null && !Inventory.Slots[8].IsVoid())
             {
                 baseArmorPoints += 3;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
@@ -481,13 +497,13 @@ namespace Chraft.Entity
         /// Handles the death of the Client.
         /// </summary>
         /// <param name="hitBy">Who killed the current Client.</param>
-        public override void HandleDeath(EntityBase killedBy = null, string deathBy = "")
+        internal override void HandleDeath(EntityBase killedBy = null, string deathBy = "")
         {
             //Event
             ClientDeathEventArgs clientDeath = new ClientDeathEventArgs(Client, deathBy, killedBy);
             Client.Owner.Server.PluginManager.CallEvent(Event.PlayerDied, clientDeath);
             if (clientDeath.EventCanceled) { return; }
-            killedBy = clientDeath.KilledBy;
+            killedBy = clientDeath.KilledBy as EntityBase;
             //End Event
 
 
@@ -519,7 +535,7 @@ namespace Chraft.Entity
 
         protected override void DoDeath(EntityBase killedBy)
         {
-            Inventory.DropAll(UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z));
+            Inventory.DropAll(UniversalCoords.FromAbsWorld(Position));
             StopFireBurnTimer();
             StopSuffocationTimer();
             StopDrowningTimer();
@@ -530,9 +546,8 @@ namespace Chraft.Entity
         /// <summary>
         /// Handles the respawning of the Client, called from respawn packet.
         /// </summary>
-        public void HandleRespawn()
+        internal void HandleRespawn()
         {
-            // This can no doubt be improved as waiting on the updatechunk thread is quite slow.
             Server.RemoveEntity(this);
 
             Position = new AbsWorldCoords(
@@ -559,7 +574,7 @@ namespace Chraft.Entity
             if (Server.GetEntityById(item.EntityId) == null)
                 return;
 
-            Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position.X, item.Position.Y, item.Position.Z), new CollectItemPacket
+            Server.SendPacketToNearbyPlayers(item.World, UniversalCoords.FromAbsWorld(item.Position), new CollectItemPacket
             {
                 EntityId = item.EntityId,
                 PlayerId = EntityId
@@ -572,8 +587,8 @@ namespace Chraft.Entity
 
         public void SynchronizeEntities()
         {
-            AbsWorldCoords absCoords = new AbsWorldCoords(Position.X, Position.Y, Position.Z);
-            foreach (EntityBase e in Server.GetNearbyEntities(World, absCoords))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (EntityBase e in Server.GetNearbyEntitiesInternal(World, coords))
             {
                 if (e.Equals(this))
                     continue;
@@ -590,24 +605,24 @@ namespace Chraft.Entity
             }
         }
 
-        public Chunk GetCurrentChunk()
+        public IChunk GetCurrentChunk()
         {
-            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z);
+            Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z) as Chunk;
 
             return chunk;
         }
 
-        public void UpdateChunks(int radius, CancellationToken token)
+        internal void UpdateChunks(int radius, CancellationToken token)
         {
             UpdateChunks(radius, token, false, true);
         }
 
-        public void UpdateChunks(int radius, bool sync, CancellationToken token)
+        internal void UpdateChunks(int radius, bool sync, CancellationToken token)
         {
             UpdateChunks(radius, token, sync, true);
         }
 
-        public void UpdateChunks(int radius, CancellationToken token, bool remove)
+        internal void UpdateChunks(int radius, CancellationToken token, bool remove)
         {
             UpdateChunks(radius, token, false, remove);
         }
@@ -634,9 +649,9 @@ namespace Chraft.Entity
                     {
                         Chunk chunk;
                         if (sync)
-                            chunk = World.GetChunkFromChunkSync(x, z, true, true);
+                            chunk = World.GetChunkFromChunkSync(x, z, true, true) as Chunk;
                         else
-                            chunk = World.GetChunkFromChunkAsync(x, z, Client, true, true);
+                            chunk = World.GetChunkFromChunkAsync(x, z, Client, true, true) as Chunk;
 
                         LoadedChunks.TryAdd(packedChunk, chunk);
 
@@ -654,7 +669,7 @@ namespace Chraft.Entity
 
                             watch.Stop();
 
-                            World.Logger.Log(Logger.LogLevel.Info, "Skylight recalc: {0}", watch.ElapsedMilliseconds);
+                            World.Logger.Log(LogLevel.Info, "Skylight recalc: {0}", watch.ElapsedMilliseconds);
 #else
                             chunk.RecalculateSky();
 #endif
@@ -703,7 +718,7 @@ namespace Chraft.Entity
             }
         }
 
-        public void OnJoined()
+        internal void OnJoined()
         {
             LoggedIn = true;
             string DisplayMessage = DisplayName + " has logged in";
@@ -733,7 +748,7 @@ namespace Chraft.Entity
             });
         }
 
-        public void DropItem()
+        public void DropActiveSlotItem()
         {
             var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
             if (activeItemStack.Count > 0)

@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Plugins.Listener;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Plugins.Events.Args;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class PacketEvent : IChraftEventHandler
     {
@@ -56,7 +57,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PacketListener pl = (PacketListener)el.Listener;
+                IPacketListener pl = (IPacketListener)el.Listener;
                 if (el.Event == Event.PacketReceived)
                     pl.OnPacketReceived(e);
             }
@@ -65,7 +66,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PacketListener pl = (PacketListener)el.Listener;
+                IPacketListener pl = (IPacketListener)el.Listener;
                 if (el.Event == Event.PacketSent)
                     pl.OnPacketSent(e);
             }

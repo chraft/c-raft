@@ -17,6 +17,8 @@
 using System;
 using System.Linq;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.Entity;
 using System.Text.RegularExpressions;
@@ -27,17 +29,17 @@ using System.Threading.Tasks;
 using Chraft.Utils.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem;
 
 namespace Chraft.Net
 {
-    public partial class Client
+    public partial class Client : IClient
     {
         DateTime? _inAirStartTime = null;
         /// <summary>
         /// Returns the amount of time since the client was set as in the air
         /// </summary>
-        public TimeSpan AirTime
+        internal TimeSpan AirTime
         {
             get
             {
@@ -61,13 +63,13 @@ namespace Chraft.Net
             {
                 return _onGround;
             }
-            set
+            internal set
             {
                 if (_onGround != value)
                 {
                     _onGround = value;
                    
-                    byte? blockId = _player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position.X, _player.Position.Y, _player.Position.Z));
+                    byte? blockId = _player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position));
 
                     if (blockId == null)
                         return;
@@ -117,7 +119,7 @@ namespace Chraft.Net
                                 // If we are in water, count how many blocks above are also water
                                 BlockData.Blocks block = currentBlock;
                                 int waterCount = 0;
-                                while (BlockHelper.IsLiquid((byte)block))
+                                while (BlockHelper.Instance.IsLiquid((byte)block))
                                 {
                                     waterCount++;
                                     block = (BlockData.Blocks)_player.World.GetBlockId((int)_player.Position.X, (int)_player.Position.Y + waterCount, (int)_player.Position.Z);
@@ -163,13 +165,13 @@ namespace Chraft.Net
                 }
             }
         }
-        public double Stance { get; set; }
+        public double Stance { get; internal set; }
 
         private readonly object _QueueSwapLock = new object();
 
         public int TimesEnqueuedForRecv;
 
-        public ByteQueue GetBufferToProcess()
+        internal ByteQueue GetBufferToProcess()
         {
             lock (_QueueSwapLock)
             {
@@ -204,7 +206,7 @@ namespace Chraft.Net
             }
             catch (Exception e)
             {
-                Server.Logger.Log(Chraft.Logger.LogLevel.Error, e.Message);
+                Server.Logger.Log(LogLevel.Error, e.Message);
                 Stop();
             }
 
@@ -238,7 +240,7 @@ namespace Chraft.Net
                     DisposeRecvSystem();
                 }
                 _nextActivityCheck = DateTime.MinValue;
-                //Logger.Log(Logger.LogLevel.Error, "Error receiving: {0}", e.SocketError);
+                //Logger.Log(LogLevel.Error, "Error receiving: {0}", e.SocketError);
             }
             else
             {
@@ -284,8 +286,9 @@ namespace Chraft.Net
         public static void HandlePacketAnimation(Client client, AnimationPacket packet)
         {
             Player p = client.Owner;
-            AbsWorldCoords absCoords = new AbsWorldCoords(p.Position.X, p.Position.Y, p.Position.Z);
-            foreach (Client c in p.Server.GetNearbyPlayers(p.World, absCoords))
+
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(p.Position);
+            foreach (Client c in p.Server.GetNearbyPlayersInternal(p.World, coords))
             {
                 if (c == client)
                     continue;
@@ -336,8 +339,8 @@ namespace Chraft.Net
             //Console.WriteLine(e.Packet.Target);
             //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
             Player handledPlayer = client.Owner;
-            AbsWorldCoords absCoords = new AbsWorldCoords(handledPlayer.Position.X, handledPlayer.Position.Y, handledPlayer.Position.Z);
-            foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntities(handledPlayer.World, absCoords))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(handledPlayer.Position);
+            foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntitiesInternal(handledPlayer.World, coords))
             {
                 if (eb.EntityId != packet.Target)
                     continue;
@@ -354,7 +357,7 @@ namespace Chraft.Net
                     {
                         // TODO: Store the object being ridden, so we can update player movement.
                         // This will ride the entity, sends -1 to dismount.
-                        foreach (Client cl in handledPlayer.Server.GetNearbyPlayers(handledPlayer.World, absCoords))
+                        foreach (Client cl in handledPlayer.Server.GetNearbyPlayersInternal(handledPlayer.World, coords))
                         {
                             cl.SendPacket(new AttachEntityPacket
                             {
@@ -423,9 +426,9 @@ namespace Chraft.Net
 
         public static void HandlePacketHoldingChange(Client client, HoldingChangePacket packet)
         {
-            client.Owner.Inventory.OnActiveChanged((short)(packet.Slot += 36));
+            client.Owner.Inventory.OnActiveChanged((packet.Slot += 36));
 
-            foreach (Client c in client.Owner.Server.GetNearbyPlayers(client.Owner.World, new AbsWorldCoords(client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z)).Where(c => c != client))
+            foreach (Client c in client.Owner.Server.GetNearbyPlayersInternal(client.Owner.World, UniversalCoords.FromAbsWorld(client.Owner.Position)).Where(c => c != client))
             {
                 c.SendHoldingEquipment(client);
             }
@@ -445,7 +448,7 @@ namespace Chraft.Net
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(baseBlockCoords);
+            Chunk chunk = player.World.GetChunk(baseBlockCoords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -489,7 +492,7 @@ namespace Chraft.Net
                     if (baseBlockType == BlockData.Blocks.Dirt || baseBlockType == BlockData.Blocks.Grass)
                     {
                         // Think the client has a Notch bug where hoe's durability is not updated properly.
-                        BlockHelper.Instance((byte)BlockData.Blocks.Soil).Spawn(baseBlock);
+                        BlockHelper.Instance.CreateBlockInstance((byte)BlockData.Blocks.Soil).Spawn(baseBlock);
                     }
                     return;
                 case BlockData.Items.Ink_Sack:
@@ -497,7 +500,7 @@ namespace Chraft.Net
                         return;
                     if (baseBlockType == BlockData.Blocks.Red_Mushroom || baseBlockType == BlockData.Blocks.Brown_Mushroom)
                     {
-                        BlockBaseMushroom baseMushroom = (BlockBaseMushroom)BlockHelper.Instance((byte) baseBlockType);
+                        BlockBaseMushroom baseMushroom = (BlockBaseMushroom)BlockHelper.Instance.CreateBlockInstance((byte)baseBlockType);
                         baseMushroom.Fertilize(player, baseBlock);
                     }
                     return;
@@ -533,7 +536,7 @@ namespace Chraft.Net
             if (newBlockId != 0)
             {
                 newBlock = new StructBlock(newBlockCoords, newBlockId, 0, player.World);
-                BlockHelper.Instance(newBlockId).Place(player, newBlock, baseBlock, packet.Face);
+                BlockHelper.Instance.CreateBlockInstance(newBlockId).Place(player, newBlock, baseBlock, packet.Face);
             }
         }
 
@@ -561,7 +564,7 @@ namespace Chraft.Net
 
             Player player = client.Owner;
 
-            Chunk chunk = player.World.GetChunk(coords);
+            Chunk chunk = player.World.GetChunk(coords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -572,9 +575,9 @@ namespace Chraft.Net
 
             UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
-            if (BlockHelper.Instance((byte)type) is IBlockInteractive)
+            if (BlockHelper.Instance.CreateBlockInstance((byte)type) is IBlockInteractive)
             {
-                (BlockHelper.Instance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
+                (BlockHelper.Instance.CreateBlockInstance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
                 return;
             }
 
@@ -595,7 +598,7 @@ namespace Chraft.Net
 
             StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
 
-            BlockHelper.Instance(bType).Place(player, bBlock, facingBlock, packet.Face);
+            BlockHelper.Instance.CreateBlockInstance(bType).Place(player, bBlock, facingBlock, packet.Face);
         }
 
         public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
@@ -604,7 +607,7 @@ namespace Chraft.Net
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(coords);
+            Chunk chunk = player.World.GetChunk(coords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -624,9 +627,9 @@ namespace Chraft.Net
                     client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
 #endif
-                    if (BlockHelper.IsSingleHit(type))
+                    if (BlockHelper.Instance.IsSingleHit(type))
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
-                    if (BlockHelper.Instance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
+                    if (BlockHelper.Instance.CreateBlockInstance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (player.GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
@@ -634,11 +637,11 @@ namespace Chraft.Net
 
                 case PlayerDiggingPacket.DigAction.FinishDigging:
                     StructBlock block = new StructBlock(coords, type, data, player.World);
-                    BlockHelper.Instance(type).Destroy(player, block);
+                    BlockHelper.Instance.CreateBlockInstance(type).Destroy(player, block);
                     break;
 
                 case PlayerDiggingPacket.DigAction.DropItem:
-                    player.DropItem();
+                    player.DropActiveSlotItem();
                     break;
             }
         }
@@ -722,7 +725,7 @@ namespace Chraft.Net
             if(client.WaitForInitialPosAck)
                 return;
 
-            //client.Logger.Log(Chraft.Logger.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
+            //client.Logger.Log(Chraft.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
             client.Owner.Ready = true;
             double threshold = 0.001;
             double diffX = Math.Abs(client.Owner.Position.X - packet.X);
@@ -745,12 +748,12 @@ namespace Chraft.Net
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
             if (blockId == BlockData.Blocks.Sign_Post)
             {
-                BlockSignPost sign = (BlockSignPost)BlockHelper.Instance((byte)blockId);
+                BlockSignPost sign = (BlockSignPost)BlockHelper.Instance.CreateBlockInstance((byte)blockId);
                 sign.SaveText(coords, client.Owner, packet.Lines);
             }
         }
 
-        public void StopUpdateChunks()
+        internal void StopUpdateChunks()
         {
             if (_updateChunksToken != null)
             {
@@ -758,7 +761,7 @@ namespace Chraft.Net
             }
         }
 
-        public void ScheduleUpdateChunks()
+        internal void ScheduleUpdateChunks()
         {
             _updateChunksToken = new CancellationTokenSource();
             var token = _updateChunksToken.Token;
@@ -799,15 +802,13 @@ namespace Chraft.Net
 
         public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)
         {
-            client.Logger.Log(Logger.LogLevel.Info, client.Owner.DisplayName + " disconnected: " + packet.Reason);
+            client.Logger.Log(LogLevel.Info, client.Owner.DisplayName + " disconnected: " + packet.Reason);
             client.Stop();
         }
 
         public static void HandlePacketHandshake(Client client, HandshakePacket packet)
         {
-            var usernameHost = Regex.Replace(packet.UsernameAndIpOrHash, Chat.DISALLOWED, "").Split(';');
-            client.Username = usernameHost[0];
-            client.Host = usernameHost[1];
+            client.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
             client.SendHandshake();
         }
 

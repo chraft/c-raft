@@ -18,10 +18,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Listener;
 using Chraft.Plugins.Events.Args;
-using Chraft.Plugins.Listener;
 
-namespace Chraft.Plugins.Events
+namespace Chraft.PluginSystem.Events
 {
     public class EntityEvent : IChraftEventHandler
     {
@@ -74,7 +75,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityDeath)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnDeath(e);
                 }
             }
@@ -85,7 +86,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntitySpawn)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnSpawn(e);
                 }
             }
@@ -96,7 +97,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityMove)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnMove(e);
                 }
             }
@@ -107,7 +108,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityDamage)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnDamaged(e);
                 }
             }
@@ -118,7 +119,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityAttack)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnAttack(e);
                 }
             }

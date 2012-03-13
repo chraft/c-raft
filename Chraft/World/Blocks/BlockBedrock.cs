@@ -15,6 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -27,6 +30,6 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        public override void Destroy(EntityBase entity, StructBlock block) {}
+        public override void Destroy(IEntityBase entity, IStructBlock iBlock) {}
     }
 }

@@ -19,17 +19,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
 using Chraft.World;
 using System.Runtime.Serialization;
 
 namespace Chraft.Interfaces
 {
     [Serializable]
-    public class ItemStack
+    public class ItemStack : IItemStack
     {
         public event EventHandler Changed;
 
-        internal short Slot { get; set; }
+        public short Slot { get; internal set; }
         public static ItemStack Void { get { return new ItemStack(-1, 0, 0); } } // Needs to send -1 via 0x05
 
         public bool IsEnchantable()
@@ -114,9 +115,9 @@ namespace Chraft.Interfaces
             }
         }
 
-        public static bool IsVoid(ItemStack stack)
+        public bool IsVoid()
         {
-            return stack == null || stack.Count < 1 || stack.Type <= 0;
+            return Count < 1 || Type <= 0;
         }
 
         private void OnChanged()

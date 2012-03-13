@@ -21,7 +21,12 @@ using System.Threading;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
 using Chraft.Plugins.Events;
+using Chraft.Utilities;
 using Chraft.Utils.Config;
 using System.IO;
 using Chraft.Entity;
@@ -39,7 +44,7 @@ using Timer = System.Threading.Timer;
 
 namespace Chraft.World
 {
-    public partial class WorldManager : IDisposable
+    public partial class WorldManager : IDisposable, IWorldManager
     {
         private IChunkGenerator _generator;
         public object ChunkGenLock = new object();
@@ -63,7 +68,7 @@ namespace Chraft.World
         public ConcurrentQueue<ChunkLightUpdate> InitialChunkLightToRecalculate;
         public ConcurrentQueue<ChunkLightUpdate> ChunkLightToRecalculate;
 
-        public ConcurrentDictionary<int, BaseFallingPhysics> PhysicsBlocks;
+        internal ConcurrentDictionary<int, BaseFallingPhysics> PhysicsBlocks;
         private Task _physicsSimulationTask;
         private Task _entityUpdateTask;
         private Task _mobSpawnerTask;
@@ -110,7 +115,12 @@ namespace Chraft.World
             }
         }
 
-        public Chunk GetChunk(UniversalCoords coords, bool create = false, bool load = false)
+        public IServer GetServer()
+        {
+            return Server;
+        }
+
+        public IChunk GetChunk(UniversalCoords coords, bool create = false, bool load = false)
         {
             Chunk chunk;
             if ((chunk = Chunks[coords]) != null)
@@ -119,7 +129,7 @@ namespace Chraft.World
             return load ? LoadChunk(coords, create) : null;
         }
 
-        public Chunk GetChunkFromChunkSync(int chunkX, int chunkZ, bool create = false, bool load = false)
+        public IChunk GetChunkFromChunkSync(int chunkX, int chunkZ, bool create = false, bool load = false)
         {
             Chunk chunk;
             if ((chunk = Chunks[chunkX, chunkZ]) != null)
@@ -128,16 +138,16 @@ namespace Chraft.World
             return load ? LoadChunk(UniversalCoords.FromChunk(chunkX, chunkZ), create) : null;
         }
 
-        public Chunk GetChunkFromChunkAsync(int chunkX, int chunkZ, Client client, bool create = false, bool load = false)
+        public IChunk GetChunkFromChunkAsync(int chunkX, int chunkZ, IClient client, bool create = false, bool load = false)
         {
             Chunk chunk;
             if ((chunk = Chunks[chunkX, chunkZ]) != null)
                 return chunk;
 
-            return load ? LoadChunk(UniversalCoords.FromChunk(chunkX, chunkZ), create, client, false) : null;
+            return load ? LoadChunk(UniversalCoords.FromChunk(chunkX, chunkZ), create, client as Client, false) : null;
         }
 
-        public Chunk GetChunkFromWorld(int worldX, int worldZ, bool create = false, bool load = false)
+        public IChunk GetChunkFromWorld(int worldX, int worldZ, bool create = false, bool load = false)
         {
             Chunk chunk;
             if ((chunk = Chunks[worldX >> 4, worldZ >> 4]) != null)
@@ -146,7 +156,7 @@ namespace Chraft.World
             return load ? LoadChunk(UniversalCoords.FromWorld(worldX, 0, worldZ), create) : null;
         }
 
-        public Chunk GetChunkFromAbs(double absX, double absZ, bool create = false, bool load = false)
+        public IChunk GetChunkFromAbs(double absX, double absZ, bool create = false, bool load = false)
         {
             int worldX = (int) Math.Floor(absX);
             int worldZ = (int)Math.Floor(absZ);
@@ -158,7 +168,7 @@ namespace Chraft.World
             return load ? LoadChunk(UniversalCoords.FromWorld(worldX, 0, worldZ), create) : null;
         }
         
-        public IEnumerable<EntityBase> GetEntitiesWithinBoundingBoxExcludingEntity(EntityBase entity, BoundingBox boundingBox)
+        public IEnumerable<IEntityBase> GetEntitiesWithinBoundingBoxExcludingEntity(IEntityBase entity, BoundingBox boundingBox)
         {
             return (from e in Server.GetEntitiesWithinBoundingBox(boundingBox)
                    where e != entity
@@ -176,16 +186,16 @@ namespace Chraft.World
             {
                 for (int z = minimumBlockXYZ.WorldZ; z < maximumBlockXYZ.WorldZ; z++)
                 {
-                    Chunk chunk = GetChunkFromWorld(x, z);
+                    Chunk chunk = GetChunkFromWorld(x, z) as Chunk;
 
                     if (chunk == null)
                         continue;
 
                     for (int y = minimumBlockXYZ.WorldY - 1; y < maximumBlockXYZ.WorldY; y++)
                     {
-                        StructBlock block = chunk.GetBlock(UniversalCoords.FromWorld(x, y, z));
-                        
-                        BlockBase blockInstance = BlockHelper.Instance(block.Type);
+                        StructBlock block = (StructBlock)chunk.GetBlock(UniversalCoords.FromWorld(x, y, z));
+
+                        BlockBase blockInstance = BlockHelper.Instance.CreateBlockInstance(block.Type);
                         
                         if (blockInstance != null && blockInstance.IsCollidable)
                         {
@@ -204,7 +214,7 @@ namespace Chraft.World
                 collidingBoundingBoxes.Add(e.BoundingBox);
                 
                 // TODO: determine if overridable collision boxes between two entities is necessary
-                BoundingBox? collisionBox = entity.GetCollisionBox(e);
+                BoundingBox? collisionBox = entity.GetCollisionBox(e as EntityBase);
                 if (collisionBox != null && collisionBox.Value != e.BoundingBox && collisionBox.Value.IntersectsWith(boundingBox))
                 {
                     collidingBoundingBoxes.Add(collisionBox.Value);
@@ -228,12 +238,12 @@ namespace Chraft.World
             double d = 0.0;
             for(int i = 0; i < 16; i++)
             {
-                double d1 = 1.0 - (double)i / 15.0;
+                double d1 = 1.0 - i / 15.0;
                 _lightBrightnessTable[i] = ((1.0 - d1) / (d1 * 3.0 + 1.0)) * (1.0 - d) + d;
             }
         }
 
-        public bool Load()
+        internal bool Load()
         {
             EnsureDirectory();
 
@@ -244,7 +254,7 @@ namespace Chraft.World
             //End Event
 
             _chunkProvider = new ChunkProvider(this);
-            _generator = _chunkProvider.GetNewGenerator(GeneratorType.Custom, GetSeed());
+            _generator = _chunkProvider.GetNewGenerator("Default", GetSeed());
             PhysicsBlocks = new ConcurrentDictionary<int, BaseFallingPhysics>();
 
             InitializeSpawn();
@@ -260,26 +270,32 @@ namespace Chraft.World
 
         public int GetHeight(UniversalCoords coords)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
             if (chunk == null)
                 return -1;
 
-            return GetChunk(coords).HeightMap[coords.BlockX, coords.BlockZ];
+            return chunk.HeightMap[coords.BlockX, coords.BlockZ];
         }
 
         public int GetHeight(int x, int z)
         {
-            Chunk chunk = GetChunkFromWorld(x, z);
+            Chunk chunk = GetChunkFromWorld(x, z) as Chunk;
 
             if(chunk == null)
                 return -1;
             return chunk.HeightMap[x & 0xf, z & 0xf];
         }
 
-        public void AddChunk(Chunk c)
+        public void AddChunk(IChunk iChunk)
         {
+            Chunk c = (Chunk) iChunk;
             c.CreationDate = DateTime.Now;
             Chunks.Add(c);
+        }
+
+        public IChunk CreateChunk(UniversalCoords coords)
+        {
+            return new Chunk(this, coords);
         }
 
         public ConcurrentDictionary<ChunkEntry, ChunkEntry> TempPendingChunks = new ConcurrentDictionary<ChunkEntry, ChunkEntry>(); 
@@ -319,9 +335,12 @@ namespace Chraft.World
 
 
                 if ((chunk = Chunk.Load(coords, this)) != null)
-                    AddChunk(chunk);               
+                    AddChunk(chunk);
                 else if (create)
-                    chunk = _generator.ProvideChunk(coords.ChunkX, coords.ChunkZ, this);
+                {
+                    chunk = new Chunk(this, coords);
+                    _generator.GenerateChunk(chunk, coords.ChunkX, coords.ChunkZ);
+                }
 
                 if(chunk == null)
                 {
@@ -425,11 +444,11 @@ namespace Chraft.World
 
         private void InitializeSpawn()
         {
-            Logger.LogOnOneLine(Logger.LogLevel.Info, "Initializing spawn area...", true);
+            Logger.LogOnOneLine(LogLevel.Info, "Initializing spawn area...", true);
             Spawn = UniversalCoords.FromWorld(ChraftConfig.SpawnX, ChraftConfig.SpawnY, ChraftConfig.SpawnZ);
 
             Queue<Chunk> toRecalculate = new Queue<Chunk>();           
-            Chunk chunk = GetChunkFromWorld(Spawn.WorldX, Spawn.WorldZ, true, true);
+            Chunk chunk = GetChunkFromWorld(Spawn.WorldX, Spawn.WorldZ, true, true) as Chunk;
             chunk.Persistent = true;
             toRecalculate.Enqueue(chunk);
 
@@ -446,7 +465,7 @@ namespace Chraft.World
                     if(x == chunkX && z == chunkZ)
                         continue;
 
-                    chunk = GetChunkFromChunkSync(x, z, true, true);
+                    chunk = GetChunkFromChunkSync(x, z, true, true) as Chunk;
                     chunk.Persistent = true;
                     toRecalculate.Enqueue(chunk);
                 }
@@ -475,13 +494,13 @@ namespace Chraft.World
                 AddChunk(chunk);
             }
 
-            Logger.LogOnOneLine(Logger.LogLevel.Info, " Done\n", false);
+            Logger.LogOnOneLine(LogLevel.Info, " Done\n", false);
         }
 
         private void CollectProc()
         {
             CheckAliveClients();
-            Chunk[] chunks = GetChunks();
+            IChunk[] chunks = GetChunks();
             foreach (Chunk c in chunks)
             {
                 if (c.Persistent)
@@ -494,9 +513,10 @@ namespace Chraft.World
             }
         }
 
-        public void CheckAliveClients()
+        private void CheckAliveClients()
         {
-            Parallel.ForEach(Server.GetClients(), c => c.CheckAlive());
+            Client[] clients = Server.GetClients() as Client[];
+            Parallel.ForEach(clients, c => c.CheckAlive());
         }
 
         private void SaveProc(int chunkToSave, CancellationToken token)
@@ -563,7 +583,7 @@ namespace Chraft.World
                 Directory.CreateDirectory(Folder);
         }
 
-        public void StartSaveProc(int chunksToSave)
+        internal void StartSaveProc(int chunksToSave)
         {
             if (WorldTicks % 20 == 0 && !Server.NeedsFullSave && !Server.FullSaving && (!ChunksToSave.IsEmpty || !ChunksToSavePostponed.IsEmpty))
             {
@@ -581,14 +601,14 @@ namespace Chraft.World
             return _chunkSaveTask != null && _chunkSaveTask.IsCompleted;
         }
 
-        public void StopSave()
+        internal void StopSave()
         {
             _saveToken.Cancel();
             if (!_chunkSaveTask.IsCompleted)
                 _chunkSaveTask.Wait();
         }
 
-        public void WorldTick()
+        internal void WorldTick()
         {
             // Increment the world tick count
             Interlocked.Increment(ref _worldTicks);
@@ -676,12 +696,12 @@ namespace Chraft.World
             this.Running = false;
         }
 
-        public byte GetBlockOrLoad(int x, int y, int z)
+        /*public byte GetBlockOrLoad(int x, int y, int z)
         {
             return GetChunkFromWorld(x, z, true, true)[x & 0xf, y, z & 0xf];
-        }
+        }*/
 
-        public Chunk[] GetChunks()
+        public IChunk[] GetChunks()
         {
             int changes = Interlocked.Exchange(ref Chunks.Changes, 0);
             if(_chunksCache == null || changes > 0)
@@ -708,7 +728,8 @@ namespace Chraft.World
   
         private void EntityProc()
         {
-            Parallel.ForEach(Server.GetEntities().Where((entity) => entity.World == this), (e) =>
+            EntityBase[] entities = Server.GetEntities() as EntityBase[];
+            Parallel.ForEach(entities.Where((entity) => entity.World == this), (e) =>
             {
                 e.Update();
             });
@@ -724,7 +745,7 @@ namespace Chraft.World
         /// </summary>
         /// <param name="boundingBox"></param>
         /// <returns></returns>
-        public IEnumerable<StructBlock> GetBlocksInBoundingBox(BoundingBox boundingBox)
+        public IEnumerable<IStructBlock> GetBlocksInBoundingBox(BoundingBox boundingBox)
         {
             UniversalCoords minimum =
                 UniversalCoords.FromAbsWorld(
@@ -744,7 +765,7 @@ namespace Chraft.World
         /// <param name="minimum">Start here</param>
         /// <param name="maximum">Stop here</param>
         /// <returns>Yields a <see cref="StructBlock"/> for each coordinate between minimum and maximum</returns>
-        public IEnumerable<StructBlock> GetBlocksBetweenCoords(UniversalCoords minimum, UniversalCoords maximum)
+        public IEnumerable<IStructBlock> GetBlocksBetweenCoords(UniversalCoords minimum, UniversalCoords maximum)
         {
             if (minimum.WorldX >= maximum.WorldX || minimum.WorldY >= maximum.WorldY || minimum.WorldZ >= maximum.WorldZ)
                 throw new ArgumentOutOfRangeException("minimum", "minimum X, Y and Z must be less than maximum X, Y and Z");
@@ -761,9 +782,9 @@ namespace Chraft.World
             }
         }
 
-        public StructBlock GetBlock(UniversalCoords coords)
+        public IStructBlock GetBlock(UniversalCoords coords)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if(chunk == null)
                 return StructBlock.Empty;
@@ -774,9 +795,9 @@ namespace Chraft.World
             return new StructBlock(coords, blockId, blockData, this);
         }
 
-        public StructBlock GetBlock(int worldX, int worldY, int worldZ)
+        public IStructBlock GetBlock(int worldX, int worldY, int worldZ)
         {
-            Chunk chunk = GetChunkFromWorld(worldX, worldZ);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ) as Chunk;
 
             if (chunk == null)
                 return StructBlock.Empty;
@@ -836,7 +857,7 @@ namespace Chraft.World
  
         public byte? GetFullBlockLight(UniversalCoords coords)
         {
-            Chunk chunk = GetChunk(coords, false, false);
+            Chunk chunk = GetChunk(coords, false, false) as Chunk;
 
             if (chunk == null)
                 return null;
@@ -891,16 +912,18 @@ namespace Chraft.World
             return null;
         }
   
-        public IEnumerable<EntityBase> GetEntities()
+        public IEnumerable<IEntityBase> GetEntities()
         {
-            return Server.GetEntities().Where((e) => e != null && e.World == this);
+            EntityBase[] entities = Server.GetEntities() as EntityBase[];
+            return entities.Where((e) => e != null && e.World == this);
         }
 
-        public Player GetClosestPlayer(AbsWorldCoords coords, double radius)
+        public IPlayer GetClosestPlayer(AbsWorldCoords coords, double radius)
         {
+            Client[] clients = Server.GetAuthenticatedClients() as Client[];
             var radiusSqrd = radius * radius;
             Vector3 coordVector = coords.ToVector();
-            return (from c in Server.GetAuthenticatedClients().Where(client => client.Owner.World == this)
+            return (from c in clients.Where(client => client.Owner.World == this)
                     let distance = coordVector.DistanceSquared(c.Owner.Position.ToVector())
                     where distance <= radiusSqrd
                     orderby distance
@@ -909,7 +932,7 @@ namespace Chraft.World
 
         private RayTraceHitBlock DoRayTraceBlock(UniversalCoords coords, Vector3 rayStart, Vector3 rayEnd)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if (chunk == null)
                 return null;
@@ -920,7 +943,7 @@ namespace Chraft.World
                 byte blockData = chunk.GetData(coords);
 
                 StructBlock block = new StructBlock(coords, (byte)blockType, (byte)blockData, this);
-                BlockBase blockClass = BlockHelper.Instance(block.Type);
+                BlockBase blockClass = BlockHelper.Instance.CreateBlockInstance(block.Type);
                 RayTraceHitBlock blockRayTrace = blockClass.RayTraceIntersection(block, rayStart, rayEnd);
                 if (blockRayTrace != null)
                 {
@@ -942,7 +965,7 @@ namespace Chraft.World
         /// <param name='rayEnd'>
         /// Ray end.
         /// </param>
-        public RayTraceHitBlock RayTraceBlocks(AbsWorldCoords rayStart, AbsWorldCoords rayEnd)
+        internal RayTraceHitBlock RayTraceBlocks(AbsWorldCoords rayStart, AbsWorldCoords rayEnd)
         {
             UniversalCoords startCoord = UniversalCoords.FromAbsWorld(rayStart);
             UniversalCoords endCoord = UniversalCoords.FromAbsWorld(rayEnd);
@@ -1099,7 +1122,7 @@ namespace Chraft.World
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if(chunk == null)
                 return;
@@ -1113,7 +1136,7 @@ namespace Chraft.World
 
         public void SetBlockAndData(int worldX, int worldY, int worldZ, byte type, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunkFromWorld(worldX, worldZ);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ) as Chunk;
 
             if (chunk == null)
                 return;
@@ -1127,7 +1150,7 @@ namespace Chraft.World
 
         public void SetBlockData(UniversalCoords coords, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if(chunk != null)
                 chunk.SetData(coords, data, needsUpdate);
@@ -1135,7 +1158,7 @@ namespace Chraft.World
 
         public void SetBlockData(int worldX, int worldY, int worldZ, byte data, bool needsUpdate = true)
         {
-            Chunk chunk = GetChunkFromWorld(worldX, worldZ);
+            Chunk chunk = GetChunkFromWorld(worldX, worldZ) as Chunk;
 
             if(chunk != null)
                 chunk.SetData(worldX & 0xF, worldY, worldZ & 0xF, data, needsUpdate);
@@ -1151,14 +1174,14 @@ namespace Chraft.World
             return (Chunks[chunkX, chunkZ] != null);
         }
 
-        public void RemoveChunk(Chunk c)
+        public void RemoveChunk(IChunk c)
         {
-            Chunks.Remove(c);
+            Chunks.Remove(c as Chunk);
         }
 
         internal void Update(UniversalCoords coords, bool updateClients = true)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -1172,7 +1195,7 @@ namespace Chraft.World
 
         private void UpdatePhysics(UniversalCoords coords, bool updateClients = true)
         {
-            Chunk chunk = GetChunk(coords);
+            Chunk chunk = GetChunk(coords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -1185,7 +1208,7 @@ namespace Chraft.World
                 byte water = 8;
                 chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    Chunk nearbyChunk = GetChunk(uc);
+                    Chunk nearbyChunk = GetChunk(uc) as Chunk;
 
                     if (nearbyChunk == null)
                         return;
@@ -1231,7 +1254,7 @@ namespace Chraft.World
 
                 chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    Chunk nearbyChunk = GetChunk(uc);
+                    Chunk nearbyChunk = GetChunk(uc) as Chunk;
 
                     if (nearbyChunk == null)
                         return;
@@ -1254,7 +1277,7 @@ namespace Chraft.World
                 byte lava = 8;
                 chunk.ForNSEW(coords, delegate(UniversalCoords uc)
                 {
-                    Chunk nearbyChunk = GetChunk(uc);
+                    Chunk nearbyChunk = GetChunk(uc) as Chunk;
 
                     if (nearbyChunk == null)
                         return;

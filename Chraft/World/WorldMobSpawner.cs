@@ -18,6 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Net;
+using Chraft.PluginSystem.Events.Args;
+using Chraft.Utilities;
 using Chraft.Utils;
 using Chraft.Entity;
 using Chraft.World.Blocks;
@@ -67,7 +70,8 @@ namespace Chraft.World
         
         public static void SpawnMobs(WorldManager world, bool spawnHostileMobs, bool spawnPeacefulMobs)
         {
-            var players = world.Server.GetAuthenticatedClients().Where(c => c.Owner.World == world).Select(c => c.Owner).ToArray();
+            Client[] authClients = world.Server.GetAuthenticatedClients() as Client[];
+            var players = authClients.Where(c => c.Owner.World == world).Select(c => c.Owner).ToArray();
             HashSet<int> chunksToSpawnIn = new HashSet<int>();
 
             #region Get a list of all chunks within 8 chunks of any players
@@ -118,7 +122,7 @@ namespace Chraft.World
                     if (blockId == null)
                         continue;
 
-                    BlockBase blockClass = BlockHelper.Instance((byte)blockId);
+                    BlockBase blockClass = BlockHelper.Instance.CreateBlockInstance((byte)blockId);
 
                     if (!blockClass.IsOpaque && ((!inWater && blockClass.Type == BlockData.Blocks.Air) || (inWater && blockClass.IsLiquid))) // Lava is Opaque, so IsLiquid is safe to use here for water & still water
                     {
@@ -153,8 +157,8 @@ namespace Chraft.World
                                     // Check that the squared distance is more than 576 from spawn (24 blocks)
                                     if (spawnPosition.ToVector().DistanceSquared(new AbsWorldCoords(world.Spawn).ToVector()) > 576.0)
                                     {
-                                        Mob newMob = MobFactory.CreateMob(world, world.Server.AllocateEntity(),
-                                                                          mobType);
+                                        Mob newMob = MobFactory.Instance.CreateMob(world, world.Server,
+                                                                          mobType) as Mob;
 
                                         if (newMob == null)
                                             break;
@@ -166,7 +170,7 @@ namespace Chraft.World
                                         {
                                             //Event
                                             EntitySpawnEventArgs e = new EntitySpawnEventArgs(newMob, newMob.Position);
-                                            world.Server.PluginManager.CallEvent(Plugins.Events.Event.EntitySpawn, e);
+                                            world.Server.PluginManager.CallEvent(PluginSystem.Events.Event.EntitySpawn, e);
                                             if (e.EventCanceled)
                                                 continue;
                                             newMob.Position = e.Location;
@@ -193,12 +197,12 @@ namespace Chraft.World
 
         private static bool CanMobTypeSpawnAtLocation(MobType mobType, WorldManager world, int worldX, int worldY, int worldZ)
         {
-            Chunk chunk = world.GetChunkFromWorld(worldX, worldZ);
+            Chunk chunk = world.GetChunkFromWorld(worldX, worldZ) as Chunk;
             if (chunk == null)
                 return false;
 
-            BlockBase blockClassCurrent = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF));
-            BlockBase blockClassUp = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY + 1, worldZ & 0xF));          
+            BlockBase blockClassCurrent = BlockHelper.Instance.CreateBlockInstance((byte)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF));
+            BlockBase blockClassUp = BlockHelper.Instance.CreateBlockInstance((byte)chunk.GetType(worldX & 0xF, worldY + 1, worldZ & 0xF));          
 
             if (mobType == MobType.Squid)
             {
@@ -206,7 +210,7 @@ namespace Chraft.World
                     && !blockClassUp.IsOpaque; // Has either water or air above it
             }
 
-            BlockBase blockClassDown = BlockHelper.Instance((byte)chunk.GetType(worldX & 0xF, worldY - 1, worldZ & 0xF));
+            BlockBase blockClassDown = BlockHelper.Instance.CreateBlockInstance((byte)chunk.GetType(worldX & 0xF, worldY - 1, worldZ & 0xF));
 
             return blockClassDown.IsOpaque && blockClassDown.IsSolid && // Is solid underneath
                     !blockClassCurrent.IsOpaque && !blockClassCurrent.IsSolid && !blockClassCurrent.IsLiquid && // Is not solid or liquid where spawning 
@@ -218,7 +222,7 @@ namespace Chraft.World
             // 1 in 100 chance to spawn a skeleton riding a spider
             if (mob.Type == MobType.Spider && world.Server.Rand.Next(100) == 0)
             {
-                LivingEntity skeleton = MobFactory.CreateMob(world, world.Server.AllocateEntity(), MobType.Skeleton);
+                LivingEntity skeleton = MobFactory.Instance.CreateMob(world, world.Server, MobType.Skeleton) as LivingEntity;
                 skeleton.Position = coords;
                 skeleton.Yaw = mob.Yaw;
                 

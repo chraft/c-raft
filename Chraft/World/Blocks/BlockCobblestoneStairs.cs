@@ -17,6 +17,9 @@
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -30,8 +33,9 @@ namespace Chraft.World.Blocks
             LootTable.Add(new ItemStack((short)Type, 1));
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace targetSide)
         {
+            StructBlock block = (StructBlock)iBlock;
             LivingEntity living = entity as LivingEntity;
             if (living == null)
                 return;
@@ -54,7 +58,7 @@ namespace Chraft.World.Blocks
                 default:
                     return;
             }
-            base.Place(entity, block, targetBlock, targetSide);
+            base.Place(entity, block, targetIBlock, targetSide);
         }
     }
 }

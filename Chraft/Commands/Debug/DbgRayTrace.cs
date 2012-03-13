@@ -19,7 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
+using Chraft.Utilities;
 using Chraft.Utils;
 using Chraft.World;
 
@@ -27,10 +30,11 @@ namespace Chraft.Commands.Debug
 {
     public class DbgRayTrace : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             Vector3 facing = new Vector3(client.Owner.Yaw, client.Owner.Pitch);
 
             Vector3 start = new Vector3(client.Owner.Position.X, client.Owner.Position.Y + client.Owner.EyeHeight, client.Owner.Position.Z);
@@ -93,7 +97,7 @@ namespace Chraft.Commands.Debug
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
 
         }

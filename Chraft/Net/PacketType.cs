@@ -53,7 +53,6 @@ namespace Chraft.Net
         EntityLook = 0x20,                  //   <--
         EntityLookAndRelativeMove = 0x21,   //   <--
         EntityTeleport = 0x22,              //   <--
-        EntityHeadLook = 0x23,              //   <--
         EntityStatus = 0x26,                //   <--
         AttachEntity = 0x27,                //   <--
         EntityMetadata = 0x28,              //   <--
@@ -79,7 +78,6 @@ namespace Chraft.Net
         EnchantItem = 0x6C,                 //   -->
         UpdateSign = 0x82,                  //   <->
         MapData = 0x83,                     //   -->
-        UpdateTileEntity = 0x84,             //   <--
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
         PluginMessage = 0xFA,               //  

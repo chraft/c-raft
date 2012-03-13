@@ -21,6 +21,7 @@ using System.Text;
 using System.Threading;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.World.Blocks;
 
@@ -70,7 +71,7 @@ namespace Chraft.Interfaces.Containers
         private SmeltingRecipe GetSmeltingRecipe(ItemStack item)
         {
             SmeltingRecipe recipe = null;
-            if (!ItemStack.IsVoid(item))
+            if (item != null && !item.IsVoid())
                 recipe = SmeltingRecipe.GetRecipe(Server.GetSmeltingRecipes(), item);
             return recipe;
         }
@@ -108,15 +109,15 @@ namespace Chraft.Interfaces.Containers
 
         private bool HasFuel()
         {
-            if (ItemStack.IsVoid(FuelSlot))
+            if (FuelSlot.IsVoid())
                 return false;
-            return ((FuelSlot.Type < 256 && BlockHelper.IsIgnitable((byte)FuelSlot.Type)) ||
+            return ((FuelSlot.Type < 256 && BlockHelper.Instance.IsIgnitable((byte)FuelSlot.Type)) ||
                     (FuelSlot.Type >= 256 && BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)FuelSlot.Type)));
         }
 
         private bool HasIngredient()
         {
-            if (ItemStack.IsVoid(InputSlot))
+            if (InputSlot.IsVoid())
                 return false;
             SmeltingRecipe recipe = GetSmeltingRecipe(InputSlot);
             return (recipe != null);
@@ -136,7 +137,7 @@ namespace Chraft.Interfaces.Containers
                 {
                     if (_fuelTicksLeft > 0)
                     {
-                        Chunk chunk = World.GetChunk(Coords, false, false);
+                        Chunk chunk = World.GetChunk(Coords, false, false) as Chunk;
                         if (chunk == null)
                             return;
                         chunk.SetType(Coords, BlockData.Blocks.Burning_Furnace);
@@ -173,7 +174,7 @@ namespace Chraft.Interfaces.Containers
             SendFurnaceProgressPacket(0);
             SendFurnaceFirePacket(0);
 
-            Chunk chunk = World.GetChunk(Coords, false, false);
+            Chunk chunk = World.GetChunk(Coords) as Chunk;
 
             if (chunk == null)
                 return;
@@ -183,10 +184,10 @@ namespace Chraft.Interfaces.Containers
 
         private short GetFuelEfficiency()
         {
-            if (ItemStack.IsVoid(FuelSlot))
+            if (FuelSlot.IsVoid())
                 return 0;
 
-            return (FuelSlot.Type < 256 ? BlockHelper.BurnEfficiency((byte)FuelSlot.Type) : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
+            return (FuelSlot.Type < 256 ? BlockHelper.Instance.BurnEfficiency((byte)FuelSlot.Type) : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
         }
 
         private void RemoveFuel()
@@ -207,7 +208,7 @@ namespace Chraft.Interfaces.Containers
 
         private void AddOutput()
         {
-            if (!ItemStack.IsVoid(OutputSlot))
+            if (!OutputSlot.IsVoid())
             {
                 OutputSlot = new ItemStack(OutputSlot.Type, ++OutputSlot.Count, OutputSlot.Durability);
                 return;
@@ -221,7 +222,7 @@ namespace Chraft.Interfaces.Containers
         {
             lock (_containerLock)
             {
-                Chunk chunk = World.GetChunk(Coords);
+                Chunk chunk = World.GetChunk(Coords) as Chunk;
 
                 if (chunk == null)
                 {
@@ -233,7 +234,7 @@ namespace Chraft.Interfaces.Containers
                 {
                     if (HasIngredient() && HasFuel())
                     {
-                        if (!ItemStack.IsVoid(OutputSlot) && !GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot))
+                        if (!OutputSlot.IsVoid() && !GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot))
                         {
                             StopBurning();
                             return;
@@ -257,7 +258,7 @@ namespace Chraft.Interfaces.Containers
                 }
 
                 _fuelTicksLeft--;
-                if (ItemStack.IsVoid(InputSlot) || (!ItemStack.IsVoid(OutputSlot) && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
+                if (InputSlot.IsVoid() || (!OutputSlot.IsVoid() && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
                     _progressTicks = 0;
                 else
                 {

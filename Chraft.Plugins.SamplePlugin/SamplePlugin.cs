@@ -16,11 +16,12 @@
 #endregion
 using System;
 using System.Reflection;
-using Chraft.Plugins.Events;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Events;
 
-namespace Chraft.Plugins.SamplePlugin
+namespace Chraft.PluginSystem.SamplePlugin
 {
-    [Plugin]
+    [PluginAttribute]
     public class SamplePlugin : IPlugin
     {
         private SamplePluginPlayerListener _playerListener;
@@ -48,8 +49,8 @@ namespace Chraft.Plugins.SamplePlugin
 
         public Version Version { get { return Assembly.GetExecutingAssembly().GetName().Version; } }
 
-        public Server Server { get; set; }
-        public PluginManager PluginManager { get; set; }
+        public IServer Server { get; set; }
+        public IPluginManager PluginManager { get; set; }
 
         public bool IsPluginEnabled { get; set; }
 
@@ -60,7 +61,7 @@ namespace Chraft.Plugins.SamplePlugin
             _entitiyListener = new SamplePluginEntitiyListener(this);
         }
 
-        public void Associate(Server server, PluginManager pluginManager)
+        public void Associate(IServer server, IPluginManager pluginManager)
         {
             Server = server;
             PluginManager = pluginManager;
@@ -72,7 +73,7 @@ namespace Chraft.Plugins.SamplePlugin
             PluginManager.RegisterEvent(Event.PlayerChat, _playerListener, this);
             PluginManager.RegisterEvent(Event.PlayerDied, _playerListener, this);
             PluginManager.RegisterEvent(Event.EntitySpawn, _entitiyListener, this);
-            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
+            Server.GetLogger().Log(LogLevel.Info, "Plugin {0} v{1} Enabled", Name, Version);
         }
 
         public void OnDisabled()
@@ -81,7 +82,7 @@ namespace Chraft.Plugins.SamplePlugin
             PluginManager.UnregisterEvent(Event.PlayerChat, _playerListener, this);
             PluginManager.UnregisterEvent(Event.PlayerDied, _playerListener, this);
             PluginManager.UnregisterEvent(Event.EntitySpawn, _entitiyListener, this);
-            Server.Logger.Log(Logger.LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
+            Server.GetLogger().Log(LogLevel.Info, "Plugin {0} v{1} Disabled", Name, Version);
         }
     }
 }

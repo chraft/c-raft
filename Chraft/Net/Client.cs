@@ -24,25 +24,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Entity;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Events.Args;
 using Chraft.Plugins.Events;
+using Chraft.Utilities;
 using Chraft.World;
 using Chraft.Utils;
 using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem;
 
 namespace Chraft.Net
 {
-    public partial class Client
+    public partial class Client : IClient
     {
         internal const int ProtocolVersion = 17;
         private readonly Socket _socket;
         public volatile bool Running = true;
-        public PacketHandler PacketHandler { get; private set; }
+        internal PacketHandler PacketHandler { get; private set; }
         private Timer _keepAliveTimer;
         private Player _player = null;
 
-        public static SocketAsyncEventArgsPool SendSocketEventPool = new SocketAsyncEventArgsPool(10);
-        public static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
-        public static BufferPool RecvBufferPool = new BufferPool("Receive", 2048, 2048);
+        internal static SocketAsyncEventArgsPool SendSocketEventPool = new SocketAsyncEventArgsPool(10);
+        internal static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
+        internal static BufferPool RecvBufferPool = new BufferPool("Receive", 2048, 2048);
 
 
         private byte[] _recvBuffer;
@@ -60,23 +64,21 @@ namespace Chraft.Net
 
         private DateTime _nextActivityCheck;
 
-        public Server Server;
+        internal Server Server { get; set; }
 
         internal int SessionID { get; private set; }
 
         /// <summary>
         /// The mixed-case, clean username of the client.
         /// </summary>
-        public string Username { get; set; }
-
-        public string Host { get; set; }
+        public string Username { get; internal set; }
 
         public Player Owner
         {
             get { return _player; }
         }
 
-        public ByteQueue FragPackets
+        internal ByteQueue FragPackets
         {
             get { return _fragPackets; }
             set { _fragPackets = value; }
@@ -85,7 +87,7 @@ namespace Chraft.Net
         /// <summary>
         /// A reference to the server logger.
         /// </summary>
-        public Logger Logger { get { return Server.Logger; } }
+        internal Logger Logger { get { return Server.Logger; } }
 
         /// <summary>
         /// Instantiates a new Client object.
@@ -103,10 +105,25 @@ namespace Chraft.Net
             //PacketHandler = new PacketHandler(Server, socket);
         }
 
+        public IPlayer GetOwner()
+        {
+            return _player;
+        }
+
+        public IServer GetServer()
+        {
+            return Server;
+        }
+
+        public ILogger GetLogger()
+        {
+            return Logger;
+        }
+
         public bool CheckUsername(string username)
         {
             string usernameToCheck = Regex.Replace(username, Chat.DISALLOWED, "");
-            Logger.Log(Logger.LogLevel.Debug, "Username: {0}", usernameToCheck);
+            Logger.Log(LogLevel.Debug, "Username: {0}", usernameToCheck);
             return usernameToCheck == Username;
         }
 
@@ -119,7 +136,7 @@ namespace Chraft.Net
             });
         }
 
-        public void Start()
+        internal void Start()
         {
             Running = true;
             _sendSocketEvent = SendSocketEventPool.Pop();
@@ -149,7 +166,7 @@ namespace Chraft.Net
             });
         }
 
-        public int Ping { get; set; }
+        public int Ping { get; internal set; }
         public int LastKeepAliveId;
         public DateTime KeepAliveStart;
         public DateTime LastClientResponse = DateTime.Now;
@@ -170,7 +187,7 @@ namespace Chraft.Net
             }
         }
 
-        public void CheckAlive()
+        internal void CheckAlive()
         {
             if(DateTime.Now > _nextActivityCheck)
                 Stop();
@@ -179,7 +196,7 @@ namespace Chraft.Net
         /// <summary>
         /// Stop reading packets from the client, and kill the keep-alive timer.
         /// </summary>
-        public void Stop()
+        internal void Stop()
         {
             MarkToDispose();
             DisposeRecvSystem();
@@ -208,7 +225,7 @@ namespace Chraft.Net
             });
         }
 
-        public void Disconnected(object sender, SocketAsyncEventArgs e)
+        internal void Disconnected(object sender, SocketAsyncEventArgs e)
         {
             if (_player != null && _player.LoggedIn)
                 Save();
@@ -224,11 +241,11 @@ namespace Chraft.Net
         {
             if (_player != null)
             {
-                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", _player.DisplayName);
+                Server.Logger.Log(LogLevel.Info, "Disposing {0}", _player.DisplayName);
                 string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
                 //Event
                 ClientLeftEventArgs e = new ClientLeftEventArgs(this);
-                Server.PluginManager.CallEvent(Plugins.Events.Event.PlayerLeft, e);
+                Server.PluginManager.CallEvent(PluginSystem.Events.Event.PlayerLeft, e);
                 //You cant stop the player from leaving so dont try.
                 disconnectMsg = e.BrodcastMessage;
                 //End Event
@@ -250,10 +267,10 @@ namespace Chraft.Net
 
                 Server.RemoveAuthenticatedClient(this);
 
-                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
+                Server.Logger.Log(LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
                 Server.RemoveEntity(_player, false);
 
-                Client[] nearbyClients = Server.GetNearbyPlayers(_player.World, UniversalCoords.FromAbsWorld(_player.Position)).ToArray();
+                Client[] nearbyClients = Server.GetNearbyPlayersInternal(_player.World, UniversalCoords.FromAbsWorld(_player.Position)).ToArray();
 
                 foreach (var client in nearbyClients)
                 {
@@ -278,10 +295,10 @@ namespace Chraft.Net
             }
             else
             {
-                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Disposing {0}", Username);
+                Server.Logger.Log(LogLevel.Info, "Disposing {0}", Username);
                 Running = false;
                 Server.RemoveClient(this);
-                Server.Logger.Log(Chraft.Logger.LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
+                Server.Logger.Log(LogLevel.Info, "Clients online: {0}", Server.Clients.Count);
                 Server.FreeConnectionSlot();
             }
 
@@ -320,7 +337,7 @@ namespace Chraft.Net
             }
         }
 
-        public void DisposeSendSystem()
+        internal void DisposeSendSystem()
         {
             lock(_disposeLock)
             {
@@ -336,7 +353,7 @@ namespace Chraft.Net
             }
         }
 
-        public void DisposeRecvSystem()
+        internal void DisposeRecvSystem()
         {
             lock (_disposeLock)
             {

@@ -15,6 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
+using Chraft.PluginSystem;
 
 namespace Chraft.World.Blocks
 {
@@ -28,14 +31,14 @@ namespace Chraft.World.Blocks
             Luminance = 0xf;
         }
 
-        public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
+        public override void Touch(IEntityBase entity, IStructBlock iBlock, BlockFace face)
         {
             LivingEntity living = entity as LivingEntity;
             if (living != null)
             {
                 living.TouchedLava();
             }
-            base.Touch(entity, block, face);
+            base.Touch(entity, iBlock, face);
         }
     }
 }

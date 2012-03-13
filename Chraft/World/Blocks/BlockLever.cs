@@ -17,7 +17,9 @@
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Blocks;
+using Chraft.Utilities;
 
 namespace Chraft.World.Blocks
 {
@@ -32,10 +34,12 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase iEntity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            LivingEntity living = (entity as LivingEntity);
-            if (living == null)
+            StructBlock block = (StructBlock)iBlock;
+            EntityBase entity = iEntity as EntityBase;
+
+            if (entity == null)
                 return;
 
             switch (face)
@@ -54,13 +58,13 @@ namespace Chraft.World.Blocks
                     break;
                 case BlockFace.Up:
                     // Works weird. Even in the original game
-                    if (targetBlock.Coords.WorldZ > entity.Position.Z)
+                    if (targetIBlock.Coords.WorldZ > entity.Position.Z)
                         block.MetaData = (byte)MetaData.Lever.EWGround;
-                    else if (targetBlock.Coords.WorldZ < entity.Position.Z)
+                    else if (targetIBlock.Coords.WorldZ < entity.Position.Z)
                         block.MetaData = (byte)MetaData.Lever.EWGround;
-                    else if (targetBlock.Coords.WorldX > entity.Position.X)
+                    else if (targetIBlock.Coords.WorldX > entity.Position.X)
                         block.MetaData = (byte)MetaData.Lever.NSGround;
-                    else if (targetBlock.Coords.WorldX < entity.Position.X)
+                    else if (targetIBlock.Coords.WorldX < entity.Position.X)
                         block.MetaData = (byte) MetaData.Lever.NSGround;
                     else
                         block.MetaData = (byte)MetaData.Lever.NSGround;
@@ -69,10 +73,10 @@ namespace Chraft.World.Blocks
                     return;
             }
 
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if (targetBlock.Coords.WorldY > sourceBlock.Coords.WorldY && targetBlock.MetaData == (byte)MetaData.Torch.Standing ||
                 targetBlock.Coords.WorldX > sourceBlock.Coords.WorldX && targetBlock.MetaData == (byte)MetaData.Torch.South ||
@@ -83,7 +87,7 @@ namespace Chraft.World.Blocks
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
 
-        public void Interact(EntityBase entity, StructBlock block)
+        public void Interact(IEntityBase entity, IStructBlock block)
         {
             // Switch the lever
         }

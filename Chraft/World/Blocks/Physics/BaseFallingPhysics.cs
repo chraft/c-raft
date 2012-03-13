@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Net.Packets;
+using Chraft.Utilities;
 using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics
@@ -36,7 +37,7 @@ namespace Chraft.World.Blocks.Physics
 
             CreateEntityPacket entity = new CreateEntityPacket { EntityId = EntityId };
             World.Server.SendPacketToNearbyPlayers(World,
-                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z),
+                                                   UniversalCoords.FromAbsWorld(Position),
                                                    entity);
         }
 
@@ -54,7 +55,7 @@ namespace Chraft.World.Blocks.Physics
                                                  Z = Position.Z
                                              };
             World.Server.SendPacketToNearbyPlayers(World, 
-                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), 
+                                                   UniversalCoords.FromAbsWorld(Position), 
                                                    obj);
             
             IsPlaying = true;
@@ -71,7 +72,7 @@ namespace Chraft.World.Blocks.Physics
             World.PhysicsBlocks.TryRemove(EntityId, out unused);
             DestroyEntityPacket entity = new DestroyEntityPacket { EntityId = EntityId };
             World.Server.SendPacketToNearbyPlayers(World,
-                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z),
+                                                   UniversalCoords.FromAbsWorld(Position),
                                                    entity);
             if (!forceStop)
                 OnStop();

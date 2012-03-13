@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Chraft.Net;
+using Chraft.Utilities;
 using Chraft.Utils.Config;
 using Chraft.World;
 
@@ -80,7 +81,7 @@ namespace Chraft.Interfaces.Containers
                 bool empty = true;
                 foreach (var item in Slots)
                 {
-                    if (!ItemStack.IsVoid(item))
+                    if (item != null && !item.IsVoid())
                     {
                         empty = false;
                         break;
@@ -270,7 +271,7 @@ namespace Chraft.Interfaces.Containers
                 for (short i = 0; i < Slots.Count(); i++)
                 {
                     ItemStack stack = Slots[i];
-                    if (!ItemStack.IsVoid(stack))
+                    if (stack != null && !stack.IsVoid())
                     {
                         World.Server.DropItem(World, Coords, stack);
                         this[i] = ItemStack.Void;

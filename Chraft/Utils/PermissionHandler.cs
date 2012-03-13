@@ -23,7 +23,8 @@ using System.Xml.Linq;
 using Chraft.Commands;
 using Chraft.Net;
 using Chraft.Entity;
-using Chraft.Utils.Config;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem;
 
 
 namespace Chraft.Utils
@@ -63,7 +64,7 @@ namespace Chraft.Utils
             if (gperm == null)
             {
                 //no default defined
-                _server.Logger.Log(Logger.LogLevel.Warning,
+                _server.Logger.Log(LogLevel.Warning,
                                    "Required default group is not defined in permissions file. Add IsDefault=\"true\" to a group");
                 return null;
             }
@@ -182,7 +183,7 @@ namespace Chraft.Utils
         /// <returns>bool</returns>
         public bool HasPermission(string playerName, string permissionNode)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             return client != null &&
                    (client.Owner.Permissions.AllowedPermissions.Contains("*") ||
                     client.Owner.Permissions.AllowedPermissions.Contains(permissionNode.ToLower()) &&
@@ -198,7 +199,7 @@ namespace Chraft.Utils
         /// <returns>bool</returns>
         public bool IsInGroup(string playerName, string groupName)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             return client != null && client.Owner.Permissions.Groups.Contains(groupName.ToLower());
         }
 
@@ -215,7 +216,7 @@ namespace Chraft.Utils
         /// <returns>value or null</returns>
         public string GetPlayerSuffix(string playerName)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             return client != null ? client.Owner.Permissions.Suffix : string.Empty;
         }
 
@@ -231,7 +232,7 @@ namespace Chraft.Utils
         /// <returns>value or null</returns>
         public string GetPlayerPrefix(string playerName)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             return client != null ? client.Owner.Permissions.Prefix : string.Empty;
         }
 
@@ -305,7 +306,7 @@ namespace Chraft.Utils
         /// <returns>bool</returns>
         public bool? CanPlayerBuild(string playerName)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             if (client != null)
             {
                 return client.Owner.Permissions.CanBuild;
@@ -325,7 +326,7 @@ namespace Chraft.Utils
         /// <returns>string[] of groups</returns>
         public IEnumerable<string> GetPlayerGroups(string playerName)
         {
-            var client = _server.GetClients(playerName).FirstOrDefault();
+            var client = _server.GetClients(playerName).FirstOrDefault() as Client;
             return client != null ? client.Owner.Permissions.Groups : null;
         }
 

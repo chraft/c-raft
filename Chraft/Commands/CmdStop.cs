@@ -18,6 +18,8 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
 using Chraft.Plugins;
 
 [assembly: InternalsVisibleTo("ChraftServer")]
@@ -26,8 +28,8 @@ namespace Chraft.Commands
    
     internal class CmdStop : IServerCommand, IClientCommand
     {
-        public ServerCommandHandler ServerCommandHandler { get; set; }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IServerCommandHandler ServerCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
         public string Name
         {
             get { return "stop"; }
@@ -50,31 +52,33 @@ namespace Chraft.Commands
 
         public IPlugin Iplugin { get; set; }
 
-        public void Use(Server server, string commandName, string[] tokens)
+        public void Use(IServer iServer, string commandName, string[] tokens)
         {
+            Server server = iServer as Server;
             server.Broadcast("The server is shutting down.");
-            server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
+            server.Logger.Log(LogLevel.Info, "The server is shutting down.");
             Thread.Sleep(5000);
             server.Stop();
             Thread.Sleep(10);
             Console.WriteLine("Press Enter to exit.");
         }
 
-        public void Help(Server server)
+        public void Help(IServer server)
         {
-            server.Logger.Log(Logger.LogLevel.Info, "Shuts down the server.");
+            server.GetLogger().Log(LogLevel.Info, "Shuts down the server.");
         }
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             client.Owner.Server.Broadcast("The server is shutting down.");
-            client.Owner.Server.Logger.Log(Logger.LogLevel.Info, "The server is shutting down.");
+            client.Owner.Server.Logger.Log(LogLevel.Info, "The server is shutting down.");
             Thread.Sleep(5000);
             client.Owner.Server.Stop();
             Thread.Sleep(10);
             Console.WriteLine("Press Enter to exit.");
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("Shuts down the server.");
         }
