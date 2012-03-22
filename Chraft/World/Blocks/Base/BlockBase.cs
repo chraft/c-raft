@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System.Collections.Generic;
-using System.Diagnostics;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
-using Chraft.PluginSystem.Events.Args;
-using Chraft.Utilities;
-using Chraft.Utils;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
     public abstract class BlockBase : IBlockBase
     {
@@ -316,7 +320,7 @@ namespace Chraft.World.Blocks
         protected virtual BlockDestroyEventArgs RaiseDestroyEvent(IEntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs e = new BlockDestroyEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(PluginSystem.Events.Event.BlockDestroy, e);
+            block.World.Server.PluginManager.CallEvent(Event.BlockDestroy, e);
             return e;
         }
 
@@ -329,7 +333,7 @@ namespace Chraft.World.Blocks
         protected virtual bool RaisePlaceEvent(IEntityBase entity, StructBlock block)
         {
             BlockPlaceEventArgs e = new BlockPlaceEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(PluginSystem.Events.Event.BlockPlace, e);
+            block.World.Server.PluginManager.CallEvent(Event.BlockPlace, e);
             // Destruction made not by the living can not be interrupted?
             if (entity == null)
                 return true;

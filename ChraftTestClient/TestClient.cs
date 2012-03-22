@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 
 namespace ChraftTestClient

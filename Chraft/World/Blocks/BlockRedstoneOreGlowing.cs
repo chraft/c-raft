@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.World.Blocks
 {

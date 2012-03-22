@@ -16,6 +16,7 @@
 #endregion
 
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.World;
 using Chraft.WorldGen;
 using Chraft.World;
 

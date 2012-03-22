@@ -27,7 +27,7 @@ namespace Chraft.Net
     {
         public static void Initialize()
         {
-            foreach(KeyValuePair<Type, PacketType> kvp in _map)
+            foreach (KeyValuePair<Type, PacketType> kvp in _map)
                 _concurrentMap.TryAdd(kvp.Key, kvp.Value);
 
             // Lets free some memory
@@ -77,6 +77,7 @@ namespace Chraft.Net
             { typeof(NewInvalidStatePacket), PacketType.NewInvalidState },
             { typeof(OpenWindowPacket), PacketType.OpenWindow },
             { typeof(SpawnItemPacket), PacketType.PickupSpawn },
+            { typeof(PlayerAbilitiesPacket), PacketType.PlayerAbilities},
             { typeof(PlayerPacket), PacketType.Player },
             { typeof(PlayerBlockPlacementPacket), PacketType.PlayerBlockPlacement },
             { typeof(PlayerDiggingPacket), PacketType.PlayerDigging },
@@ -111,9 +112,9 @@ namespace Chraft.Net
         public static PacketType GetPacketType(Type type)
         {
             PacketType packetType;
-            if(_concurrentMap.TryGetValue(type, out packetType))
+            if (_concurrentMap.TryGetValue(type, out packetType))
                 return packetType;
-           
+
             throw new KeyNotFoundException();
         }
     }

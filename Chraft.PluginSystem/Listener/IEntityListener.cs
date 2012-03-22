@@ -18,9 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Listener;
-using Chraft.Plugins.Events.Args;
 
 namespace Chraft.PluginSystem.Listener
 {

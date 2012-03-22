@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Reflection;
-using Chraft.PluginSystem.Commands;
-using Chraft.PluginSystem.Events;
-using Chraft.PluginSystem.Events.Args;
-using Chraft.PluginSystem.Listener;
 using Chraft.Commands;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
+using Chraft.PluginSystem.Server;
+using Chraft.Plugins.Events;
 
-namespace Chraft.PluginSystem
+namespace Chraft.Plugins
 {
     public class PluginManager : IPluginManager
     { 

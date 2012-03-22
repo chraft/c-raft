@@ -1,7 +1,8 @@
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities.Misc;
 
-using Chraft.Utilities;
-
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Entity
 {
     public interface IMob : ILivingEntity
     {

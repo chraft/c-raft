@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Events.Args;
-using Chraft.PluginSystem.Listener;
-using Chraft.Plugins;
-using Chraft.Commands;
-using Chraft.Plugins.Events.Args;
 
-namespace Chraft.PluginSystem.Events
+using System.Collections.Generic;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
+
+namespace Chraft.Plugins.Events
 {
     public class PluginEvent : IChraftEventHandler
     {
@@ -45,16 +41,16 @@ namespace Chraft.PluginSystem.Events
         {
             switch (Event)
             {
-                case Event.PluginEnabled:
+                case PluginSystem.Event.Event.PluginEnabled:
                     OnPluginEnabled(e as PluginEnabledEventArgs);
                     break;
-                case Event.PluginDisabled:
+                case PluginSystem.Event.Event.PluginDisabled:
                     OnPluginDisabled(e as PluginDisabledEventArgs);
                     break;
-                case Event.CommandAdded:
+                case PluginSystem.Event.Event.CommandAdded:
                     OnPluginCommandAdded(e as CommandAddedEventArgs);
                     break;
-                case Event.CommandRemoved:
+                case PluginSystem.Event.Event.CommandRemoved:
                     OnPluginCommandRemoved(e as CommandRemovedEventArgs);
                     break;
             }

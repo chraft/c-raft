@@ -24,7 +24,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     /// <summary>
     /// A Minecraft NBT file.

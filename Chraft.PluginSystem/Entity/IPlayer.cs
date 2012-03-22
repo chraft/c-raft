@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Commands;
-using Chraft.Utilities;
+﻿using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.World;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Entity
 {
     public interface IPlayer : ILivingEntity
     {

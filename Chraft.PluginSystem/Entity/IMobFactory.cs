@@ -1,7 +1,9 @@
 using System;
-using Chraft.Utilities;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World;
+using Chraft.Utilities.Misc;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Entity
 {
     public interface IMobFactory
     {

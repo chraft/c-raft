@@ -20,6 +20,7 @@ using Chraft.Persistence;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.Utils.Config;
 using Chraft.World;
 

@@ -1,7 +1,6 @@
 ﻿using System;
-using Chraft.Utils;
 
-namespace Chraft.Utilities 
+namespace Chraft.Utilities.Math 
 {
     /// <summary>
     /// Vector of doubles with three components (x,y,z)
@@ -52,7 +51,7 @@ namespace Chraft.Utilities
         {
             get
             {
-                return Math.Sqrt(SumComponentSqrs());
+                return System.Math.Sqrt(SumComponentSqrs());
             }
             set
             {
@@ -117,11 +116,11 @@ namespace Chraft.Utilities
             _z = 0;
             
             double yawRadians = yaw.ToRadians();
-            double cosPitch = Math.Cos(pitch.ToRadians());
+            double cosPitch = System.Math.Cos(pitch.ToRadians());
 
-            X = -(cosPitch * Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch. We negate because a yaw of -90 or 270 (South) should be +1 not -1 (+yaw is clockwise whereas radians are normally counter-clockwise)
-            Y = -Math.Sin(pitch.ToRadians());       // Y based on the angle of pitch. We negate because -90 points up and should be +1 not -1
-            Z = cosPitch * Math.Cos(yawRadians);    // Shorten Z down from 1 based on the angle of pitch
+            X = -(cosPitch * System.Math.Sin(yawRadians)); // Shorten X down from 1 based on the angle of pitch. We negate because a yaw of -90 or 270 (South) should be +1 not -1 (+yaw is clockwise whereas radians are normally counter-clockwise)
+            Y = -System.Math.Sin(pitch.ToRadians());       // Y based on the angle of pitch. We negate because -90 points up and should be +1 not -1
+            Z = cosPitch * System.Math.Cos(yawRadians);    // Shorten Z down from 1 based on the angle of pitch
         }
 
         #region Operators
@@ -316,9 +315,9 @@ namespace Chraft.Utilities
         {
             return
             (
-                Math.Abs(v1.X - v2.X) <= EqualityTolerence &&
-                Math.Abs(v1.Y - v2.Y) <= EqualityTolerence &&
-                Math.Abs(v1.Z - v2.Z) <= EqualityTolerence
+                System.Math.Abs(v1.X - v2.X) <= EqualityTolerence &&
+                System.Math.Abs(v1.Y - v2.Y) <= EqualityTolerence &&
+                System.Math.Abs(v1.Z - v2.Z) <= EqualityTolerence
             );
         }
 
@@ -401,9 +400,9 @@ namespace Chraft.Utilities
             (
                 new Vector3
                     (
-                        Math.Pow(v1.X, power),
-                        Math.Pow(v1.Y, power),
-                        Math.Pow(v1.Z, power)
+                        System.Math.Pow(v1.X, power),
+                        System.Math.Pow(v1.Y, power),
+                        System.Math.Pow(v1.Z, power)
                     )
             );
         }
@@ -433,9 +432,9 @@ namespace Chraft.Utilities
                 (
                 new Vector3
                     (
-                        Math.Sqrt(v1.X),
-                        Math.Sqrt(v1.Y),
-                        Math.Sqrt(v1.Z)
+                        System.Math.Sqrt(v1.X),
+                        System.Math.Sqrt(v1.Y),
+                        System.Math.Sqrt(v1.Z)
                     )
                 );
         }
@@ -804,7 +803,7 @@ namespace Chraft.Utilities
             double D = planeNormal.DotProduct(u);
             double N = -(planeNormal.DotProduct(w));
             
-            if (Math.Abs(D) < cSmallNumber) // segment is parallel to plane
+            if (System.Math.Abs(D) < cSmallNumber) // segment is parallel to plane
             {
                 // if N == 0 the line segment is contained in the plane
                 // else no intersection
@@ -885,7 +884,7 @@ namespace Chraft.Utilities
         {
             return
             (
-                Math.Sqrt
+                System.Math.Sqrt
                 (
                     Vector3.DistanceSquared(v1, v2)
                 )
@@ -921,7 +920,7 @@ namespace Chraft.Utilities
         {
             return
             (
-                Math.Acos
+                System.Math.Acos
                     (
                         Normalize(v1).DotProduct(Normalize(v2))
                     )
@@ -965,7 +964,7 @@ namespace Chraft.Utilities
             // Make sure we stay in range no matter what, so Acos doesn't fail later 
             forwardDot = forwardDot.Clamp(-1.0, 1.0);
 
-            double angleBetween = Math.Acos(forwardDot);
+            double angleBetween = System.Math.Acos(forwardDot);
 
             if (rightDot > 0.0) // Without minecraft modification this would be 'rightDot < 0.0'
                 angleBetween *= -1.0;
@@ -1053,10 +1052,10 @@ namespace Chraft.Utilities
         public static Vector3 Yaw(Vector3 v1, double angle)
         {
             // Negate Sine as X+ is North in trigonometry rules and we need it to be South, Z+ is east, angle+ is clockwise (as per remark above)
-            double x = (v1.Z * -Math.Sin(angle)) + (v1.X * Math.Cos(angle));
+            double x = (v1.Z * -System.Math.Sin(angle)) + (v1.X * System.Math.Cos(angle));
             double y = v1.Y;
             // Negate Sine as X+ is North in trigonometry rules and we need it to be South, Z+ is east, angle+ is clockwise (as per remark above)
-            double z = (v1.Z * Math.Cos(angle)) - (v1.X * -Math.Sin(angle));
+            double z = (v1.Z * System.Math.Cos(angle)) - (v1.X * -System.Math.Sin(angle));
             return new Vector3(x, y, z);
         }
 
@@ -1085,8 +1084,8 @@ namespace Chraft.Utilities
         public static Vector3 Pitch(Vector3 v1, double angle)
         {
             double x = v1.X;
-            double y = (v1.Y * Math.Cos(angle)) - (v1.Z * Math.Sin(angle));
-            double z = (v1.Y * Math.Sin(angle)) + (v1.Z * Math.Cos(angle));
+            double y = (v1.Y * System.Math.Cos(angle)) - (v1.Z * System.Math.Sin(angle));
+            double z = (v1.Y * System.Math.Sin(angle)) + (v1.Z * System.Math.Cos(angle));
             return new Vector3(x, y, z);
         }
 
@@ -1114,8 +1113,8 @@ namespace Chraft.Utilities
         /// <returns>Vector3 representing the rotation around the Z axis</returns>
         public static Vector3 Roll(Vector3 v1, double angle)
         {
-            double x = (v1.X * Math.Cos(angle)) - (v1.Y * Math.Sin(angle));
-            double y = (v1.X * Math.Sin(angle)) + (v1.Y * Math.Cos(angle));
+            double x = (v1.X * System.Math.Cos(angle)) - (v1.Y * System.Math.Sin(angle));
+            double y = (v1.X * System.Math.Sin(angle)) + (v1.Y * System.Math.Cos(angle));
             double z = v1.Z;
             return new Vector3(x, y, z);
         }
@@ -1162,7 +1161,7 @@ namespace Chraft.Utilities
         {
             // if reflector has a right angle to vector, return -vector and don't do all
             // the other calculations
-            if (Math.Abs(Math.Abs(vector.Angle(reflector)) - Math.PI / 2) < Double.Epsilon)
+            if (System.Math.Abs(System.Math.Abs(vector.Angle(reflector)) - System.Math.PI / 2) < Double.Epsilon)
             {
                 return -vector;
             }
@@ -1427,7 +1426,7 @@ namespace Chraft.Utilities
         /// </implementation>
         public static bool IsUnitVector(Vector3 v1)
         {
-            return Math.Abs(v1.Magnitude - 1) <= EqualityTolerence;
+            return System.Math.Abs(v1.Magnitude - 1) <= EqualityTolerence;
         }
 
         /// <summary>

@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Utilities;
+﻿using System.Collections.Generic;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.World
 {
     public interface IWorldManager
     {

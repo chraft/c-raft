@@ -16,9 +16,11 @@
 #endregion
 
 using System.Collections.Generic;
-using Chraft.Utilities;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Item;
+using Chraft.Utilities.Blocks;
 
-namespace Chraft.PluginSystem.Blocks
+namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IBlockBase
     {

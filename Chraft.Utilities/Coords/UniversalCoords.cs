@@ -14,13 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Utils;
 
-namespace Chraft.Utilities
+using System;
+using Chraft.Utilities.Misc;
+
+namespace Chraft.Utilities.Coords
 {
     public struct UniversalCoords
     {
@@ -168,7 +166,7 @@ namespace Chraft.Utilities
         /// <returns></returns>
         public double DistanceTo(UniversalCoords coords)
         {
-            return Math.Sqrt(this.DistanceToSquared(coords));
+            return System.Math.Sqrt(this.DistanceToSquared(coords));
         }
         
         /// <summary>
@@ -208,7 +206,7 @@ namespace Chraft.Utilities
 
         public static UniversalCoords FromAbsWorld(double worldX, double worldY, double worldZ)
         {
-            return new UniversalCoords((int)Math.Floor(worldX), (int)Math.Floor(worldY), (int)Math.Floor(worldZ));
+            return new UniversalCoords((int)System.Math.Floor(worldX), (int)System.Math.Floor(worldY), (int)System.Math.Floor(worldZ));
         }
         
         public static UniversalCoords FromAbsWorld(AbsWorldCoords absWorldCoords)

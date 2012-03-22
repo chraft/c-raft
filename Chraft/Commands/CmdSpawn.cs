@@ -17,8 +17,11 @@
 using Chraft.Net;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 
 namespace Chraft.Commands

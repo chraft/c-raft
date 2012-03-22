@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Utilities;
+﻿using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Server;
+using Chraft.Utilities.Coords;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Net
 {
     public interface IClient
     {

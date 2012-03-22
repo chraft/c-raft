@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using Chraft.Net;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
 using Chraft.World;
 using System.Runtime.Serialization;
 

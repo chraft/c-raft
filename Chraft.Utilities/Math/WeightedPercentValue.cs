@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System;
 using System.Collections.Generic;
 
-namespace Chraft.Utils
+namespace Chraft.Utilities.Math
 {
     /// <summary>
     /// A proportion value based on a percent

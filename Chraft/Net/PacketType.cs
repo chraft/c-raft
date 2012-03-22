@@ -82,6 +82,7 @@ namespace Chraft.Net
         UpdateTileEntity = 0x84,            //   <--
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
+        PlayerAbilities = 0xCA,             //   <--> 
         PluginMessage = 0xFA,               //  
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->

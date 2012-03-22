@@ -18,8 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.Plugins;
 using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.PluginSystem.Commands
 {

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Item
 {
     public interface IInventory
     {

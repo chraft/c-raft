@@ -17,9 +17,12 @@
 using System;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utils;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks.Physics
 {

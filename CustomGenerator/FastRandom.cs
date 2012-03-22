@@ -17,11 +17,9 @@
 /* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
-namespace Chraft
+namespace CustomGenerator
 { 
 
 /**

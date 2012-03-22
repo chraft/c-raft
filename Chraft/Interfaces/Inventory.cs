@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using Chraft.Net.Packets;
 using Chraft.Entity;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.Interfaces
 {

@@ -19,7 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.PluginSystem;
 

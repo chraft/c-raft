@@ -17,7 +17,7 @@
 
 using System;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Server
 {
     public enum LogLevel : int
     {

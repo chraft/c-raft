@@ -24,20 +24,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Entity;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem.Events;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins.Events;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Utils;
-using Chraft.Plugins.Events.Args;
 using Chraft.PluginSystem;
 
 namespace Chraft.Net
 {
     public partial class Client : IClient
     {
-        internal const int ProtocolVersion = 17;
+        internal const int ProtocolVersion = 29;
         private readonly Socket _socket;
         public volatile bool Running = true;
         internal PacketHandler PacketHandler { get; private set; }
@@ -247,7 +251,7 @@ namespace Chraft.Net
                 string disconnectMsg = ChatColor.Yellow + _player.DisplayName + " has left the game.";
                 //Event
                 ClientLeftEventArgs e = new ClientLeftEventArgs(this);
-                Server.PluginManager.CallEvent(PluginSystem.Events.Event.PlayerLeft, e);
+                Server.PluginManager.CallEvent(Event.PlayerLeft, e);
                 //You cant stop the player from leaving so dont try.
                 disconnectMsg = e.BrodcastMessage;
                 //End Event

@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
 
-namespace Chraft.Utilities
+using System;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+
+namespace Chraft.Utilities.Collision
 {
     /// <summary>
     /// Used to represent the bounds of objects within the World for the purposes of collision detection (e.g. items, mobs, blocks).
@@ -204,7 +208,7 @@ namespace Chraft.Utilities
             
             // If there is Y movement, calculate new Y offset for collisions
             // Y is calculated first to adjust for jumping height/falling before applying restrictions on X and Z
-            if (Math.Abs(motion.Y) >= double.Epsilon)
+            if (System.Math.Abs(motion.Y) >= double.Epsilon)
             {
                 foreach (var collision in potentialCollisions)
                 {
@@ -213,11 +217,11 @@ namespace Chraft.Utilities
                     {
                         if (motion.Y > 0.0d && offsetBB.Maximum.Y <= collision.Minimum.Y)
                         {
-                            motion.Y = Math.Min(motion.Y, collision.Minimum.Y - offsetBB.Maximum.Y);
+                            motion.Y = System.Math.Min(motion.Y, collision.Minimum.Y - offsetBB.Maximum.Y);
                         }
                         else if (motion.Y < 0.0d && offsetBB.Minimum.Y >= collision.Maximum.Y)
                         {
-                            motion.Y = Math.Max(motion.Y, collision.Maximum.Y - offsetBB.Minimum.Y);
+                            motion.Y = System.Math.Max(motion.Y, collision.Maximum.Y - offsetBB.Minimum.Y);
                         }
                     }
                 }
@@ -226,7 +230,7 @@ namespace Chraft.Utilities
             }
             
             // If there is an X movement, calculate new X offset for collisions
-            if (Math.Abs(motion.X) >= double.Epsilon)
+            if (System.Math.Abs(motion.X) >= double.Epsilon)
             {
                 foreach (var collision in potentialCollisions)
                 {
@@ -235,11 +239,11 @@ namespace Chraft.Utilities
                     {
                         if (motion.X > 0.0d && offsetBB.Maximum.X <= collision.Minimum.X)
                         {
-                            motion.X = Math.Min(motion.X, collision.Minimum.X - offsetBB.Maximum.X);
+                            motion.X = System.Math.Min(motion.X, collision.Minimum.X - offsetBB.Maximum.X);
                         }
                         else if (motion.X < 0.0d && offsetBB.Minimum.X >= collision.Maximum.X)
                         {
-                            motion.X = Math.Max(motion.X, collision.Maximum.X - offsetBB.Minimum.X);
+                            motion.X = System.Math.Max(motion.X, collision.Maximum.X - offsetBB.Minimum.X);
                         }
                     }
                 }
@@ -248,7 +252,7 @@ namespace Chraft.Utilities
             }
             
             // If there is any Z movement, calculate new Z offset based on any collisions
-            if (Math.Abs(motion.Z) >= double.Epsilon)
+            if (System.Math.Abs(motion.Z) >= double.Epsilon)
             {
                 foreach (var collision in potentialCollisions)
                 {
@@ -257,11 +261,11 @@ namespace Chraft.Utilities
                     {
                         if (motion.Z > 0.0d && offsetBB.Maximum.Z <= collision.Minimum.Z)
                         {
-                            motion.Z = Math.Min(motion.Z, collision.Minimum.Z - offsetBB.Maximum.Z);
+                            motion.Z = System.Math.Min(motion.Z, collision.Minimum.Z - offsetBB.Maximum.Z);
                         }
                         else if (motion.Z < 0.0d && offsetBB.Minimum.Z >= collision.Maximum.Z)
                         {
-                            motion.Z = Math.Max(motion.Z, collision.Maximum.Z - offsetBB.Minimum.Z);
+                            motion.Z = System.Math.Max(motion.Z, collision.Maximum.Z - offsetBB.Minimum.Z);
                         }
                     }
                 }

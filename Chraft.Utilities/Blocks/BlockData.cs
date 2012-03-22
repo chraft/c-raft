@@ -17,7 +17,7 @@
 
 using System.Collections.Generic;
 
-namespace Chraft.Utilities
+namespace Chraft.Utilities.Blocks
 {
 	public class BlockOld
 	{

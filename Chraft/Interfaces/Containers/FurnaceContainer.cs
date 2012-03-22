@@ -22,6 +22,7 @@ using System.Threading;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 using Chraft.World;
 using Chraft.World.Blocks;
 

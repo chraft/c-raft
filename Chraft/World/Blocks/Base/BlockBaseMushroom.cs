@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Entity;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Utilities;
 
-namespace Chraft.World.Blocks
+using Chraft.Entity;
+using Chraft.Utilities.Collision;
+
+namespace Chraft.World.Blocks.Base
 {
     public abstract class BlockBaseMushroom : BlockBase
     {

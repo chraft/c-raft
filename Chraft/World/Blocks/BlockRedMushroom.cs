@@ -21,9 +21,9 @@ using System.Text;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Plugins.Events.Args;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {

@@ -19,8 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.PluginSystem.Commands;
-using Chraft.Plugins;
-
 namespace Chraft.PluginSystem.Commands
 {
     public interface ICommandHandler

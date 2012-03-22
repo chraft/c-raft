@@ -19,7 +19,7 @@
 
 using System.Collections.Generic;
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     public struct ChunkTag
     {

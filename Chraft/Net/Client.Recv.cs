@@ -17,8 +17,13 @@
 using System;
 using System.Linq;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Entity;
 using System.Text.RegularExpressions;
@@ -30,6 +35,7 @@ using Chraft.Utils.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
 using Chraft.PluginSystem;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.Net
 {
@@ -323,6 +329,11 @@ namespace Chraft.Net
         public static void HandlePacketEnchantItem(Client client, EnchantItemPacket packet)
         {
             // TODO: Implement item enchantment
+        }
+
+        public static void HandlePacketPlayerActivites(Client client, PlayerAbilitiesPacket packet)
+        {
+            //TODO : Implement player abilities.
         }
 
 #endregion

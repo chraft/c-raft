@@ -20,6 +20,7 @@ using System.Linq;
 using System.IO;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
 using Chraft.Utils.Config;
 
 namespace Chraft.Utils

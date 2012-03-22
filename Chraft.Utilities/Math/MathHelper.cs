@@ -15,9 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using System;
-
-namespace Chraft.Utils
+namespace Chraft.Utilities.Math
 {
     public class MathHelper
     {
@@ -37,13 +35,13 @@ namespace Chraft.Utils
 
         public static float sqrt_float(float f)
         {
-            return (float) Math.Sqrt(f);
+            return (float) System.Math.Sqrt(f);
         }
 
         public static float sqrt_double(double d)
         {
             
-            return (float) Math.Sqrt(d);
+            return (float) System.Math.Sqrt(d);
         }
 
         [System.Obsolete]
@@ -86,7 +84,7 @@ namespace Chraft.Utils
             SIN_TABLE = new float[0x10000];
             for (int i = 0; i < 0x10000; i++)
             {
-                SIN_TABLE[i] = (float) Math.Sin(((double) i*3.1415926535897931D*2D)/65536D);
+                SIN_TABLE[i] = (float) System.Math.Sin(((double) i*3.1415926535897931D*2D)/65536D);
             }
         }
     }

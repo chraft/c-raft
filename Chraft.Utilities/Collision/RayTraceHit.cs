@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Math;
 
-namespace Chraft.Utilities
+namespace Chraft.Utilities.Collision
 {
     /// <summary>
     /// Represents a Ray Trace hit / intersection

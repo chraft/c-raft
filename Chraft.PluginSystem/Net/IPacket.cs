@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Chraft.PluginSystem.Server;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Net
 {
     public interface IPacket
     {

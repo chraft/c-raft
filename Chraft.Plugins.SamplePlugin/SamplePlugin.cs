@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System;
 using System.Reflection;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Events;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
 
-namespace Chraft.PluginSystem.SamplePlugin
+namespace Chraft.Plugins.SamplePlugin
 {
-    [PluginAttribute]
+    [Plugin]
     public class SamplePlugin : IPlugin
     {
         private SamplePluginPlayerListener _playerListener;

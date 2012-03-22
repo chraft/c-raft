@@ -19,6 +19,9 @@ using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utils;
 using Chraft.World;
 

@@ -16,15 +16,14 @@
 
 /* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
 
-using System.Reflection;
 using System.Threading.Tasks;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Utilities;
 using System;
-using System.Diagnostics;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
 
-namespace Chraft.PluginSystem.ChunkGeneration
+namespace CustomGenerator
 {
     public class CustomChunkGenerator : IChunkGenerator
     {

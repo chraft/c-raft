@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Utilities;
+﻿using Chraft.Utilities.Coords;
 
-namespace Chraft.PluginSystem.Blocks
+namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IStructBlock
     {

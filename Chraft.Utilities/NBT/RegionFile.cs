@@ -21,7 +21,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     /// <summary>
     /// A Minecraft region file.

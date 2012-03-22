@@ -1,6 +1,6 @@
-using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Entity
 {
     public interface IMetaData
     {

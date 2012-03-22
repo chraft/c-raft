@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Chraft.Utils
+using System.Collections.Generic;
+
+namespace Chraft.Utilities.Misc
 {
     class RecipeObject
     {

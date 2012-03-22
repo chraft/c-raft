@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World.Blocks;
 
 namespace Chraft.World

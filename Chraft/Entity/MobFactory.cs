@@ -19,7 +19,11 @@ using Chraft.Entity.Mobs;
 using System.Reflection;
 using Chraft.Net;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World;
 using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 
 namespace Chraft.Entity

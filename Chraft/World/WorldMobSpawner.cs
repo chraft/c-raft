@@ -19,12 +19,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.Entity;
 using Chraft.World.Blocks;
-using Chraft.Plugins.Events.Args;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World
 {
@@ -170,7 +175,7 @@ namespace Chraft.World
                                         {
                                             //Event
                                             EntitySpawnEventArgs e = new EntitySpawnEventArgs(newMob, newMob.Position);
-                                            world.Server.PluginManager.CallEvent(PluginSystem.Events.Event.EntitySpawn, e);
+                                            world.Server.PluginManager.CallEvent(Event.EntitySpawn, e);
                                             if (e.EventCanceled)
                                                 continue;
                                             newMob.Position = e.Location;

@@ -23,7 +23,9 @@ using System.Runtime.Serialization;
 using Chraft.Net.Packets;
 using Chraft.Persistence;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 using Chraft.Entity;
 

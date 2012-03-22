@@ -16,6 +16,8 @@
 #endregion
 using Chraft.Net.Packets;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utils;
 
 namespace Chraft.World.Blocks.Physics

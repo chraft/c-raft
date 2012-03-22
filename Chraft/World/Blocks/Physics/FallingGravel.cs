@@ -16,6 +16,8 @@
 #endregion
 
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
 
 namespace Chraft.World.Blocks.Physics
 {

@@ -17,8 +17,10 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 using Chraft.World.Blocks.Physics;
 
 namespace Chraft.World.Blocks

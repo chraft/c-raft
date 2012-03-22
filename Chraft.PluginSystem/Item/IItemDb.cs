@@ -1,5 +1,5 @@
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Item
 {
     public interface IItemDb
     {

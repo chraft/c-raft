@@ -18,6 +18,8 @@ using System;
 using System.IO;
 using Chraft.Entity;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
 using Chraft.Utils.Config;
 using Chraft.World;
 

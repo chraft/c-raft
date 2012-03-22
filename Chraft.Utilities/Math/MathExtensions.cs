@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace Chraft.Utils
+using System;
+
+namespace Chraft.Utilities.Math
 {
     public static class MathExtensions
     {
@@ -30,8 +28,8 @@ namespace Chraft.Utils
             else return val;
         }
 
-        private const double _180OverPi = 180.0 / Math.PI;
-        private const double _PiOver180 = Math.PI / 180.0;
+        private const double _180OverPi = 180.0 / System.Math.PI;
+        private const double _PiOver180 = System.Math.PI / 180.0;
 
         /// <summary>
         /// Converts a double from degrees to radians
@@ -63,7 +61,7 @@ namespace Chraft.Utils
         /// <returns></returns>
         public static bool DoubleIsEqual(this double val1, double val2)
         {
-            return Math.Abs(val1 - val2) <= EqualityTolerence;
+            return System.Math.Abs(val1 - val2) <= EqualityTolerence;
         }
     }
 }

@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using Chraft.Entity;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
-using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Utilities;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
     public abstract class BlockBaseContainer : BlockBase, IBlockInteractive
     {

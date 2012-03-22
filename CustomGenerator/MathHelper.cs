@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Chraft.PluginSystem.ChunkGeneration
+namespace CustomGenerator
 {
     /*
  * Copyright 2011 Benjamin Glatzel <benjamin.glatzel@me.com>.

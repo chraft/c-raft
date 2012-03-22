@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Listener;
 
-namespace Chraft.PluginSystem.Events
+namespace Chraft.Plugins.Events
 {
     public class ServerEvent : IChraftEventHandler
     {
@@ -40,19 +39,19 @@ namespace Chraft.PluginSystem.Events
         {
             switch (Event)
             {
-                case Event.LoggerLog:
+                case PluginSystem.Event.Event.LoggerLog:
                     OnLog(e as LoggerEventArgs);
                     break;
-                case Event.ServerAccept:
+                case PluginSystem.Event.Event.ServerAccept:
                     OnAccept(e as ClientAcceptedEventArgs);
                     break;
-                case Event.ServerBroadcast:
+                case PluginSystem.Event.Event.ServerBroadcast:
                     OnBroadcast(e as ServerBroadcastEventArgs);
                     break;
-                case Event.ServerChat:
+                case PluginSystem.Event.Event.ServerChat:
                     OnChat(e as ServerChatEventArgs);
                     break;
-                case Event.ServerCommand:
+                case PluginSystem.Event.Event.ServerCommand:
                     OnCommand(e as ServerCommandEventArgs);
                     break;
             }
@@ -94,7 +93,7 @@ namespace Chraft.PluginSystem.Events
             foreach (EventListener el in Plugins)
             {
                 ServerListener sl = (ServerListener)el.Listener;
-                if (el.Event == PluginSystem.Events.Event.ServerCommand)
+                if (el.Event == Event.ServerCommand)
                     sl.OnCommand(e);
             }
         }

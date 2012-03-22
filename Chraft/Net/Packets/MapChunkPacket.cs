@@ -20,6 +20,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 

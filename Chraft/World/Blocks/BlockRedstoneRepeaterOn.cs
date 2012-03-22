@@ -16,6 +16,7 @@
 #endregion
 
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.World.Blocks
 {

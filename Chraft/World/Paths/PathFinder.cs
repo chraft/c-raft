@@ -19,11 +19,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Chraft.Entity;
-using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.Utils;
 using Chraft.World.Blocks;
 using System;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Paths
 {

@@ -19,13 +19,22 @@ using System.Collections.Generic;
 using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.Entity
 {
@@ -508,7 +517,7 @@ namespace Chraft.Entity
                      
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(PluginSystem.Events.Event.EntityMove, e);
+            Server.PluginManager.CallEvent(Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event
@@ -601,7 +610,7 @@ namespace Chraft.Entity
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(PluginSystem.Events.Event.EntityMove, e);
+            Server.PluginManager.CallEvent(Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event

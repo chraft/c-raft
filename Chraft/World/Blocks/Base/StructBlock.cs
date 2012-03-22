@@ -1,8 +1,8 @@
-using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
-using Chraft.Utilities;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Coords;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
     /// <summary>
     /// Represents a certain block in the world

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Chraft.Utilities
+﻿namespace Chraft.Utilities.Misc
 {
     public enum DamageCause
     {

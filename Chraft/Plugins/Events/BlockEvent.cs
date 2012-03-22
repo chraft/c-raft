@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Events.Args;
-using Chraft.PluginSystem.Listener;
-using Chraft.Plugins.Events.Args;
 
-namespace Chraft.PluginSystem.Events
+using System.Collections.Generic;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
+
+namespace Chraft.Plugins.Events
 {
     /// <summary>
     /// This class contains all the possible block events
@@ -31,7 +29,7 @@ namespace Chraft.PluginSystem.Events
     {
         public BlockEvent()
         {
-            events.AddRange(new Event[]{Event.BlockDestroy, PluginSystem.Events.Event.BlockPlace,
+            events.AddRange(new Event[]{Event.BlockDestroy, Event.BlockPlace,
                 Event.BlockTouch });
         }
         public EventType Type
@@ -44,17 +42,17 @@ namespace Chraft.PluginSystem.Events
         private List<Event> events = new List<Event>();
         private List<EventListener> plugins = new List<EventListener>();
 
-        public void CallEvent(Event Event, Args.ChraftEventArgs e)
+        public void CallEvent(Event Event, ChraftEventArgs e)
         {
             switch (Event)
             {
-                case Event.BlockDestroy:
+                case PluginSystem.Event.Event.BlockDestroy:
                     OnDestroy(e as BlockDestroyEventArgs);
                     break;
-                case Event.BlockPlace:
+                case PluginSystem.Event.Event.BlockPlace:
                     OnPlace(e as BlockPlaceEventArgs);
                     break;
-                case Event.BlockTouch:
+                case PluginSystem.Event.Event.BlockTouch:
                     OnTouch(e as BlockTouchEventArgs);
                     break;
             }

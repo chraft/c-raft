@@ -16,11 +16,11 @@
 #endregion
 
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Listener;
-using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
-namespace Chraft.PluginSystem.SamplePlugin
+namespace Chraft.Plugins.SamplePlugin
 {
     class SamplePluginPlayerListener : IPlayerListener
     {
@@ -41,7 +41,7 @@ namespace Chraft.PluginSystem.SamplePlugin
         {
         }
 
-        public void OnPlayerChat(Events.Args.ClientChatEventArgs e)
+        public void OnPlayerChat(ClientChatEventArgs e)
         {
             if (e.EventCanceled) return;
             e.Message = ChatColor.Blue + e.Message;

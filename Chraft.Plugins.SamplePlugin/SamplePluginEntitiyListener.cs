@@ -15,10 +15,11 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Listener;
 
-namespace Chraft.PluginSystem.SamplePlugin
+namespace Chraft.Plugins.SamplePlugin
 {
     class SamplePluginEntitiyListener : IEntityListener
     {

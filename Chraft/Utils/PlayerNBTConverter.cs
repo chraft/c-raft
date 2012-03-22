@@ -5,8 +5,8 @@ using System.Xml.Serialization;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Persistence;
+using Chraft.Utilities.NBT;
 using Chraft.Utils.Config;
-using Chraft.Utils.NBT;
 
 namespace Chraft.Utils
 {

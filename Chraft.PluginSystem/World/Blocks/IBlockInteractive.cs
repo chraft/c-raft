@@ -15,7 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-namespace Chraft.PluginSystem.Blocks
+using Chraft.PluginSystem.Entity;
+
+namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IBlockInteractive
     {

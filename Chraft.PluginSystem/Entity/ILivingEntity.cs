@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Utilities;
+﻿using Chraft.Utilities.Misc;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.Entity
 {
     public interface ILivingEntity : IEntityBase
     {
@@ -35,7 +31,7 @@ namespace Chraft.PluginSystem
         void StopFireBurnTimer();
         void CheckDrowning();
         void CheckSuffocation();
-        void Attack(PluginSystem.ILivingEntity target);
+        void Attack(ILivingEntity target);
         void Damage(DamageCause cause, short damageAmount, IEntityBase hitBy = null, params object[] args);
 
         bool CanSpawnHere();

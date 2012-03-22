@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
+using Chraft.PluginSystem.Event;
 
-namespace Chraft.PluginSystem.Events
+namespace Chraft.Plugins.Events
 {
     public class EventList : IEnumerable<IChraftEventHandler>
     {

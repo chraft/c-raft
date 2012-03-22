@@ -15,7 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-namespace Chraft.Utilities
+namespace Chraft.Utilities.Misc
 {
     public class NibbleArray
     {

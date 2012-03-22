@@ -20,8 +20,11 @@ using System.Threading;
 using Chraft.Net;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins;
 using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
 [assembly: InternalsVisibleTo("ChraftServer")]
 namespace Chraft.Commands

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 using Chraft.World.Blocks;
 

@@ -20,7 +20,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     /// <summary>
     /// A NBT tag, the building blocks of a NBT file.

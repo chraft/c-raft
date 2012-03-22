@@ -18,8 +18,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {

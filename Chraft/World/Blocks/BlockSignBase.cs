@@ -20,8 +20,11 @@ using System.Linq;
 using Chraft.Entity;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {

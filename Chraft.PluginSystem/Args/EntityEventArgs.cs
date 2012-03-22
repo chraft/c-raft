@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Utilities;
-using Chraft.Utils;
 
-namespace Chraft.PluginSystem.Events.Args
+using Chraft.PluginSystem.Entity;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
+
+namespace Chraft.PluginSystem.Args
 {
     /// <summary>
     /// The base EventArgs for an Entity Event.

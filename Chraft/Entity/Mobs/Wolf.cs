@@ -20,7 +20,11 @@ using System.Linq;
 using System.Text;
 using Chraft.Net;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.Net;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Interfaces;
 

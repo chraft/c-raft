@@ -19,7 +19,7 @@
 
 using System;
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     /// <summary>
     /// Provides helper methods to convert between byte endianness.

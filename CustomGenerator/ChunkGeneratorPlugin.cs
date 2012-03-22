@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.ChunkGeneration;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World;
 
-namespace Chraft.PluginSystem.ChunkGeneration
+namespace CustomGenerator
 {
-    [PluginAttribute]
+    [Plugin]
     public class ChunkGeneratorPlugin : IPlugin
     {
         public string Name { get { return "Custom Chunk Generator"; } }

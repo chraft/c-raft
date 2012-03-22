@@ -15,8 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Interfaces;
-using Chraft.PluginSystem.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {

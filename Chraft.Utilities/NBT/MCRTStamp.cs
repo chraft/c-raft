@@ -17,7 +17,7 @@
  *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace Chraft.Utils.NBT
+namespace Chraft.Utilities.NBT
 {
     /// <summary>
     /// Indicates the last update the chunk has made.

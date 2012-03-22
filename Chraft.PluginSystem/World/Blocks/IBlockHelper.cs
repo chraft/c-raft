@@ -1,6 +1,6 @@
-﻿using Chraft.Utilities;
+﻿using Chraft.Utilities.Blocks;
 
-namespace Chraft.PluginSystem.Blocks
+namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IBlockHelper
     {

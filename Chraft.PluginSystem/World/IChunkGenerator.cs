@@ -15,9 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.World.Blocks;
 
-namespace Chraft.PluginSystem
+namespace Chraft.PluginSystem.World
 {
     public interface IChunkGenerator
     {

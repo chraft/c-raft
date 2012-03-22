@@ -17,9 +17,9 @@
 using System;
 using System.IO;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Events;
-using Chraft.PluginSystem.Events.Args;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins.Events;
 using Chraft.Utils.Config;
 

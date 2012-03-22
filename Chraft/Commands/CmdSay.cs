@@ -17,11 +17,14 @@
 using System.Linq;
 using Chraft.Net;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Commands;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins;
-using Chraft.Plugins.Events.Args;
 using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Commands
 {
@@ -73,7 +76,7 @@ namespace Chraft.Commands
 
             //Event
             ServerChatEventArgs e = new ServerChatEventArgs(server, message);
-            server.PluginManager.CallEvent(PluginSystem.Events.Event.ServerChat, e);
+            server.PluginManager.CallEvent(Event.ServerChat, e);
             if (e.EventCanceled) return;
             message = e.Message;
             //End Event

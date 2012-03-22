@@ -15,7 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-namespace Chraft.PluginSystem.Blocks
+namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IBlockGrowable
     {

@@ -18,8 +18,14 @@ using System.Linq;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {

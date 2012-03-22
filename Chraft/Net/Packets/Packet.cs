@@ -20,7 +20,12 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Chraft.Interfaces;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Entity;
 using Chraft.PluginSystem;
@@ -92,7 +97,7 @@ namespace Chraft.Net.Packets
         public void SetShared(ILogger logger, int num)
         {
             Logger = (Logger)logger;
-            if(num == 0)
+            if (num == 0)
             {
                 _sharesNum = 1;
                 Logger.Log(LogLevel.Error, "Packet {0}, shares must be > 0!! Setting to 1", ToString());
@@ -198,7 +203,7 @@ namespace Chraft.Net.Packets
             SetCapacity(20, Username, levelType);
             Writer.Write(ProtocolOrEntityId);
             Writer.Write(Username);
-            Writer.Write(levelType); 
+            Writer.Write(levelType);
             Writer.Write(ServerMode);
             Writer.Write(Dimension);
             Writer.Write(Difficulty);
@@ -377,7 +382,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            string levelType = "DEFAULT"; 
+            string levelType = "DEFAULT";
             SetCapacity(11, levelType);
             Writer.Write(World);
             Writer.Write(Difficulty);
@@ -1534,7 +1539,7 @@ namespace Chraft.Net.Packets
         public override void Write()
         {
             Writer.Write(Slot);
-            if(Item == null || Item.Type == -1)
+            if (Item == null || Item.Type == -1)
                 SetCapacity(5);
             else
                 SetCapacity(8);
@@ -1590,7 +1595,7 @@ namespace Chraft.Net.Packets
             Writer.Write(Transaction);
             Writer.Write(Shift);
             (Item ?? ItemStack.Void).Write(Writer);
-            Length = (int) Writer.UnderlyingStream.Length;
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -1609,7 +1614,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            if(Item == null || Item.Type == -1)
+            if (Item == null || Item.Type == -1)
                 SetCapacity(6);
             else
                 SetCapacity(9);
@@ -1741,7 +1746,7 @@ namespace Chraft.Net.Packets
     public class ServerListPingPacket : Packet
     {
         protected override int Length { get { return 1; } }
-        
+
         public override void Read(PacketReader stream)
         {
         }
@@ -2022,7 +2027,7 @@ namespace Chraft.Net.Packets
         public byte WindowId { get; set; }
         public byte Enchantment { get; set; }
 
-        protected override int Length{ get { return 3; } }
+        protected override int Length { get { return 3; } }
 
         public override void Read(PacketReader reader)
         {
@@ -2137,6 +2142,35 @@ namespace Chraft.Net.Packets
             Writer.Write(Custom1);
             Writer.Write(Custom2);
             Writer.Write(Custom3);
+        }
+    }
+
+    public class PlayerAbilitiesPacket : Packet
+    {
+        //Only in creative mode.
+
+        //Invulnerabitity not used yet
+        public bool Invulnerability { get; set; }
+        public bool IsFlying { get; set; }
+        public bool CanFly { get; set; }
+        //InstantDestroy not used yet
+        public bool InstantDestroy { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            Invulnerability = reader.ReadBool();
+            IsFlying = reader.ReadBool();
+            CanFly = reader.ReadBool();
+            InstantDestroy = reader.ReadBool();
+        }
+
+        public override void Write()
+        {
+            SetCapacity(5);
+            Writer.Write(Invulnerability);
+            Writer.Write(IsFlying);
+            Writer.Write(CanFly);
+            Writer.Write(InstantDestroy);
         }
     }
 }

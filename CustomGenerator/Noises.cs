@@ -15,9 +15,10 @@
 */
 
 /* Ported and modified by Stefano Bonicatti <smjert@gmail.com> */
+
 using System;
 
-namespace Chraft.PluginSystem.ChunkGeneration
+namespace CustomGenerator
 {
 
 /**

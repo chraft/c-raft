@@ -16,8 +16,10 @@
 #endregion
 using Chraft.Entity;
 using Chraft.PluginSystem;
-using Chraft.PluginSystem.Blocks;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.World.Blocks
 {

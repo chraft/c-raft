@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.PluginSystem.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Listener;
 
-
-namespace Chraft.PluginSystem.Events
+namespace Chraft.Plugins.Events
 {
     public class WorldEvent : IChraftEventHandler
     {
         public WorldEvent()
         {
-            Events.Add(PluginSystem.Events.Event.WorldLoad);
+            Events.Add(Event.WorldLoad);
             Events.Add(Event.WorldUnload);
             Events.Add(Event.WorldJoin);
             Events.Add(Event.WorldLeave);
@@ -45,22 +43,22 @@ namespace Chraft.PluginSystem.Events
         {
             switch (Event)
             {
-                case Event.WorldLoad:
+                case PluginSystem.Event.Event.WorldLoad:
                     OnWorldLoaded(e as WorldLoadEventArgs);
                     break;
-                case Event.WorldUnload:
+                case PluginSystem.Event.Event.WorldUnload:
                     OnLeveUnloaded(e as WorldUnloadEventArgs);
                     break;
-                case Event.WorldJoin:
+                case PluginSystem.Event.Event.WorldJoin:
                     OnWorldJoined(e as WorldJoinedEventArgs);
                     break;
-                case Event.WorldLeave:
+                case PluginSystem.Event.Event.WorldLeave:
                     OnWorldLeft(e as WorldLeftEventArgs);
                     break;
-                case Event.WorldCreate:
+                case PluginSystem.Event.Event.WorldCreate:
                     OnWorldCreated(e as WorldCreatedEventArgs);
                     break;
-                case Event.WorldDelete:
+                case PluginSystem.Event.Event.WorldDelete:
                     OnWorldDeleted(e as WorldDeletedEventArgs);
                     break;
             }
