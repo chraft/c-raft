@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Chraft.Interfaces;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace ChratUnitTests.Resources
 {

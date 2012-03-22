@@ -15,7 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace Chraft.World.Weather
 {

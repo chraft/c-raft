@@ -27,7 +27,7 @@ using Chraft.PluginSystem.Commands;
 using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Server;
 using Chraft.Utils;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using Chraft.PluginSystem;
 
 namespace ChraftServer

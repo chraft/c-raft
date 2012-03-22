@@ -31,7 +31,7 @@ using Chraft.Utils;
 using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
 using Chraft.PluginSystem;

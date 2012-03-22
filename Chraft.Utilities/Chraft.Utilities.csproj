@@ -47,6 +47,8 @@
     <Compile Include="Blocks\BlockFace.cs" />
     <Compile Include="Collision\BoundingBox.cs" />
     <Compile Include="Collision\RayTraceHit.cs" />
+    <Compile Include="Config\ChraftConfig.cs" />
+    <Compile Include="Config\Configuration.cs" />
     <Compile Include="Coords\AbsWorldCoords.cs" />
     <Compile Include="Coords\UniversalCoords.cs" />
     <Compile Include="Math\MathExtensions.cs" />

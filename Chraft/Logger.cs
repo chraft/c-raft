@@ -21,7 +21,7 @@ using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Server;
 using Chraft.Plugins.Events;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace Chraft
 {

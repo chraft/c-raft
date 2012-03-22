@@ -27,7 +27,7 @@ using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;
 using Chraft.World;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using System.Threading;
 using Chraft.World.Blocks;
 using Chraft.World.Weather;

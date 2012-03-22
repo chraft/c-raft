@@ -35,7 +35,7 @@ using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Math;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using System.IO;
 using Chraft.Entity;
 using Chraft.World.Blocks;

@@ -140,7 +140,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
     </Compile>
-    <Compile Include="Utils\Config\ChraftConfig.cs" />
     <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="World\Blocks\Base\BlockBase.cs" />
@@ -303,7 +302,6 @@
     <Compile Include="Plugins\Plugin.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
     <Compile Include="Utils\ItemDb.cs" />
-    <Compile Include="Utils\Config\Configuration.cs" />
     <Compile Include="Utils\PermissionHandler.cs" />
     <Compile Include="Utils\IPermissions.cs" />
     <Compile Include="Logger.cs" />

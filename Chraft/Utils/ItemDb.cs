@@ -21,7 +21,7 @@ using System.IO;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace Chraft.Utils
 {

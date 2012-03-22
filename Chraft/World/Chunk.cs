@@ -31,7 +31,7 @@ using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Base;
 using Ionic.Zlib;

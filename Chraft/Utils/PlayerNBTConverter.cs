@@ -6,7 +6,7 @@ using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Persistence;
 using Chraft.Utilities.NBT;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace Chraft.Utils
 {

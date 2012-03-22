@@ -22,7 +22,7 @@ using System.Threading;
 using Chraft.Net;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using Chraft.World;
 
 namespace Chraft.Interfaces.Containers

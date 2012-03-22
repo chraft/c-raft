@@ -40,7 +40,7 @@ using Chraft.Utilities;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Math;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using System.Net;
 using System.Threading;
 using Chraft.Utils;
