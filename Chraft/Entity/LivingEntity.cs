@@ -45,9 +45,9 @@ namespace Chraft.Entity
         public abstract string Name { get; }
 
         short _health;
-        
+
         internal MetaData Data { get; set; }
-        
+
         /// <summary>
         /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
         /// </summary>
@@ -56,12 +56,12 @@ namespace Chraft.Entity
             get { return _health; }
             set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
         }
-        
+
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
         public virtual short MaxHealth { get { return 20; } }
-        
+
         public virtual float EyeHeight
         {
             get { return this.Height * 0.85f; }
@@ -88,9 +88,9 @@ namespace Chraft.Entity
         public bool IsDead { get; protected set; }
 
         public virtual bool IsEntityAlive { get { return !IsDead && Health > 0; } }
-                                                            
+
         protected bool IsJumping { get; set; }
-    
+
         public override bool Collidable
         {
             get
@@ -98,7 +98,7 @@ namespace Chraft.Entity
                 return !IsDead;
             }
         }
-        
+
         public override bool Pushable
         {
             get
@@ -111,9 +111,9 @@ namespace Chraft.Entity
         {
             get { return !this.IsDead; }
         }
-    
+
         public LivingEntity(Server server, int entityId, MetaData data)
-         : base(server, entityId)
+            : base(server, entityId)
         {
             if (data == null)
                 data = new MetaData();
@@ -130,7 +130,7 @@ namespace Chraft.Entity
         {
             return Data;
         }
-        
+
         /// <summary>
         /// Determines whether this instance can see the specified entity.
         /// </summary>
@@ -144,15 +144,15 @@ namespace Chraft.Entity
         {
             return this.World.RayTraceBlocks(new AbsWorldCoords(this.Position.X, this.Position.Y + this.EyeHeight, this.Position.Z), new AbsWorldCoords(entity.Position.X, entity.Position.Y + entity.EyeHeight, entity.Position.Z)) == null;
         }
-  
+
         /// <summary>
         /// Jump this instance.
         /// </summary>
         protected virtual void Jump()
         {
             this.Velocity.Y = 0.42;
-        } 
-      
+        }
+
         public string FacingDirection(byte compassPoints)
         {
 
@@ -423,7 +423,7 @@ namespace Chraft.Entity
         {
             if (damageAmount <= 0)
             {
-                World.Logger.Log(LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" :hitBy.EntityId.ToString()), Name, EntityId));
+                World.Logger.Log(LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" : hitBy.EntityId.ToString()), Name, EntityId));
                 return;
             }
             lock (_damageLock)
@@ -543,7 +543,7 @@ namespace Chraft.Entity
         }
 
         #endregion
-        
+
         /// <summary>
         /// Faces the entity.
         /// </summary>
@@ -570,14 +570,14 @@ namespace Chraft.Entity
             {
                 yDistance = (entity.BoundingBox.Minimum.Y + entity.BoundingBox.Maximum.Y) / 2.0 - (this.Position.Y + this.EyeHeight);
             }
-            
+
             double xzDistance = Math.Sqrt(xDistance * xDistance + zDistance * zDistance);
             double destinationYaw = ((Math.Atan2(zDistance, xDistance) * 180.0) / Math.PI) - 90f;
             double destinationPitch = -((Math.Atan2(yDistance, xzDistance) * 180) / Math.PI);
             this.Pitch = -UpdateRotation(this.Pitch, destinationPitch, pitchSpeed);
             this.Yaw = UpdateRotation(this.Yaw, destinationYaw, yawSpeed);
         }
-        
+
         private double UpdateRotation(double currentRotation, double destinationRotation, double rotationSpeed)
         {
             double rotationAmount;
@@ -620,8 +620,14 @@ namespace Chraft.Entity
         /// <remarks>This method uses the currently set Position because it relies upon the current BoundingBox and BlockPosition to be set also.</remarks>
         public virtual bool CanSpawnHere()
         {
-            return (World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox) as IEnumerable<EntityBase>).All(entity => !entity.PreventMobSpawning)
-                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance.IsLiquid(block.Type));
+            //temp fix, need to route out cause of null entity
+            var entities = World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox) as IEnumerable<EntityBase>;
+            var blocks = !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance.IsLiquid(block.Type));
+            if (entities != null)
+            {
+                return entities.All(entity => !entity.PreventMobSpawning) && blocks;
+            }
+            return blocks;
         }
     }
 }
