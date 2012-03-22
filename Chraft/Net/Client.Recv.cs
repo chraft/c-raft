@@ -808,7 +808,9 @@ namespace Chraft.Net
 
         public static void HandlePacketHandshake(Client client, HandshakePacket packet)
         {
-            client.Username = Regex.Replace(packet.UsernameOrHash, Chat.DISALLOWED, "");
+            var usernameHost = Regex.Replace(packet.UsernameAndIpOrHash, Chat.DISALLOWED, "").Split(';');
+            client.Username = usernameHost[0];
+            client.Host = usernameHost[1];
             client.SendHandshake();
         }
 

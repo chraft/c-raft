@@ -30,9 +30,10 @@ namespace Chraft.PluginSystem
         byte GetLuminance(int blockX, int blockY, int blockZ);
         byte GetOpacity(UniversalCoords coords);
         byte GetOpacity(int blockX, int blockY, int blockZ);
-        void SetAllBlocks(byte[] data);
+        //void SetAllBlocks(byte[] data);
         BlockData.Blocks GetType(UniversalCoords coords);
         BlockData.Blocks GetType(int blockX, int blockY, int blockZ);
+        byte GetSectionType(int blockX, int blockY, int blockZ);
         void SetType(UniversalCoords coords, BlockData.Blocks value, bool needsUpdate = true);
         void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value, bool needsUpdate = true);
         void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true);
@@ -45,6 +46,8 @@ namespace Chraft.PluginSystem
         void SetBlockLight(int blockX, int blockY, int blockZ, byte value);
         void SetSkyLight(UniversalCoords coords, byte value);
         void SetSkyLight(int blockX, int blockY, int blockZ, byte value);
+        void SetBiomeColumn(int x, int z, byte biomeId);
+        void SetSectionType(int blockX, int blockY, int blockZ, BlockData.Blocks value);
         bool IsAir(UniversalCoords coords);
         void BlockNeedsUpdate(int blockX, int blockY, int blockZ);
         void Dispose();

@@ -21,7 +21,7 @@ namespace Chraft.PluginSystem
 {
     public interface IChunkGenerator
     {
-        IChunk GenerateChunk(IChunk chunk, int x, int z, bool external = false);
+        IChunk GenerateChunk(IChunk chunk, int x, int z, bool external);
         void Init(IWorldManager world, long seed);
         void Init(long seed, IBlockHelper helper);
     }

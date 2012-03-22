@@ -44,9 +44,9 @@ namespace Chraft.PluginSystem.ChunkGeneration
 
         private IBlockHelper _blockHelper;
 
-        public enum BIOME_TYPE
+        public enum BIOME_TYPE : byte
         {
-            MOUNTAINS, SNOW, DESERT, PLAINS
+            PLAINS = 1, DESERT, MOUNTAINS, SNOW = 12 
         }
 
         public void Init(IWorldManager world, long seed)
@@ -83,15 +83,12 @@ namespace Chraft.PluginSystem.ChunkGeneration
         {
 
             InitGen();
-
-            byte[] data = new byte[32768];
 #if PROFILE
             Stopwatch watch = new Stopwatch();
             watch.Start();
 #endif
-            GenerateTerrain(chunk, data, x, z);
-            GenerateFlora(chunk, data, x, z);
-            chunk.SetAllBlocks(data);
+            GenerateTerrain(chunk, x, z);
+            GenerateFlora(chunk, x, z);
 
             if (!external)
             {
@@ -111,7 +108,7 @@ namespace Chraft.PluginSystem.ChunkGeneration
             return chunk;
         }
 
-        private void GenerateTerrain(IChunk c, byte[] data, int x, int z)
+        private void GenerateTerrain(IChunk c, int x, int z)
         {           
             double[, ,] density = new double[17, 129, 17];
 
@@ -143,27 +140,24 @@ namespace Chraft.PluginSystem.ChunkGeneration
                     BIOME_TYPE type = CalcBiomeType(worldX, worldZ);
                     for (int by = 127; by >= 0; --by)
                     {
-                        int index = bx << 11 | bz << 7 | by;
+                        //int index = bx << 11 | bz << 7 | by;
                         if (by == 0) // First bedrock Layer
-                        {
-                            data[index] = (byte)BlockData.Blocks.Bedrock;
-                            continue;
-                        }
+                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Bedrock);
+
                         else if (by > 0 && by < 5 && _FastRandom.randomDouble() > 0.3) // Randomly put blocks of the remaining 4 layers of bedrock
-                        {
-                            data[index] = (byte)BlockData.Blocks.Bedrock;
-                            continue;
-                        }
+                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Bedrock);
+
                         else if (by <= 55)
-                            data[index] = (byte)BlockData.Blocks.Stone;
+                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Stone);
                         else
                         {
                             if (by > 55 && by < 64)
                             {
-                                data[index] = (byte)BlockData.Blocks.Still_Water;
+                                c.SetSectionType(bx, by, bz, BlockData.Blocks.Still_Water);
                                 if (by == 63 && type == BIOME_TYPE.SNOW)
                                 {
-                                    data[index] = (byte)BlockData.Blocks.Ice;
+                                    c.SetBiomeColumn(bx, bz, (byte)BIOME_TYPE.SNOW);
+                                    c.SetSectionType(bx, by, bz, BlockData.Blocks.Ice);
                                 }
                             }
 
@@ -175,7 +169,7 @@ namespace Chraft.PluginSystem.ChunkGeneration
                                 if (firstBlockHeight == -1)
                                     firstBlockHeight = by;
 
-                                GenerateOuterLayer(bx, by, bz, firstBlockHeight, type, c, data);
+                                GenerateOuterLayer(bx, by, bz, firstBlockHeight, type, c);
                             }
                             else if (dens > 0.02)
                             {
@@ -184,40 +178,39 @@ namespace Chraft.PluginSystem.ChunkGeneration
                                     firstBlockHeight = by;
 
                                 if (CalcCaveDensity(worldX, by, worldZ) > -0.6)
-                                    GenerateInnerLayer(bx, by, bz, type, data);
+                                    GenerateInnerLayer(bx, by, bz, type, c);
                             }
                             else
                                 firstBlockHeight = -1;
                         }
 
-                        if (data[index] == (byte)BlockData.Blocks.Stone)
-                            GenerateResource(bx, by, bz, data);
+                        if (c.GetSectionType(bx, by, bz) == (byte)BlockData.Blocks.Stone)
+                            GenerateResource(bx, by, bz, c);
                     }
                 }
             }
         }
 
-        private void GenerateResource(int x, int y, int z, byte[] data)
+        private void GenerateResource(int x, int y, int z, IChunk c)
         {
 
-            if (data[x << 11 | z << 7 | y] == 1)
-            {
-                if (r.Next(100 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Diamond_Ore;
-                else if (r.Next(100 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Lapis_Lazuli_Ore;
-                else if (r.Next(40 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Gold_Ore;
-                else if (r.Next(10 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Redstone_Ore_Glowing;
-                else if (r.Next(4 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Iron_Ore;
-                else if (r.Next(2 * y) == 0)
-                    data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Coal_Ore;
-            }
+
+            if (r.Next(100 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Diamond_Ore);
+            else if (r.Next(100 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Lapis_Lazuli_Ore);
+            else if (r.Next(40 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Gold_Ore);
+            else if (r.Next(10 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Redstone_Ore_Glowing);
+            else if (r.Next(4 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Iron_Ore);
+            else if (r.Next(2 * y) == 0)
+                c.SetSectionType(x, y, z, BlockData.Blocks.Coal_Ore);
+            
         }
 
-        private void GenerateFlora(IChunk c, byte[] data, int x, int z)
+        private void GenerateFlora(IChunk c, int x, int z)
         {
             BIOME_TYPE biome = CalcBiomeType(x, z);
             for (int bx = 0; bx < 16; ++bx)
@@ -229,9 +222,9 @@ namespace Chraft.PluginSystem.ChunkGeneration
                     for (int by = 64; by < 128; ++by)
                     {
                         int worldY = by;
-                        int index = bx << 11 | bz << 7 | by + 1;
+                        //int index = bx << 11 | bz << 7 | by + 1;
 
-                        if (data[bx << 11 | bz << 7 | by] == (byte)BlockData.Blocks.Grass && data[index] == (byte)BlockData.Blocks.Air)
+                        if (c.GetSectionType(bx, by, bz) == (byte)BlockData.Blocks.Grass && c.GetSectionType(bx, by + 1, bz) == (byte)BlockData.Blocks.Air)
                         {
                             double grassDens = CalcGrassDensity(worldX, worldZ);
                             if (grassDens > 0.0)
@@ -240,7 +233,7 @@ namespace Chraft.PluginSystem.ChunkGeneration
                                 double rand = _FastRandom.standNormalDistrDouble();
                                 if (rand > -0.2 && rand < 0.2)
                                 {
-                                    data[index] = (byte)BlockData.Blocks.TallGrass;
+                                    c.SetSectionType(bx, by + 1, bz, BlockData.Blocks.TallGrass);
                                     c.SetData(bx, by + 1, bz, 1, false);
                                 }
 
@@ -249,9 +242,9 @@ namespace Chraft.PluginSystem.ChunkGeneration
                                 if (_FastRandom.standNormalDistrDouble() < -2)
                                 {
                                     if (_FastRandom.randomBoolean())
-                                        data[index] = (byte)BlockData.Blocks.Rose;
+                                        c.SetSectionType(bx, by + 1, bz, BlockData.Blocks.Rose);
                                     else
-                                        data[index] = (byte)BlockData.Blocks.Yellow_Flower;
+                                        c.SetSectionType(bx, by + 1, bz,BlockData.Blocks.Yellow_Flower);
                                 }
                             }
 
@@ -274,14 +267,12 @@ namespace Chraft.PluginSystem.ChunkGeneration
                                     else if (randZ > 15)
                                         randZ = 12;
 
-                                    if (data[randX << 11 | randZ << 7 | by] == (byte)BlockData.Blocks.Grass)
-                                    {
-                                        GenerateTree(c, randX, by, randZ, data);
-                                    }
-                                    else if (biome == BIOME_TYPE.DESERT && data[randX << 11 | randZ << 7 | by] == (byte)BlockData.Blocks.Sand)
-                                    {
-                                        GenerateCactus(randX, by, randZ, data);
-                                    }
+                                    if (c.GetSectionType(randX, by, randZ) == (byte)BlockData.Blocks.Grass)
+                                        GenerateTree(c, randX, by, randZ);
+                                    
+                                    else if (biome == BIOME_TYPE.DESERT && c.GetSectionType(randX, by, randZ) == (byte)BlockData.Blocks.Sand)
+                                        GenerateCactus(c, randX, by, randZ);
+                                    
                                 }
                             }
                         }
@@ -290,21 +281,21 @@ namespace Chraft.PluginSystem.ChunkGeneration
             }
         }
 
-        private void GenerateCactus(int x, int y, int z, byte[] data)
+        private void GenerateCactus(IChunk c, int x, int y, int z)
         {
             int height = (_FastRandom.randomInt() + 1) % 3;
 
-            if (!CanSeeTheSky(x, y + 1, z, data))
+            if (!CanSeeTheSky(x, y + 1, z, c))
                 return;
 
             for (int by = height; by < y + height; ++y)
-                data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Cactus;
+                c.SetSectionType(x, y, z, BlockData.Blocks.Cactus);
         }
 
-        private void GenerateTree(IChunk c, int x, int y, int z, byte[] data)
+        private void GenerateTree(IChunk c, int x, int y, int z)
         {
             // Trees should only be placed in direct sunlight
-            if (!CanSeeTheSky(x, y + 1, z, data))
+            if (!CanSeeTheSky(x, y + 1, z, c))
                 return;
 
             double r2 = _FastRandom.standNormalDistrDouble();
@@ -316,20 +307,20 @@ namespace Chraft.PluginSystem.ChunkGeneration
                 for (int bx = x - 2; bx <= x + 2; bx++)
                     for (int bz = z - 2; bz <= z + 2; bz++)
                     {
-                        data[bx << 11 | bz << 7 | by] = (byte)BlockData.Blocks.Leaves;
+                        c.SetSectionType(bx, by, bz, BlockData.Blocks.Leaves);
                         c.SetData(bx, by, bz, 0, false);
                     }
 
             for (int bx = x - 1; bx <= x + 1; bx++)
                 for (int bz = z - 1; bz <= z + 1; bz++)
                 {
-                    data[bx << 11 | bz << 7 | y + 6] = (byte)BlockData.Blocks.Leaves;
+                    c.SetSectionType(bx, y + 6, bz, BlockData.Blocks.Leaves);
                     c.SetData(bx, y + 6, bz, 0, false);
                 }
 
             for (int by = y + 1; by < y + 6; by++)
             {
-                data[x << 11 | z << 7 | by] = (byte)BlockData.Blocks.Log;
+                c.SetSectionType(x, by, z, BlockData.Blocks.Log);
                 c.SetData(x, by, z, 0, false);
             }
             //}
@@ -346,10 +337,10 @@ namespace Chraft.PluginSystem.ChunkGeneration
             }*/
         }
 
-        private bool CanSeeTheSky(int x, int y, int z, byte[] data)
+        private bool CanSeeTheSky(int x, int y, int z, IChunk c)
         {
             int by;
-            for (by = y; _blockHelper.Opacity(data[x << 11 | z << 7 | by]) == 0 && by < 128; ++by) ;
+            for (by = y; _blockHelper.Opacity(c.GetSectionType(x, by, z)) == 0 && by < 128; ++by) ;
 
             return by == 128;
         }
@@ -457,10 +448,9 @@ namespace Chraft.PluginSystem.ChunkGeneration
             return BIOME_TYPE.PLAINS;
         }
 
-        private void GenerateOuterLayer(int x, int y, int z, int firstBlockHeight, BIOME_TYPE type, IChunk c, byte[] data)
+        private void GenerateOuterLayer(int x, int y, int z, int firstBlockHeight, BIOME_TYPE type, IChunk c)
         {
             double heightPercentage = (firstBlockHeight - y) / 128.0;
-            short currentIndex = (short)(x << 11 | z << 7 | y);
 
             switch (type)
             {
@@ -469,60 +459,54 @@ namespace Chraft.PluginSystem.ChunkGeneration
                 // Beach
                 if (y >= 60 && y <= 66)
                 {
-                    data[currentIndex] = (byte)BlockData.Blocks.Sand;
+                    c.SetBiomeColumn(x, z, (byte)BIOME_TYPE.MOUNTAINS);
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Sand);
                     break;
                 }
 
+                c.SetBiomeColumn(x, z, (byte)BIOME_TYPE.MOUNTAINS);
                 if (heightPercentage == 0.0 && y > 66)
                 {
                     // Grass on top
-                    data[currentIndex] = (byte)BlockData.Blocks.Grass;
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Grass);
                 }
                 else if (heightPercentage > 0.2)
                 {
                     // Stone
-                    data[currentIndex] = (byte)BlockData.Blocks.Stone;
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
                 }
                 else
                 {
                     // Dirt
-                    data[currentIndex] = (byte)BlockData.Blocks.Dirt;
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Dirt);
                 }
 
-                GenerateRiver(c, x, y, z, heightPercentage, type, data);
+                GenerateRiver(c, x, y, z, heightPercentage, type);
                 break;
 
                 case BIOME_TYPE.SNOW:
-
+                c.SetBiomeColumn(x, z, (byte)BIOME_TYPE.SNOW);
                 if (heightPercentage == 0.0 && y > 65)
                 {
                     // Snow on top
-                    data[currentIndex] = (byte)BlockData.Blocks.Snow;
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Snow);
                     // Grass under the snow
-                    data[x << 11 | z << 7 | y - 1] = (byte)BlockData.Blocks.Grass;
+                    c.SetSectionType(x, y - 1, z, BlockData.Blocks.Grass);
                 }
 
                 else if (heightPercentage > 0.2)
-                {
                     // Stone
-                    data[currentIndex] = (byte)BlockData.Blocks.Stone;
-                }
-                else if (data[x << 11 | z << 7 | (y + 1)] == (byte)BlockData.Blocks.Air)
-                {
-                    // Grass under the snow
-                    data[currentIndex] = (byte)BlockData.Blocks.Grass;
-                    data[x << 11 | z << 7 | (y + 1)] = (byte)BlockData.Blocks.Snow;
-                }
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
                 else
-                {
                     // Dirt
-                    data[currentIndex] = (byte)BlockData.Blocks.Dirt;
-                }
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Dirt);
+                
 
-                GenerateRiver(c, x, y, z, heightPercentage, type, data);
+                GenerateRiver(c, x, y, z, heightPercentage, type);
                 break;
 
                 case BIOME_TYPE.DESERT:
+                c.SetBiomeColumn(x, z, (byte)BIOME_TYPE.DESERT);
                 /*if (heightPercentage > 0.6 && y < 75)
                 {
                     // Stone
@@ -530,16 +514,14 @@ namespace Chraft.PluginSystem.ChunkGeneration
                 }
                 else*/
                 if (y < 80)
-                {
-                    data[currentIndex] = (byte)BlockData.Blocks.Sand;
-                }
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Sand);              
 
                 break;
 
             }
         }
 
-        protected void GenerateRiver(IChunk c, int x, int y, int z, double heightPercentage, BIOME_TYPE type, byte[] data)
+        protected void GenerateRiver(IChunk c, int x, int y, int z, double heightPercentage, BIOME_TYPE type)
         {
             // Rivers under water? Nope.
             if (y <= 63)
@@ -551,19 +533,18 @@ namespace Chraft.PluginSystem.ChunkGeneration
             if (lakeIntens < 0.2)
             {
                 if (heightPercentage < 0.001)
-                    data[currentIndex] = (byte)BlockData.Blocks.Air;
+                    c.SetSectionType(x, y, z, BlockData.Blocks.Air);
                 else if (heightPercentage < 0.02)
                 {
                     if (type == BIOME_TYPE.SNOW)
                     {
                         // To be sure that there's no snow above us
-                        data[x << 11 | z << 7 | y + 1] = (byte)BlockData.Blocks.Air;
-                        data[currentIndex] = (byte)BlockData.Blocks.Ice;
+                        c.SetSectionType(x, y + 1, z, BlockData.Blocks.Air);
+                        c.SetSectionType(x, y, z, BlockData.Blocks.Ice);
                     }
                     else
-                    {
-                        data[currentIndex] = (byte)BlockData.Blocks.Still_Water;
-                    }
+                        c.SetSectionType(x, y, z, BlockData.Blocks.Still_Water);
+                    
                 }
             }
         }
@@ -582,9 +563,9 @@ namespace Chraft.PluginSystem.ChunkGeneration
             return result;
         }
 
-        private void GenerateInnerLayer(int x, int y, int z, BIOME_TYPE type, byte[] data)
+        private void GenerateInnerLayer(int x, int y, int z, BIOME_TYPE type, IChunk c)
         {
-            data[x << 11 | z << 7 | y] = (byte)BlockData.Blocks.Stone;
+            c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
 
         }
 

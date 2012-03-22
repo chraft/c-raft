@@ -243,10 +243,9 @@ namespace Chraft.Net
                 ProtocolOrEntityId = _player.EntityId,
                 Dimension = _player.World.Dimension,
                 Username = "",
-                MapSeed = _player.World.Seed,
                 WorldHeight = 128,
                 MaxPlayers = 50,
-                Unknown = 2
+                Difficulty = 2
             });
         }
 
@@ -309,7 +308,7 @@ namespace Chraft.Net
             SendPacket(new HandshakePacket
             {
 
-                UsernameOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
+                UsernameAndIpOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
                 //UsernameOrHash = "-" // No authentication
                 //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
             });
@@ -400,6 +399,7 @@ namespace Chraft.Net
                 Send_Sync_Packet(new MapChunkPacket
                 {
                     Chunk = chunk,
+                    Logger = Logger
                 });
         }
 
@@ -413,6 +413,7 @@ namespace Chraft.Net
                 SendPacket(new MapChunkPacket
                 {
                     Chunk = chunk,
+                    Logger = Logger
                 });
             }
 

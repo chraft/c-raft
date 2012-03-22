@@ -339,7 +339,7 @@ namespace Chraft.World
                 else if (create)
                 {
                     chunk = new Chunk(this, coords);
-                    _generator.GenerateChunk(chunk, coords.ChunkX, coords.ChunkZ);
+                    _generator.GenerateChunk(chunk, coords.ChunkX, coords.ChunkZ, false);
                 }
 
                 if(chunk == null)
@@ -813,7 +813,7 @@ namespace Chraft.World
             Chunk chunk = Chunks[coords];
 
             if (chunk != null)
-                return chunk[coords];
+                return (byte?)chunk.GetType(coords);
 
             return null;
         }
@@ -823,7 +823,7 @@ namespace Chraft.World
             Chunk chunk = Chunks[worldX >> 4, worldZ >> 4];
 
             if (chunk != null)
-                return chunk[worldX & 0xF, worldY, worldZ & 0xF];
+                return (byte?)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF);
 
             return null;
         }

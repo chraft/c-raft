@@ -47,7 +47,8 @@ namespace Chraft.Utilities
             int chunkX = worldX >> 4;
             int chunkZ = worldZ >> 4;
 
-            BlockPackedCoords = (short)((worldX & 0xF) << 11 | (worldZ & 0xF) << 7 | worldY);
+
+            BlockPackedCoords = (short)((worldY & 0xF) << 8 | (worldZ & 0xF) << 4 | (worldX & 0xF));
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -57,7 +58,7 @@ namespace Chraft.Utilities
             WorldY = (byte)blockY;
             WorldZ = (chunkZ << 4) + blockZ;
 
-            BlockPackedCoords = (short)(blockX << 11 | blockZ << 7 | blockY);
+            BlockPackedCoords = (short)((blockY & 0xF) << 8 | blockZ << 4 | blockX);
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 

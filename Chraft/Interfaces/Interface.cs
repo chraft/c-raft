@@ -292,7 +292,7 @@ namespace Chraft.Interfaces
 		{
 			for (short i = 0; i < SlotCount; i++)
 			{
-                if (!Slots[i].IsVoid())
+                if (Slots[i] != null && !Slots[i].IsVoid())
 					SendUpdate(i);
 			}
 		}

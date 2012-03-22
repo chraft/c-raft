@@ -106,7 +106,7 @@ namespace ChraftTestClient
             _receiveQueueReader.Start();
             Task.Factory.StartNew(RecvPacket);
 
-            SendPacket(new HandshakePacket{UsernameOrHash = _userName});
+            SendPacket(new HandshakePacket { UsernameAndIpOrHash = _userName });
         }
 
         public void StartTimer()
