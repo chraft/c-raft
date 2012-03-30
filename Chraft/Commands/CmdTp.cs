@@ -16,23 +16,30 @@
 #endregion
 using System.Linq;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 
 namespace Chraft.Commands
 {
     internal class CmdTp : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             if (tokens.Length < 1)
             {
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray() as Client[];
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown player.");
@@ -43,8 +50,8 @@ namespace Chraft.Commands
             client.Owner.World = target.Owner.World;
             client.Owner.TeleportTo(new AbsWorldCoords(target.Owner.Position.X, target.Owner.Position.Y, target.Owner.Position.Z));
         }
-
-        public void Help(Client client)
+        
+        public void Help(IClient client)
         {
             client.SendMessage("/tp <Target> - Teleports you to <Target>'s location.");
         }
@@ -73,16 +80,17 @@ namespace Chraft.Commands
     }
     internal class CmdSummon : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             if (tokens.Length < 1)
             {
                 client.SendMessage("§cPlease specify a target.");
                 return;
             }
-            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray();
+            Client[] targets = client.Owner.Server.GetClients(tokens[0]).ToArray() as Client[];
             if (targets.Length < 1)
             {
                 client.SendMessage("§cUnknown payer.");
@@ -95,7 +103,7 @@ namespace Chraft.Commands
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/tphere <Player> - Teleports <Player> to you.");
         }

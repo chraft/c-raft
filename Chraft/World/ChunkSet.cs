@@ -20,6 +20,8 @@ using System.Linq;
 using System.Text;
 using System.Collections.Concurrent;
 using System.Threading;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 
 namespace Chraft.World
 {

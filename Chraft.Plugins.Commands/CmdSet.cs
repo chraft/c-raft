@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Commands;
-using Chraft.Net;
-using Chraft.World;
-using Chraft.Interfaces;
+
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Plugins.Commands
 {
@@ -27,9 +30,9 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             if (client.Point2 == null || client.Point1 == null)
             {
@@ -40,8 +43,8 @@ namespace Chraft.Plugins.Commands
             UniversalCoords start = client.SelectionStart.Value;
             UniversalCoords end = client.SelectionEnd.Value;
 
-            ItemStack item = client.Owner.Server.Items[tokens[0]];
-            if (ItemStack.IsVoid(item))
+            IItemStack item = client.GetOwner().GetServer().GetItemDb().GetItemStack(tokens[0]);
+            if (item == null || item.IsVoid())
             {
                 client.SendMessage("§cUnknown item.");
                 return;
@@ -58,13 +61,13 @@ namespace Chraft.Plugins.Commands
                 {
                     for (int z = start.WorldZ; z <= end.WorldZ; z++)
                     {
-                        client.Owner.World.SetBlockAndData(UniversalCoords.FromWorld(x, y, z), (byte)item.Type, (byte)item.Durability);
+                        client.GetOwner().GetWorld().SetBlockAndData(UniversalCoords.FromWorld(x, y, z), (byte)item.Type, (byte)item.Durability);
                     }
                 }
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/set <Block> - Sets the selected cuboid to <Block>");
         }

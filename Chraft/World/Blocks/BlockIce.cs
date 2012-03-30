@@ -15,6 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
+
 namespace Chraft.World.Blocks
 {
     class BlockIce : BlockBase
@@ -37,7 +41,7 @@ namespace Chraft.World.Blocks
             }
 
             StructBlock water = new StructBlock(block.Coords, (byte)BlockData.Blocks.Water, 0, block.World);
-            BlockHelper.Instance((byte)BlockData.Blocks.Water).Spawn(water);
+            BlockHelper.Instance.CreateBlockInstance((byte)BlockData.Blocks.Water).Spawn(water);
         }
     }
 }

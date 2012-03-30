@@ -15,6 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+
 namespace Chraft.World.Blocks
 {
     class BlockRedstoneTorchOn : BlockRedstoneTorch

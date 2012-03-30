@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CCE78B48-1352-4746-A14E-DCB18BB5CCA2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Chraft.Utilities</RootNamespace>
+    <AssemblyName>ChraftUtilities</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Nini">
+      <HintPath>..\Chraft\Nini.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Blocks\BlockData.cs" />
+    <Compile Include="Blocks\BlockFace.cs" />
+    <Compile Include="Collision\BoundingBox.cs" />
+    <Compile Include="Collision\RayTraceHit.cs" />
+    <Compile Include="Config\ChraftConfig.cs" />
+    <Compile Include="Config\Configuration.cs" />
+    <Compile Include="Coords\AbsWorldCoords.cs" />
+    <Compile Include="Coords\UniversalCoords.cs" />
+    <Compile Include="Math\MathExtensions.cs" />
+    <Compile Include="Math\MathHelper.cs" />
+    <Compile Include="Math\Vector3.cs" />
+    <Compile Include="Math\WeightedPercentValue.cs" />
+    <Compile Include="Math\WeightedValue.cs" />
+    <Compile Include="Misc\Chat.cs" />
+    <Compile Include="Misc\CommandType.cs" />
+    <Compile Include="Misc\DamageCause.cs" />
+    <Compile Include="Misc\Direction.cs" />
+    <Compile Include="Misc\Hash.cs" />
+    <Compile Include="Misc\Http.cs" />
+    <Compile Include="Misc\MobType.cs" />
+    <Compile Include="Misc\NibbleArray.cs" />
+    <Compile Include="Misc\RecipeObject.cs" />
+    <Compile Include="Misc\WoolColor.cs" />
+    <Compile Include="NBT\ChunkTag.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\EndiannessConverter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\MCPoint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\MCROffset.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\MCRTStamp.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\NBTFile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\NBTTag.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\RegionFile.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="NBT\SCHEMATICTag.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

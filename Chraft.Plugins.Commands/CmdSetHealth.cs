@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Commands;
-using Chraft.Net;
-using Chraft.Net.Packets;
+
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Plugins.Commands
 {
@@ -27,9 +29,9 @@ namespace Chraft.Plugins.Commands
             Iplugin = plugin;
         }
 
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             short newHealth = 20;
             if (tokens.Length > 0)
@@ -37,10 +39,10 @@ namespace Chraft.Plugins.Commands
                 if (!short.TryParse(tokens[0], out newHealth))
                     newHealth = 20;
             }
-            client.Owner.SetHealth(newHealth);
+            client.GetOwner().SetHealth(newHealth);
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/sethealth <Health> - Sets your health to <Health>");
         }

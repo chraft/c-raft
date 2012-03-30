@@ -16,20 +16,28 @@
 #endregion
 using System.Linq;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins;
-using Chraft.Plugins.Events.Args;
+using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Commands
 {
     internal class CmdSay : IClientCommand, IServerCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
-        public ServerCommandHandler ServerCommandHandler { get; set; }
-        public void Use(Client client, string commandName, string[] tokens)
+        public IClientCommandHandler ClientCommandHandler { get; set; }
+        public IServerCommandHandler ServerCommandHandler { get; set; }
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             client.Owner.Server.Broadcast(tokens.Aggregate("", (current, t) => current + (t + " ")));
         }
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/say <Message> - broadcasts a message to the server.");
         }
@@ -56,8 +64,9 @@ namespace Chraft.Commands
 
         public IPlugin Iplugin { get; set; }
 
-        public void Use(Server server, string commandName, string[] tokens)
+        public void Use(IServer iServer, string commandName, string[] tokens)
         {
+            Server server = iServer as Server;
             string message = "";
             //for loop that starts at one so that we do not include "say".
             for (int i = 1; i < tokens.Length; i++)
@@ -67,7 +76,7 @@ namespace Chraft.Commands
 
             //Event
             ServerChatEventArgs e = new ServerChatEventArgs(server, message);
-            server.PluginManager.CallEvent(Plugins.Events.Event.ServerChat, e);
+            server.PluginManager.CallEvent(Event.ServerChat, e);
             if (e.EventCanceled) return;
             message = e.Message;
             //End Event
@@ -75,9 +84,9 @@ namespace Chraft.Commands
             server.Broadcast(message);
         }
 
-        public void Help(Server server)
+        public void Help(IServer server)
         {
-            server.Logger.Log(Logger.LogLevel.Info, "/say <message> - broadcasts a message to the server.");
+            server.GetLogger().Log(LogLevel.Info, "/say <message> - broadcasts a message to the server.");
         }
     }
 }

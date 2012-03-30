@@ -18,7 +18,10 @@ using System.IO;
 using System.Xml.Serialization;
 using Chraft.Persistence;
 using Chraft.Interfaces;
-using Chraft.Utils.Config;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Config;
 using Chraft.World;
 
 namespace Chraft.Net
@@ -54,7 +57,7 @@ namespace Chraft.Net
                 for (short i = 0; i < client.Inventory.SlotCount; i++)
                 {
                     slots[i] = ItemStack.Void;
-                    if (!ItemStack.IsVoid(client.Inventory.Slots[i]))
+                    if (client.Inventory.Slots[i] != null && !client.Inventory.Slots[i].IsVoid())
                     {
                         slots[i].Type = client.Inventory.Slots[i].Type;
                         slots[i].Count = client.Inventory.Slots[i].Count;
@@ -75,7 +78,7 @@ namespace Chraft.Net
             _player.LoginPosition = _player.Position;
         }
 
-        public void Save()
+        internal void Save()
         {
             if (string.IsNullOrEmpty(Username) && string.IsNullOrEmpty(_player.DisplayName)) { return;} //we are the server ping
             if (!Directory.Exists(Folder))

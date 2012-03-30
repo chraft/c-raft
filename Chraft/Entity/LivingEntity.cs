@@ -21,23 +21,33 @@ using System.Threading;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Plugins.Events;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.World.Blocks;
 
 namespace Chraft.Entity
 {
-    public abstract class LivingEntity : EntityBase
+    public abstract class LivingEntity : EntityBase, ILivingEntity
     {
 
         public abstract string Name { get; }
 
         short _health;
-        
-        public MetaData Data { get; internal set; }
-        
+
+        internal MetaData Data { get; set; }
+
         /// <summary>
         /// Current entity Health represented as "halves of a heart", e.g. Health == 9 is 4.5 hearts. This value is clamped between 0 and EntityBase.MaxHealth.
         /// </summary>
@@ -46,12 +56,12 @@ namespace Chraft.Entity
             get { return _health; }
             set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
         }
-        
+
         /// <summary>
         /// MaxHealth for this entity represented as "halves of a heart".
         /// </summary>
         public virtual short MaxHealth { get { return 20; } }
-        
+
         public virtual float EyeHeight
         {
             get { return this.Height * 0.85f; }
@@ -78,9 +88,9 @@ namespace Chraft.Entity
         public bool IsDead { get; protected set; }
 
         public virtual bool IsEntityAlive { get { return !IsDead && Health > 0; } }
-                                                            
+
         protected bool IsJumping { get; set; }
-    
+
         public override bool Collidable
         {
             get
@@ -88,7 +98,7 @@ namespace Chraft.Entity
                 return !IsDead;
             }
         }
-        
+
         public override bool Pushable
         {
             get
@@ -101,9 +111,9 @@ namespace Chraft.Entity
         {
             get { return !this.IsDead; }
         }
-    
+
         public LivingEntity(Server server, int entityId, MetaData data)
-         : base(server, entityId)
+            : base(server, entityId)
         {
             if (data == null)
                 data = new MetaData();
@@ -115,7 +125,12 @@ namespace Chraft.Entity
             FireBurnTicks = 0;
             LastDamageTick = 0;
         }
-        
+
+        public IMetaData GetMetaData()
+        {
+            return Data;
+        }
+
         /// <summary>
         /// Determines whether this instance can see the specified entity.
         /// </summary>
@@ -125,19 +140,19 @@ namespace Chraft.Entity
         /// <param name='entity'>
         /// The entity to check for line of sight to.
         /// </param>
-        public bool CanSee(LivingEntity entity)
+        public bool CanSee(ILivingEntity entity)
         {
             return this.World.RayTraceBlocks(new AbsWorldCoords(this.Position.X, this.Position.Y + this.EyeHeight, this.Position.Z), new AbsWorldCoords(entity.Position.X, entity.Position.Y + entity.EyeHeight, entity.Position.Z)) == null;
         }
-  
+
         /// <summary>
         /// Jump this instance.
         /// </summary>
         protected virtual void Jump()
         {
             this.Velocity.Y = 0.42;
-        } 
-      
+        }
+
         public string FacingDirection(byte compassPoints)
         {
 
@@ -188,7 +203,7 @@ namespace Chraft.Entity
                 return;
             }
 
-            List<StructBlock> touchedBlocks = GetNearbyBlocks();
+            List<IStructBlock> touchedBlocks = GetNearbyBlocks();
             bool touchingCactus = false;
             foreach (var block in touchedBlocks)
             {
@@ -294,7 +309,7 @@ namespace Chraft.Entity
             if (!CanDrown || IsDead)
                 return;
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (headBlockId != null && BlockHelper.IsLiquid((byte)headBlockId))
+            if (headBlockId != null && BlockHelper.Instance.IsLiquid((byte)headBlockId))
             {
                 if (DrowningTimer == null)
                 {
@@ -306,7 +321,7 @@ namespace Chraft.Entity
         protected virtual void Drown(object state)
         {
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + Height, Position.Z));
-            if (headBlockId == null || IsDead || !BlockHelper.IsLiquid((byte)headBlockId) || !CanDrown)
+            if (headBlockId == null || IsDead || !BlockHelper.Instance.IsLiquid((byte)headBlockId) || !CanDrown)
             {
                 StopDrowningTimer();
                 return;
@@ -335,7 +350,7 @@ namespace Chraft.Entity
             if (!CanSuffocate || IsDead)
                 return;
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (headBlockId != null && BlockHelper.IsOpaque((byte)headBlockId))
+            if (headBlockId != null && BlockHelper.Instance.IsOpaque((byte)headBlockId))
             {
                 if (SuffocationTimer == null)
                 {
@@ -347,7 +362,7 @@ namespace Chraft.Entity
         protected virtual void Suffocate(object state)
         {
             byte? headBlockId = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + EyeHeight, Position.Z));
-            if (headBlockId == null || IsDead || !BlockHelper.IsOpaque((byte)headBlockId) || !CanSuffocate)
+            if (headBlockId == null || IsDead || !BlockHelper.Instance.IsOpaque((byte)headBlockId) || !CanSuffocate)
             {
                 StopSuffocationTimer();
                 return;
@@ -373,7 +388,7 @@ namespace Chraft.Entity
         #endregion
 
         #region Movement
-        public override void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        internal override void OnMoveTo(sbyte x, sbyte y, sbyte z)
         {
             base.OnMoveTo(x, y, z);
             CheckDrowning();
@@ -381,7 +396,7 @@ namespace Chraft.Entity
             TouchNearbyBlocks();
         }
 
-        public override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        internal override void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
         {
             base.OnMoveRotateTo(x, y, z);
             CheckDrowning();
@@ -389,7 +404,7 @@ namespace Chraft.Entity
             TouchNearbyBlocks();
         }
 
-        public override void OnTeleportTo(AbsWorldCoords absCoords)
+        internal override void OnTeleportTo(AbsWorldCoords absCoords)
         {
             base.OnTeleportTo(absCoords);
             CheckDrowning();
@@ -402,13 +417,13 @@ namespace Chraft.Entity
 
         #region Attack and damage
 
-        public abstract void Attack(LivingEntity target);
+        public abstract void Attack(ILivingEntity target);
 
-        public virtual void Damage(DamageCause cause, short damageAmount, EntityBase hitBy = null, params object[] args)
+        public virtual void Damage(DamageCause cause, short damageAmount, IEntityBase hitBy = null, params object[] args)
         {
             if (damageAmount <= 0)
             {
-                World.Logger.Log(Logger.LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" :hitBy.EntityId.ToString()), Name, EntityId));
+                World.Logger.Log(LogLevel.Warning, string.Format("Invalid damage {0} of type {1} caused by {2} to {3}({4})", damageAmount, cause, (hitBy == null ? "null" : hitBy.EntityId.ToString()), Name, EntityId));
                 return;
             }
             lock (_damageLock)
@@ -420,7 +435,7 @@ namespace Chraft.Entity
                 Server.PluginManager.CallEvent(Event.EntityDamage, e);
                 if (e.EventCanceled) return;
                 damageAmount = e.Damage;
-                hitBy = e.DamagedBy;
+                hitBy = e.DamagedBy as EntityBase;
                 // Debug
                 if (hitBy is Player)
                 {
@@ -436,13 +451,14 @@ namespace Chraft.Entity
                 // TODO: Entity Knockback
 
                 if (Health <= 0)
-                    HandleDeath(hitBy);
+                    HandleDeath(hitBy as EntityBase);
             }
         }
 
         protected virtual void SendUpdateOnDamage()
         {
-            foreach (Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (Client c in World.Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (c.Owner == this)
                     continue;
@@ -465,13 +481,13 @@ namespace Chraft.Entity
 
         #region Death
 
-        public virtual void HandleDeath(EntityBase killedBy = null, string deathBy = "")
+        internal virtual void HandleDeath(EntityBase killedBy = null, string deathBy = "")
         {
             //Event
             EntityDeathEventArgs e = new EntityDeathEventArgs(this, killedBy);
             Server.PluginManager.CallEvent(Event.EntityDeath, e);
             if (e.EventCanceled) return;
-            killedBy = e.KilledBy;
+            killedBy = e.KilledBy as EntityBase;
             //End Event
 
             // TODO: Stats/achievements handled in each mob class??? (within DoDeath)
@@ -488,7 +504,8 @@ namespace Chraft.Entity
 
         protected virtual void SendUpdateOnDeath(string deathMessage = "")
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (Client c in Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (!string.IsNullOrEmpty(deathMessage))
                     c.SendMessage(deathMessage);
@@ -526,7 +543,7 @@ namespace Chraft.Entity
         }
 
         #endregion
-        
+
         /// <summary>
         /// Faces the entity.
         /// </summary>
@@ -539,7 +556,7 @@ namespace Chraft.Entity
         /// <param name='pitchSpeed'>
         /// Pitch speed.
         /// </param>
-        public void FaceEntity(EntityBase entity, float yawSpeed, float pitchSpeed)
+        internal void FaceEntity(EntityBase entity, float yawSpeed, float pitchSpeed)
         {
             double xDistance = entity.Position.X - this.Position.X;
             double zDistance = entity.Position.Z - this.Position.Z;
@@ -553,14 +570,14 @@ namespace Chraft.Entity
             {
                 yDistance = (entity.BoundingBox.Minimum.Y + entity.BoundingBox.Maximum.Y) / 2.0 - (this.Position.Y + this.EyeHeight);
             }
-            
+
             double xzDistance = Math.Sqrt(xDistance * xDistance + zDistance * zDistance);
             double destinationYaw = ((Math.Atan2(zDistance, xDistance) * 180.0) / Math.PI) - 90f;
             double destinationPitch = -((Math.Atan2(yDistance, xzDistance) * 180) / Math.PI);
             this.Pitch = -UpdateRotation(this.Pitch, destinationPitch, pitchSpeed);
             this.Yaw = UpdateRotation(this.Yaw, destinationYaw, yawSpeed);
         }
-        
+
         private double UpdateRotation(double currentRotation, double destinationRotation, double rotationSpeed)
         {
             double rotationAmount;
@@ -580,8 +597,9 @@ namespace Chraft.Entity
 
         protected void SendMetadataUpdate(bool notifyYourself = true)
         {
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
             foreach (
-                Client c in World.Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z))
+                Client c in World.Server.GetNearbyPlayersInternal(World, coords)
                 )
             {
                 if (ToSkip(c) && !notifyYourself)
@@ -602,8 +620,14 @@ namespace Chraft.Entity
         /// <remarks>This method uses the currently set Position because it relies upon the current BoundingBox and BlockPosition to be set also.</remarks>
         public virtual bool CanSpawnHere()
         {
-            return World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox).All(entity => !entity.PreventMobSpawning)
-                && !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.IsLiquid(block.Type));
+            //temp fix, need to route out cause of null entity
+            var entities = World.GetEntitiesWithinBoundingBoxExcludingEntity(null, BoundingBox) as IEnumerable<EntityBase>;
+            var blocks = !World.GetBlocksInBoundingBox(BoundingBox).Any(block => BlockHelper.Instance.IsLiquid(block.Type));
+            if (entities != null)
+            {
+                return entities.All(entity => !entity.PreventMobSpawning) && blocks;
+            }
+            return blocks;
         }
     }
 }

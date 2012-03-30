@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System.Linq;
-using Chraft.Commands;
-using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Plugins.Commands
 {
@@ -26,9 +29,9 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             if (tokens.Length < 1)
             {
@@ -36,8 +39,8 @@ namespace Chraft.Plugins.Commands
                 return;
             }
 
-            Client[] matchedClients = client.Owner.Server.GetClients(tokens[0]).ToArray();
-            Client clientToMute = null;
+            IClient[] matchedClients = client.GetServer().GetClients(tokens[0]).ToArray();
+            IClient clientToMute = null;
             if (matchedClients.Length < 1)
             {
                 client.SendMessage("Unknown Player");
@@ -54,7 +57,7 @@ namespace Chraft.Plugins.Commands
                 int exactMatchClient = -1;
                 for (int i = 0; i < matchedClients.Length; i++)
                 {
-                    if (matchedClients[i].Owner.DisplayName.ToLower() == tokens[0].ToLower())
+                    if (matchedClients[i].GetOwner().DisplayName.ToLower() == tokens[0].ToLower())
                         exactMatchClient = i;
                 }
 
@@ -69,13 +72,13 @@ namespace Chraft.Plugins.Commands
                     return;
                 }
             }
-            bool clientMuted = clientToMute.Owner.IsMuted;
-            clientToMute.Owner.IsMuted = !clientMuted;
+            bool clientMuted = clientToMute.GetOwner().IsMuted;
+            clientToMute.GetOwner().IsMuted = !clientMuted;
             clientToMute.SendMessage(clientMuted ? "You have been unmuted" : "You have been muted");
-            client.SendMessage(clientMuted ? clientToMute.Owner.DisplayName + " has been unmuted" : clientToMute.Owner.DisplayName + " has been muted");
+            client.SendMessage(clientMuted ? clientToMute.GetOwner().DisplayName + " has been unmuted" : clientToMute.GetOwner().DisplayName + " has been muted");
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/mute <Target> - Mutes or unmutes <Target>.");
         }

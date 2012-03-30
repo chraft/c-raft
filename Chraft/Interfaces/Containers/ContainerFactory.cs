@@ -17,7 +17,10 @@
 using System;
 using System.IO;
 using Chraft.Entity;
-using Chraft.Utils.Config;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Config;
 using Chraft.World;
 
 namespace Chraft.Interfaces.Containers
@@ -27,7 +30,7 @@ namespace Chraft.Interfaces.Containers
         public static PersistentContainer Instance(WorldManager world, UniversalCoords coords)
         {
             PersistentContainer container;
-            Chunk chunk = world.GetChunk(coords);
+            Chunk chunk = world.GetChunk(coords) as Chunk;
             if (chunk == null)
                 return null; 
             BlockData.Blocks block = chunk.GetType(coords);
@@ -145,7 +148,7 @@ namespace Chraft.Interfaces.Containers
             if (container == null)
                 return;
 
-            Chunk chunk = player.World.GetChunk(coords);
+            Chunk chunk = player.World.GetChunk(coords) as Chunk;
             if (chunk == null)
                 return;
             BlockData.Blocks block = chunk.GetType(coords);
@@ -188,7 +191,7 @@ namespace Chraft.Interfaces.Containers
             if (container == null)
                 return;
             container.RemoveInterface(containerInterface);
-            Chunk chunk = container.World.GetChunk(coords);
+            Chunk chunk = container.World.GetChunk(coords) as Chunk;
             if (chunk == null)
                 return;
             PersistentContainer unused;
@@ -205,7 +208,7 @@ namespace Chraft.Interfaces.Containers
             PersistentContainer container = Instance(world, coords);
             if (container == null)
                 return;
-            Chunk chunk = world.GetChunk(coords);
+            Chunk chunk = world.GetChunk(coords) as Chunk;
             if (chunk == null)
                 return;
             PersistentContainer unused;
@@ -224,7 +227,7 @@ namespace Chraft.Interfaces.Containers
 
         public static UniversalCoords[] GetDoubleChestCoords(WorldManager world, UniversalCoords coords)
         {
-            Chunk chunk = world.GetChunk(coords);
+            Chunk chunk = world.GetChunk(coords) as Chunk;
             if (chunk == null || !IsDoubleChest(chunk, coords))
                 return null;
             // Is this chest the "North or East", or the "South or West"

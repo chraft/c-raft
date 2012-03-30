@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Plugins.Listener;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
 
 namespace Chraft.Plugins.Events
 {
@@ -44,22 +43,22 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.WorldLoad:
+                case PluginSystem.Event.Event.WorldLoad:
                     OnWorldLoaded(e as WorldLoadEventArgs);
                     break;
-                case Event.WorldUnload:
+                case PluginSystem.Event.Event.WorldUnload:
                     OnLeveUnloaded(e as WorldUnloadEventArgs);
                     break;
-                case Event.WorldJoin:
+                case PluginSystem.Event.Event.WorldJoin:
                     OnWorldJoined(e as WorldJoinedEventArgs);
                     break;
-                case Event.WorldLeave:
+                case PluginSystem.Event.Event.WorldLeave:
                     OnWorldLeft(e as WorldLeftEventArgs);
                     break;
-                case Event.WorldCreate:
+                case PluginSystem.Event.Event.WorldCreate:
                     OnWorldCreated(e as WorldCreatedEventArgs);
                     break;
-                case Event.WorldDelete:
+                case PluginSystem.Event.Event.WorldDelete:
                     OnWorldDeleted(e as WorldDeletedEventArgs);
                     break;
             }
@@ -73,7 +72,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldLoad)
                     ll.OnWorldLoaded(e);
             }
@@ -82,7 +81,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldUnload)
                     ll.OnWorldUnloaded(e);
             }
@@ -91,7 +90,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldJoin)
                     ll.OnWorldJoined(e);
             }
@@ -100,7 +99,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldLeave)
                     ll.OnWorldLeft(e);
             }
@@ -109,7 +108,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldCreate)
                     ll.OnWorldCreated(e);
             }
@@ -118,7 +117,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener bl in Plugins)
             {
-                WorldListener ll = (WorldListener)bl.Listener;
+                IWorldListener ll = (IWorldListener)bl.Listener;
                 if (bl.Event == Event.WorldDelete)
                     ll.OnWorldDeleted(e);
             }

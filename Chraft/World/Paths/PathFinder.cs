@@ -19,9 +19,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Chraft.Entity;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.Utils;
 using Chraft.World.Blocks;
 using System;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Paths
 {
@@ -217,11 +220,11 @@ namespace Chraft.World.Paths
                 {
                     for (int z = start.WorldZ; z < start.WorldZ + size.Width; z++)
                     {
-                        StructBlock block = World.GetBlock(x, y, z);
+                        StructBlock block = (StructBlock)World.GetBlock(x, y, z);
                         if (block.Type <= 0)
                             continue;
-                        
-                        BlockBase blockClass = BlockHelper.Instance(block.Type);
+
+                        BlockBase blockClass = BlockHelper.Instance.CreateBlockInstance(block.Type);
                         if (blockClass is BlockBaseDoor)
                         {
                             if (!((BlockBaseDoor)blockClass).IsOpen(block))

@@ -16,7 +16,12 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Net;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -28,7 +33,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Cake;
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
@@ -37,8 +42,9 @@ namespace Chraft.World.Blocks
             base.NotifyDestroy(entity, sourceBlock, targetBlock);
         }
 
-        public void Interact(EntityBase entity, StructBlock block)
+        public void Interact(IEntityBase entity, IStructBlock iBlock)
         {
+            StructBlock block = (StructBlock) iBlock;
             // Eat the cake. No food restoration at the moment.
 
             // Restore hp/food

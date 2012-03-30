@@ -18,6 +18,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Collections.Generic;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 
@@ -25,11 +28,10 @@ namespace Chraft.Net.Packets
 {
     public class MapChunkPacket : Packet
     {
-        private const int DataDimension = 81920;
         public UniversalCoords Coords { get { return Chunk.Coords; } }
-        public byte SizeX { get { return 15; } }
+        /*public byte SizeX { get { return 15; } }
         public byte SizeY { get { return 127; } }
-        public byte SizeZ { get { return 15; } }
+        public byte SizeZ { get { return 15; } }*/
         public Chunk Chunk { get; set; }
 
         public override void Read(PacketReader stream)
@@ -61,11 +63,87 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            byte[] data = new byte[DataDimension];
+            int dataDim = (Chunk.SectionsNum * Section.BYTESIZE) + 256; // (Number of sections * (Section dimension + Add array) + Biome array
 
-            int i = 0;
+            byte[] data = new byte[dataDim];
 
-            Chunk.Types.CopyTo(data, i);
+            /*byte[] types = new byte[0];
+            byte[] metadata = new byte[0];
+            byte[] blockLight = new byte[0];
+            byte[] skyLight = new byte[0];
+
+            byte[] tempBlockLight = new byte[2048];
+            byte[] tempSkyLight = new byte[2048];
+
+            int primaryBitMask = 0;
+            ushort mask = 1;
+
+            for(int i = 0; i < 16; ++i)
+            {
+                Section currentSection = Chunk.Sections[i];
+                if(currentSection != null && currentSection.NonAirBlocks > 0)
+                {
+                    types = currentSection.Types.Concat(types).ToArray();
+                    metadata = currentSection.Data.Data.Concat(metadata).ToArray();
+
+                    Buffer.BlockCopy(Chunk.Light.Data, i * Section.HALFSIZE, tempBlockLight, 0, Section.HALFSIZE);
+                    Buffer.BlockCopy(Chunk.SkyLight.Data, i * Section.HALFSIZE, tempSkyLight, 0, Section.HALFSIZE);
+
+                    blockLight = tempBlockLight.Concat(blockLight).ToArray();
+                    skyLight = tempSkyLight.Concat(skyLight).ToArray();
+
+                    primaryBitMask |= mask;
+                }
+
+
+                mask <<= 1;
+            }
+
+            byte[] data = types.Concat(metadata).Concat(blockLight).Concat(skyLight).ToArray();*/
+
+            int halfSize = Chunk.SectionsNum * Section.HALFSIZE;
+            int offsetData = Chunk.SectionsNum * Section.SIZE;
+            int offsetLight = offsetData + halfSize;
+            int offsetSkyLight = offsetLight + halfSize;
+
+            int primaryBitMask = 0;
+            ushort mask = 1;
+            int sectionIndex = 0;
+            for (int i = 0; i < 16; ++i)
+            {
+                Section currentSection = Chunk.Sections[i];
+
+                //int typeIndex = i*Section.SIZE;
+                
+                if(currentSection != null && currentSection.NonAirBlocks > 0)
+                {
+                    Buffer.BlockCopy(currentSection.Types, 0, data, sectionIndex * Section.SIZE, Section.SIZE);
+                    Buffer.BlockCopy(currentSection.Data.Data, 0, data, offsetData + (sectionIndex * Section.HALFSIZE),
+                                     Section.HALFSIZE);
+
+                    Buffer.BlockCopy(Chunk.Light.Data, i * Section.HALFSIZE, data, offsetLight + (sectionIndex * Section.HALFSIZE),
+                                     Section.HALFSIZE);
+                    Buffer.BlockCopy(Chunk.SkyLight.Data, i * Section.HALFSIZE, data, offsetSkyLight + (sectionIndex * Section.HALFSIZE),
+                                     Section.HALFSIZE);
+
+                    
+                    primaryBitMask |= mask;
+                    ++sectionIndex;  
+                }
+
+                
+
+                mask <<= 1;
+
+                // TODO: we leave add array and biome array to 0 (ocean), we need to change the chunk generator accordingly
+            }
+
+            /*for (int j = 0; j < Chunk.SkyLight.Data.Length; ++j)
+            {
+                Logger.Log(LogLevel.Info, "-" + Chunk.SkyLight.Data[j]);
+            }
+            Console.WriteLine(" ");*/
+            /*Chunk.Types.CopyTo(data, i);
             i += Chunk.Types.Length;
 
             Chunk.Data.Data.CopyTo(data, i);
@@ -74,12 +152,12 @@ namespace Chraft.Net.Packets
             Chunk.Light.Data.CopyTo(data, i);
             i += Chunk.Light.Data.Length;
 
-            Chunk.SkyLight.Data.CopyTo(data, i);
+            Chunk.SkyLight.Data.CopyTo(data, i);*/
 
-            byte[] comp = new byte[DataDimension];
+            byte[] comp = new byte[data.Length];
             int len;
 
-#if PROFILE
+#if PROFILE_MAPCHUNK
             DateTime start = DateTime.Now;
 #endif
             // The ZlibStream gives up to 3ms faster with approx. 10bytes larger, but currently has a bug
@@ -113,25 +191,24 @@ namespace Chraft.Net.Packets
 
             DeflaterPool.Push(deflater);
             
-#if PROFILE
+#if PROFILE_MAPCHUNK
             DateTime end = DateTime.Now;
             TimeSpan deflateTime = end - start;
             int deflateLength = len;
             Console.WriteLine("1: {0}->{1}bytes in {2}ms", data.Length, deflateLength, deflateTime);
 #endif
 
-            SetCapacity(18 + len);
-            Writer.Write(Coords.WorldX);
-            Writer.Write((short)0);
-            Writer.Write(Coords.WorldZ);
-            Writer.Write(SizeX);
-            Writer.Write(SizeY);
-            Writer.Write(SizeZ);
-
+            SetCapacity(22 + len);
+            Writer.Write(Coords.ChunkX);
+            Writer.Write(Coords.ChunkZ);
+            Writer.Write(false); // Ground Up Continous
+            Writer.Write((ushort)primaryBitMask);
+            Writer.Write((ushort)0); // Add BitMask
             Writer.Write(len);
+            Writer.Write(0); // Unused
             Writer.Write(comp, 0, len);
 
-#if PROFILE
+#if PROFILE_MAPCHUNK
             start = DateTime.Now;
             comp = new byte[DataDimension];
 

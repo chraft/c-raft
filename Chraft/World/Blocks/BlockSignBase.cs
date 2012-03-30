@@ -19,6 +19,12 @@ using System.IO;
 using System.Linq;
 using Chraft.Entity;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -46,7 +52,7 @@ namespace Chraft.World.Blocks
             }
 
 
-            player.GetCurrentChunk().SignsText.TryAdd(coords.BlockPackedCoords, text);
+            (player.GetCurrentChunk() as Chunk).SignsText.TryAdd(coords.BlockPackedCoords, text);
             player.Server.SendPacketToNearbyPlayers(player.World, coords, new UpdateSignPacket { X = coords.WorldX, Y = coords.WorldY, Z = coords.WorldZ, Lines = lines });
         }
 
@@ -93,8 +99,11 @@ namespace Chraft.World.Blocks
             }
         }
 
-        public override void Destroy(EntityBase entity, StructBlock block)
+        public override void Destroy(IEntityBase iEntity, IStructBlock iBlock)
         {
+            EntityBase entity = iEntity as EntityBase;
+            StructBlock block = (StructBlock)iBlock;
+
             string folderPath = Path.Combine(entity.World.SignsFolder, "x" + block.Coords.ChunkX + "_z" + block.Coords.ChunkZ);
 
             if (Directory.Exists(folderPath))

@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Commands;
-using Chraft.Net;
-using Chraft.Net.Packets;
+
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Plugins.Commands
 {
@@ -26,9 +28,9 @@ namespace Chraft.Plugins.Commands
         {
             Iplugin = plugin;
         }
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient client, string commandName, string[] tokens)
         {
             int newTime = -1;
             if (tokens.Length < 1)
@@ -38,34 +40,35 @@ namespace Chraft.Plugins.Commands
             }
             if (int.TryParse(tokens[0], out newTime) && newTime >= 0 && newTime <= 24000)
             {
-                client.Owner.World.Time = newTime;
+                client.GetOwner().GetWorld().Time = newTime;
             }
             else if (tokens[0].ToLower() == "sunrise")
             {
-                client.Owner.World.Time = 0;
+                client.GetOwner().GetWorld().Time = 0;
             }
             else if (tokens[0].ToLower() == "day")
             {
-                client.Owner.World.Time = 6000;
+                client.GetOwner().GetWorld().Time = 6000;
             }
             else if (tokens[0].ToLower() == "sunset")
             {
-                client.Owner.World.Time = 12000;
+                client.GetOwner().GetWorld().Time = 12000;
             }
 
             else if (tokens[0].ToLower() == "night")
             {
-                client.Owner.World.Time = 18000;
+                client.GetOwner().GetWorld().Time = 18000;
             }
             else
             {
                 client.SendMessage("You must specify a time value between 0 and 24000 or <sunrise|day|sunset|night>");
                 return;
             }
-            client.Owner.Server.Broadcast(new TimeUpdatePacket { Time = client.Owner.World.Time });
+
+            client.GetServer().BroadcastTimeUpdate(client.GetOwner().GetWorld());
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/time <Sunrise | Day | Sunset | Night | Raw> - Sets the time.");
         }

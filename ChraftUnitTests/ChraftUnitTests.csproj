@@ -31,7 +31,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.ServiceProcess" />
@@ -49,6 +48,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Chraft.PluginSystem\Chraft.PluginSystem.csproj">
+      <Project>{3DA36E6F-3100-40D9-A096-F7075F07C7C1}</Project>
+      <Name>Chraft.PluginSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Chraft.Utilities\Chraft.Utilities.csproj">
+      <Project>{cce78b48-1352-4746-a14e-dcb18bb5cca2}</Project>
+      <Name>Chraft.Utilities</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ChraftServer\ChraftServer.csproj">
       <Project>{B4D5F30B-91D3-482A-8C4A-F5CEB4FE9AAB}</Project>
       <Name>ChraftServer</Name>

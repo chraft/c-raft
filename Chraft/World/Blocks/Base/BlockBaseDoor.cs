@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using Chraft.Entity;
 using Chraft.Net;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
     public abstract class BlockBaseDoor : BlockBase
     {
@@ -28,8 +33,9 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock)iBlock;
             LivingEntity living = entity as LivingEntity;
             if (living == null)
                 return;
@@ -50,7 +56,7 @@ namespace Chraft.World.Blocks
                 default:
                     return;
             }
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
   
         public virtual bool IsOpen(StructBlock block)
@@ -80,7 +86,7 @@ namespace Chraft.World.Blocks
                 UniversalCoords upperBlock = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                        block.Coords.WorldZ);
                 StructBlock upperHalf = new StructBlock(upperBlock, (byte)Type, (byte)(block.MetaData | 8), block.World);
-                BlockHelper.Instance((byte)Type).Spawn(upperHalf);
+                BlockHelper.Instance.CreateBlockInstance((byte)Type).Spawn(upperHalf);
             }
         }
     }

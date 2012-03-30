@@ -19,6 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Chraft.Entity;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 
 namespace Chraft.World.Paths
 {

@@ -22,17 +22,20 @@ using System.Linq;
 using System.Net.Sockets;
 using Chraft.Entity;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 using System.Threading;
 using Chraft.World.Blocks;
 using Chraft.World.Weather;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using Chraft.PluginSystem;
 
 namespace Chraft.Net
 {
-    public partial class Client 
+    public partial class Client : IClient
     {
         public ConcurrentQueue<Packet> PacketsToBeSent = new ConcurrentQueue<Packet>();
         public ConcurrentQueue<Chunk> ChunksToBeSent = new ConcurrentQueue<Chunk>();
@@ -44,8 +47,10 @@ namespace Chraft.Net
 
         private DateTime _lastChunkTimerStart = DateTime.MinValue;
         private int _startDelay;
-        public void SendPacket(Packet packet)
+
+        internal void SendPacket(IPacket iPacket)
         {
+            Packet packet = iPacket as Packet;
             if (!Running)
                 return;
 
@@ -64,7 +69,7 @@ namespace Chraft.Net
 
             Server.NetworkSignal.Set();
 
-            //Logger.Log(Chraft.Logger.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());           
+            //Logger.Log(Chraft.LogLevel.Info, "Sending packet: {0}", packet.GetPacketType().ToString());           
         }
 
         private void Send_Async(byte[] data)
@@ -104,7 +109,7 @@ namespace Chraft.Net
             }         
         }
 
-        public void Send_Sync_Packet(Packet packet)
+        internal void Send_Sync_Packet(Packet packet)
         {
             packet.Write();
             Send_Sync(packet.GetBuffer());
@@ -170,8 +175,8 @@ namespace Chraft.Net
                 MarkToDispose();
                 DisposeSendSystem();
                 if(packet != null)
-                    Logger.Log(Logger.LogLevel.Error, "Sending packet: {0}", packet.ToString());
-                Logger.Log(Logger.LogLevel.Error, e.ToString());
+                    Logger.Log(LogLevel.Error, "Sending packet: {0}", packet.ToString());
+                Logger.Log(LogLevel.Error, e.ToString());
 
                 // TODO: log something?
             }
@@ -234,17 +239,16 @@ namespace Chraft.Net
 
         #region Login
 
-        public void SendLoginRequest()
+        internal void SendLoginRequest()
         {
             Send_Sync_Packet(new LoginRequestPacket
             {
                 ProtocolOrEntityId = _player.EntityId,
                 Dimension = _player.World.Dimension,
                 Username = "",
-                MapSeed = _player.World.Seed,
                 WorldHeight = 128,
                 MaxPlayers = 50,
-                Unknown = 2
+                Difficulty = 2
             });
         }
 
@@ -261,7 +265,7 @@ namespace Chraft.Net
                 Send_Sync_Packet(packet);
         }
 
-        public void SendInitialPosition(bool async = true)
+        internal void SendInitialPosition(bool async = true)
         {
             if(async)
                 SendPacket(new PlayerPositionRotationPacket
@@ -287,7 +291,7 @@ namespace Chraft.Net
                 });
         }
 
-        public void SendSpawnPosition(bool async = true)
+        internal void SendSpawnPosition(bool async = true)
         {
             Packet packet = new SpawnPositionPacket
             {
@@ -302,12 +306,12 @@ namespace Chraft.Net
                 Send_Sync_Packet(packet);
         }
 
-        public void SendHandshake()
+        internal void SendHandshake()
         {
             SendPacket(new HandshakePacket
             {
 
-                UsernameOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
+                UsernameAndIpOrHash = (Server.UseOfficalAuthentication ? Server.ServerHash : "-")
                 //UsernameOrHash = "-" // No authentication
                 //UsernameOrHash = this.Server.ServerHash // Official Minecraft server authentication
             });
@@ -315,7 +319,7 @@ namespace Chraft.Net
 
         public bool WaitForInitialPosAck;
 
-        public void SendLoginSequence()
+        internal void SendLoginSequence()
         {
             foreach(Client client in Server.GetAuthenticatedClients())
             {
@@ -339,7 +343,7 @@ namespace Chraft.Net
             SendInitialPosition(false);            
         }
 
-        public void SendSecondLoginSequence()
+        internal void SendSecondLoginSequence()
         {           
             SendInitialTime(false);
             SetGameMode();
@@ -398,6 +402,7 @@ namespace Chraft.Net
                 Send_Sync_Packet(new MapChunkPacket
                 {
                     Chunk = chunk,
+                    Logger = Logger
                 });
         }
 
@@ -411,6 +416,7 @@ namespace Chraft.Net
                 SendPacket(new MapChunkPacket
                 {
                     Chunk = chunk,
+                    Logger = Logger
                 });
             }
 
@@ -472,10 +478,10 @@ namespace Chraft.Net
 
         #region Entities
 
-        public void SendCreateEntity(EntityBase entity)
+        internal void SendCreateEntity(EntityBase entity)
         {
             Packet packet;
-            if ((packet = Server.GetSpawnPacket(Server, entity)) != null)
+            if ((packet = (Server.GetSpawnPacket(entity) as Packet)) != null)
             {
                 if (packet is NamedEntitySpawnPacket)
                 {
@@ -520,7 +526,7 @@ namespace Chraft.Net
             });
         }
 
-        public void SendDestroyEntity(EntityBase entity)
+        internal void SendDestroyEntity(EntityBase entity)
         {
             SendPacket(new DestroyEntityPacket
             {
@@ -591,7 +597,7 @@ namespace Chraft.Net
 
         #region Clients
 
-        public void SendHoldingEquipment(Client c) // Updates entity holding via 0x05
+        internal void SendHoldingEquipment(Client c) // Updates entity holding via 0x05
         {
             SendPacket(new EntityEquipmentPacket
             {
@@ -602,7 +608,7 @@ namespace Chraft.Net
             });
         }
 
-        public void SendEntityEquipment(Client c, short slot) // Updates entity equipment via 0x05
+        internal void SendEntityEquipment(Client c, short slot) // Updates entity equipment via 0x05
         {
             SendPacket(new EntityEquipmentPacket
             {
@@ -615,7 +621,7 @@ namespace Chraft.Net
 
         #endregion
 
-        public void SendWeather(WeatherState weather, UniversalCoords coords)
+        internal void SendWeather(WeatherState weather, UniversalCoords coords)
         {
 
             //throw new NotImplementedException();

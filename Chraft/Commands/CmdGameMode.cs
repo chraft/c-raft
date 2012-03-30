@@ -18,17 +18,23 @@ using System;
 using System.Linq;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
+using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 
 namespace Chraft.Commands
 {
     internal class CmdGameMode : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iclient, string commandName, string[] tokens)
         {
+            Client client = iclient as Client;
             switch (tokens.Length)
             {
                 case 0:
@@ -43,7 +49,7 @@ namespace Chraft.Commands
                             break;
                         }
                     }
-                    Client c = client.Owner.Server.GetClients(tokens[0]).FirstOrDefault();
+                    Client c = client.Owner.Server.GetClients(tokens[0]).FirstOrDefault() as Client;
                     if (c != null)
                     {
                         if (c.Owner.GameMode == Convert.ToByte(tokens[1]))
@@ -71,9 +77,9 @@ namespace Chraft.Commands
             });
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
-            client.SendMessage("/gamemode <player> [0|1]");
+            (client as Client).SendMessage("/gamemode <player> [0|1]");
         }
 
         public string Name

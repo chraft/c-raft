@@ -19,17 +19,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
+using Chraft.Utilities;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 
 namespace Chraft.Commands.Debug
 {
     public class DbgPos : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             if (tokens.Length == 0)
             {
                 client.SendMessage(String.Format("§7Your position: X={0:0.00},Y={1:0.00},Z={2:0.00}, Yaw={3:0.00}, Pitch={4:0.00}", client.Owner.Position.X, client.Owner.Position.Y, client.Owner.Position.Z, client.Owner.Yaw, client.Owner.Pitch));
@@ -44,7 +51,7 @@ namespace Chraft.Commands.Debug
             }
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
 
         }

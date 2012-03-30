@@ -17,19 +17,26 @@
 using System;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utils;
 using Chraft.World;
 
 
 namespace Chraft.Entity {
-    partial class Mob {
+    partial class Mob
+    {
 
         // Behaviour junk
         private bool AIWaiting;
-        public bool Hunter; // Is this mob capable of tracking entities?
-        public bool Hunting; // Is this mob currently tracking an entity?
+        public bool Hunter { get; internal set; } // Is this mob capable of tracking entities?
+        public bool Hunting { get; internal set; } // Is this mob currently tracking an entity?
 
-        public void Update()
+        // TODO: this hides the inherited Update from EntityBase, change this
+        internal void Update()
         {
             
             // TODO: Theory of Cosines to get direction heading from yaw or pitch.
@@ -71,7 +78,7 @@ namespace Chraft.Entity {
             if (Velocity.Z != 0)
             {
                 double zOffset = (Position.Z + Velocity.Z);
-                Chunk chunk = World.GetChunkFromAbs(Position.X, zOffset);
+                Chunk chunk = World.GetChunkFromAbs(Position.X, zOffset) as Chunk;
 
                 if (chunk == null)
                     return;
@@ -86,7 +93,7 @@ namespace Chraft.Entity {
             {
                 double xOffset = (Position.X + Velocity.X);
 
-                Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z);
+                Chunk chunk = World.GetChunkFromAbs(Position.X, Position.Z) as Chunk;
 
                 if (chunk == null)
                     return;
@@ -112,7 +119,7 @@ namespace Chraft.Entity {
             UpdatePosition();
         }
 
-        public void UpdatePosition() {
+        internal void UpdatePosition() {
             this.Position = new AbsWorldCoords(this.Position.ToVector() + Velocity);
             EntityTeleportPacket et = new EntityTeleportPacket
             {
@@ -124,7 +131,7 @@ namespace Chraft.Entity {
                 Pitch = this.PackedPitch
             };
             World.Server.SendPacketToNearbyPlayers(World,
-                                                   UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), 
+                                                   UniversalCoords.FromAbsWorld(Position), 
                                                    et);
         }
     }

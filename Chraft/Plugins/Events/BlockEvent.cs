@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Plugins.Events.Args;
-using Chraft.Plugins.Listener;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
 
 namespace Chraft.Plugins.Events
 {
@@ -43,17 +42,17 @@ namespace Chraft.Plugins.Events
         private List<Event> events = new List<Event>();
         private List<EventListener> plugins = new List<EventListener>();
 
-        public void CallEvent(Event Event, Args.ChraftEventArgs e)
+        public void CallEvent(Event Event, ChraftEventArgs e)
         {
             switch (Event)
             {
-                case Event.BlockDestroy:
+                case PluginSystem.Event.Event.BlockDestroy:
                     OnDestroy(e as BlockDestroyEventArgs);
                     break;
-                case Event.BlockPlace:
+                case PluginSystem.Event.Event.BlockPlace:
                     OnPlace(e as BlockPlaceEventArgs);
                     break;
-                case Event.BlockTouch:
+                case PluginSystem.Event.Event.BlockTouch:
                     OnTouch(e as BlockTouchEventArgs);
                     break;
             }
@@ -71,7 +70,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockDestroy)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnDestroy(e);
                 }
             }
@@ -82,7 +81,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockPlace)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnPlace(e);
                 }
             }
@@ -93,7 +92,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.BlockTouch)
                 {
-                    BlockListener l = el.Listener as BlockListener;
+                    IBlockListener l = el.Listener as IBlockListener;
                     l.OnTouch(e);
                 }
             }

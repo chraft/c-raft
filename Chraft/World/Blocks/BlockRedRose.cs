@@ -16,6 +16,10 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -32,7 +36,7 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0.3, 0, 0.3, 0.7, 0.6, 0.7);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&

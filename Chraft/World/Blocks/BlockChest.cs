@@ -17,6 +17,12 @@
 using Chraft.Entity;
 using Chraft.Net;
 using Chraft.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -114,20 +120,20 @@ namespace Chraft.World.Blocks
             return direction;
         }
 
-        public override void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if (sourceBlock.Type == (byte)BlockData.Blocks.Chest)
                 targetBlock.World.SetBlockData(targetBlock.Coords, sourceBlock.MetaData);
             base.NotifyPlace(entity, sourceBlock, targetBlock);
         }
 
-        public void Interact(EntityBase entity, StructBlock block)
+        public void Interact(IEntityBase entity, StructBlock block)
         {
             if (block.Coords.WorldY < 127)
             {
                 // Cannot open a chest if no space is above it
                 byte? blockId = block.World.GetBlockId(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
-                if (blockId == null || !BlockHelper.IsAir((byte)blockId))
+                if (blockId == null || !BlockHelper.Instance.IsAir((byte)blockId))
                     return;
             }
             base.Interact(entity, block);
