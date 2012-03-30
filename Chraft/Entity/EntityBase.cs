@@ -18,17 +18,30 @@ using System;
 using System.Collections.Generic;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
-using Chraft.Plugins.Events.Args;
 using Chraft.World.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.Entity
 {
     /// <summary>
     /// Represents an entity, including clients (players), item drops, mobs, and vehicles.
     /// </summary>
-    public abstract partial class EntityBase : IEquatable<EntityBase>
+    public abstract class EntityBase : IEquatable<EntityBase>, IEntityBase
     {
         /// <summary>
         /// The out of date warning threshold in Ticks (e.g. if 5, warning will output to console if 5 ticks behind world tick).
@@ -36,7 +49,7 @@ namespace Chraft.Entity
         public static int LagWarningThreshold = 5; 
         
         public int EntityId { get; private set; }
-        public WorldManager World { get; set; }
+        internal WorldManager World { get; set; }
   
         public bool NoClip { get; set; }
         public BoundingBox BoundingBox { get; set; }
@@ -51,7 +64,7 @@ namespace Chraft.Entity
         /// <param name='entity'>
         /// Entity to produce collision box based on.
         /// </param>
-        public virtual BoundingBox? GetCollisionBox(EntityBase entity)
+        public virtual BoundingBox? GetCollisionBox(IEntityBase entity)
         {
             return null;
         }
@@ -61,7 +74,7 @@ namespace Chraft.Entity
         public bool HasCollidedVertically { get; set; }
         public bool OnGround { get; set; }
         public float FallDistance { get; set; }
-        public EntityBase RiddenBy { get; set; }
+        internal EntityBase RiddenBy { get; set; }
         
         public float Height { get; set; }
         public float Width { get; set; }
@@ -91,7 +104,7 @@ namespace Chraft.Entity
 
         public sbyte PackedYaw { get { return (sbyte)(this.Yaw / 360.0 * 256.0 % 256.0); } }
 
-        public Server Server { get; private set; }
+        internal Server Server { get; private set; }
         
         public int TicksInWorld;
         public int StartTick;
@@ -135,6 +148,21 @@ namespace Chraft.Entity
             this.UpdateFrequency = 1;
         }
 
+        public IWorldManager GetWorld()
+        {
+            return World;
+        }
+
+        public IServer GetServer()
+        {
+            return Server;
+        }
+
+        public IEntityBase GetRiddenBy()
+        {
+            return RiddenBy;
+        }
+
         protected void EnsureServer(Server server)
         {
             if (Server == null)
@@ -148,7 +176,7 @@ namespace Chraft.Entity
         /// This method will automatically catch up with the current WorldTicks to ensure the entity
         /// is in synch with the world
         /// </remarks>
-        public void Update()
+        internal void Update()
         {
             if (this.TicksInWorld == 0)
                 this.StartTick = this.World.WorldTicks;
@@ -168,7 +196,7 @@ namespace Chraft.Entity
             
             if (loopCount > LagWarningThreshold)
             {
-                Server.Logger.Log(Logger.LogLevel.Warning, "Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
+                Server.Logger.Log(LogLevel.Warning, "Entity {0}'s ({1}) update method was behind by {2} ticks.", this.EntityId, this.GetType().Name, loopCount-1);
             }
         }
         
@@ -189,11 +217,11 @@ namespace Chraft.Entity
             if (blockId == null)
                 return;
 
-            BlockBase blockClass = BlockHelper.Instance((byte)blockId);
+            BlockBase blockClass = BlockHelper.Instance.CreateBlockInstance((byte)blockId);
 
             if (blockClass == null)
             {
-                Server.Logger.Log(Logger.LogLevel.Error, "Block class not found for block type Id {0}", blockId);
+                Server.Logger.Log(LogLevel.Error, "Block class not found for block type Id {0}", blockId);
                 return;
             }
 
@@ -213,7 +241,7 @@ namespace Chraft.Entity
                     if (adjBlockId == null)
                         return;
 
-                    var adjacentBlockClass = BlockHelper.Instance((byte)adjBlockId);
+                    var adjacentBlockClass = BlockHelper.Instance.CreateBlockInstance((byte)adjBlockId) as BlockBase;
                     
                     if (!(adjacentBlockClass.IsOpaque && adjacentBlockClass.IsSolid))
                     {
@@ -284,11 +312,11 @@ namespace Chraft.Entity
             }
         }
 
-        public virtual List<StructBlock> GetNearbyBlocks()
+        public virtual List<IStructBlock> GetNearbyBlocks()
         {
             BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
 
-            List<StructBlock> touchedBlocks = new List<StructBlock>();
+            List<IStructBlock> touchedBlocks = new List<IStructBlock>();
 
             // Notify blocks of collisions with an entity
             UniversalCoords minCoords = UniversalCoords.FromAbsWorld(touchCheckBoundingBox.Minimum.X, touchCheckBoundingBox.Minimum.Y, touchCheckBoundingBox.Minimum.Z);
@@ -301,7 +329,7 @@ namespace Chraft.Entity
                     {
                         for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
                         {
-                            var block = this.World.GetBlock(x, y, z);
+                            var block = (StructBlock)this.World.GetBlock(x, y, z);
                             touchedBlocks.Add(block);
                         }
                     }
@@ -310,7 +338,7 @@ namespace Chraft.Entity
             return touchedBlocks;
         }
 
-        public virtual void TouchNearbyBlocks()
+        internal virtual void TouchNearbyBlocks()
         {
             // TODO: notify blocks of collisions + play sounds
             BoundingBox touchCheckBoundingBox = this.BoundingBox.Contract(new Vector3(0.001, 0.001, 0.001));
@@ -326,7 +354,7 @@ namespace Chraft.Entity
                 {                 
                     for (int z = minCoords.WorldZ; z <= maxCoords.WorldZ; z++)
                     {
-                        Chunk chunk = World.GetChunkFromWorld(x, z);
+                        Chunk chunk = World.GetChunkFromWorld(x, z) as Chunk;
 
                         if (chunk == null)
                             continue;
@@ -336,7 +364,7 @@ namespace Chraft.Entity
                             var block = chunk.GetBlock(x & 0xF, y, z & 0xF);
                             if (block.Type > 0)
                             {
-                                var blockClass = BlockHelper.Instance(block.Type);
+                                var blockClass = BlockHelper.Instance.CreateBlockInstance(block.Type);
 
                                 #region Calculate closest face of block (precedence, x, z, y)
                                 Vector3 v = thisPosition - new Vector3(x, y, z);
@@ -448,7 +476,7 @@ namespace Chraft.Entity
         /// <param name='onGround'>
         /// On ground?
         /// </param>
-        public virtual void AddFallingDistance(double distance, bool onGround)
+        internal virtual void AddFallingDistance(double distance, bool onGround)
         {
             if (onGround)
             {
@@ -489,7 +517,7 @@ namespace Chraft.Entity
                      
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.EntityMove, e);
+            Server.PluginManager.CallEvent(Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event
@@ -510,9 +538,10 @@ namespace Chraft.Entity
             OnMoveTo(dx, dy, dz);
         }
 
-        public virtual void OnMoveTo(sbyte x, sbyte y, sbyte z)
+        internal virtual void OnMoveTo(sbyte x, sbyte y, sbyte z)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (Client c in Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (!ToSkip(c))
                     c.SendMoveBy(this, x, y, z);
@@ -533,9 +562,10 @@ namespace Chraft.Entity
             return true;
         }
 
-        public virtual void OnTeleportTo(AbsWorldCoords absCoords)
+        internal virtual void OnTeleportTo(AbsWorldCoords absCoords)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, absCoords))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(absCoords);
+            foreach (Client c in Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (!ToSkip(c))
                     c.SendTeleportTo(this);
@@ -555,9 +585,10 @@ namespace Chraft.Entity
             OnRotateTo();
         }
 
-        public virtual void OnRotateTo()
+        internal virtual void OnRotateTo()
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (Client c in Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (!ToSkip(c))
                     c.SendRotateBy(this, PackedYaw, PackedPitch);
@@ -579,7 +610,7 @@ namespace Chraft.Entity
 
             //Event
             EntityMoveEventArgs e = new EntityMoveEventArgs(this, newPosition, Position);
-            Server.PluginManager.CallEvent(Plugins.Events.Event.EntityMove, e);
+            Server.PluginManager.CallEvent(Event.EntityMove, e);
             if (e.EventCanceled) return;
             newPosition = e.NewPosition;
             //End Event
@@ -604,16 +635,17 @@ namespace Chraft.Entity
             
         }
 
-        public virtual void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
+        internal virtual void OnMoveRotateTo(sbyte x, sbyte y, sbyte z)
         {
-            foreach (Client c in Server.GetNearbyPlayers(World, new AbsWorldCoords(Position.X, Position.Y, Position.Z)))
+            UniversalCoords coords = UniversalCoords.FromAbsWorld(Position);
+            foreach (Client c in Server.GetNearbyPlayersInternal(World, coords))
             {
                 if (!ToSkip(c))
                     c.SendMoveRotateBy(this, x, y, z, PackedYaw, PackedPitch);
             }
         }
 
-        public virtual bool ToSkip(Client c)
+        internal virtual bool ToSkip(Client c)
         {
             return false;
         }
@@ -623,7 +655,7 @@ namespace Chraft.Entity
             return other.EntityId == EntityId;
         }
 
-        public void ApplyEntityCollision(EntityBase entity)
+        internal void ApplyEntityCollision(EntityBase entity)
         {
             if (this.RiddenBy == entity || entity.RiddenBy == this)
                 return;
@@ -657,22 +689,5 @@ namespace Chraft.Entity
         }
     }
 
-    public enum DamageCause
-    {
-        Contact,
-        EntityAttack,
-        Projectile,
-        Suffocation,
-        Fall,
-        Fire,
-        FireBurn,
-        Lava,
-        Drowning,
-        BlockExplosion,
-        EntityExplosion,
-        Void,
-        Lightning,
-        Cactus,
-        Custom
-    }
+    
 }

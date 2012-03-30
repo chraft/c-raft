@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using Chraft.Entity;
 using Chraft.Interfaces.Containers;
 using Chraft.Net;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
     public abstract class BlockBaseContainer : BlockBase, IBlockInteractive
     {
@@ -28,8 +31,10 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock) iBlock;
+            StructBlock targetBlock = (StructBlock) targetIBlock;
             LivingEntity living = (entity as LivingEntity);
             if (living == null)
                 return;
@@ -93,11 +98,11 @@ namespace Chraft.World.Blocks
         protected override void UpdateWorld(StructBlock block, bool isDestroyed = false)
         {
             if (isDestroyed)
-                ContainerFactory.Destroy(block.World, block.Coords);
+                ContainerFactory.Destroy((WorldManager)block.World, block.Coords);
             base.UpdateWorld(block, isDestroyed);
         }
 
-        public void Interact(EntityBase entity, StructBlock block)
+        public void Interact(IEntityBase entity, IStructBlock block)
         {
             Player player = entity as Player;
             if (player == null)

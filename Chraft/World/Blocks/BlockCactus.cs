@@ -17,7 +17,15 @@
 using System.Linq;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -59,7 +67,7 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(who, block, targetBlock, targetSide);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock thisBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock thisBlock)
         {
             if ((thisBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 thisBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&
@@ -68,8 +76,9 @@ namespace Chraft.World.Blocks
             base.NotifyDestroy(entity, sourceBlock, thisBlock);
         }
 
-        public bool CanGrow(StructBlock block, Chunk chunk)
+        public bool CanGrow(IStructBlock block, IChunk iChunk)
         {
+            Chunk chunk = iChunk as Chunk;
             if (chunk == null)
                 return false;
 
@@ -104,7 +113,7 @@ namespace Chraft.World.Blocks
             chunk.ForNSEW(oneUp,
                 delegate(UniversalCoords uc)
                 {
-                    byte? nearbyBlockId = block.World.GetBlockId(uc);
+                    byte? nearbyBlockId = block.WorldInterface.GetBlockId(uc);
                     if (nearbyBlockId == null || nearbyBlockId != (byte)BlockData.Blocks.Air)
                         isAir = false;
                 });
@@ -115,9 +124,11 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        public void Grow(StructBlock block, Chunk chunk)
+        public void Grow(IStructBlock iBlock, IChunk ichunk)
         {
-            if (!CanGrow(block, chunk))
+            Chunk chunk = (Chunk) ichunk;
+            StructBlock block = (StructBlock) iBlock;
+            if (!CanGrow(block, ichunk))
                 return;
 
             UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
@@ -133,8 +144,9 @@ namespace Chraft.World.Blocks
             Spawn(newCactus);
         }
 
-        public override void Touch(EntityBase entity, StructBlock block, BlockFace face)
+        public override void Touch(IEntityBase ientity, IStructBlock iBlock, BlockFace face)
         {
+            EntityBase entity = (EntityBase) ientity;
             if (!entity.Server.GetEntities().Contains(entity))
                 return;
             if (entity is ItemEntity)

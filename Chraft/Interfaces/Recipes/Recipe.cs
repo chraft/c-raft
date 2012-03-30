@@ -41,7 +41,7 @@ namespace Chraft.Interfaces.Recipes
 			List<ItemStack> ings = new List<ItemStack>();
 			for (int h = 0; h < ingredients.GetLength(0); h++)
 				for (int w = 0; w < ingredients.GetLength(1); w++)
-					if (!ItemStack.IsVoid(ingredients[h, w]))
+                    if (ingredients[h, w] != null && !ingredients[h, w].IsVoid())
 						ings.Add(ingredients[h, w]);
 			Ingredients2 = ings.ToArray();
 		}
@@ -62,7 +62,7 @@ namespace Chraft.Interfaces.Recipes
 						{
 							ItemStack ing1 = Ingredients3[y - h, x - w];
 							ItemStack ing2 = ingredients[y * s + x];
-                            if (ItemStack.IsVoid(ing1) && ItemStack.IsVoid(ing2))
+                            if (ing1.IsVoid() && ing2.IsVoid())
                                 continue;
                             else if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 								continue;
@@ -142,7 +142,7 @@ namespace Chraft.Interfaces.Recipes
             int result = 0;
             foreach (ItemStack item in ingredients)
             {
-                if (ItemStack.IsVoid(item))
+                if (item.IsVoid())
                     result++;
             }
 
@@ -169,7 +169,7 @@ namespace Chraft.Interfaces.Recipes
                 // Based on assumption about load order: simply getting the next non-void ingredient will match the current recipe ingredient, then subtract the number required.
                 for (int i = indx; i < ingredients.Length; i++)
                 {
-                    if (!ItemStack.IsVoid(ingredients[i]))
+                    if (!ingredients[i].IsVoid())
                     {
                         ingredients[i].Count -= item.Count;
                         indx = i + 1;

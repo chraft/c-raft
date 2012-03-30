@@ -15,21 +15,28 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
 
 namespace Chraft.Commands
 {
     internal class CmdSpawn : IClientCommand
     {
-        public ClientCommandHandler ClientCommandHandler { get; set; }
+        public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             client.Owner.TeleportTo(UniversalCoords.ToAbsWorld(client.Owner.World.Spawn));
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/spawn - Teleports you to the spawn.");
         }

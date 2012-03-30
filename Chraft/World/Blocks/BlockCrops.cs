@@ -17,7 +17,13 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Interfaces;
-using Chraft.World.Blocks.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -32,7 +38,7 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public bool CanGrow(StructBlock block, Chunk chunk)
+        public bool CanGrow(IStructBlock block, IChunk chunk)
         {
             // Crops grow from 0x0 to 0x7
             if (chunk == null || block.MetaData == 0x07)
@@ -48,26 +54,31 @@ namespace Chraft.World.Blocks
 
         protected override void DropItems(EntityBase who, StructBlock block, List<ItemStack> overridedLoot = null)
         {
+            WorldManager world = block.World as WorldManager;
+            Server server = world.Server;
+
             overridedLoot = new List<ItemStack>();
             // TODO: Fully grown drops 1 Wheat & 0-3 Seeds. 0 seeds - very rarely
             if (block.MetaData == 7)
             {
                 overridedLoot.Add(new ItemStack((short)BlockData.Items.Wheat, 1));
-                sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
+                sbyte seeds = (sbyte)server.Rand.Next(3);
                 if (seeds > 0)
                     overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
             }
             else if (block.MetaData >= 5)
             {
-                sbyte seeds = (sbyte)block.World.Server.Rand.Next(3);
+                sbyte seeds = (sbyte)server.Rand.Next(3);
                 if (seeds > 0)
                     overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
             }
             base.DropItems(who, block, overridedLoot);
         }
 
-        public void Grow(StructBlock block, Chunk chunk)
+        public void Grow(IStructBlock iBlock, IChunk chunk)
         {
+            StructBlock block = (StructBlock) iBlock;
+            
             if (!CanGrow(block, chunk))
                 return;
 
@@ -77,17 +88,17 @@ namespace Chraft.World.Blocks
 
             // TODO: Check if the blocks nearby are hydrated and grow faster
             if (block.World.Server.Rand.Next(10) == 0)
-                chunk.SetData(block.Coords, ++block.MetaData);
+                (chunk as Chunk).SetData(block.Coords, ++block.MetaData);
         }
 
         protected override bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            if (!BlockHelper.IsPlowed(targetBlock.Type) || targetSide != BlockFace.Up)
+            if (!BlockHelper.Instance.IsPlowed(targetBlock.Type) || targetSide != BlockFace.Up)
                 return false;
             return base.CanBePlacedOn(who, targetBlock, targetBlock, targetSide);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&

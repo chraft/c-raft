@@ -17,7 +17,12 @@
 using System;
 using Chraft.Entity;
 using Chraft.Interfaces;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utils;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks.Physics
 {
@@ -55,13 +60,13 @@ namespace Chraft.World.Blocks.Physics
 
         protected override void OnStop()
         {
-            UniversalCoords currentBlockCoords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
+            UniversalCoords currentBlockCoords = UniversalCoords.FromAbsWorld(Position);
             byte? blockId = World.GetBlockId(currentBlockCoords);
 
             if (blockId == null)
                 return;
 
-            if (BlockHelper.IsAir((byte)blockId))
+            if (BlockHelper.Instance.IsAir((byte)blockId))
             {
                 World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
             }
@@ -71,7 +76,7 @@ namespace Chraft.World.Blocks.Physics
                                                                              currentBlockCoords.WorldY + 1,
                                                                              currentBlockCoords.WorldZ);
                 StructBlock aboveBlock = new StructBlock(aboveBlockCoords, BlockId, 0, World);
-                BlockHelper.Instance(BlockId).Spawn(aboveBlock);
+                BlockHelper.Instance.CreateBlockInstance(BlockId).Spawn(aboveBlock);
 
                 foreach (LivingEntity living in World.Server.GetNearbyLivings(World, aboveBlockCoords))
                 {

@@ -23,6 +23,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Net;
 using Chraft.Net.Packets;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 
 namespace ChraftTestClient
@@ -105,7 +107,7 @@ namespace ChraftTestClient
             _receiveQueueReader.Start();
             Task.Factory.StartNew(RecvPacket);
 
-            SendPacket(new HandshakePacket{UsernameOrHash = _userName});
+            SendPacket(new HandshakePacket { UsernameAndIpOrHash = _userName });
         }
 
         public void StartTimer()

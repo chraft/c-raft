@@ -18,6 +18,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Interfaces;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.Net;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
+using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -90,23 +99,23 @@ namespace Chraft.Entity.Mobs
             return WoolColor.White;
         }
 
-        protected override void DoInteraction(Client client, Interfaces.ItemStack item)
+        protected override void DoInteraction(IClient client, IItemStack item)
         {
             base.DoInteraction(client, item);
 
-            if (client != null && !Interfaces.ItemStack.IsVoid(item))
+            if (client != null && item != null && !item.IsVoid())
             {
-                if (item.Type == (short)Chraft.World.BlockData.Items.Shears && !Data.Sheared)
+                if (item.Type == (short)BlockData.Items.Shears && !Data.Sheared)
                 {
                     // Drop wool when sheared
                     sbyte count = (sbyte)Server.Rand.Next(2, 4);
                     if (count > 0)
-                        Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, count, (short)Data.WoolColor));
+                        Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Blocks.Wool, count, (short)Data.WoolColor));
                     Data.Sheared = true;
 
                     SendMetadataUpdate();
                 }
-                else if (item.Type == (short)Chraft.World.BlockData.Items.Ink_Sack)
+                else if (item.Type == (short)BlockData.Items.Ink_Sack)
                 {
                     // Set the wool colour of this Sheep based on the item.Durability
                     // Safety check. Values of 16 and higher (color do not exist) may crash the client v1.8.1 and below
@@ -123,7 +132,7 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             if (!Data.Sheared)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)Chraft.World.BlockData.Blocks.Wool, 1, (short)Data.WoolColor));
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Blocks.Wool, 1, (short)Data.WoolColor));
             base.DoDeath(killedBy);
         }
     }

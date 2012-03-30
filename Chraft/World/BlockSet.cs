@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks;
 
 namespace Chraft.World
@@ -27,9 +29,9 @@ namespace Chraft.World
 		public const int SIZE = 16 * 16 * 128;
 		public delegate void ForEachBlock(int x, int y, int z);
 
-		protected unsafe byte[] Types = new byte[SIZE];
-		protected unsafe byte[] Light = new byte[SIZE];
-		protected unsafe byte[] Data = new byte[SIZE];
+		protected byte[] Types = new byte[SIZE];
+		protected byte[] Light = new byte[SIZE];
+		protected byte[] Data = new byte[SIZE];
 
 		public unsafe byte this[int x, int y, int z]
 		{
@@ -100,14 +102,14 @@ namespace Chraft.World
 				data[Translate(x, y, z)] = value;
 		}
 
-		public byte GetLuminence(int x, int y, int z)
+		public byte GetLuminance(int x, int y, int z)
 		{
-            return BlockHelper.Luminance(this[x, y, z]);
+            return BlockHelper.Instance.Luminance(this[x, y, z]);
 		}
 
 		public byte GetOpacity(int x, int y, int z)
 		{
-            return BlockHelper.Opacity(this[x, y, z]);
+            return BlockHelper.Instance.Opacity(this[x, y, z]);
 		}
 
 		public void SetAllBlocks(byte[] data)

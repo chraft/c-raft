@@ -14,52 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System.Collections.Generic;
-using System.Diagnostics;
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
-using Chraft.Plugins.Events.Args;
-using Chraft.World.Blocks.Interfaces;
-using Chraft.Utils;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 
-namespace Chraft.World.Blocks
+namespace Chraft.World.Blocks.Base
 {
-    /// <summary>
-    /// Represents a certain block in the world
-    /// </summary>
-    public struct StructBlock
-    {
-        public byte Type;
-        public UniversalCoords Coords;
-        public byte MetaData;
-        public WorldManager World;
-
-        public StructBlock(UniversalCoords coords, byte type, byte metaData, WorldManager world)
-        {
-            Type = type;
-            Coords = coords;
-            MetaData = metaData;
-            World = world;
-        }
-
-        public StructBlock(int worldX, int worldY, int worldZ, byte type, byte metaData, WorldManager world)
-        {
-            Type = type;
-            Coords = UniversalCoords.FromWorld(worldX, worldY, worldZ);
-            MetaData = metaData;
-            World = world;
-        }
-        
-        public static readonly StructBlock Empty;
-        
-        public override string ToString()
-        {
-            return string.Format("Type {0}, Coords {1}", this.Type, this.Coords);
-        }
-    }
-
     public abstract class BlockBase : IBlockBase
     {
         /// <summary>
@@ -177,13 +149,19 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
+        public List<IItemStack> GetLootTable()
+        {
+            // Todo: this is not a very nice solution i think, can we do something better?
+            return LootTable.ConvertAll(x => (IItemStack) x);
+        }
+
         /// <summary>
         /// Destroy the block
         /// </summary>
         /// <param name="block">block that has been destroyed</param>
-        public virtual void Destroy(StructBlock block)
+        public virtual void Destroy(IStructBlock iBlock)
         {
-            Destroy(null, block);
+            Destroy(null, iBlock);
         }
 
         /// <summary>
@@ -191,8 +169,9 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity who destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        public virtual void Destroy(EntityBase entity, StructBlock block)
+        public virtual void Destroy(IEntityBase entity, IStructBlock iBlock)
         {
+            StructBlock block = (StructBlock)iBlock;
             BlockDestroyEventArgs eventArgs = RaiseDestroyEvent(entity, block);
             if (eventArgs.EventCanceled)
                 return;
@@ -212,12 +191,12 @@ namespace Chraft.World.Blocks
                 }
             }
 
-            DropItems(entity, block);
+            DropItems(entity as EntityBase, block);
 
             skipDrop:
             DamageItem(entity);
 
-            NotifyNearbyBlocks(entity, block);
+            NotifyNearbyBlocks((EntityBase)entity, block);
         }
 
         /// <summary>
@@ -261,7 +240,7 @@ namespace Chraft.World.Blocks
             byte blockMeta = 0;
             foreach (var coords in blocks)
             {
-                Chunk chunk = block.World.GetChunk(coords);
+                Chunk chunk = block.World.GetChunk(coords) as Chunk;
 
                 if (chunk == null)
                     break;
@@ -269,9 +248,9 @@ namespace Chraft.World.Blocks
                 blockId = (byte)chunk.GetType(coords);
                 blockMeta = chunk.GetData(coords);
                 if (destroyed)
-                    BlockHelper.Instance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
+                    BlockHelper.Instance.CreateBlockInstance(blockId).NotifyDestroy(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
                 else
-                    BlockHelper.Instance(blockId).NotifyPlace(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
+                    BlockHelper.Instance.CreateBlockInstance(blockId).NotifyPlace(entity, block, new StructBlock(coords, blockId, blockMeta, block.World));
             }
         }
 
@@ -281,10 +260,10 @@ namespace Chraft.World.Blocks
         /// <param name="entity">entity who destroyed the nearby block</param>
         /// <param name="sourceBlock">block that has been destroyed</param>
         /// <param name="targetBlock">block that recieves the notification</param>
-        public virtual void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected virtual void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         { }
 
-        public virtual void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected virtual void NotifyPlace(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         { }
 
         /// <summary>
@@ -292,17 +271,17 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity who touched the block</param>
         /// <param name="block">block that has been touched</param>
-        public virtual void Touch(EntityBase entity, StructBlock block, BlockFace face) { }
+        public virtual void Touch(IEntityBase entity, IStructBlock iBlock, BlockFace face) { }
 
         /// <summary>
         /// Places the block
         /// </summary>
-        /// <param name="block">block that is being placed</param>
-        /// <param name="targetBlock">block that is being targeted (aimed)</param>
+        /// <param name="iBlock">block that is being placed</param>
+        /// <param name="targetIBlock">block that is being targeted (aimed)</param>
         /// <param name="face">side of the target block</param>
-        public virtual void Place(StructBlock block, StructBlock targetBlock, BlockFace face)
+        public virtual void Place(IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            Place(null, block, targetBlock, face);
+            Place(null, iBlock, targetIBlock, face);
         }
         /// <summary>
         /// Places the block
@@ -311,8 +290,11 @@ namespace Chraft.World.Blocks
         /// <param name="block">block that is being placed</param>
         /// <param name="targetBlock">block that is being targeted (aimed)</param>
         /// <param name="face">side of the target block</param>
-        public virtual void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public virtual void Place(IEntityBase ientity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock) iBlock;
+            StructBlock targetBlock = (StructBlock) targetIBlock;
+            EntityBase entity = (EntityBase) ientity;
             if (!CanBePlacedOn(entity, block, targetBlock, face) || !RaisePlaceEvent(entity, block))
             {
                 // Revert the change since the client has already graphically placed the block
@@ -335,10 +317,10 @@ namespace Chraft.World.Blocks
         /// <param name="entity">entity who destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
         /// <returns>resulting event args</returns>
-        protected virtual BlockDestroyEventArgs RaiseDestroyEvent(EntityBase entity, StructBlock block)
+        protected virtual BlockDestroyEventArgs RaiseDestroyEvent(IEntityBase entity, StructBlock block)
         {
             BlockDestroyEventArgs e = new BlockDestroyEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BlockDestroy, e);
+            block.World.Server.PluginManager.CallEvent(Event.BlockDestroy, e);
             return e;
         }
 
@@ -348,10 +330,10 @@ namespace Chraft.World.Blocks
         /// <param name="entity">entity who placed the block</param>
         /// <param name="block">block that has been placed</param>
         /// <returns>resulting event args</returns>
-        protected virtual bool RaisePlaceEvent(EntityBase entity, StructBlock block)
+        protected virtual bool RaisePlaceEvent(IEntityBase entity, StructBlock block)
         {
             BlockPlaceEventArgs e = new BlockPlaceEventArgs(this, entity);
-            block.World.Server.PluginManager.CallEvent(Plugins.Events.Event.BlockPlace, e);
+            block.World.Server.PluginManager.CallEvent(Event.BlockPlace, e);
             // Destruction made not by the living can not be interrupted?
             if (entity == null)
                 return true;
@@ -363,9 +345,9 @@ namespace Chraft.World.Blocks
         /// </summary>
         /// <param name="entity">entity that destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void PlaySoundOnDestroy(EntityBase entity, StructBlock block)
+        protected virtual void PlaySoundOnDestroy(IEntityBase entity, StructBlock block)
         {
-            foreach (Client c in block.World.Server.GetNearbyPlayers(block.World, block.Coords))
+            foreach (Client c in block.World.Server.GetNearbyPlayersInternal(block.World, block.Coords))
             {
                 if (c.Owner == entity)
                     continue;
@@ -417,7 +399,7 @@ namespace Chraft.World.Blocks
 #if PROFILE
             watch.Stop();
 
-            block.World.Logger.Log(Logger.LogLevel.Info, "Block skylight recalc: {0}ms", watch.ElapsedMilliseconds);
+            block.World.Logger.Log(LogLevel.Info, "Block skylight recalc: {0}ms", watch.ElapsedMilliseconds);
 #endif
             block.World.Update(block.Coords, false);
         }
@@ -467,7 +449,7 @@ namespace Chraft.World.Blocks
         /// Damages the active item in the inventory when the block is destroyed
         /// </summary>
         /// <param name="entity">the entity who destroyed the block</param>
-        protected virtual void DamageItem(EntityBase entity)
+        protected virtual void DamageItem(IEntityBase entity)
         {
             Player player = entity as Player;
             if (player != null && player.GameMode == 0)
@@ -484,7 +466,7 @@ namespace Chraft.World.Blocks
         /// <returns>true if the block can be placed, false otherwise</returns>
         protected virtual bool CanBePlacedOn(EntityBase who, StructBlock block, StructBlock targetBlock, BlockFace targetSide)
         {
-            if (!BlockHelper.IsSolid(targetBlock.Type))
+            if (!BlockHelper.Instance.IsSolid(targetBlock.Type))
                 return false;
 
             byte? originalBlock = block.World.GetBlockId(block.Coords);
@@ -496,8 +478,9 @@ namespace Chraft.World.Blocks
                 originalBlock != (byte)BlockData.Blocks.Still_Lava))
                 return false;
 
-            if (!BlockHelper.IsAir(block.Type) && !BlockHelper.IsLiquid(block.Type))
-                foreach (EntityBase entity in block.World.Server.GetNearbyEntities(block.World, UniversalCoords.ToAbsWorld(block.Coords)))
+            if (!BlockHelper.Instance.IsAir(block.Type) && !BlockHelper.Instance.IsLiquid(block.Type))
+            {
+                foreach ( EntityBase entity in block.World.Server.GetNearbyEntitiesInternal(block.World, block.Coords))
                 {
                     LivingEntity living = entity as LivingEntity;
                     if (living == null)
@@ -506,6 +489,7 @@ namespace Chraft.World.Blocks
                     if (living.BoundingBox.IntersectsWith(GetCollisionBoundingBox(block)))
                         return false;
                 }
+            }
 
             return true;
         }
@@ -539,7 +523,7 @@ namespace Chraft.World.Blocks
 
         public Chunk GetBlockChunk(StructBlock block)
         {
-            return block.World.GetChunk(block.Coords);
+            return block.World.GetChunk(block.Coords) as Chunk;
         }
     }
 }

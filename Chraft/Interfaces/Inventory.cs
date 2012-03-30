@@ -18,18 +18,22 @@ using System;
 using System.Collections.Generic;
 using Chraft.Net.Packets;
 using Chraft.Entity;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Item;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.Interfaces
 {
-	[Serializable]
-	public partial class Inventory : CraftingInterface
-	{
+    [Serializable]
+	public class Inventory : CraftingInterface, IInventory
+    {
 
 		private short _ActiveSlot;
 		public short ActiveSlot { get { return _ActiveSlot; } }
 
         
-        public Chraft.Interfaces.ItemStack ActiveItem { 
+        public ItemStack ActiveItem { 
             get { return this[ActiveSlot]; }
         }
 
@@ -56,7 +60,12 @@ namespace Chraft.Interfaces
 			UpdateClient();
 		}
 
-		public override void Associate(Player player)
+        public IItemStack GetActiveItem()
+        {
+            return ActiveItem;
+        }
+
+		internal override void Associate(Player player)
 		{
 			base.Associate(player);
 		}
@@ -70,18 +79,18 @@ namespace Chraft.Interfaces
 		/// Gets an array of quick slots.
 		/// </summary>
 		/// <returns>Quick slots from left to right</returns>
-		public IEnumerable<ItemStack> GetQuickSlots()
+		public IEnumerable<IItemStack> GetQuickSlots()
 		{
 			for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 				yield return this[i];
 		}
 
-		internal void AddItem(short id, sbyte count, short durability, bool isInGame =true)
+		public void AddItem(short id, sbyte count, short durability, bool isInGame =true)
 		{
 			// Quickslots, stacking
             for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
-				if (!ItemStack.IsVoid(Slots[i]) && Slots[i].Type == id && Slots[i].Durability == durability)
+                if (!Slots[i].IsVoid() && Slots[i].Type == id && Slots[i].Durability == durability)
 				{
 					if (Slots[i].Count + count <= 64)
 					{
@@ -96,7 +105,7 @@ namespace Chraft.Interfaces
 			// Inventory, stacking
 			for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
-				if (!ItemStack.IsVoid(Slots[i]) && Slots[i].Type == id && Slots[i].Durability == durability)
+                if (!Slots[i].IsVoid() && Slots[i].Type == id && Slots[i].Durability == durability)
 				{
 					if (Slots[i].Count + count <= 64)
 					{
@@ -111,7 +120,7 @@ namespace Chraft.Interfaces
 			// Quickslots, not stacking
             for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
-				if (ItemStack.IsVoid(Slots[i]))
+                if (Slots[i].IsVoid())
 				{
                     if (isInGame)
                     {
@@ -125,7 +134,7 @@ namespace Chraft.Interfaces
 			// Inventory, not stacking
             for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
-				if (ItemStack.IsVoid(Slots[i]))
+                if (Slots[i].IsVoid())
 				{
 					this[i] = new ItemStack(id, count, durability) { Slot = i };
 					return;
@@ -135,7 +144,7 @@ namespace Chraft.Interfaces
             Owner.MarkToSave();
 		}
 
-        internal void RemoveItem(short slot)
+        public void RemoveItem(short slot)
         {
             if (this[slot].Type > 0)
             {
@@ -152,11 +161,11 @@ namespace Chraft.Interfaces
             Owner.MarkToSave();
         }
 
-        internal bool DamageItem(short slot, short damageAmount = 1)
+        public bool DamageItem(short slot, short damageAmount = 1)
         {
             short durability = 0;
 
-            World.BlockData.ToolDuarability.TryGetValue((World.BlockData.Items)this[slot].Type, out durability);
+            BlockData.ToolDuarability.TryGetValue((BlockData.Items)this[slot].Type, out durability);
 
             if (durability > 0)
             {

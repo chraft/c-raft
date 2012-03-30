@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Reflection;
-using Chraft.Plugins;
+using Chraft.PluginSystem.Commands;
 
 namespace Chraft.Commands
 {
-    public class ServerCommandHandler : ICommandHandler
+    public class ServerCommandHandler : IServerCommandHandler
     {
         private List<IServerCommand> Commands;
 

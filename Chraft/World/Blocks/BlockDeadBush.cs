@@ -15,6 +15,14 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Collision;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -31,21 +39,22 @@ namespace Chraft.World.Blocks
             BlockBoundsOffset = new BoundingBox(0.1, 0, 0.1, 0.9, 0.8, 0.9);
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock)iBlock;
             if (face == BlockFace.Down)
                 return;
-            byte? blockId = targetBlock.World.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
+            byte? blockId = targetIBlock.WorldInterface.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));
             // We can place the dead bush only on the sand
             if (blockId == null || blockId != (byte)BlockData.Blocks.Sand)
                 return;
             // We can place the dead bush only on top of the sand block
-            if (targetBlock.Type != (byte)BlockData.Blocks.Sand || face != BlockFace.Up)
+            if (targetIBlock.Type != (byte)BlockData.Blocks.Sand || face != BlockFace.Up)
                 return;
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&

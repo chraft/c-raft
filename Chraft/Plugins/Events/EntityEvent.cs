@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Plugins.Events.Args;
-using Chraft.Plugins.Listener;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
 
 namespace Chraft.Plugins.Events
 {
@@ -40,23 +39,23 @@ namespace Chraft.Plugins.Events
         private List<Event> events = new List<Event>();
         private List<EventListener> plugins = new List<EventListener>();
 
-        public void CallEvent(Event Event, Args.ChraftEventArgs e)
+        public void CallEvent(Event Event, ChraftEventArgs e)
         {
             switch (Event)
             {
-                case Event.EntityAttack:
+                case PluginSystem.Event.Event.EntityAttack:
                     OnAttack(e as EntityAttackEventArgs);
                     break;
-                case Event.EntityDamage:
+                case PluginSystem.Event.Event.EntityDamage:
                     OnDamaged(e as EntityDamageEventArgs);
                     break;
-                case Event.EntityDeath:
+                case PluginSystem.Event.Event.EntityDeath:
                     OnDeath(e as EntityDeathEventArgs);
                     break;
-                case Event.EntityMove:
+                case PluginSystem.Event.Event.EntityMove:
                     OnMove(e as EntityMoveEventArgs);
                     break;
-                case Event.EntitySpawn:
+                case PluginSystem.Event.Event.EntitySpawn:
                     OnSpawn(e as EntitySpawnEventArgs);
                     break;
             }
@@ -74,7 +73,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityDeath)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnDeath(e);
                 }
             }
@@ -85,7 +84,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntitySpawn)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnSpawn(e);
                 }
             }
@@ -96,7 +95,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityMove)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnMove(e);
                 }
             }
@@ -107,7 +106,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityDamage)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnDamaged(e);
                 }
             }
@@ -118,7 +117,7 @@ namespace Chraft.Plugins.Events
             {
                 if (el.Event == Event.EntityAttack)
                 {
-                    EntityListener l = el.Listener as EntityListener;
+                    IEntityListener l = el.Listener as IEntityListener;
                     l.OnAttack(e);
                 }
             }

@@ -15,6 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Interfaces;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Coords;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -43,7 +47,7 @@ namespace Chraft.World.Blocks
 
                 byte blockAboveId = (byte)chunk.GetType(oneUp);
                 byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
-                if (blockAboveLight != null && ((blockAboveLight < 4 && BlockHelper.Instance(blockAboveId).Opacity > 2) || blockAboveLight >= 9))
+                if (blockAboveLight != null && ((blockAboveLight < 4 && BlockHelper.Instance.CreateBlockInstance(blockAboveId).Opacity > 2) || blockAboveLight >= 9))
                     canGrow = true;
             }
             else
@@ -64,7 +68,7 @@ namespace Chraft.World.Blocks
             byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
             if (blockAboveLight == null)
                 return;
-            if (blockAboveLight < 4 && BlockHelper.Instance(blockAboveId).Opacity > 2)
+            if (blockAboveLight < 4 && BlockHelper.Instance.CreateBlockInstance(blockAboveId).Opacity > 2)
             {
                 if (block.World.Server.Rand.Next(3) == 0)
                 {
@@ -79,7 +83,7 @@ namespace Chraft.World.Blocks
                 int y = block.Coords.WorldY + block.World.Server.Rand.Next(4) - 3;
                 int z = block.Coords.WorldZ + block.World.Server.Rand.Next(2) - 1;
 
-                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z);
+                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z) as Chunk;
 
                 if (nearbyChunk == null)
                     return;
@@ -89,7 +93,7 @@ namespace Chraft.World.Blocks
                     return;
 
                 byte? newBlockAboveLight = nearbyChunk.World.GetEffectiveLight(UniversalCoords.FromWorld(x, y + 1, z));
-                if (newBlockAboveLight != null && (newBlockAboveLight >= 4 && BlockHelper.Instance(newBlockId).Opacity <= 2))
+                if (newBlockAboveLight != null && (newBlockAboveLight >= 4 && BlockHelper.Instance.CreateBlockInstance(newBlockId).Opacity <= 2))
                     nearbyChunk.SetBlockAndData(x & 0xF, y, z & 0xF, (byte)BlockData.Blocks.Grass, 0);
             }
         }

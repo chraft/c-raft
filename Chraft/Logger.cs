@@ -16,13 +16,16 @@
 #endregion
 using System;
 using System.IO;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
 using Chraft.Plugins.Events;
-using Chraft.Utils.Config;
+using Chraft.Utilities.Config;
 
 namespace Chraft
 {
-	public class Logger
+	public class Logger : ILogger
 	{
 		private StreamWriter WriteLog;
         private Server Server;
@@ -127,19 +130,6 @@ namespace Chraft
             //End Event
 
 			Log(LogLevel.Debug, ex.ToString());
-		}
-
-
-		public enum LogLevel : int
-		{
-			Trivial = -1,
-			Debug = 0,
-			Info = 1,
-			Warning = 2,
-			Caution = 3,
-			Notice = 4,
-			Error = 5,
-			Fatal = 6
 		}
 	}
 }

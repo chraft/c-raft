@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.World;
 using Chraft.WorldGen;
 using Chraft.World;
 
 namespace Chraft.WorldGen
 {
-    public enum GeneratorType
-    {
-        Custom 
-    }
     public class ChunkProvider
     {
         private WorldManager _World;
@@ -32,13 +31,12 @@ namespace Chraft.WorldGen
             _World = world;
         }
         
-        public IChunkGenerator GetNewGenerator(GeneratorType type, long seed)
+        public IChunkGenerator GetNewGenerator(string type, long seed)
         {
-            switch(type)
-            {
-                case GeneratorType.Custom: return new CustomChunkGenerator(_World, seed);
-                default: return new CustomChunkGenerator(_World, seed);
-            }
+            IChunkGenerator generator = _World.Server.GetChunkGenerator(type);
+            generator.Init(_World, seed);
+
+            return generator;
         }
     }
 }

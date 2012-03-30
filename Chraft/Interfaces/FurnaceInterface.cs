@@ -20,6 +20,8 @@ using System.Linq;
 using System.Text;
 using Chraft.Interfaces.Containers;
 using Chraft.Net.Packets;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
 using Chraft.World;
 using Chraft.Interfaces.Recipes;
 using System.Threading;
@@ -39,7 +41,7 @@ namespace Chraft.Interfaces
         {
             if (packet.Slot == (short)FurnaceSlots.Output)
             {
-                if (ItemStack.IsVoid(Container[packet.Slot]))
+                if (Container[packet.Slot].IsVoid())
                 {
                     Owner.Client.SendPacket(new TransactionPacket
                     {
@@ -50,7 +52,7 @@ namespace Chraft.Interfaces
                     return false;
                 }
                 ItemStack output = Container[packet.Slot];
-                if (!ItemStack.IsVoid(Cursor))
+                if (!Cursor.IsVoid())
                 {
                     if (!Cursor.StacksWith(output) || (Cursor.StacksWith(output) && Cursor.Count >= 64))
                     {
@@ -64,7 +66,7 @@ namespace Chraft.Interfaces
                     }
                 }
                 ItemStack newOutput = ItemStack.Void;
-                if (ItemStack.IsVoid(Cursor))
+                if (Cursor.IsVoid())
                 {
                     Cursor = new ItemStack(output.Type, output.Count, output.Durability);
                     Cursor.Slot = -1;

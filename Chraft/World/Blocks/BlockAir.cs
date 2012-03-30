@@ -15,6 +15,12 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -28,11 +34,11 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public override void Destroy(EntityBase entity, StructBlock block) {}
+        public override void Destroy(IEntityBase entity, IStructBlock iBlock) {}
 
-        public override void Touch(EntityBase entity, StructBlock block, BlockFace face) { }
+        public override void Touch(IEntityBase entity, IStructBlock iBlock, BlockFace face) { }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace targetSide) { }
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace targetSide) { }
 
 
     }

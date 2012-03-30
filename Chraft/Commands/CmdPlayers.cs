@@ -15,22 +15,28 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
+using Chraft.Utilities;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Commands
 {
     internal class CmdPlayers : IClientCommand
     {
-       public ClientCommandHandler ClientCommandHandler { get; set; }
+       public IClientCommandHandler ClientCommandHandler { get; set; }
 
-        public void Use(Client client, string commandName, string[] tokens)
+        public void Use(IClient iClient, string commandName, string[] tokens)
         {
+            Client client = iClient as Client;
             client.SendMessage("Online Players: " + client.Owner.Server.Clients.Count);
             foreach (Client c in client.Owner.Server.GetAuthenticatedClients())
                 client.SendMessage(c.Owner.EntityId + " : " + c.Owner.DisplayName);
         }
 
-        public void Help(Client client)
+        public void Help(IClient client)
         {
             client.SendMessage("/players - Shows a list of online players.");
         }

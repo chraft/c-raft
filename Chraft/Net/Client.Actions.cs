@@ -17,11 +17,15 @@
 using System;
 using System.Linq;
 using Chraft.Entity;
-using Chraft.Plugins.Events;
-using Chraft.World;
-using Chraft.Utils;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Server;
+using Chraft.Utilities;
 using Chraft.Commands;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 
 namespace Chraft.Net
 {
@@ -81,7 +85,7 @@ namespace Chraft.Net
         /// Send a chat message from the user.
         /// </summary>
         /// <param name="clean">The pre-cleaned message to be sent.</param>
-        public void ExecuteChat(string clean)
+        internal void ExecuteChat(string clean)
         {
             //Event
             ClientPreChatEventArgs e1 = new ClientPreChatEventArgs(this, clean);
@@ -106,7 +110,7 @@ namespace Chraft.Net
                 //End Event
 
                 _player.Server.Broadcast(Chat.Format(_player.DisplayName, clean));
-                Logger.Log(Logger.LogLevel.Info, "{0}: {1}", _player.DisplayName, clean);
+                Logger.Log(LogLevel.Info, "{0}: {1}", _player.DisplayName, clean);
             }
         }
 
@@ -126,7 +130,7 @@ namespace Chraft.Net
         /// Execute a command in the context of the user.
         /// </summary>
         /// <param name="command">The command text, with the slash removed.</param>
-        public void ExecuteCommand(string command)
+        internal void ExecuteCommand(string command)
         {
             //Event
             ClientPreCommandEventArgs e = new ClientPreCommandEventArgs(this, command);
@@ -144,7 +148,7 @@ namespace Chraft.Net
                 SendMessage("You do not have permission to use that command");
                 return;
             }
-            Logger.Log(Logger.LogLevel.Info, _player.DisplayName + " issued server command: " + command);
+            Logger.Log(LogLevel.Info, _player.DisplayName + " issued server command: " + command);
             _player.Server.Broadcast(_player.DisplayName + " executed command " + command, this);
             CommandProc(baseCommand, command, Chat.Tokenize(command));
         }

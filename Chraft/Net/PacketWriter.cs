@@ -132,6 +132,12 @@ namespace Chraft.Net
             Write(unchecked((byte)data));
         }
 
+        public void Write(ushort data)
+        {
+            Write(unchecked((byte)(data >> 8)));
+            Write(unchecked((byte)data));
+        }
+
         public void Write(int data)
         {
             Write(unchecked((byte)(data >> 24)));

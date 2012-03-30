@@ -17,6 +17,12 @@
 using Chraft.Entity;
 using Chraft.Interfaces;
 using Chraft.Net;
+using Chraft.PluginSystem;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.World.Blocks
 {
@@ -33,8 +39,9 @@ namespace Chraft.World.Blocks
             Opacity = 0x0;
         }
 
-        public override void Place(EntityBase entity, StructBlock block, StructBlock targetBlock, BlockFace face)
+        public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
+            StructBlock block = (StructBlock)iBlock;
             LivingEntity living = (entity as LivingEntity);
             if (living == null)
                 return;
@@ -67,10 +74,10 @@ namespace Chraft.World.Blocks
                 default:
                     return;
             }
-            base.Place(entity, block, targetBlock, face);
+            base.Place(entity, block, targetIBlock, face);
         }
 
-        public override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
+        protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
         {
             if ((targetBlock.Coords.WorldY - sourceBlock.Coords.WorldY) == 1 &&
                 targetBlock.Coords.WorldX == sourceBlock.Coords.WorldX &&

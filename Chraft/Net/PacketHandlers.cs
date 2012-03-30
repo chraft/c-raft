@@ -278,5 +278,15 @@ namespace Chraft.Net
             if(!reader.Failed)
                 Client.HandlePacketEnchantItem(client, ei);
         }
+
+        public static void ReadPlayerAbilities(Client client, PacketReader reader)
+        {
+            PlayerAbilitiesPacket pa = new PlayerAbilitiesPacket();
+            pa.Read(reader);
+
+            if (!reader.Failed)
+                Client.HandlePacketPlayerActivites(client, pa);
+            
+        }
     }
 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -57,9 +57,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Chraft\Chraft.csproj">
-      <Project>{024D469C-C147-4BCF-8E17-1833AA8B34DC}</Project>
-      <Name>Chraft</Name>
+    <ProjectReference Include="..\Chraft.PluginSystem\Chraft.PluginSystem.csproj">
+      <Project>{3DA36E6F-3100-40D9-A096-F7075F07C7C1}</Project>
+      <Name>Chraft.PluginSystem</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Chraft.Utilities\Chraft.Utilities.csproj">
+      <Project>{CCE78B48-1352-4746-A14E-DCB18BB5CCA2}</Project>
+      <Name>Chraft.Utilities</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

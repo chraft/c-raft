@@ -43,15 +43,15 @@ namespace Chraft.Interfaces
         {
             List<ItemStack> ingredients = new List<ItemStack>();
             for (short i = 1; i <= this.CraftingSlotCount; i++)
-                ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
+                ingredients.Add(Slots[i].IsVoid() ? ItemStack.Void : this[i]);
             return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
         }
 
         internal override void OnClicked(WindowClickPacket packet)
         {
-            if (packet.Slot == 0 && !ItemStack.IsVoid(this[0]))
+            if (packet.Slot == 0 && !this[0].IsVoid())
             {
-                if (!ItemStack.IsVoid(Cursor))
+                if (!Cursor.IsVoid())
                 {
                     if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
                     {
@@ -79,14 +79,14 @@ namespace Chraft.Interfaces
                 this.Cursor.Count += this[0].Count;
 
                 // Cook Ingredients, and update recipe output slot in case ingredients are now insufficient for another
-                if (!ItemStack.IsVoid(this[0]))
+                if (!this[0].IsVoid())
                 {
                     Recipe recipe = GetRecipe();
                     if (recipe != null)
                     {
                         List<ItemStack> ingredients = new List<ItemStack>();
                         for (short i = 1; i <= this.CraftingSlotCount; i++)
-                            ingredients.Add(ItemStack.IsVoid(Slots[i]) ? ItemStack.Void : this[i]);
+                            ingredients.Add(Slots[i].IsVoid() ? ItemStack.Void : this[i]);
 
                         // Use the ingredients
                         recipe.UseIngredients(ingredients.ToArray());
@@ -94,7 +94,7 @@ namespace Chraft.Interfaces
                         // Check if any now have a count of 0 then set the slot to void
                         foreach (var item in ingredients)
                         {
-                            if (!ItemStack.IsVoid(item) && item.Count <= 0) // should never be less than 0, just some defensive coding
+                            if (!item.IsVoid() && item.Count <= 0) // should never be less than 0, just some defensive coding
                             {
                                 this[item.Slot] = ItemStack.Void;
                             }

@@ -19,7 +19,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem.Server;
+using Chraft.Utilities;
+using Chraft.Utilities.Coords;
+using Chraft.Utilities.Misc;
 using Chraft.World;
+using Chraft.PluginSystem;
 
 namespace Chraft.Entity
 {
@@ -54,14 +59,14 @@ namespace Chraft.Entity
 
         protected override List<World.Paths.PathCoordinate> GetNewPath()
         {
-            var pathFinder = new Chraft.World.Paths.PathFinder(this.World);
-            var player = this.World.GetClosestPlayer(this.Position, 24.0);
+            var pathFinder = new World.Paths.PathFinder(this.World);
+            var player = World.GetClosestPlayer(this.Position, 24.0) as Player;
             Target = player;
             if (Target != null)
             {
                 var path = pathFinder.CreatePathToEntity(this, Target, SightRange);
                 if (path != null)
-                    Server.Logger.Log(Logger.LogLevel.Debug, "Found player within {0}, can reach in {1} blocks", SightRange, path.Count);
+                    Server.Logger.Log(LogLevel.Debug, "Found player within {0}, can reach in {1} blocks", SightRange, path.Count);
 
                 return path;
             }

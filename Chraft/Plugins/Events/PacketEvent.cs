@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Chraft.Plugins.Listener;
-using Chraft.Plugins.Events.Args;
+using Chraft.PluginSystem.Args;
+using Chraft.PluginSystem.Event;
+using Chraft.PluginSystem.Listener;
 
 namespace Chraft.Plugins.Events
 {
@@ -39,10 +38,10 @@ namespace Chraft.Plugins.Events
         {
             switch (Event)
             {
-                case Event.PacketReceived:
+                case PluginSystem.Event.Event.PacketReceived:
                     OnPacketReceived(e as PacketRecevedEventArgs);
                     break;
-                case Event.PacketSent:
+                case PluginSystem.Event.Event.PacketSent:
                     OnPacketSent(e as PacketSentEventArgs);
                     break;
             }
@@ -56,7 +55,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PacketListener pl = (PacketListener)el.Listener;
+                IPacketListener pl = (IPacketListener)el.Listener;
                 if (el.Event == Event.PacketReceived)
                     pl.OnPacketReceived(e);
             }
@@ -65,7 +64,7 @@ namespace Chraft.Plugins.Events
         {
             foreach (EventListener el in Plugins)
             {
-                PacketListener pl = (PacketListener)el.Listener;
+                IPacketListener pl = (IPacketListener)el.Listener;
                 if (el.Event == Event.PacketSent)
                     pl.OnPacketSent(e);
             }
