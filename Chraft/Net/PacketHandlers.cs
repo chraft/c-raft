@@ -61,6 +61,7 @@ namespace Chraft.Net
             Register(PacketType.Transaction,5,0, ReadTransaction);
             Register(PacketType.UpdateSign, 0, 11, ReadUpdateSign);
             Register(PacketType.EnchantItem, 3, 0, ReadEnchantItem);
+            Register(PacketType.PlayerAbilities, 5, 0, ReadPlayerAbilities);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)

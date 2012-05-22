@@ -306,8 +306,11 @@ namespace Chraft.Interfaces
 
         protected virtual void DoClose()
         {
+            
             // Drop whatever is in the cursor
-            if (!Cursor.IsVoid())
+
+            //todo - determine why cursor was null
+            if (Cursor != null && !Cursor.IsVoid())
             {
                 Owner.Server.DropItem(Owner, Cursor);
                 Cursor = ItemStack.Void;
