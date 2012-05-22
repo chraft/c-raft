@@ -630,12 +630,12 @@ namespace Chraft.Net
             {
                 case PlayerDiggingPacket.DigAction.StartDigging:
 #if DEBUG
-                   /* UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
+                    UniversalCoords oneUp = UniversalCoords.FromWorld(coords.WorldX, coords.WorldY + 1, coords.WorldZ);
                     client.SendMessage(String.Format("SkyLight: {0}", player.World.GetSkyLight(oneUp)));
                     client.SendMessage(String.Format("BlockLight: {0}", player.World.GetBlockLight(oneUp)));
                     client.SendMessage(String.Format("Opacity: {0}", player.World.GetChunk(oneUp, false, false).GetOpacity(oneUp)));
                     client.SendMessage(String.Format("Height: {0}", player.World.GetHeight(oneUp)));
-                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));*/
+                    client.SendMessage(String.Format("Data: {0}", player.World.GetBlockData(oneUp)));
                     //this.SendMessage()
 #endif
                     if (BlockHelper.Instance.IsSingleHit(type))
