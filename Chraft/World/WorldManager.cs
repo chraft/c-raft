@@ -265,6 +265,13 @@ namespace Chraft.World
             _generator = _chunkProvider.GetNewGenerator("Default", GetSeed());
             PhysicsBlocks = new ConcurrentDictionary<int, BaseFallingPhysics>();
 
+            if (_generator == null)
+            {
+                Logger.Log(LogLevel.Error,
+                           "No ChunkGenerator found in the Plugins folder! Add the default one from CustomGenerator project and then restart the server.");
+                return false;
+            }
+
             InitializeSpawn();
             InitializeWeather();
             Running = true;
