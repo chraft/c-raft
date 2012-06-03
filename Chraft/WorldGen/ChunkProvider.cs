@@ -34,6 +34,10 @@ namespace Chraft.WorldGen
         public IChunkGenerator GetNewGenerator(string type, long seed)
         {
             IChunkGenerator generator = _World.Server.GetChunkGenerator(type);
+
+            if (generator == null)
+                return null;
+
             generator.Init(_World, seed);
 
             return generator;

@@ -234,6 +234,9 @@ namespace Chraft
 
         internal IChunkGenerator GetChunkGenerator(string name)
         {
+            if (_generators.Count == 0)
+                return null;
+
             return _generators[name];
         }
 
