@@ -24,7 +24,7 @@ namespace Chraft.Plugins.IrcPlugin
 		public string Mask { get; private set; }
 
         /// <summary>
-        /// Gets the nickname.
+        /// Gets the nickname and removes an ! at the end of the string.
         /// </summary>
 		public string Nickname
 		{
@@ -36,6 +36,9 @@ namespace Chraft.Plugins.IrcPlugin
 			}
 		}
 
+        /// <summary>
+        /// Gets the server vaule striped of @, !, +, &, $, ^, %, ? and ~.
+        /// </summary>
 		public string Server
 		{
 			get
@@ -44,6 +47,10 @@ namespace Chraft.Plugins.IrcPlugin
 			}
 		}
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HostMask"/> class.
+        /// </summary>
+        /// <param name="mask">The mask.</param>
 		public HostMask(string mask)
 		{
 			Mask = mask;

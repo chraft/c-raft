@@ -32,13 +32,21 @@ using Chraft.Plugins.Events;
 namespace Chraft.Plugins
 {
     public class PluginManager : IPluginManager
-    { 
-        private List<IPlugin> Plugins = new List<IPlugin>();
-        private Server Server;
+    {
+        /// <summary>
+        /// The collection of plugins for the server. 
+        /// </summary>
+        private readonly List<IPlugin> _plugins = new List<IPlugin>();
+
+        /// <summary>
+        /// The server instance that is running. 
+        /// </summary>
+        private readonly Server _server;
+
         /// <summary>
         /// An EventList holding all of EventHandlers.
         /// </summary>
-        private EventList PluginHooks = new EventList();
+        private readonly EventList _pluginHooks = new EventList();
 
         /// <summary>
         /// A Dictionary of all plugin commands.
@@ -61,16 +69,19 @@ namespace Chraft.Plugins
         /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
         internal PluginManager(Server server, string folder)
         {
+            // Creates the plugin folder on first run if empty. 
+            //TODO: Impliment permission checks. 
             if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
+            
             Folder = folder;
-            Server = server;
-            PluginHooks.Add(new ClientEvent());
-            PluginHooks.Add(new PluginEvent());
-            PluginHooks.Add(new PacketEvent());
-            PluginHooks.Add(new ServerEvent());
-            PluginHooks.Add(new WorldEvent());
-            PluginHooks.Add(new EntityEvent());
-            PluginHooks.Add(new BlockEvent());
+            _server = server;
+            _pluginHooks.Add(new ClientEvent());
+            _pluginHooks.Add(new PluginEvent());
+            _pluginHooks.Add(new PacketEvent());
+            _pluginHooks.Add(new ServerEvent());
+            _pluginHooks.Add(new WorldEvent());
+            _pluginHooks.Add(new EntityEvent());
+            _pluginHooks.Add(new BlockEvent());
         }
 
         /// <summary>
@@ -80,7 +91,7 @@ namespace Chraft.Plugins
         /// <returns>A shallow-thread-safe array of plugins.</returns>
         public IPlugin[] GetPlugins()
         {
-            return Plugins.ToArray();
+            return _plugins.ToArray();
         }
 
         /// <summary>
@@ -88,8 +99,13 @@ namespace Chraft.Plugins
         /// </summary>
         internal void LoadDefaultAssemblies()
         {
+            // Load the internal plugins first. 
             LoadAssembly(Assembly.GetExecutingAssembly());
+
+            // If the plugin folder is not there return. 
             if (!Directory.Exists(Folder)) return;
+
+            // Load up the plugins in the plugin directory.
             foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
                 LoadAssembly(f);
         }
@@ -128,19 +144,19 @@ namespace Chraft.Plugins
             if (e.EventCanceled) return;
             //End Event
 
-            lock (Plugins)
-                Plugins.Add(plugin);
+            lock (_plugins)
+                _plugins.Add(plugin);
             try
             {
                 OnPluginLoaded(plugin);
-                plugin.Associate(Server, this);
+                plugin.Associate(_server, this);
                 plugin.Initialize();
                 plugin.OnEnabled();
             }
             catch (Exception ex)
             {
-                Server.Logger.Log(LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
-                Server.Logger.Log(ex);
+                _server.Logger.Log(LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
+                _server.Logger.Log(ex);
             }
         }
 
@@ -173,17 +189,17 @@ namespace Chraft.Plugins
             }
             catch (Exception e)
             {
-                Server.Logger.Log(e);
+                _server.Logger.Log(e);
             }
-            lock (Plugins)
-                Plugins.Remove(plugin);
+            lock (_plugins)
+                _plugins.Remove(plugin);
         }
         /// <summary>
         /// Disables all enabled plugins.
         /// </summary>
         public void ClosePlugins()
         {
-            foreach (IPlugin p in Plugins)
+            foreach (IPlugin p in _plugins)
             {
                 DisablePlugin(p);
             }
@@ -194,7 +210,7 @@ namespace Chraft.Plugins
         public EventListener[] GetRegisterdEvents(IPlugin plugin)
         {
             //Use a list because of having to set a limit on an array at init.
-            return (from e in PluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
+            return (from e in _pluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
         }
         /// <summary>
         /// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
@@ -213,7 +229,7 @@ namespace Chraft.Plugins
 
         public void CallEvent(Event Event, ChraftEventArgs args)
         {
-            PluginHooks.Find(Event).CallEvent(Event, args);
+            _pluginHooks.Find(Event).CallEvent(Event, args);
         }
 
         /// <summary>
@@ -237,7 +253,7 @@ namespace Chraft.Plugins
         {
             try
             {
-                PluginHooks.Find(Listener.Event).RegisterEvent(Listener);
+                _pluginHooks.Find(Listener.Event).RegisterEvent(Listener);
             }
             catch (EventNotFoundException e)
             {
@@ -272,7 +288,7 @@ namespace Chraft.Plugins
         /// <param name="Plugin">The plugin associated with the listener.</param>
         public void UnregisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
         {
-            foreach (EventListener el in PluginHooks.Find(Event).Plugins)
+            foreach (EventListener el in _pluginHooks.Find(Event).Plugins)
             {
                 if (el.Event == Event && el.Listener == Listener && el.Plugin == Plugin)
                 {
@@ -288,7 +304,7 @@ namespace Chraft.Plugins
         {
             try
             {
-                PluginHooks.Find(Listener.Event).Plugins.Remove(Listener);
+                _pluginHooks.Find(Listener.Event).Plugins.Remove(Listener);
             }
             catch (EventNotFoundException e)
             {
