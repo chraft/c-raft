@@ -23,6 +23,9 @@ namespace Chraft.Plugins.IrcPlugin
 	{
 		public string Mask { get; private set; }
 
+        /// <summary>
+        /// Gets the nickname.
+        /// </summary>
 		public string Nickname
 		{
 			get

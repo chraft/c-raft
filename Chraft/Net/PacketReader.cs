@@ -25,8 +25,8 @@ namespace Chraft.Net
     public class PacketReader
     {
         private byte[] _Data;
-		private int _Size;
-		private int _Index;
+        private int _Size;
+        private int _Index;
         private bool _Failed;
 
         public int Index
