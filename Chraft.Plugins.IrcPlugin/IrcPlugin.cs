@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -69,6 +70,8 @@ namespace Chraft.Plugins.IrcPlugin
         /// </summary>
         public void Initialize()
         {
+            
+            //if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
             //throw new NotImplementedException();
         }
 

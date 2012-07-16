@@ -240,12 +240,12 @@ namespace Chraft.Plugins
         /// Subscribes to an event.
         /// </summary>
         /// <param name="Event">The name of the event to listen for.</param>
-        /// <param name="Listener">The listener to notify.</param>
-        /// <param name="Plugin">The plugin to associate the listener with.</param>
+        /// <param name="listener">The listener to notify.</param>
+        /// <param name="plugin">The plugin to associate the listener with.</param>
         /// <returns>The resaulting EventListener</returns>
-        public EventListener RegisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
+        public EventListener RegisterEvent(Event Event, IChraftListener listener, IPlugin plugin)
         {
-            EventListener el = new EventListener(Listener, Plugin, Event);
+            EventListener el = new EventListener(listener, plugin, Event);
             RegisterEvent(el);
             return el;
         }
@@ -292,13 +292,13 @@ namespace Chraft.Plugins
         /// Unsubscribes from an event.
         /// </summary>
         /// <param name="Event">The name of the event.</param>
-        /// <param name="Listener">The listener.</param>
-        /// <param name="Plugin">The plugin associated with the listener.</param>
-        public void UnregisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
+        /// <param name="listener">The listener.</param>
+        /// <param name="plugin">The plugin associated with the listener.</param>
+        public void UnregisterEvent(Event Event, IChraftListener listener, IPlugin plugin)
         {
             foreach (EventListener el in _pluginHooks.Find(Event).Plugins)
             {
-                if (el.Event == Event && el.Listener == Listener && el.Plugin == Plugin)
+                if (el.Event == Event && el.Listener == listener && el.Plugin == plugin)
                 {
                     UnregisterEvent(el);
                 }
@@ -394,22 +394,22 @@ namespace Chraft.Plugins
         /// Registers a List of Commands.
         /// </summary>
         /// <param name="commands">The List of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
-        /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(List<ICommand> commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin to associate the commands with.</param>
+        public void RegisterCommands(List<ICommand> commands, IPlugin plugin)
         {
-            RegisterCommands(commands.ToArray(), Plugin); //No use in copying the same code from RegisterCommands.
+            RegisterCommands(commands.ToArray(), plugin); //No use in copying the same code from RegisterCommands.
         }
 
         /// <summary>
         /// Registers an Array of Commands.
         /// </summary>
         /// <param name="commands">The Array of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
-        /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(ICommand[] commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin to associate the commands with.</param>
+        public void RegisterCommands(ICommand[] commands, IPlugin plugin)
         {
             foreach (ICommand c in commands)
             {
-                RegisterCommand(c, Plugin);
+                RegisterCommand(c, plugin);
             }
         }
 
@@ -447,12 +447,12 @@ namespace Chraft.Plugins
         /// Unregisters an Array of Commands.
         /// </summary>
         /// <param name="commands">The Array of commands to unregister.</param>
-        /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(ICommand[] commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin that is accociated with the commands.</param>
+        public void UnregisterCommands(ICommand[] commands, IPlugin plugin)
         {
             foreach (ICommand c in commands)
             {
-                UnregisterCommand(c, Plugin);
+                UnregisterCommand(c, plugin);
             }
         }
 
@@ -460,10 +460,10 @@ namespace Chraft.Plugins
         /// Unregisters a List of Commands.
         /// </summary>
         /// <param name="commands">The List of commands to unregister.</param>
-        /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(List<ICommand> commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin that is accociated with the commands.</param>
+        public void UnregisterCommands(List<ICommand> commands, IPlugin plugin)
         {
-            UnregisterCommands(commands.ToArray(), Plugin);
+            UnregisterCommands(commands.ToArray(), plugin);
         }
     }
 }
