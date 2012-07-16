@@ -24,11 +24,6 @@
         public static sbyte DefaultStackSize { get; set; }
         public static string RecipesFile { get; internal set; }
         public static bool LoadFromSave { get; internal set; }
-        public static bool IrcEnabled { get; internal set; }
-        public static string IrcServer { get; internal set; }
-        public static string IrcChannel { get; internal set; }
-        public static string IrcNickname { get; internal set; }
-        public static int IrcPort { get; internal set; }
         public static string AllowedChatChars { get; internal set; }
         public static int MaxPlayers { get; internal set; }
         public static string ServerName { get; internal set; }
@@ -87,11 +82,6 @@
             //irc setup
             AllowedChatChars = _config.GetString(ircSetup, "AllowedChatChars",
                                                  @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV_ -=+~!@#$%^&amp;*()1234567890\[]{}|;':"",./&lt;&gt;?áéíóúäëïöüÁÉÍÓÚÄËÏÖÜÆæ");
-            IrcEnabled = _config.GetBoolean(ircSetup, "IrcEnabled", true);
-            IrcServer = _config.GetString(ircSetup, "IrcServer", "irc.esper.net");
-            IrcChannel = _config.GetString(ircSetup, "IrcChannel", "#C#raft");
-            IrcNickname = _config.GetString(ircSetup, "IrcNickname", "ChraftIrcBot");
-            IrcPort = _config.GetInt(ircSetup, "IrcPort", 6667);
         }
     }
 }

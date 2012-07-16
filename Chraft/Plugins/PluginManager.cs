@@ -32,13 +32,21 @@ using Chraft.Plugins.Events;
 namespace Chraft.Plugins
 {
     public class PluginManager : IPluginManager
-    { 
-        private List<IPlugin> Plugins = new List<IPlugin>();
-        private Server Server;
+    {
+        /// <summary>
+        /// The collection of plugins for the server. 
+        /// </summary>
+        private readonly List<IPlugin> _plugins = new List<IPlugin>();
+
+        /// <summary>
+        /// The server instance that is running. 
+        /// </summary>
+        private readonly Server _server;
+
         /// <summary>
         /// An EventList holding all of EventHandlers.
         /// </summary>
-        private EventList PluginHooks = new EventList();
+        private readonly EventList _pluginHooks = new EventList();
 
         /// <summary>
         /// A Dictionary of all plugin commands.
@@ -58,19 +66,26 @@ namespace Chraft.Plugins
         /// <summary>
         /// Initializes a new PluginManager with the given plugin folder.
         /// </summary>
-        /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
+        /// <param name="server">The running server.</param>
+        /// <param name="folder">The folder to be used by LoadDefaultAssemblies. This is relative to server process.</param>
         internal PluginManager(Server server, string folder)
         {
+            // Creates the plugin folder on first run if empty. 
+            //TODO: Impliment permission checks. 
             if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
-            Folder = folder;
-            Server = server;
-            PluginHooks.Add(new ClientEvent());
-            PluginHooks.Add(new PluginEvent());
-            PluginHooks.Add(new PacketEvent());
-            PluginHooks.Add(new ServerEvent());
-            PluginHooks.Add(new WorldEvent());
-            PluginHooks.Add(new EntityEvent());
-            PluginHooks.Add(new BlockEvent());
+
+            //Make the folder absolute. 
+            DirectoryInfo d = new DirectoryInfo(folder);
+            Folder = d.FullName;
+
+            _server = server;
+            _pluginHooks.Add(new ClientEvent());
+            _pluginHooks.Add(new PluginEvent());
+            _pluginHooks.Add(new PacketEvent());
+            _pluginHooks.Add(new ServerEvent());
+            _pluginHooks.Add(new WorldEvent());
+            _pluginHooks.Add(new EntityEvent());
+            _pluginHooks.Add(new BlockEvent());
         }
 
         /// <summary>
@@ -80,7 +95,7 @@ namespace Chraft.Plugins
         /// <returns>A shallow-thread-safe array of plugins.</returns>
         public IPlugin[] GetPlugins()
         {
-            return Plugins.ToArray();
+            return _plugins.ToArray();
         }
 
         /// <summary>
@@ -88,8 +103,13 @@ namespace Chraft.Plugins
         /// </summary>
         internal void LoadDefaultAssemblies()
         {
+            // Load the internal plugins first. 
             LoadAssembly(Assembly.GetExecutingAssembly());
+
+            // If the plugin folder is not there return. 
             if (!Directory.Exists(Folder)) return;
+
+            // Load up the plugins in the plugin directory.
             foreach (string f in Directory.EnumerateFiles(Folder, "*.dll"))
                 LoadAssembly(f);
         }
@@ -128,19 +148,19 @@ namespace Chraft.Plugins
             if (e.EventCanceled) return;
             //End Event
 
-            lock (Plugins)
-                Plugins.Add(plugin);
+            lock (_plugins)
+                _plugins.Add(plugin);
             try
             {
                 OnPluginLoaded(plugin);
-                plugin.Associate(Server, this);
+                plugin.Associate(_server, this);
                 plugin.Initialize();
                 plugin.OnEnabled();
             }
             catch (Exception ex)
             {
-                Server.Logger.Log(LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
-                Server.Logger.Log(ex);
+                _server.Logger.Log(LogLevel.Fatal, plugin.Name + " cannot be loaded.  It may be out of date.");
+                _server.Logger.Log(ex);
             }
         }
 
@@ -149,6 +169,7 @@ namespace Chraft.Plugins
             if (PluginLoaded != null)
                 PluginLoaded.Invoke(this, new PluginEventArgs(plugin));
         }
+
         /// <summary>
         /// Called to disable a plugin.
         /// 
@@ -173,29 +194,32 @@ namespace Chraft.Plugins
             }
             catch (Exception e)
             {
-                Server.Logger.Log(e);
+                _server.Logger.Log(e);
             }
-            lock (Plugins)
-                Plugins.Remove(plugin);
+            lock (_plugins)
+                _plugins.Remove(plugin);
         }
+
         /// <summary>
         /// Disables all enabled plugins.
         /// </summary>
         public void ClosePlugins()
         {
-            foreach (IPlugin p in Plugins)
+            foreach (IPlugin p in _plugins)
             {
                 DisablePlugin(p);
             }
         }
+
         /// <summary>
         /// Gets an array of EventListeners registerd to a plugin.
         /// </summary>
         public EventListener[] GetRegisterdEvents(IPlugin plugin)
         {
             //Use a list because of having to set a limit on an array at init.
-            return (from e in PluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
+            return (from e in _pluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
         }
+
         /// <summary>
         /// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
         /// </summary>
@@ -205,30 +229,31 @@ namespace Chraft.Plugins
         {
             return (IPlugin)t.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
+
         /// <summary>
-        /// Calles an event.
+        /// Calls an event.
         /// </summary>
         /// <param name="Event">The Event to be called</param>
         /// <param name="args">The Event Args.</param>
-
         public void CallEvent(Event Event, ChraftEventArgs args)
         {
-            PluginHooks.Find(Event).CallEvent(Event, args);
+            _pluginHooks.Find(Event).CallEvent(Event, args);
         }
 
         /// <summary>
         /// Subscribes to an event.
         /// </summary>
         /// <param name="Event">The name of the event to listen for.</param>
-        /// <param name="Listener">The listener to notify.</param>
-        /// <param name="Plugin">The plugin to associate the listener with.</param>
+        /// <param name="listener">The listener to notify.</param>
+        /// <param name="plugin">The plugin to associate the listener with.</param>
         /// <returns>The resaulting EventListener</returns>
-        public EventListener RegisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
+        public EventListener RegisterEvent(Event Event, IChraftListener listener, IPlugin plugin)
         {
-            EventListener el = new EventListener(Listener, Plugin, Event);
+            EventListener el = new EventListener(listener, plugin, Event);
             RegisterEvent(el);
             return el;
         }
+
         /// <summary>
         /// Subscribes to an event.
         /// </summary>
@@ -237,7 +262,7 @@ namespace Chraft.Plugins
         {
             try
             {
-                PluginHooks.Find(Listener.Event).RegisterEvent(Listener);
+                _pluginHooks.Find(Listener.Event).RegisterEvent(Listener);
             }
             catch (EventNotFoundException e)
             {
@@ -245,6 +270,7 @@ namespace Chraft.Plugins
                 Listener.Plugin.Server.GetLogger().Log(e);
             }
         }
+
         /// <summary>
         /// Registers a List of EventListener.
         /// </summary>
@@ -253,6 +279,7 @@ namespace Chraft.Plugins
         {
             RegisterEvents(Listeners.ToArray());
         }
+
         /// <summary>
         /// Registers an Array of EventListener.
         /// </summary>
@@ -264,22 +291,24 @@ namespace Chraft.Plugins
                 RegisterEvent(el);
             }
         }
+
         /// <summary>
         /// Unsubscribes from an event.
         /// </summary>
         /// <param name="Event">The name of the event.</param>
-        /// <param name="Listener">The listener.</param>
-        /// <param name="Plugin">The plugin associated with the listener.</param>
-        public void UnregisterEvent(Event Event, IChraftListener Listener, IPlugin Plugin)
+        /// <param name="listener">The listener.</param>
+        /// <param name="plugin">The plugin associated with the listener.</param>
+        public void UnregisterEvent(Event Event, IChraftListener listener, IPlugin plugin)
         {
-            foreach (EventListener el in PluginHooks.Find(Event).Plugins)
+            foreach (EventListener el in _pluginHooks.Find(Event).Plugins)
             {
-                if (el.Event == Event && el.Listener == Listener && el.Plugin == Plugin)
+                if (el.Event == Event && el.Listener == listener && el.Plugin == plugin)
                 {
                     UnregisterEvent(el);
                 }
             }
         }
+
         /// <summary>
         /// Unsubscribes from an event.
         /// </summary>
@@ -288,7 +317,7 @@ namespace Chraft.Plugins
         {
             try
             {
-                PluginHooks.Find(Listener.Event).Plugins.Remove(Listener);
+                _pluginHooks.Find(Listener.Event).Plugins.Remove(Listener);
             }
             catch (EventNotFoundException e)
             {
@@ -297,6 +326,7 @@ namespace Chraft.Plugins
             }
             catch (Exception) { }
         }
+
         /// <summary>
         /// Unregisters a List of EventListener.
         /// </summary>
@@ -305,6 +335,7 @@ namespace Chraft.Plugins
         {
             UnregisterEvents(Listeners.ToArray());
         }
+
         /// <summary>
         /// Unregisters an Array of EventListener.
         /// </summary>
@@ -316,6 +347,7 @@ namespace Chraft.Plugins
                 UnregisterEvent(el);
             }
         }
+
         /// <summary>
         /// Registers a command with the server.
         /// </summary>
@@ -361,27 +393,30 @@ namespace Chraft.Plugins
                 }
             }
         }
+
         /// <summary>
         /// Registers a List of Commands.
         /// </summary>
         /// <param name="commands">The List of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
-        /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(List<ICommand> commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin to associate the commands with.</param>
+        public void RegisterCommands(List<ICommand> commands, IPlugin plugin)
         {
-            RegisterCommands(commands.ToArray(), Plugin); //No use in copying the same code from RegisterCommands.
+            RegisterCommands(commands.ToArray(), plugin); //No use in copying the same code from RegisterCommands.
         }
+
         /// <summary>
         /// Registers an Array of Commands.
         /// </summary>
         /// <param name="commands">The Array of Command.  See RegisterCommand(Command, IPlugin) for more info.</param>
-        /// <param name="Plugin">The IPlugin to associate the commands with.</param>
-        public void RegisterCommands(ICommand[] commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin to associate the commands with.</param>
+        public void RegisterCommands(ICommand[] commands, IPlugin plugin)
         {
             foreach (ICommand c in commands)
             {
-                RegisterCommand(c, Plugin);
+                RegisterCommand(c, plugin);
             }
         }
+
         /// <summary>
         /// Unregisters a command.
         /// </summary>
@@ -411,26 +446,28 @@ namespace Chraft.Plugins
             }
             catch (CommandNotFoundException ex) { server.Logger.Log(ex); }
         }
+
         /// <summary>
         /// Unregisters an Array of Commands.
         /// </summary>
         /// <param name="commands">The Array of commands to unregister.</param>
-        /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(ICommand[] commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin that is accociated with the commands.</param>
+        public void UnregisterCommands(ICommand[] commands, IPlugin plugin)
         {
             foreach (ICommand c in commands)
             {
-                UnregisterCommand(c, Plugin);
+                UnregisterCommand(c, plugin);
             }
         }
+
         /// <summary>
         /// Unregisters a List of Commands.
         /// </summary>
         /// <param name="commands">The List of commands to unregister.</param>
-        /// <param name="Plugin">The IPlugin that is accociated with the commands.</param>
-        public void UnregisterCommands(List<ICommand> commands, IPlugin Plugin)
+        /// <param name="plugin">The IPlugin that is accociated with the commands.</param>
+        public void UnregisterCommands(List<ICommand> commands, IPlugin plugin)
         {
-            UnregisterCommands(commands.ToArray(), Plugin);
+            UnregisterCommands(commands.ToArray(), plugin);
         }
     }
 }

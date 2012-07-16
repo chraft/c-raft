@@ -15,75 +15,66 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace Chraft.Net
 {
     public class PacketReader
     {
-        private byte[] _Data;
-		private int _Size;
-		private int _Index;
-        private bool _Failed;
+        private readonly byte[] _data;
+        private readonly int _size;
 
-        public int Index
-        {
-            get
-            {
-                return _Index;
-            }
-        }
+        public int Index { get; private set; }
 
         public int Size
         {
             get
             {
-                return _Size;
+                return _size;
             }
         }
 
-        public bool Failed
-        {
-            get { return _Failed; }
-            set { _Failed = value; }
-        }
+        public bool Failed { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PacketReader"/> class.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <param name="size">The size.</param>
         public PacketReader(byte[] data, int size)
         {
-            _Data = data;
-            _Size = size;
-            _Index = 1;
-            _Failed = false;
+            _data = data;
+            _size = size;
+            Index = 1;
+            Failed = false;
         }
 
         public bool CheckBoundaries(int size)
         {
-            if ((_Index + size) > _Size)
-                _Failed = true;
+            if ((Index + size) > _size)
+                Failed = true;
 
-            return !_Failed;
+            return !Failed;
         }
         public byte ReadByte()
         {
             if (!CheckBoundaries(1))
                 return 0;
 
-            int b = _Data[_Index++];
+            int b = _data[Index++];
             
             return (byte)b;
         }
 
-        public byte[] ReadBytes(int Count)
+        public byte[] ReadBytes(int count)
         {
-            if (!CheckBoundaries(Count))
+            if (!CheckBoundaries(count))
                 return null;
 
-            byte[] input = new byte[Count];
+            byte[] input = new byte[count];
 
-            for (int i = Count - 1; i >= 0; i--)
+            for (int i = count - 1; i >= 0; i--)
             {
                 input[i] = ReadByte();
             }
@@ -164,7 +155,7 @@ namespace Chraft.Net
 
             byte[] b = new byte[len];
             for (int i = 0; i < len; i++)
-                b[i] = (byte)ReadByte();
+                b[i] = ReadByte();
             return ASCIIEncoding.UTF8.GetString(b);
         }
 
@@ -175,7 +166,7 @@ namespace Chraft.Net
 
         public double ReadDoublePacked()
         {
-            return (double)ReadInt() / 32.0;
+            return ReadInt() / 32.0;
         }
 
         public MetaData ReadMetaData()

@@ -64,7 +64,6 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> RecvClientQueue = new ConcurrentQueue<Client>();
         public static ConcurrentQueue<Client> SendClientQueue = new ConcurrentQueue<Client>();
-
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
         private Timer _globalTick;
@@ -148,6 +147,11 @@ namespace Chraft
         internal Logger Logger { get; private set; }
 
         /// <summary>
+        /// Gets the server Logger instance for console and file logging.
+        /// </summary>
+        internal PluginLogger PluginLogger { get; private set; }
+
+        /// <summary>
         /// Gets user-chosen item names, numerics, and durabilities.
         /// </summary>
         internal ItemDb Items { get; private set; }
@@ -161,11 +165,6 @@ namespace Chraft
         /// Gets a list of user-defined smelting recipes known to the server.
         /// </summary>
         internal static SmeltingRecipe[] SmeltingRecipes { get; private set; }
-
-        /// <summary>
-        /// Gets the IRC client, if it has been initialized.
-        /// </summary>
-        internal IrcClient Irc { get; private set; }
 
         /// <summary>
         /// Gets the server hash. Used for authentication, guaranteed to be unique between instances
@@ -191,14 +190,13 @@ namespace Chraft
             Clients = new ConcurrentDictionary<int, Client>();
             AuthClients = new ConcurrentDictionary<int, Client>();
             Logger = new Logger(this, ChraftConfig.LogFile);
+            PluginLogger = new PluginLogger(Logger);
             PluginManager = new PluginManager(this, ChraftConfig.PluginFolder);
             Items = new ItemDb(ChraftConfig.ItemsFile);
             Recipes = Recipe.FromXmlFile(ChraftConfig.RecipesFile);
             SmeltingRecipes = SmeltingRecipe.FromFile(ChraftConfig.SmeltingRecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
             ServerCommandHandler = new ServerCommandHandler();
-            if (ChraftConfig.IrcEnabled)
-                InitializeIrc();
 
             PacketMap.Initialize();
 
@@ -245,6 +243,11 @@ namespace Chraft
             return Logger;
         }
 
+        public IPluginLogger GetPluginLogger()
+        {
+            return PluginLogger;
+        }
+
         public IBlockHelper GetBlockHelper()
         {
             return BlockHelper.Instance;
@@ -273,51 +276,6 @@ namespace Chraft
         {
             lock (SmeltingRecipes)
                 return SmeltingRecipes;
-        }
-
-        private void InitializeIrc()
-        {
-            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(ChraftConfig.IrcServer).AddressList[0], ChraftConfig.IrcPort);
-            Irc = new IrcClient(ep, ChraftConfig.IrcNickname);
-            Irc.Received += new IrcEventHandler(Irc_Received);
-        }
-
-        private void Irc_Received(object sender, IrcEventArgs e)
-        {
-            if (e.Handled)
-                return;
-
-            switch (e.Command)
-            {
-                case "PRIVMSG": OnIrcPrivMsg(sender, e); break;
-                case "NOTICE": OnIrcNotice(sender, e); break;
-                case "001": OnIrcWelcome(sender, e); break;
-            }
-        }
-
-        private void OnIrcPrivMsg(object sender, IrcEventArgs e)
-        {
-            for (int i = 0; i < e.Args[1].Length; i++)
-                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
-                    return;
-
-            Broadcast("§7[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
-            e.Handled = true;
-        }
-
-        private void OnIrcNotice(object sender, IrcEventArgs e)
-        {
-            for (int i = 0; i < e.Args[1].Length; i++)
-                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
-                    return;
-
-            Broadcast("§c[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
-            e.Handled = true;
-        }
-
-        private void OnIrcWelcome(object sender, IrcEventArgs e)
-        {
-            Irc.Join(ChraftConfig.IrcChannel);
         }
 
         internal void Run()
@@ -808,7 +766,7 @@ namespace Chraft
         /// </summary>
         /// <param name="message">The message to be broadcasted.</param>
         /// <param name="excludeClient">The client to excluded; usually the sender.</param>
-        public void Broadcast(string message, IClient excludeClient = null, bool sendToIrc = true)
+        public void Broadcast(string message, IClient excludeClient = null)
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
@@ -823,11 +781,6 @@ namespace Chraft
                 if (c != excludeClient)
                     c.SendMessage(message);
             }
-
-            if (sendToIrc && Irc != null)
-            {
-                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
-            }
         }
 
         /// <summary>
@@ -835,7 +788,7 @@ namespace Chraft
         /// </summary>
         /// <param name="message">The message to be broadcasted.</param>
         /// <param name="excludeClient">The client to excluded; usually the sender.</param>
-        public void BroadcastSync(string message, IClient excludeClient = null, bool sendToIrc = true)
+        public void BroadcastSync(string message, IClient excludeClient = null)
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
@@ -852,11 +805,6 @@ namespace Chraft
                     ChatMessagePacket cm = new ChatMessagePacket { Message = message };
                     c.Send_Sync_Packet(cm);
                 }
-            }
-
-            if (sendToIrc && Irc != null)
-            {
-                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
             }
         }
 
@@ -1461,9 +1409,6 @@ namespace Chraft
             foreach (WorldManager w in GetWorlds())
                 w.Dispose();
             Running = false;
-
-            if (Irc != null)
-                Irc.Stop();
 
             Logger.Log(LogLevel.Info, "Server stopped, press enter to exit");
             Console.ReadLine();

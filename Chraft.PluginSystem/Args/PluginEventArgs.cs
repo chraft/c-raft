@@ -51,14 +51,14 @@ namespace Chraft.PluginSystem.Args
     }
 
     /// <summary>
-    /// EventArgs for when a plugin is enabled.
+    /// EventArgs for when a plugin is disabled.
     /// </summary>
     public class PluginDisabledEventArgs : PluginEventArgs
     {
         public PluginDisabledEventArgs(IPlugin p) : base(p) { }        
     }
     /// <summary>
-    /// EventArgs for when a  plugin is disabled.
+    /// EventArgs for when a  plugin is enabled.
     /// </summary>
     public class PluginEnabledEventArgs : PluginEventArgs
     {

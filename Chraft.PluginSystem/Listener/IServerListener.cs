@@ -22,12 +22,12 @@ using Chraft.PluginSystem.Args;
 
 namespace Chraft.PluginSystem.Listener
 {
-    public class ServerListener : IChraftListener
+    public interface IServerListener : IChraftListener
     {
-        public virtual void OnBroadcast(ServerBroadcastEventArgs e) { }
-        public virtual void OnLog(LoggerEventArgs e) { }
-        public virtual void OnAccept(ClientAcceptedEventArgs e) { }
-        public virtual void OnCommand(ServerCommandEventArgs e) { }
-        public virtual void OnChat(ServerChatEventArgs e) { }
+        void OnBroadcast(ServerBroadcastEventArgs e);
+        void OnLog(LoggerEventArgs e);
+        void OnAccept(ClientAcceptedEventArgs e);
+        void OnCommand(ServerCommandEventArgs e);
+        void OnChat(ServerChatEventArgs e);
     }
 }
