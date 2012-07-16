@@ -165,6 +165,7 @@ namespace Chraft.Plugins
             if (PluginLoaded != null)
                 PluginLoaded.Invoke(this, new PluginEventArgs(plugin));
         }
+
         /// <summary>
         /// Called to disable a plugin.
         /// 
@@ -194,6 +195,7 @@ namespace Chraft.Plugins
             lock (_plugins)
                 _plugins.Remove(plugin);
         }
+
         /// <summary>
         /// Disables all enabled plugins.
         /// </summary>
@@ -204,6 +206,7 @@ namespace Chraft.Plugins
                 DisablePlugin(p);
             }
         }
+
         /// <summary>
         /// Gets an array of EventListeners registerd to a plugin.
         /// </summary>
@@ -212,6 +215,7 @@ namespace Chraft.Plugins
             //Use a list because of having to set a limit on an array at init.
             return (from e in _pluginHooks from el in e.Plugins where el.Plugin == plugin select el).ToArray();
         }
+
         /// <summary>
         /// Invokes a plugin's ".ctor" method and returns the resulting IPlugin.
         /// </summary>
@@ -221,12 +225,12 @@ namespace Chraft.Plugins
         {
             return (IPlugin)t.GetConstructor(Type.EmptyTypes).Invoke(null);
         }
+
         /// <summary>
-        /// Calles an event.
+        /// Calls an event.
         /// </summary>
         /// <param name="Event">The Event to be called</param>
         /// <param name="args">The Event Args.</param>
-
         public void CallEvent(Event Event, ChraftEventArgs args)
         {
             _pluginHooks.Find(Event).CallEvent(Event, args);
@@ -245,6 +249,7 @@ namespace Chraft.Plugins
             RegisterEvent(el);
             return el;
         }
+
         /// <summary>
         /// Subscribes to an event.
         /// </summary>
@@ -261,6 +266,7 @@ namespace Chraft.Plugins
                 Listener.Plugin.Server.GetLogger().Log(e);
             }
         }
+
         /// <summary>
         /// Registers a List of EventListener.
         /// </summary>
@@ -269,6 +275,7 @@ namespace Chraft.Plugins
         {
             RegisterEvents(Listeners.ToArray());
         }
+
         /// <summary>
         /// Registers an Array of EventListener.
         /// </summary>
@@ -280,6 +287,7 @@ namespace Chraft.Plugins
                 RegisterEvent(el);
             }
         }
+
         /// <summary>
         /// Unsubscribes from an event.
         /// </summary>
@@ -296,6 +304,7 @@ namespace Chraft.Plugins
                 }
             }
         }
+
         /// <summary>
         /// Unsubscribes from an event.
         /// </summary>
@@ -313,6 +322,7 @@ namespace Chraft.Plugins
             }
             catch (Exception) { }
         }
+
         /// <summary>
         /// Unregisters a List of EventListener.
         /// </summary>
@@ -321,6 +331,7 @@ namespace Chraft.Plugins
         {
             UnregisterEvents(Listeners.ToArray());
         }
+
         /// <summary>
         /// Unregisters an Array of EventListener.
         /// </summary>
@@ -332,6 +343,7 @@ namespace Chraft.Plugins
                 UnregisterEvent(el);
             }
         }
+
         /// <summary>
         /// Registers a command with the server.
         /// </summary>
@@ -377,6 +389,7 @@ namespace Chraft.Plugins
                 }
             }
         }
+
         /// <summary>
         /// Registers a List of Commands.
         /// </summary>
@@ -386,6 +399,7 @@ namespace Chraft.Plugins
         {
             RegisterCommands(commands.ToArray(), Plugin); //No use in copying the same code from RegisterCommands.
         }
+
         /// <summary>
         /// Registers an Array of Commands.
         /// </summary>
@@ -398,6 +412,7 @@ namespace Chraft.Plugins
                 RegisterCommand(c, Plugin);
             }
         }
+
         /// <summary>
         /// Unregisters a command.
         /// </summary>
@@ -427,6 +442,7 @@ namespace Chraft.Plugins
             }
             catch (CommandNotFoundException ex) { server.Logger.Log(ex); }
         }
+
         /// <summary>
         /// Unregisters an Array of Commands.
         /// </summary>
@@ -439,6 +455,7 @@ namespace Chraft.Plugins
                 UnregisterCommand(c, Plugin);
             }
         }
+
         /// <summary>
         /// Unregisters a List of Commands.
         /// </summary>

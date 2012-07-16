@@ -64,7 +64,6 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> RecvClientQueue = new ConcurrentQueue<Client>();
         public static ConcurrentQueue<Client> SendClientQueue = new ConcurrentQueue<Client>();
-
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
         private Timer _globalTick;

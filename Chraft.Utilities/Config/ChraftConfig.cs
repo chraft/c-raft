@@ -90,7 +90,7 @@
             IrcEnabled = _config.GetBoolean(ircSetup, "IrcEnabled", true);
             IrcServer = _config.GetString(ircSetup, "IrcServer", "irc.esper.net");
             IrcChannel = _config.GetString(ircSetup, "IrcChannel", "#C#raft");
-            IrcNickname = _config.GetString(ircSetup, "IrcNickname", "ChraftIrcBot");
+            IrcNickname = _config.GetString(ircSetup, "IrcNickName", "ChraftIrcBot");
             IrcPort = _config.GetInt(ircSetup, "IrcPort", 6667);
         }
     }
