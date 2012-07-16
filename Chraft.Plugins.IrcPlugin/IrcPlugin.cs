@@ -2,15 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Xml.Serialization;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Server;
+using Chraft.Utilities.Config;
 
 namespace Chraft.Plugins.IrcPlugin
 {
+    [Plugin]
     public class IrcPlugin : IPlugin 
     {
+        // SEND Broacast message.
+        //Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
         #region Implementation of IPlugin
 
         /// <summary>
@@ -18,7 +24,7 @@ namespace Chraft.Plugins.IrcPlugin
         /// </summary>
         public string Name
         {
-            get { return "IrcPLugin"; }
+            get { return "IrcPlugin"; }
         }
 
         /// <summary>
@@ -66,13 +72,121 @@ namespace Chraft.Plugins.IrcPlugin
         public bool IsPluginEnabled { get; set; }
 
         /// <summary>
+        /// Gets the IRC client, if it has been initialized.
+        /// </summary>
+        internal IrcClient Irc { get; private set; }
+
+
+        private string _configDirectory = "ircplugin";
+        private string _configFilename = "ircplugin.xml";
+        private IrcPluginConfiguration _runningConfiguration;
+        private ILogger _logger;
+
+        /// <summary>
         /// Called after all default plugins are loaded, at which point it is safe to assume that any dependencies are loaded.
         /// </summary>
         public void Initialize()
         {
-            
-            //if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
-            //throw new NotImplementedException();
+            _logger = Server.GetLogger();
+            _logger.Log(LogLevel.Info, "[IrcPlugin] Starting ircplugin.");
+
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] Checking folder {0}", ConfigurationDirectory);
+            if (!Directory.Exists(ConfigurationDirectory)) { Directory.CreateDirectory(ConfigurationDirectory); }
+
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] Checking configfile {0}", ConfigurationFilename);
+            if (!File.Exists(ConfigurationFilename))
+            {
+                GenerateNewConfigurationFile();
+            }
+
+            LoadConfigurationFile();
+
+            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(_runningConfiguration.Server).AddressList[0], _runningConfiguration.Port);
+            Irc = new IrcClient(ep, _runningConfiguration.Nickname);
+            Irc.Received += new IrcEventHandler(Irc_Received);
+        }
+
+        private void Irc_Received(object sender, IrcEventArgs e)
+        {
+            if (e.Handled)
+                return;
+
+            switch (e.Command)
+            {
+                case "PRIVMSG": OnIrcPrivMsg(sender, e); break;
+                case "NOTICE": OnIrcNotice(sender, e); break;
+                case "001": OnIrcWelcome(sender, e); break;
+            }
+        }
+
+        private void OnIrcPrivMsg(object sender, IrcEventArgs e)
+        {
+            for (int i = 0; i < e.Args[1].Length; i++)
+                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
+                    return;
+            Server.Broadcast("§7[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1]);
+            e.Handled = true;
+        }
+
+        private void OnIrcNotice(object sender, IrcEventArgs e)
+        {
+            for (int i = 0; i < e.Args[1].Length; i++)
+                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
+                    return;
+
+            Server.Broadcast("§c[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1]);
+            e.Handled = true;
+        }
+
+        private void OnIrcWelcome(object sender, IrcEventArgs e)
+        {
+            Irc.Join(_runningConfiguration.Channel);
+        }
+
+        private void LoadConfigurationFile()
+        {
+            XmlSerializer deserializer = new XmlSerializer(typeof (IrcPluginConfiguration));
+            TextReader textReader = new StreamReader(ConfigurationFilename);
+            _runningConfiguration = (IrcPluginConfiguration) deserializer.Deserialize(textReader);
+            textReader.Close();
+
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcEnabled: {0}", _runningConfiguration.Enabled);
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcServer: {0}", _runningConfiguration.Server);
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcChannel: {0}", _runningConfiguration.Channel);
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcNickName: {0}", _runningConfiguration.Nickname);
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcPort: {0}", _runningConfiguration.Port);
+        }
+
+        private void GenerateNewConfigurationFile()
+        {
+            _logger.Log(LogLevel.Debug, "[IrcPlugin] Creating a new configuration file");
+            IrcPluginConfiguration config = new IrcPluginConfiguration();
+            config.Enabled = false;
+            config.Server = "irc.esper.net";
+            config.Channel = "#C#raft";
+            config.Nickname = "ChraftBot";
+            config.Port = 6667;
+
+            XmlSerializer serializer = new XmlSerializer(typeof (IrcPluginConfiguration));
+            TextWriter textWriter = new StreamWriter(ConfigurationFilename);
+            serializer.Serialize(textWriter, config);
+            textWriter.Close();
+        }
+
+        /// <summary>
+        /// Gets the configuration directory.
+        /// </summary>
+        private string ConfigurationDirectory
+        {
+            get { return Path.Combine(PluginManager.Folder, _configDirectory); }
+        }
+
+        /// <summary>
+        /// Gets the configuration filename.
+        /// </summary>
+        private string ConfigurationFilename
+        {
+            get { return Path.Combine(PluginManager.Folder, _configDirectory, _configFilename); }
         }
 
         /// <summary>

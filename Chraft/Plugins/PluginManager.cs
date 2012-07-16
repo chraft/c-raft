@@ -66,14 +66,18 @@ namespace Chraft.Plugins
         /// <summary>
         /// Initializes a new PluginManager with the given plugin folder.
         /// </summary>
-        /// <param name="folder">The folder to be used by LoadDefaultAssemblies.</param>
+        /// <param name="server">The running server.</param>
+        /// <param name="folder">The folder to be used by LoadDefaultAssemblies. This is relative to server process.</param>
         internal PluginManager(Server server, string folder)
         {
             // Creates the plugin folder on first run if empty. 
             //TODO: Impliment permission checks. 
             if (!Directory.Exists(folder)) { Directory.CreateDirectory(folder); }
-            
-            Folder = folder;
+
+            //Make the folder absolute. 
+            DirectoryInfo d = new DirectoryInfo(folder);
+            Folder = d.FullName;
+
             _server = server;
             _pluginHooks.Add(new ClientEvent());
             _pluginHooks.Add(new PluginEvent());

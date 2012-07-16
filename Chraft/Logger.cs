@@ -25,35 +25,35 @@ using Chraft.Utilities.Config;
 
 namespace Chraft
 {
-	public class Logger : ILogger
-	{
-		private StreamWriter WriteLog;
+    public class Logger : ILogger
+    {
+        private StreamWriter WriteLog;
         private Server Server;
 
-		internal Logger(Server server, string file)
-		{
+        internal Logger(Server server, string file)
+        {
             Server = server;
-			try
-			{
-				WriteLog = new StreamWriter(file, true);
-				WriteLog.AutoFlush = true;
-			}
-			catch
-			{
-				WriteLog = null;
-			}
-		}
+            try
+            {
+                WriteLog = new StreamWriter(file, true);
+                WriteLog.AutoFlush = true;
+            }
+            catch
+            {
+                WriteLog = null;
+            }
+        }
 
-		~Logger()
-		{
-			try
-			{
-				WriteLog.Close();
-			}
-			catch
-			{
-			}
-		}
+        ~Logger()
+        {
+            try
+            {
+                WriteLog.Close();
+            }
+            catch
+            {
+            }
+        }
 
         public void LogOnOneLine(LogLevel level, string format, bool header, params object[] arguments)
         {
@@ -72,13 +72,13 @@ namespace Chraft
             LogToFile(level, message, false, header);
         }
 
-	    public void Log(LogLevel level, string format, params object[] arguments)
+        public void Log(LogLevel level, string format, params object[] arguments)
         {
-			Log(level, string.Format(format, arguments));
+            Log(level, string.Format(format, arguments));
         }
 
         public void Log(LogLevel level, string message)
-		{
+        {
             //Event
             LoggerEventArgs e = new LoggerEventArgs(this, level, message);
             Server.PluginManager.CallEvent(Event.LoggerLog, e);
@@ -86,11 +86,11 @@ namespace Chraft
             //End Event
 
             LogToConsole(level, message, true);
-			LogToFile(level, message, true);
-		}
+            LogToFile(level, message, true);
+        }
 
-		private void LogToConsole(LogLevel level, string message, bool newLine, bool header = true)
-		{
+        private void LogToConsole(LogLevel level, string message, bool newLine, bool header = true)
+        {
             if ((int)level >= ChraftConfig.LogConsoleLevel)
             {
                 if (newLine)
@@ -103,10 +103,10 @@ namespace Chraft
                         Console.Write("{0}", message);
                 }
             }
-		}
+        }
 
-		private void LogToFile(LogLevel level, string message, bool newLine, bool header = true)
-		{
+        private void LogToFile(LogLevel level, string message, bool newLine, bool header = true)
+        {
             if ((int)level >= ChraftConfig.LogFileLevel && WriteLog != null)
             {
                 if (newLine)
@@ -119,17 +119,17 @@ namespace Chraft
                         WriteLog.Write("{0}", message);
                 }
             }
-		}
+        }
 
-		public void Log(Exception ex)
-		{
+        public void Log(Exception ex)
+        {
             //Event
             LoggerEventArgs e = new LoggerEventArgs(this, LogLevel.Debug, ex.ToString(), ex);
             Server.PluginManager.CallEvent(Event.LoggerLog, e);
             // do not allow cancellation or altering of log messages
             //End Event
 
-			Log(LogLevel.Debug, ex.ToString());
-		}
-	}
+            Log(LogLevel.Debug, ex.ToString());
+        }
+    }
 }

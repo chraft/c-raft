@@ -162,11 +162,6 @@ namespace Chraft
         internal static SmeltingRecipe[] SmeltingRecipes { get; private set; }
 
         /// <summary>
-        /// Gets the IRC client, if it has been initialized.
-        /// </summary>
-        internal IrcClient Irc { get; private set; }
-
-        /// <summary>
         /// Gets the server hash. Used for authentication, guaranteed to be unique between instances
         /// </summary>
         public string ServerHash { get; private set; }
@@ -196,8 +191,6 @@ namespace Chraft
             SmeltingRecipes = SmeltingRecipe.FromFile(ChraftConfig.SmeltingRecipesFile);
             ClientCommandHandler = new ClientCommandHandler();
             ServerCommandHandler = new ServerCommandHandler();
-            if (ChraftConfig.IrcEnabled)
-                InitializeIrc();
 
             PacketMap.Initialize();
 
@@ -272,51 +265,6 @@ namespace Chraft
         {
             lock (SmeltingRecipes)
                 return SmeltingRecipes;
-        }
-
-        private void InitializeIrc()
-        {
-            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(ChraftConfig.IrcServer).AddressList[0], ChraftConfig.IrcPort);
-            Irc = new IrcClient(ep, ChraftConfig.IrcNickname);
-            Irc.Received += new IrcEventHandler(Irc_Received);
-        }
-
-        private void Irc_Received(object sender, IrcEventArgs e)
-        {
-            if (e.Handled)
-                return;
-
-            switch (e.Command)
-            {
-                case "PRIVMSG": OnIrcPrivMsg(sender, e); break;
-                case "NOTICE": OnIrcNotice(sender, e); break;
-                case "001": OnIrcWelcome(sender, e); break;
-            }
-        }
-
-        private void OnIrcPrivMsg(object sender, IrcEventArgs e)
-        {
-            for (int i = 0; i < e.Args[1].Length; i++)
-                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
-                    return;
-
-            Broadcast("§7[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
-            e.Handled = true;
-        }
-
-        private void OnIrcNotice(object sender, IrcEventArgs e)
-        {
-            for (int i = 0; i < e.Args[1].Length; i++)
-                if (!ChraftConfig.AllowedChatChars.Contains(e.Args[1][i]))
-                    return;
-
-            Broadcast("§c[IRC] " + e.Prefix.Nickname + ":§f " + e.Args[1], sendToIrc: false);
-            e.Handled = true;
-        }
-
-        private void OnIrcWelcome(object sender, IrcEventArgs e)
-        {
-            Irc.Join(ChraftConfig.IrcChannel);
         }
 
         internal void Run()
@@ -807,7 +755,7 @@ namespace Chraft
         /// </summary>
         /// <param name="message">The message to be broadcasted.</param>
         /// <param name="excludeClient">The client to excluded; usually the sender.</param>
-        public void Broadcast(string message, IClient excludeClient = null, bool sendToIrc = true)
+        public void Broadcast(string message, IClient excludeClient = null)
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
@@ -822,11 +770,6 @@ namespace Chraft
                 if (c != excludeClient)
                     c.SendMessage(message);
             }
-
-            if (sendToIrc && Irc != null)
-            {
-                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
-            }
         }
 
         /// <summary>
@@ -834,7 +777,7 @@ namespace Chraft
         /// </summary>
         /// <param name="message">The message to be broadcasted.</param>
         /// <param name="excludeClient">The client to excluded; usually the sender.</param>
-        public void BroadcastSync(string message, IClient excludeClient = null, bool sendToIrc = true)
+        public void BroadcastSync(string message, IClient excludeClient = null)
         {
             //Event
             ServerBroadcastEventArgs e = new ServerBroadcastEventArgs(this, message, excludeClient);
@@ -851,11 +794,6 @@ namespace Chraft
                     ChatMessagePacket cm = new ChatMessagePacket { Message = message };
                     c.Send_Sync_Packet(cm);
                 }
-            }
-
-            if (sendToIrc && Irc != null)
-            {
-                Irc.WriteLine("PRIVMSG {0} :{1}", ChraftConfig.IrcChannel, message.Replace('§', '\x3'));
             }
         }
 
@@ -1460,9 +1398,6 @@ namespace Chraft
             foreach (WorldManager w in GetWorlds())
                 w.Dispose();
             Running = false;
-
-            if (Irc != null)
-                Irc.Stop();
 
             Logger.Log(LogLevel.Info, "Server stopped, press enter to exit");
             Console.ReadLine();

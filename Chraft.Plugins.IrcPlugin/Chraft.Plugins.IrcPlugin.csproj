@@ -45,6 +45,7 @@
     <Compile Include="IrcClient.Recv.cs" />
     <Compile Include="IrcEventArgs.cs" />
     <Compile Include="IrcPlugin.cs" />
+    <Compile Include="IrcPluginConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -58,6 +59,9 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>XCOPY /Y /C  $(TargetDir)Chraft.Plugins.IrcPlugin.dll $(SolutionDir)ChraftServer\bin\Debug\Plugins\</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

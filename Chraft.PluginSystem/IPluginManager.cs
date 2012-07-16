@@ -74,5 +74,11 @@ namespace Chraft.PluginSystem
         /// <param name="Event">The Event to be called</param>
         /// <param name="args">The Event Args.</param>
         void CallEvent(Event.Event Event, ChraftEventArgs args);
+
+        /// <summary>
+        /// The folder searched at runtime for available plugins. Can be used by plugins to make configuration directories
+        /// off this as a base. 
+        /// </summary>
+        string Folder { get;}
     }
 }
