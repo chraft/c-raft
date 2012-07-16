@@ -46,6 +46,7 @@
     <Compile Include="IrcEventArgs.cs" />
     <Compile Include="IrcPlugin.cs" />
     <Compile Include="IrcPluginConfiguration.cs" />
+    <Compile Include="IrcPluginServerListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

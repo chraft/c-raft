@@ -134,6 +134,7 @@
     <Compile Include="Permissions.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
     <Compile Include="Persistence\DataFile.cs" />
+    <Compile Include="PluginLogger.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <DependentUpon>Settings.settings</DependentUpon>

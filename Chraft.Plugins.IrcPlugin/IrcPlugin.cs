@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using Chraft.PluginSystem;
+using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Server;
 using Chraft.Utilities.Config;
 
@@ -71,29 +72,20 @@ namespace Chraft.Plugins.IrcPlugin
         /// </summary>
         public bool IsPluginEnabled { get; set; }
 
-        /// <summary>
-        /// Gets the IRC client, if it has been initialized.
-        /// </summary>
-        internal IrcClient Irc { get; private set; }
 
-
-        private string _configDirectory = "ircplugin";
-        private string _configFilename = "ircplugin.xml";
-        private IrcPluginConfiguration _runningConfiguration;
-        private ILogger _logger;
 
         /// <summary>
         /// Called after all default plugins are loaded, at which point it is safe to assume that any dependencies are loaded.
         /// </summary>
         public void Initialize()
         {
-            _logger = Server.GetLogger();
-            _logger.Log(LogLevel.Info, "[IrcPlugin] Starting ircplugin.");
+            _logger = Server.GetPluginLogger();
+            _logger.Log(LogLevel.Info, Name, "[IrcPlugin] Initialize ircplugin Version {0}.", Version);
 
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] Checking folder {0}", ConfigurationDirectory);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Checking folder {0}", ConfigurationDirectory);
             if (!Directory.Exists(ConfigurationDirectory)) { Directory.CreateDirectory(ConfigurationDirectory); }
 
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] Checking configfile {0}", ConfigurationFilename);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Checking configfile {0}", ConfigurationFilename);
             if (!File.Exists(ConfigurationFilename))
             {
                 GenerateNewConfigurationFile();
@@ -101,8 +93,87 @@ namespace Chraft.Plugins.IrcPlugin
 
             LoadConfigurationFile();
 
-            IPEndPoint ep = new IPEndPoint(Dns.GetHostEntry(_runningConfiguration.Server).AddressList[0], _runningConfiguration.Port);
-            Irc = new IrcClient(ep, _runningConfiguration.Nickname);
+            _serverListener = new IrcPluginServerListener(this);
+        }
+
+        /// <summary>
+        /// Associates a Server and a PluginManager with the plugin.
+        /// </summary>
+        /// <param name="server">The Server object to be associated with the plugin.</param>
+        /// <param name="pluginManager">The PluginManager to be associated with the plugin.</param>
+        public void Associate(IServer server, IPluginManager pluginManager)
+        {
+            Server = server;
+            PluginManager = pluginManager;
+        }
+
+        /// <summary>
+        /// Called when the parent PluginManager enables the plugin.
+        /// </summary>
+        public void OnEnabled()
+        {
+            StartIrcClient();
+
+            IsPluginEnabled = true;
+            PluginManager.RegisterEvent(Event.ServerBroadcast, _serverListener, this);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Registered for ServerBroadcast.");
+
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Enabled.");
+        }
+
+        /// <summary>
+        /// Called when the parent PluginManager disables the plugin.
+        /// </summary>
+        public void OnDisabled()
+        {
+            IsPluginEnabled = false;
+            PluginManager.UnregisterEvent(Event.ServerBroadcast, _serverListener, this);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Unregistered for ServerBroadcast.");
+
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Disabled.");
+        }
+
+        #endregion
+
+        private string _configDirectory = "ircplugin";
+        private string _configFilename = "ircplugin.xml";
+        private IPluginLogger _logger;
+        private IrcPluginServerListener _serverListener;
+
+        /// <summary>
+        /// Gets the IRC client, if it has been initialized.
+        /// </summary>
+        internal IrcClient Irc { get; private set; }
+
+        /// <summary>
+        /// Gets the running configuration.
+        /// </summary>
+        internal IrcPluginConfiguration RunningConfiguration { get; private set; }
+
+        /// <summary>
+        /// Gets the configuration directory.
+        /// </summary>
+        private string ConfigurationDirectory
+        {
+            get { return Path.Combine(PluginManager.Folder, _configDirectory); }
+        }
+
+        /// <summary>
+        /// Gets the configuration filename.
+        /// </summary>
+        private string ConfigurationFilename
+        {
+            get { return Path.Combine(PluginManager.Folder, _configDirectory, _configFilename); }
+        }
+
+        /// <summary>
+        /// Starts the irc client.
+        /// </summary>
+        private void StartIrcClient()
+        {
+            IPEndPoint ircServerEndPoint = new IPEndPoint(Dns.GetHostEntry(RunningConfiguration.Server).AddressList[0],
+                                           RunningConfiguration.Port);
+            Irc = new IrcClient(ircServerEndPoint, RunningConfiguration.Nickname, _logger, this);
             Irc.Received += new IrcEventHandler(Irc_Received);
         }
 
@@ -140,26 +211,26 @@ namespace Chraft.Plugins.IrcPlugin
 
         private void OnIrcWelcome(object sender, IrcEventArgs e)
         {
-            Irc.Join(_runningConfiguration.Channel);
+            Irc.Join(RunningConfiguration.Channel);
         }
 
         private void LoadConfigurationFile()
         {
-            XmlSerializer deserializer = new XmlSerializer(typeof (IrcPluginConfiguration));
+            XmlSerializer deserializer = new XmlSerializer(typeof(IrcPluginConfiguration));
             TextReader textReader = new StreamReader(ConfigurationFilename);
-            _runningConfiguration = (IrcPluginConfiguration) deserializer.Deserialize(textReader);
+            RunningConfiguration = (IrcPluginConfiguration)deserializer.Deserialize(textReader);
             textReader.Close();
 
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcEnabled: {0}", _runningConfiguration.Enabled);
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcServer: {0}", _runningConfiguration.Server);
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcChannel: {0}", _runningConfiguration.Channel);
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcNickName: {0}", _runningConfiguration.Nickname);
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] IrcPort: {0}", _runningConfiguration.Port);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcEnabled: {0}", RunningConfiguration.Enabled);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcServer: {0}", RunningConfiguration.Server);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcChannel: {0}", RunningConfiguration.Channel);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcNickName: {0}", RunningConfiguration.Nickname);
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcPort: {0}", RunningConfiguration.Port);
         }
 
         private void GenerateNewConfigurationFile()
         {
-            _logger.Log(LogLevel.Debug, "[IrcPlugin] Creating a new configuration file");
+            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Creating a new configuration file");
             IrcPluginConfiguration config = new IrcPluginConfiguration();
             config.Enabled = false;
             config.Server = "irc.esper.net";
@@ -167,55 +238,12 @@ namespace Chraft.Plugins.IrcPlugin
             config.Nickname = "ChraftBot";
             config.Port = 6667;
 
-            XmlSerializer serializer = new XmlSerializer(typeof (IrcPluginConfiguration));
+            XmlSerializer serializer = new XmlSerializer(typeof(IrcPluginConfiguration));
             TextWriter textWriter = new StreamWriter(ConfigurationFilename);
             serializer.Serialize(textWriter, config);
             textWriter.Close();
         }
 
-        /// <summary>
-        /// Gets the configuration directory.
-        /// </summary>
-        private string ConfigurationDirectory
-        {
-            get { return Path.Combine(PluginManager.Folder, _configDirectory); }
-        }
 
-        /// <summary>
-        /// Gets the configuration filename.
-        /// </summary>
-        private string ConfigurationFilename
-        {
-            get { return Path.Combine(PluginManager.Folder, _configDirectory, _configFilename); }
-        }
-
-        /// <summary>
-        /// Associates a Server and a PluginManager with the plugin.
-        /// </summary>
-        /// <param name="server">The Server object to be associated with the plugin.</param>
-        /// <param name="pluginManager">The PluginManager to be associated with the plugin.</param>
-        public void Associate(IServer server, IPluginManager pluginManager)
-        {
-            Server = server;
-            PluginManager = pluginManager;
-        }
-
-        /// <summary>
-        /// Called when the parent PluginManager enables the plugin.
-        /// </summary>
-        public void OnEnabled()
-        {
-            //throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Called when the parent PluginManager disables the plugin.
-        /// </summary>
-        public void OnDisabled()
-        {
-            //throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

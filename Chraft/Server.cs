@@ -147,6 +147,11 @@ namespace Chraft
         internal Logger Logger { get; private set; }
 
         /// <summary>
+        /// Gets the server Logger instance for console and file logging.
+        /// </summary>
+        internal PluginLogger PluginLogger { get; private set; }
+
+        /// <summary>
         /// Gets user-chosen item names, numerics, and durabilities.
         /// </summary>
         internal ItemDb Items { get; private set; }
@@ -185,6 +190,7 @@ namespace Chraft
             Clients = new ConcurrentDictionary<int, Client>();
             AuthClients = new ConcurrentDictionary<int, Client>();
             Logger = new Logger(this, ChraftConfig.LogFile);
+            PluginLogger = new PluginLogger(Logger);
             PluginManager = new PluginManager(this, ChraftConfig.PluginFolder);
             Items = new ItemDb(ChraftConfig.ItemsFile);
             Recipes = Recipe.FromXmlFile(ChraftConfig.RecipesFile);
@@ -235,6 +241,11 @@ namespace Chraft
         public ILogger GetLogger()
         {
             return Logger;
+        }
+
+        public IPluginLogger GetPluginLogger()
+        {
+            return PluginLogger;
         }
 
         public IBlockHelper GetBlockHelper()
