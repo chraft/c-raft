@@ -37,6 +37,11 @@ namespace Chraft.Net
 
         public bool Failed { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PacketReader"/> class.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        /// <param name="size">The size.</param>
         public PacketReader(byte[] data, int size)
         {
             _data = data;
