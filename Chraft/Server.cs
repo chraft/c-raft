@@ -18,8 +18,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Chraft.Commands;
 using Chraft.Interfaces;
@@ -177,8 +179,18 @@ namespace Chraft
         /// </summary>
         public bool UseOfficalAuthentication { get; private set; }
 
+        /// <summary>
+        /// Determines whether to use the official minecraft encryption or none
+        /// </summary>
+        public bool EncryptionEnabled { get; private set; }
+
+        public bool EnableUserSightRadius { get; private set; }
+
         public int ClientsConnectionSlots;
 
+        public RSAParameters ServerKey;
+        public byte[] VerifyToken;
+        
         
         public Server()
         {
@@ -188,6 +200,8 @@ namespace Chraft
             Rand = new Random();
             ServerHash = GetRandomServerHash();
             UseOfficalAuthentication = ChraftConfig.UseOfficalAuthentication;
+            EncryptionEnabled = ChraftConfig.EncryptionEnabled;
+            EnableUserSightRadius = ChraftConfig.EnableUserSightRadius;
             Clients = new ConcurrentDictionary<int, Client>();
             AuthClients = new ConcurrentDictionary<int, Client>();
             Logger = new Logger(this, ChraftConfig.LogFile);
@@ -215,6 +229,10 @@ namespace Chraft
             PlayersToSave = new ConcurrentQueue<Client>();
             PlayersToSavePostponed = new ConcurrentQueue<Client>();
             _generators = new Dictionary<string, IChunkGenerator>();
+
+
+            ServerKey = PacketCryptography.GenerateKeyPair();
+
         }
 
         public IPluginManager GetPluginManager()
@@ -257,10 +275,13 @@ namespace Chraft
 
         internal string GetRandomServerHash()
         {
-            byte[] bytes = new byte[7];
+            if (!UseOfficalAuthentication)
+                return "-";
+
+            byte[] bytes = new byte[8];
             Rand.NextBytes(bytes);
 
-            return "23" + BitConverter.ToString(bytes).Replace("-", String.Empty);
+            return BitConverter.ToString(bytes).Replace("-", "");
         }
 
         public static Recipe[] GetRecipes()
@@ -557,6 +578,20 @@ namespace Chraft
                 Interlocked.Exchange(ref client.TimesEnqueuedForRecv, 0);
                 ByteQueue bufferToProcess = client.GetBufferToProcess();
 
+                byte[] decryptedData = null;
+
+                if (client.Decrypter != null)
+                {
+                    decryptedData = new byte[bufferToProcess.Length];
+
+                    client.Decrypter.TransformBlock(bufferToProcess.UnderlyingBuffer, 0, bufferToProcess.Length, decryptedData, 0);
+                    
+                    bufferToProcess.Clear();
+                    bufferToProcess.Enqueue(decryptedData, 0, decryptedData.Length);
+                    decryptedData = null;
+                }
+                
+
                 int length = client.FragPackets.Size + bufferToProcess.Size;
                 while (length > 0)
                 {
@@ -588,7 +623,7 @@ namespace Chraft
                         if (length >= handler.MinimumLength)
                         {
                             PacketReader reader = new PacketReader(data, length);
-
+                            
                             handler.OnReceive(client, reader);
 
                             // If we failed it's because the packet isn't complete
@@ -1035,7 +1070,8 @@ namespace Chraft
                     Yaw = p.PackedYaw,
                     Pitch = p.PackedPitch,
                     PlayerName = p.Client.Username + p.EntityId,
-                    CurrentItem = 0
+                    CurrentItem = 0,
+                    Data = new MetaData()
                 };
             }
             else if (entity is ItemEntity)
@@ -1147,7 +1183,7 @@ namespace Chraft
                 {
                     foreach (Packet packet in packets)
                         packet.Release();
-                }
+                }           
             });
         }
 
@@ -1166,8 +1202,7 @@ namespace Chraft
                         {
                             EntityId = entity.EntityId,
                             Slot = i,
-                            ItemId = -1,
-                            Durability = 0
+                            Item = ItemStack.Void,
                         });
                     }
 
@@ -1193,7 +1228,7 @@ namespace Chraft
 
         public void SendRemoveEntityToNearbyPlayers(IWorldManager world, IEntityBase entity)
         {
-            SendPacketToNearbyPlayers(world as WorldManager, UniversalCoords.FromAbsWorld(entity.Position), new DestroyEntityPacket { EntityId = entity.EntityId }, entity is Player ? ((Player)entity).Client : null);
+            SendPacketToNearbyPlayers(world as WorldManager, UniversalCoords.FromAbsWorld(entity.Position), new DestroyEntityPacket { EntitiesCount = 1, EntitiesId = new []{ entity.EntityId} }, entity is Player ? ((Player)entity).Client : null);
         }
 
         // TODO: This should be removed in favor of the one below
@@ -1226,7 +1261,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby players.</returns>
         internal IEnumerable<Client> GetNearbyPlayersInternal(WorldManager world, UniversalCoords coords)
         {
-            int radius = ChraftConfig.SightRadius;
+            int radius = ChraftConfig.MaxSightRadius;
             foreach (Client c in GetAuthenticatedClients())
             {
                 int playerChunkX = (int)Math.Floor(c.Owner.Position.X) >> 4;
@@ -1264,7 +1299,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby entities.</returns>
         internal IEnumerable<EntityBase> GetNearbyEntitiesInternal(WorldManager world, UniversalCoords coords)
         {
-            int radius = ChraftConfig.SightRadius;
+            int radius = ChraftConfig.MaxSightRadius;
 
             foreach (EntityBase e in GetEntities())
             {
@@ -1292,7 +1327,7 @@ namespace Chraft
         /// <returns>A lazy enumerable of nearby entities.</returns>
         public Dictionary<int, IEntityBase> GetNearbyEntitiesDict(IWorldManager world, UniversalCoords coords)
         {
-            int radius = ChraftConfig.SightRadius;
+            int radius = ChraftConfig.MaxSightRadius;
 
             Dictionary<int, IEntityBase> dict = new Dictionary<int, IEntityBase>();
 
@@ -1333,7 +1368,7 @@ namespace Chraft
 
         internal IEnumerable<LivingEntity> GetNearbyLivingsInternal(WorldManager world, UniversalCoords coords)
         {
-            int radius = ChraftConfig.SightRadius;
+            int radius = ChraftConfig.MaxSightRadius;
             foreach (EntityBase entity in GetEntities())
             {
                 if (!(entity is LivingEntity))

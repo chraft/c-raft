@@ -76,6 +76,7 @@ namespace Chraft.Net
             _player.DisplayName = client.DisplayName;
             WaitForInitialPosAck = true;
             _player.LoginPosition = _player.Position;
+            CurrentSightRadius = client.SightRadius;
         }
 
         internal void Save()
@@ -102,7 +103,8 @@ namespace Chraft.Net
                         DisplayName = string.IsNullOrEmpty(_player.DisplayName) ? Username : _player.DisplayName ,
                         Health = _player.Health,
                         Food = _player.Food,
-                        FoodSaturation = _player.FoodSaturation
+                        FoodSaturation = _player.FoodSaturation,
+                        SightRadius = CurrentSightRadius
                     });
                     tx.Flush();
                     tx.Close();

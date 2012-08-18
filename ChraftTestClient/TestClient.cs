@@ -107,7 +107,7 @@ namespace ChraftTestClient
             _receiveQueueReader.Start();
             Task.Factory.StartNew(RecvPacket);
 
-            SendPacket(new HandshakePacket { UsernameAndIpOrHash = _userName });
+            SendPacket(new HandshakePacket { Username = _userName, ProtocolVersion = 40});
         }
 
         public void StartTimer()
@@ -417,11 +417,6 @@ namespace ChraftTestClient
         {
             // Do something when logged
             client.StartTimer();
-        }
-
-        public static void HandlePacketHandshake(TestClient client, HandshakePacket hp)
-        {
-            client.SendPacket(new LoginRequestPacket { ProtocolOrEntityId = 19, Username = client.UserName });
         }
 
         public static void HandlePacketChatMessage(TestClient client, ChatMessagePacket cm)
