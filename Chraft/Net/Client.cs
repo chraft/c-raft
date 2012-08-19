@@ -98,6 +98,11 @@ namespace Chraft.Net
         /// </summary>
         internal Logger Logger { get { return Server.Logger; } }
 
+        /// <summary>
+        /// A unique Id used as the ServerId within the Authentication process
+        /// </summary>
+        internal string ConnectionId { get; set; }
+
         internal byte[] SharedKey { get; set; }
         internal ICryptoTransform Encrypter { get; set; }
         internal ICryptoTransform Decrypter { get; set; }
@@ -114,6 +119,12 @@ namespace Chraft.Net
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(10);
             SessionID = sessionId;
             Server = server;
+            
+            // Generate a unique ServerId for each client
+            byte[] bytes = new byte[8];
+            Server.Rand.NextBytes(bytes);
+            ConnectionId = BitConverter.ToString(bytes).Replace("-", "");
+
             _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
             //PacketHandler = new PacketHandler(Server, socket);
         }

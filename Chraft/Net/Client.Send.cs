@@ -277,7 +277,7 @@ namespace Chraft.Net
             Console.WriteLine("");
             Send_Sync_Packet(new EncryptionKeyRequest
                                  {
-                                     ServerId = Server.ServerHash,
+                                     ServerId = ConnectionId,
                                      PublicKey = publicKey,
                                      PublicKeyLength = keyLength,
                                      VerifyToken = token,
