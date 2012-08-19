@@ -33,7 +33,6 @@ using System.Threading;
 using Chraft.World.Blocks;
 using Chraft.World.Weather;
 using Chraft.PluginSystem;
-using Craft.Net.Server;
 
 namespace Chraft.Net
 {

@@ -127,7 +127,6 @@
     <Compile Include="Net\Client.Persistence.cs" />
     <Compile Include="Net\Client.Recv.cs" />
     <Compile Include="Net\Client.Send.cs" />
-    <Compile Include="Net\Cryptography\Cryptography.cs" />
     <Compile Include="Net\Cryptography\PacketCryptography.cs" />
     <Compile Include="Net\PacketReader.cs" />
     <Compile Include="Net\Packets\MapChunkBulkPacket.cs" />

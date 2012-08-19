@@ -830,7 +830,7 @@ namespace Chraft.Net
                             "http://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}",
                             client.Username,
                             // As per http://mc.kev009.com/Protocol_Encryption
-                            Craft.Net.Server.Cryptography.JavaHexDigest(Encoding.UTF8.GetBytes(client.Server.ServerHash)
+                            PacketCryptography.JavaHexDigest(Encoding.UTF8.GetBytes(client.Server.ServerHash)
                                                                             .Concat(client.SharedKey)
                                                                             .Concat(PacketCryptography.PublicKeyToAsn1(client.Server.ServerKey))
                                                                             .ToArray())
