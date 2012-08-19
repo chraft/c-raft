@@ -198,8 +198,8 @@ namespace Chraft
             ClientsConnectionSlots = 30;
             Packet.Role = StreamRole.Server;
             Rand = new Random();
-            ServerHash = GetRandomServerHash();
             UseOfficalAuthentication = ChraftConfig.UseOfficalAuthentication;
+            ServerHash = GetRandomServerHash();
             EncryptionEnabled = ChraftConfig.EncryptionEnabled;
             EnableUserSightRadius = ChraftConfig.EnableUserSightRadius;
             Clients = new ConcurrentDictionary<int, Client>();

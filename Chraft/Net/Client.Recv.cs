@@ -37,6 +37,7 @@ using System.Net.Sockets;
 using Chraft.World.Blocks;
 using Chraft.PluginSystem;
 using Chraft.World.Blocks.Base;
+using System.Text;
 
 namespace Chraft.Net
 {
@@ -824,12 +825,18 @@ namespace Chraft.Net
             {
                 try
                 {
-                    string authenticated =
-                        Http.GetHttpResponse(
-                            new Uri(
-                                String.Format(
-                                    "http://www.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}",
-                                    client.Username, client.Server.ServerHash)));
+                    var uri = new Uri(
+                        String.Format(
+                            "http://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}",
+                            client.Username,
+                            // As per http://mc.kev009.com/Protocol_Encryption
+                            Craft.Net.Server.Cryptography.JavaHexDigest(Encoding.UTF8.GetBytes(client.Server.ServerHash)
+                                                                            .Concat(client.SharedKey)
+                                                                            .Concat(PacketCryptography.PublicKeyToAsn1(client.Server.ServerKey))
+                                                                            .ToArray())
+                            ));
+                    
+                    string authenticated = Http.GetHttpResponse(uri);
                     if (authenticated != "YES")
                     {
                         client.Kick("Authentication failed");
