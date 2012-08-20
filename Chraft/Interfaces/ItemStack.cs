@@ -151,7 +151,7 @@ namespace Chraft.Interfaces
                 stream.Write(Count);
                 stream.Write(Durability);
 
-                if (Durability > 0 || IsEnchantable())
+                //if (Durability > 0 || IsEnchantable())
                     stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 
@@ -174,7 +174,7 @@ namespace Chraft.Interfaces
                 stream.Write(Count);
                 stream.Write(Durability);
 
-                if (Durability > 0 || IsEnchantable())
+                //if (Durability > 0 || IsEnchantable())
                     stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 

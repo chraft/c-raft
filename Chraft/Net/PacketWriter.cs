@@ -207,6 +207,14 @@ namespace Chraft.Net
             Data.Write(this);
         }
 
+        public void Write(int[] array)
+        {
+            int byteDim = array.Length*sizeof (int);
+            byte[] bytes = new byte[byteDim];
+            Buffer.BlockCopy(array, 0, bytes, 0, byteDim);
+            _Stream.Write(bytes, 0, byteDim);
+        }
+
         public void Write(byte[] buffer, int offset, int count)
         {
             _Stream.Write(buffer, offset, count);

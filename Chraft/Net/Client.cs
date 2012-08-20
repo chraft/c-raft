@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,10 +91,21 @@ namespace Chraft.Net
             set { _fragPackets = value; }
         }
 
+        public bool ToDisconnect { get; set; }
+
         /// <summary>
         /// A reference to the server logger.
         /// </summary>
         internal Logger Logger { get { return Server.Logger; } }
+
+        /// <summary>
+        /// A unique Id used as the ServerId within the Authentication process
+        /// </summary>
+        internal string ConnectionId { get; set; }
+
+        internal byte[] SharedKey { get; set; }
+        internal ICryptoTransform Encrypter { get; set; }
+        internal ICryptoTransform Decrypter { get; set; }
 
         /// <summary>
         /// Instantiates a new Client object.
@@ -107,6 +119,12 @@ namespace Chraft.Net
             _nextActivityCheck = DateTime.Now + TimeSpan.FromSeconds(10);
             SessionID = sessionId;
             Server = server;
+            
+            // Generate a unique ServerId for each client
+            byte[] bytes = new byte[8];
+            Server.Rand.NextBytes(bytes);
+            ConnectionId = BitConverter.ToString(bytes).Replace("-", "");
+
             _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
             //PacketHandler = new PacketHandler(Server, socket);
         }
@@ -282,7 +300,7 @@ namespace Chraft.Net
                 {
                     if (client != this)
                     {
-                        DestroyEntityPacket de = new DestroyEntityPacket {EntityId = _player.EntityId};
+                        DestroyEntityPacket de = new DestroyEntityPacket { EntitiesId = new [] { _player.EntityId } };
                         de.Write();
                         byte[] data = de.GetBuffer();
                         client.Send_Sync(data);

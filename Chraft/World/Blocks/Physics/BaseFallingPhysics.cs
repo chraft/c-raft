@@ -72,7 +72,7 @@ namespace Chraft.World.Blocks.Physics
             IsPlaying = false;
             BaseFallingPhysics unused = null;
             World.PhysicsBlocks.TryRemove(EntityId, out unused);
-            DestroyEntityPacket entity = new DestroyEntityPacket { EntityId = EntityId };
+            DestroyEntityPacket entity = new DestroyEntityPacket { EntitiesCount = 1, EntitiesId = new []{EntityId}};
             World.Server.SendPacketToNearbyPlayers(World,
                                                    UniversalCoords.FromAbsWorld(Position),
                                                    entity);
