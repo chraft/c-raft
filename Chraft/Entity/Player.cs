@@ -297,12 +297,16 @@ namespace Chraft.Entity
                     PickupItem((ItemEntity)e);
             }
 
+            Queue<int> entitiesToRemove = new Queue<int>();
             foreach (EntityBase e in LoadedEntities.Values.Where(e => !nearbyEntities.ContainsKey(e.EntityId)))
             {
                 EntityBase unused;
                 LoadedEntities.TryRemove(e.EntityId, out unused);
-                _client.SendDestroyEntity(e);
+                entitiesToRemove.Enqueue(e.EntityId);
             }
+
+            if(entitiesToRemove.Count > 0)
+                _client.SendDestroyEntities(entitiesToRemove.ToArray());
         }
 
         public void StartCrouching()
@@ -632,14 +636,18 @@ namespace Chraft.Entity
         {
             UpdateChunks(radius, token, false, remove);
         }
-
+ 
         public void UpdateChunks(int radius, CancellationToken token, bool sync, bool remove)
         {
             int chunkX = (int)(Math.Floor(Position.X)) >> 4;
             int chunkZ = (int)(Math.Floor(Position.Z)) >> 4;
             
             Dictionary<int, int> nearbyChunks = new Dictionary<int, int>();
-            
+
+            MapChunkBulkPacket chunkPacket = null;
+            if(sync)
+                chunkPacket = new MapChunkBulkPacket();
+
             for (int x = chunkX - radius; x <= chunkX + radius; ++x)
             {
                 for (int z = chunkZ - radius; z <= chunkZ + radius; ++z)
@@ -664,7 +672,6 @@ namespace Chraft.Entity
                         if (chunk == null)
                             continue;
 
-
                         if (chunk.LightToRecalculate)
                         {
 #if PROFILE
@@ -682,12 +689,16 @@ namespace Chraft.Entity
                         }
 
                         chunk.AddClient(Client);
-                        _client.SendPreChunk(x, z, true, sync);
-                        _client.SendChunk(chunk, sync);
+                        if(!sync)
+                            _client.SendChunk(chunk);
+                        else
+                            chunkPacket.ChunksToSend.Add(chunk);
                     }
                 }
             }
-            
+
+            if(sync)
+                _client.Send_Sync_Packet(chunkPacket);        
 
             if (remove)
             {
@@ -700,11 +711,8 @@ namespace Chraft.Entity
 
 
                     if (chunk != null)
-                    {
                         chunk.RemoveClient(_client);
-                        _client.SendPreChunk(UniversalCoords.FromPackedChunkToX(c),
-                                             UniversalCoords.FromPackedChunkToZ(c), false, sync);
-                    }
+                    
                 }
             }
 

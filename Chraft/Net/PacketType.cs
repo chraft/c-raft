@@ -27,7 +27,6 @@ namespace Chraft.Net
         SpawnPosition = 0x06,               //   <--
         UseEntity = 0x07,                   //   -->
         UpdateHealth = 0x08,                //   <--
-        CreativeInventoryAction = 0x6B,     //   <--
         Respawn = 0x09,                     //   <->
         Player = 0x0A,                      //   -->
         PlayerPosition = 0x0B,              //   -->
@@ -60,11 +59,11 @@ namespace Chraft.Net
         EntityEffect = 0x29,                //   <->
         RemoveEntityEffect = 0x2A,          //   <->
         Experience = 0x2B,                  //   <--
-        PreChunk = 0x32,                    //   <--
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
         BlockChange = 0x35,                 //   <--
         BlockAction = 0x36,                 //   <--
+        MapChunkBulk = 0x38,                //   <--
         Explosion = 0x3C,                   //   <--
         SoundEffect = 0x3D,                 //   <--
         NewInvalidState = 0x46,             //   ???
@@ -76,14 +75,19 @@ namespace Chraft.Net
         WindowItems = 0x68,                 //   <--
         UpdateProgressBar = 0x69,           //   <--
         Transaction = 0x6A,                 //   <->
+        CreativeInventoryAction = 0x6B,     //   <--
         EnchantItem = 0x6C,                 //   -->
         UpdateSign = 0x82,                  //   <->
         MapData = 0x83,                     //   -->
         UpdateTileEntity = 0x84,            //   <--
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
-        PlayerAbilities = 0xCA,             //   <--> 
-        PluginMessage = 0xFA,               //  
+        PlayerAbilities = 0xCA,             //   <-->
+        LocaleAndViewDistance = 0xCC,       //   <--
+        ClientStatus = 0xCD,                //   <--
+        PluginMessage = 0xFA,               //
+        EncryptionKeyResponse = 0xFC,       //   <--
+        EncryptionKeyRequest = 0xFD,        //   -->
         ServerListPing = 0xFE,              //   -->
         Disconnect = 0xFF                   //   <->
     }

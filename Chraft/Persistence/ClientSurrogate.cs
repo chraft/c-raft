@@ -33,5 +33,6 @@ namespace Chraft.Persistence
         public Inventory Inventory { get; set; }
         public byte GameMode { get; set; }
         public string DisplayName { get; set; }
+        public int SightRadius { get; set; }
     }
 }

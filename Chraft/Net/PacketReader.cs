@@ -83,10 +83,12 @@ namespace Chraft.Net
 
             byte[] input = new byte[Count];
 
-            for (int i = Count - 1; i >= 0; i--)
+            Buffer.BlockCopy(_Data, _Index, input, 0, Count);
+            _Index += Count;
+            /*for (int i = Count - 1; i >= 0; i--)
             {
                 input[i] = ReadByte();
-            }
+            }*/
 
             return input;
         }
@@ -173,9 +175,18 @@ namespace Chraft.Net
             return ReadByte() == 1;
         }
 
+        public int[] ReadIntArray(int count)
+        {
+            int[] array = new int[count];
+            for (int i = 0; i < count; ++i)
+                array[i] = ReadInt();
+
+            return array;
+        }
+
         public double ReadDoublePacked()
         {
-            return (double)ReadInt() / 32.0;
+            return ReadInt() / 32.0;
         }
 
         public MetaData ReadMetaData()

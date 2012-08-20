@@ -451,8 +451,7 @@ namespace Chraft.World
                     req.ClientRequesting.Owner.LoadedChunks.TryUpdate(entry.ChunkRequested.Coords.ChunkPackedCoords,
                                                                       entry.ChunkRequested, null);
                     entry.ChunkRequested.AddClient(req.ClientRequesting);
-                    req.ClientRequesting.SendPreChunk(entry.ChunkRequested.Coords.ChunkX, entry.ChunkRequested.Coords.ChunkZ, true, false);
-                    req.ClientRequesting.SendChunk(entry.ChunkRequested, false);
+                    req.ClientRequesting.SendChunk(entry.ChunkRequested);
                 });
             });
         }

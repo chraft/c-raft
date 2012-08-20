@@ -127,7 +127,10 @@
     <Compile Include="Net\Client.Persistence.cs" />
     <Compile Include="Net\Client.Recv.cs" />
     <Compile Include="Net\Client.Send.cs" />
+    <Compile Include="Net\Cryptography\PacketCryptography.cs" />
     <Compile Include="Net\PacketReader.cs" />
+    <Compile Include="Net\Packets\MapChunkBulkPacket.cs" />
+    <Compile Include="Net\Packets\MapChunkData.cs" />
     <Compile Include="Net\PacketWriter.cs" />
     <Compile Include="Net\SocketAsyncEventArgsPool.cs" />
     <Compile Include="Net\StreamRole.cs" />
@@ -344,6 +347,7 @@
   <ItemGroup>
     <Content Include="Chraft.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

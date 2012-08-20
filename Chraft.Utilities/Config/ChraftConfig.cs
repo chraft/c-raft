@@ -5,7 +5,8 @@
         public static int Port { get; set; }
         public static string IPAddress { get; set; }
         public static string MOTD { get; set; }
-        public static int SightRadius { get; internal set; }
+        public static int MaxSightRadius { get; internal set; }
+        public static bool EnableUserSightRadius { get; internal set; }
         public static string WorldSeed { get; internal set; }
         public static int SpawnX { get; set; }
         public static int SpawnY { get; set; }
@@ -36,6 +37,7 @@
         public static string ContainersFolder { get; internal set; }
         public static string SmeltingRecipesFile { get; internal set; }
         public static bool UseOfficalAuthentication { get; internal set; }
+        public static bool EncryptionEnabled { get; internal set; }
         private static Configuration _config;
 
         public static void Load()
@@ -53,9 +55,10 @@
             IPAddress = _config.GetString(serverSetup, "IPAddress", "0.0.0.0");
             MOTD = _config.GetString(serverSetup, "MOTD", "Welcome to c#raft");
             UseOfficalAuthentication = _config.GetBoolean(serverSetup, "UseOfficalAuthentication", true);
+            EncryptionEnabled = _config.GetBoolean(serverSetup, "EncryptionEnabled", true);
             MaxPlayers = _config.GetInt(serverSetup, "MaxPlayers", 100);
             ServerName = _config.GetString(serverSetup, "ServerName", "C#raft");
-            SightRadius = _config.GetInt(serverSetup, "SightRadius", 8);
+            MaxSightRadius = _config.GetInt(serverSetup, "MaxSightRadius", 8);
             WorldSeed = _config.GetString(serverSetup, "WorldSeed", "1419875491758983");
             SpawnX = _config.GetInt(serverSetup, "SpawnX", 0);
             SpawnY = _config.GetInt(serverSetup, "SpawnY", 128);
