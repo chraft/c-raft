@@ -94,7 +94,7 @@ namespace Chraft.Net
             { typeof(RespawnPacket), PacketType.Respawn },
             { typeof(ServerListPingPacket), PacketType.ServerListPing },
             { typeof(SetSlotPacket), PacketType.SetSlot },
-            { typeof(SoundOrParticleEffectPacket), PacketType.SoundEffect },
+            { typeof(SoundOrParticleEffectPacket), PacketType.SoundOrParticleEffect },
             { typeof(SpawnPositionPacket), PacketType.SpawnPosition },
             { typeof(TimeUpdatePacket), PacketType.TimeUpdate },
             { typeof(ThunderBoltPacket), PacketType.Thunderbolt },
