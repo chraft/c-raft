@@ -65,7 +65,7 @@ namespace ChraftTestClient
             Register(PacketType.Animation, 6, 0, ReadAnimation);
             Register(PacketType.PickupSpawn, 25, 0, ReadPickupSpawn);
             Register(PacketType.CollectItem, 9, 0, ReadCollectItem);
-            Register(PacketType.UpdateProgressBar, 6, 0, ReadUpdateProgressBar);
+            Register(PacketType.UpdateWindowProperty, 6, 0, ReadUpdateWindowProperty);
             Register(PacketType.EntityMetadata, 0, 6, ReadEntityMetadata);
             Register(PacketType.SoundEffect, 18, 0, ReadSoundEffect);
         }
@@ -276,9 +276,9 @@ namespace ChraftTestClient
             ci.Read(reader);
         }
 
-        public static void ReadUpdateProgressBar(TestClient client, PacketReader reader)
+        public static void ReadUpdateWindowProperty(TestClient client, PacketReader reader)
         {
-            UpdateProgressBarPacket up = new UpdateProgressBarPacket();
+            UpdateWindowPropertyPacket up = new UpdateWindowPropertyPacket();
             up.Read(reader);
         }
 
@@ -290,7 +290,7 @@ namespace ChraftTestClient
 
         public static void ReadSoundEffect(TestClient client, PacketReader reader)
         {
-            SoundEffectPacket se = new SoundEffectPacket();
+            SoundOrParticleEffectPacket se = new SoundOrParticleEffectPacket();
             se.Read(reader);
         }
     }

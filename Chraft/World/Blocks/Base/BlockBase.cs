@@ -352,9 +352,9 @@ namespace Chraft.World.Blocks.Base
                 if (c.Owner == entity)
                     continue;
 
-                c.SendPacket(new SoundEffectPacket
+                c.SendPacket(new SoundOrParticleEffectPacket
                 {
-                    EffectID = SoundEffectPacket.SoundEffect.BLOCK_BREAK,
+                    EffectID = SoundOrParticleEffectPacket.SoundOrParticleEffect.PARTICLE_BLOCK_BREAK,
                     X = block.Coords.WorldX,
                     Y = block.Coords.WorldY,
                     Z = block.Coords.WorldZ,
