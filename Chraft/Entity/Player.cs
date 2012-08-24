@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
+using System.Text;
 using System.Threading;
 using Chraft.Commands;
 using Chraft.Interfaces;
@@ -34,6 +35,7 @@ using Chraft.PluginSystem.World;
 using Chraft.Plugins.Events;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
 using Chraft.Utils;
@@ -748,6 +750,16 @@ namespace Chraft.Entity
             DisplayMessage = e.BrodcastMessage;
             //End Event
             Server.Broadcast(DisplayMessage);
+
+            if(!string.IsNullOrEmpty(ChraftConfig.ServerTextureUrl))
+            {
+                string message = ChraftConfig.ServerTextureUrl + '\0' + 16;
+                _client.SendPacket(new PluginMessagePacket
+                    {
+                        Channel = "MC|TPack",
+                        Message = Encoding.UTF8.GetBytes(message),
+                    });
+            }
         }
 
 

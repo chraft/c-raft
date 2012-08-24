@@ -89,10 +89,10 @@ namespace Chraft.Interfaces
 
         public void SendUpdateProgressBar(FurnaceContainer.FurnaceBar bar, short level)
         {
-            Owner.Client.SendPacket(new UpdateProgressBarPacket
+            Owner.Client.SendPacket(new UpdateWindowPropertyPacket
             {
                 WindowId = Handle,
-                ProgressBar = (short)bar,
+                Property = (short)bar,
                 Value = level,
             });
         }

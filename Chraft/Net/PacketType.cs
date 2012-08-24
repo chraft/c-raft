@@ -65,7 +65,7 @@ namespace Chraft.Net
         BlockAction = 0x36,                 //   <--
         MapChunkBulk = 0x38,                //   <--
         Explosion = 0x3C,                   //   <--
-        SoundEffect = 0x3D,                 //   <--
+        SoundOrParticleEffect = 0x3D,                 //   <--
         NewInvalidState = 0x46,             //   ???
         Thunderbolt = 0x47,                 //   <--
         OpenWindow = 0x64,                  //   <--
@@ -73,7 +73,7 @@ namespace Chraft.Net
         WindowClick = 0x66,                 //   -->
         SetSlot = 0x67,                     //   <--
         WindowItems = 0x68,                 //   <--
-        UpdateProgressBar = 0x69,           //   <--
+        UpdateWindowProperty = 0x69,        //   <--
         Transaction = 0x6A,                 //   <->
         CreativeInventoryAction = 0x6B,     //   <--
         EnchantItem = 0x6C,                 //   -->
@@ -85,7 +85,7 @@ namespace Chraft.Net
         PlayerAbilities = 0xCA,             //   <-->
         LocaleAndViewDistance = 0xCC,       //   <--
         ClientStatus = 0xCD,                //   <--
-        PluginMessage = 0xFA,               //
+        PluginMessage = 0xFA,               //   <-->
         EncryptionKeyResponse = 0xFC,       //   <--
         EncryptionKeyRequest = 0xFD,        //   -->
         ServerListPing = 0xFE,              //   -->
