@@ -19,6 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using Chraft.Entity;
+using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;
 using Chraft.Utils;
@@ -39,25 +40,25 @@ namespace Chraft.World.Paths
             World = world;
         }
         
-        public List<PathCoordinate> CreatePathToEntity(EntityBase entityFrom, EntityBase entityTo, double maxDistance = 24.0)
+        public List<PathCoordinate> CreatePathToEntity(EntityBase entityFrom, EntityBase entityTo, double maxDistance = 24.0, double untilDistanceToTarget = 1.0)
         {
             PathCoordinate start = GetCoordinateFromCacheOrAdd(entityFrom.BlockPosition);
             PathCoordinate end = GetCoordinateFromCacheOrAdd(entityTo.BlockPosition);
             Size size = new Size((int)Math.Floor(entityFrom.Width + 1.0), (int)Math.Floor(entityFrom.Height + 1.0));
 
-            return GeneratePath(start, end, size, maxDistance);
+            return GeneratePath(start, end, size, maxDistance, untilDistanceToTarget);
         }
 
-        public List<PathCoordinate> CreatePathToCoordinate(EntityBase entityFrom, AbsWorldCoords coordinate, double maxDistance = 24.0)
+        public List<PathCoordinate> CreatePathToCoordinate(EntityBase entityFrom, AbsWorldCoords coordinate, double maxDistance = 24.0, double untilDistanceToTarget = 1.0)
         {
             PathCoordinate start = GetCoordinateFromCacheOrAdd(entityFrom.BlockPosition);
             PathCoordinate end = GetCoordinateFromCacheOrAdd(UniversalCoords.FromAbsWorld(coordinate.X - (entityFrom.Width * 0.5), coordinate.Y, coordinate.Z - (entityFrom.Width * 0.5)));
             Size size = new Size((int)Math.Floor(entityFrom.Width + 1.0), (int)Math.Floor(entityFrom.Height + 1.0));
 
-            return GeneratePath(start, end, size, maxDistance);
+            return GeneratePath(start, end, size, maxDistance, untilDistanceToTarget);
         }
 
-        private List<PathCoordinate> GeneratePath(PathCoordinate start, PathCoordinate end, Size size, double maxDistance)
+        private List<PathCoordinate> GeneratePath(PathCoordinate start, PathCoordinate end, Size size, double maxDistance, double untilDistanceToTarget)
         {
             SortedSet<PathCoordinate> sortedPath = new SortedSet<PathCoordinate>(new PathCoordinateDistanceToTargetComparer());
             
@@ -67,7 +68,7 @@ namespace Chraft.World.Paths
 
             PathCoordinate currentCoordinate = start;
             int loopsLeft = 1000;
-            while (currentCoordinate != null && currentCoordinate != end && loopsLeft > 0)
+            while (currentCoordinate != null && currentCoordinate != end && currentCoordinate.DistanceToTarget > untilDistanceToTarget && loopsLeft > 0)
             {
                 currentCoordinate.Checked = true;
                 loopsLeft--;
@@ -99,6 +100,9 @@ namespace Chraft.World.Paths
                 if (sortedPath.Count > 0)
                     currentCoordinate = sortedPath.Min;
                 else
+                    break;
+
+                if (currentCoordinate != null && currentCoordinate.PreviousCoordinate != null && currentCoordinate.DistanceToTarget > currentCoordinate.PreviousCoordinate.DistanceToTarget)
                     break;
             }
 
@@ -177,6 +181,8 @@ namespace Chraft.World.Paths
         /// <returns></returns>
         private PathCoordinate GetSafeCoordinate(UniversalCoords startCoordinate, Size sizeToCheck, int heightOffset)
         {
+            // Given a coordinate, determine if it is safe to move to allowing Y +- 1 and taking into consideration size of space to check
+            
             PathCoordinate result = null;
 
             if (heightOffset > 0 && CheckOffset(startCoordinate.Offset(0, heightOffset, 0), sizeToCheck) == 1)
@@ -220,14 +226,15 @@ namespace Chraft.World.Paths
                 {
                     for (int z = start.WorldZ; z < start.WorldZ + size.Width; z++)
                     {
-                        StructBlock block = (StructBlock)World.GetBlock(x, y, z);
+                        StructBlock block = (StructBlock) World.GetBlock(x, y, z);
                         if (block.Type <= 0)
                             continue;
 
                         BlockBase blockClass = BlockHelper.Instance.CreateBlockInstance(block.Type);
+
                         if (blockClass is BlockBaseDoor)
                         {
-                            if (!((BlockBaseDoor)blockClass).IsOpen(block))
+                            if (!((BlockBaseDoor) blockClass).IsOpen(block))
                             {
                                 return 0;
                             }

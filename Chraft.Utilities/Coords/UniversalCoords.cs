@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using Chraft.Utilities.Misc;
 
 namespace Chraft.Utilities.Coords
@@ -113,28 +114,6 @@ namespace Chraft.Utilities.Coords
         {
             return !(left == right);
         }
-        
-        /// <summary>
-        /// Subtracts a <see cref="UniversalCoords"/> from a <see cref="UniversalCoords"/>, yielding a new <see cref="UniversalCoords"/>.
-        /// </summary>
-        /// <param name='left'>
-        /// The <see cref="UniversalCoords"/> to subtract from (the minuend).
-        /// </param>
-        /// <param name='right'>
-        /// The <see cref="UniversalCoords"/> to subtract (the subtrahend).
-        /// </param>
-        /// <returns>
-        /// The <see cref="UniversalCoords"/> that is the <c>left</c> minus <c>right</c>.
-        /// </returns>
-        public static UniversalCoords operator -(UniversalCoords left, UniversalCoords right)
-        {
-            return UniversalCoords.FromWorld(left.WorldX - right.WorldX, left.WorldY - right.WorldY, left.WorldZ - right.WorldZ);
-        }
-  
-        public static UniversalCoords operator +(UniversalCoords left, UniversalCoords right)
-        {
-            return UniversalCoords.FromWorld(left.WorldX + right.WorldX, left.WorldY + right.WorldY, left.WorldZ + right.WorldZ);
-        }  
       
         /// <summary>
         /// The empty UniversalCoords (0,0,0).
@@ -180,12 +159,25 @@ namespace Chraft.Utilities.Coords
         /// </param>
         public double DistanceToSquared(UniversalCoords coords)
         {
-            UniversalCoords diff = coords - this;
-            return diff.WorldX * diff.WorldX + diff.WorldY * diff.WorldY + diff.WorldZ * diff.WorldZ;
+            // Because UniversalCoords cannot store negative Y using a subtraction operator is not possible
+            // UniversalCoords diff = coords - this;
+            var diffX = coords.WorldX - WorldX;
+            var diffY = coords.WorldY - WorldY;
+            var diffZ = coords.WorldZ - WorldZ;
+
+            return diffX * diffX + diffY * diffY + diffZ * diffZ;
         }
         
+        /// <summary>
+        /// Offset the UniversalCoords by the provided values.
+        /// </summary>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <param name="offsetZ"></param>
+        /// <returns></returns>
         public UniversalCoords Offset(int offsetX, int offsetY, int offsetZ)
         {
+            Debug.Assert(this.WorldY + offsetY >= 0, "The resulting WorldY value after applying offsetY must be >= 0");
             return UniversalCoords.FromWorld(this.WorldX + offsetX, this.WorldY + offsetY, this.WorldZ + offsetZ);
         }
         
