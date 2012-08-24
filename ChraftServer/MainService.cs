@@ -80,7 +80,7 @@ namespace ChraftServer
 
         private void UnhandledException_Handler(object sender, UnhandledExceptionEventArgs e)
         {
-            Server.Logger.Log((Exception)e.ExceptionObject);
+            Server.Logger.Log(LogLevel.Debug, ((Exception)e.ExceptionObject).StackTrace);
         }
 
         public void Run(string[] args)

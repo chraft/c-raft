@@ -38,6 +38,7 @@
         public static string SmeltingRecipesFile { get; internal set; }
         public static bool UseOfficalAuthentication { get; internal set; }
         public static bool EncryptionEnabled { get; internal set; }
+        public static string ServerTextureUrl { get; internal set; }
         private static Configuration _config;
 
         public static void Load()
@@ -67,6 +68,7 @@
             AnimalSpawnInterval = _config.GetInt(serverSetup, "AnimalSpawnInterval", 3000);
             LoadFromSave = _config.GetBoolean(serverSetup, "LoadFromSave", true);
             WeatherChangeFrequency = _config.GetInt(serverSetup, "WeatherChangeFrequency", 1);
+            ServerTextureUrl = _config.GetString(serverSetup, "ServerTextureUrl", "");
 
             //logging setup
             LogFileFormat = _config.GetString(loggingSetup, "LogfileFormat", "{0:yyyy-MM-dd HH:mm:ss} [{1}] {2}");

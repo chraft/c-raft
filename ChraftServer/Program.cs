@@ -21,6 +21,8 @@ using System.Configuration.Install;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
+using Mono.Unix.Native;
 
 namespace ChraftServer
 {
@@ -31,8 +33,7 @@ namespace ChraftServer
         /// </summary>
         private static void Main(string[] args)
         {
-            Environment.CurrentDirectory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
-
+            Environment.CurrentDirectory = Path.GetDirectoryName(MainService.IsRunningInMono ? GetExecutablePath() : typeof (Program).Assembly.Location);
             //Install command-line argument
             if (args.Any(a => a.Equals("-install", StringComparison.InvariantCultureIgnoreCase)))
             {
@@ -90,6 +91,15 @@ namespace ChraftServer
             Console.WriteLine("\tChraftServer -install\r\n\t\tInstall Chraft as a Windows Service");
             Console.WriteLine("\tChraftServer -uninstall\r\n\t\tUninstall Chraft Windows Service");
             Console.WriteLine("\tChraftServer\r\n\t\tRun Chraft from the console");
+        }
+
+        public static string GetExecutablePath()
+        {
+            var builder = new StringBuilder(8192);
+            if (Syscall.readlink("/proc/self/exe", builder) >= 0)
+                return builder.ToString();
+            else
+                return null;
         }
     }
 

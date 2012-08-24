@@ -64,7 +64,7 @@ namespace Chraft.Interfaces.Recipes
 							ItemStack ing2 = ingredients[y * s + x];
                             if (ing1.IsVoid() && ing2.IsVoid())
                                 continue;
-                            else if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
+                             if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 								continue;
 							goto continue1;
 						}

@@ -36,10 +36,11 @@ namespace Chraft.Interfaces
 
         public bool IsEnchantable()
         {
-            if ((Type >= 256 && Type <= 258) || Type == 261 || (Type >= 267 && Type <= 279)
-                || (Type >= 283 && Type <= 286) || (Type >= 290 && Type <= 294) || (Type >= 298 && Type <= 317))
-                return true;
-            return false;
+            return (Type >= 256 && Type <= 258) || Type == 261 ||
+                   (Type >= 267 && Type <= 279) ||
+                   (Type >= 283 && Type <= 286) ||
+                   (Type >= 290 && Type <= 294) ||
+                   (Type >= 298 && Type <= 317);
         }
 
         private short _Type;
@@ -134,7 +135,7 @@ namespace Chraft.Interfaces
             Durability = 0;
         }
 
-        public ItemStack(short type, sbyte count) : this(type, count, 0) {}
+        public ItemStack(short type, sbyte count) : this(type, count, 0) { }
 
         public ItemStack(short type, sbyte count, short durability)
         {
@@ -152,7 +153,7 @@ namespace Chraft.Interfaces
                 stream.Write(Durability);
 
                 //if (Durability > 0 || IsEnchantable())
-                    stream.Write((short)-1);
+                stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 
                  * if (Item.CanBeDamaged())
@@ -175,7 +176,7 @@ namespace Chraft.Interfaces
                 stream.Write(Durability);
 
                 //if (Durability > 0 || IsEnchantable())
-                    stream.Write((short)-1);
+                stream.Write((short)-1);
                 // TODO: Remove the two lines above and implement items and enchantments write
                 /* 
                  * if (Item.CanBeDamaged())
@@ -186,13 +187,13 @@ namespace Chraft.Interfaces
                  *          stream.Write(-1);
                  * }
                  */
-            }            
-        }       
+            }
+        }
 
         internal void ReadEnchantmentsFromNBT(PacketWriter stream)
         {
             // TODO: Implement this and choose return value
-        } 
+        }
 
         internal void ReadEnchantmentsFromNBT(BigEndianStream stream)
         {

@@ -47,7 +47,6 @@ using Chraft.Utils;
 using System.Collections.Generic;
 using Chraft.WorldGen;
 using System.Collections.Concurrent;
-using java.util;
 using Timer = System.Threading.Timer;
 
 namespace Chraft.World

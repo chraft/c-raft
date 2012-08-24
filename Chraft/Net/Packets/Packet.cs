@@ -1578,12 +1578,12 @@ namespace Chraft.Net.Packets
         }
     }
 
-    public class SoundEffectPacket : Packet
+    public class SoundOrParticleEffectPacket : Packet
     {
         /// <summary>
         /// The ID of the sound effect to play
         /// </summary>
-        public SoundEffect EffectID { get; set; }
+        public SoundOrParticleEffect EffectID { get; set; }
         /// <summary>
         /// The X location of the effect
         /// </summary>
@@ -1605,7 +1605,7 @@ namespace Chraft.Net.Packets
 
         public override void Read(PacketReader stream)
         {
-            EffectID = (SoundEffect)stream.ReadInt();
+            EffectID = (SoundOrParticleEffect)stream.ReadInt();
             X = stream.ReadInt();
             Y = stream.ReadByte();
             Z = stream.ReadInt();
@@ -1622,16 +1622,26 @@ namespace Chraft.Net.Packets
             Writer.Write(SoundData);
         }
 
-        public enum SoundEffect : int
+        public enum SoundOrParticleEffect : int
         {
-            CLICK2 = 1000,
-            CLICK1 = 1001,
-            BOW_FIRE = 1002,
-            DOOR_TOGGLE = 1003,
-            EXTINGUISH = 1004,
-            RECORD_PLAY = 1005, // Has SoundData (probably record ID)
-            SMOKE = 2000,       // Has SoundData (direction, see SmokeDirection)
-            BLOCK_BREAK = 2001  // Has SoundData (Block ID broken)
+            SOUND_CLICK2 = 1000,
+            SOUND_CLICK1 = 1001,
+            SOUND_BOW_FIRE = 1002,
+            SOUND_DOOR_TOGGLE = 1003,
+            SOUND_EXTINGUISH = 1004,
+            SOUND_RECORD_PLAY = 1005, // Has SoundData (probably record ID)
+            SOUND_GHAST_CHARGE = 1007,
+            SOUND_GHAST_FIREBALL = 1008,
+            SOUND_ZOMBIE_WOOD = 1010,
+            SOUND_ZOMBIE_METAL = 1011,
+            SOUND_ZOMBIE_WOOD_BREAK = 1012,
+
+            //Particles
+            PARTICLE_SMOKE = 2000,       // Has SoundData (direction, see SmokeDirection)
+            PARTICLE_BLOCK_BREAK = 2001,  // Has SoundData (Block ID broken)
+            PARTICLE_SPLASH_POTION = 2002, // Has Data (Potion ID)
+            PARTICLE_EYEOFENDER = 2003, // Unknown
+            PARTICLE_MOB_SPAWN = 2004,
         }
 
         public enum SmokeDirection : int
@@ -1873,20 +1883,21 @@ namespace Chraft.Net.Packets
         }
     }
 
-    public class UpdateProgressBarPacket : Packet
+    public class UpdateWindowPropertyPacket : Packet
     {
         /// <summary>
         /// The id of the window that the progress bar is in.
         /// </summary>
         public sbyte WindowId { get; set; }
         /// <summary>
-        /// Which of the progress bars that should be updated. (For furnaces, 0 = progress arrow, 1 = fire icon)
+        /// Which property should be updated. (For furnaces, 0 = progress arrow, 1 = fire icon)
+        /// For enchantement table  0, 1 or 2 depending on the "enchantment slot" being given.
         /// </summary>
-        public short ProgressBar { get; set; }
+        public short Property { get; set; }
         /// <summary>
-        /// <para>The value of the progress bar. </para>
+        /// <para>The value of the property </para>
         /// <para>
-        /// The maximum values vary depending on the progress bar. Presumably the values are specified as in-game ticks. Some progress bar values increase, while others decrease. For furnaces, 0 is empty, full progress arrow = about 180, full fire icon = about 250)
+        /// The maximum values vary depending on the property. Presumably the values are specified as in-game ticks. Some progress bar values increase, while others decrease. For furnaces, 0 is empty, full progress arrow = about 180, full fire icon = about 250)
         /// </para>
         /// </summary>
         public short Value { get; set; }
@@ -1896,7 +1907,7 @@ namespace Chraft.Net.Packets
         public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
-            ProgressBar = stream.ReadShort();
+            Property = stream.ReadShort();
             Value = stream.ReadShort();
         }
 
@@ -1904,7 +1915,7 @@ namespace Chraft.Net.Packets
         {
             SetCapacity();
             Writer.Write(WindowId);
-            Writer.Write(ProgressBar);
+            Writer.Write(Property);
             Writer.Write(Value);
         }
     }
@@ -2236,26 +2247,22 @@ namespace Chraft.Net.Packets
     public class PluginMessagePacket : Packet
     {
         public string Channel { get; set; }
-        public short ByteLength { get; set; }
-        public byte[] Data { get; set; }
+        public short ByteLength { get; internal set; }
+        public byte[] Message { get; set; }
 
         public override void Read(PacketReader reader)
         {
             Channel = reader.ReadString16(260);
             ByteLength = reader.ReadShort();
-            Data = reader.ReadBytes(ByteLength);
+            Message = reader.ReadBytes(ByteLength);
         }
 
         public override void Write()
         {
-            SetCapacity();
+            SetCapacity(5 + Message.Length, Channel);
             Writer.Write(Channel);
-            Writer.Write(ByteLength);
-            for (int i = 0; i < ByteLength; i++)
-            {
-                Writer.WriteByte(Data[i]);
-            }
-
+            Writer.Write((short)Message.Length);
+            Writer.Write(Message, 0, Message.Length);
         }
     }
 
