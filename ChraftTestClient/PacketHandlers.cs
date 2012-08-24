@@ -67,7 +67,7 @@ namespace ChraftTestClient
             Register(PacketType.CollectItem, 9, 0, ReadCollectItem);
             Register(PacketType.UpdateWindowProperty, 6, 0, ReadUpdateWindowProperty);
             Register(PacketType.EntityMetadata, 0, 6, ReadEntityMetadata);
-            Register(PacketType.SoundEffect, 18, 0, ReadSoundEffect);
+            Register(PacketType.SoundOrParticleEffect, 18, 0, ReadSoundEffect);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
