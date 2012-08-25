@@ -26,12 +26,13 @@ namespace Chraft.World
         public int NonAirBlocks
         {
             get { return _NonAirBlocks; }
+            set { _NonAirBlocks = value; }
         }
 
         public Section(Chunk parent)
         {
             _Parent = parent;
-            _NonAirBlocks = SIZE;
+            _NonAirBlocks = 0;
         }
 
         internal unsafe byte this[UniversalCoords coords]
@@ -39,19 +40,25 @@ namespace Chraft.World
             get
             {
                 fixed (byte* types = Types)
-                    return types[coords.BlockPackedCoords];
+                    return types[coords.SectionPackedCoords];
             }
             set
             {
                 fixed (byte* types = Types)
                 {
-                    byte oldValue = types[coords.BlockPackedCoords];
+                    byte oldValue = types[coords.SectionPackedCoords];
                     if (oldValue != value)
                     {
                         //if (value != (byte)BlockData.Blocks.Air)
-                            types[coords.BlockPackedCoords] = value;
-                            if (value == (byte)BlockData.Blocks.Air)
-                            --_NonAirBlocks;
+                        types[coords.SectionPackedCoords] = value;
+                        if (value == (byte)BlockData.Blocks.Air)
+                        {
+                            if (_NonAirBlocks > 0)
+                                --_NonAirBlocks;
+                        }
+                        else
+                            ++_NonAirBlocks;
+                                
                     }
                 }
             }
@@ -74,9 +81,14 @@ namespace Chraft.World
                         
 
                         //if (value != (byte)BlockData.Blocks.Air)
-                            types[blockIndex] = value;
+                        types[blockIndex] = value;
                         if (value == (byte)BlockData.Blocks.Air)
-                            --_NonAirBlocks;
+                        {
+                            if (_NonAirBlocks > 0)
+                                --_NonAirBlocks;
+                        }
+                        else
+                            ++_NonAirBlocks;
                     }
                 }
             }

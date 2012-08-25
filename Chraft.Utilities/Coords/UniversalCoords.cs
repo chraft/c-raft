@@ -35,6 +35,7 @@ namespace Chraft.Utilities.Coords
         public int ChunkZ { get { return WorldZ >> 4; } }
 
         public readonly short BlockPackedCoords;
+        public readonly short SectionPackedCoords;
         public readonly int ChunkPackedCoords;
 
         private UniversalCoords(int worldX, int worldY, int worldZ)
@@ -46,8 +47,9 @@ namespace Chraft.Utilities.Coords
             int chunkX = worldX >> 4;
             int chunkZ = worldZ >> 4;
 
-
-            BlockPackedCoords = (short)((worldY & 0xF) << 8 | (worldZ & 0xF) << 4 | (worldX & 0xF));
+            short packetXZ = (short)((worldZ & 0xF) << 4 | (worldX & 0xF));
+            BlockPackedCoords = (short)(worldY << 8 | packetXZ);
+            SectionPackedCoords = (short)((worldY & 0xF) << 8 | packetXZ);
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -57,7 +59,9 @@ namespace Chraft.Utilities.Coords
             WorldY = (byte)blockY;
             WorldZ = (chunkZ << 4) + blockZ;
 
-            BlockPackedCoords = (short)((blockY & 0xF) << 8 | blockZ << 4 | blockX);
+            short packedXZ = (short)(blockZ << 4 | blockX);
+            BlockPackedCoords = (short)(blockY << 8 | packedXZ);
+            SectionPackedCoords = (short)((blockY & 0xF) << 8 | packedXZ);
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -68,6 +72,7 @@ namespace Chraft.Utilities.Coords
             WorldZ = chunkZ << 4;
 
             BlockPackedCoords = 0;
+            SectionPackedCoords = 0;
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -78,6 +83,7 @@ namespace Chraft.Utilities.Coords
             WorldZ = (short)((packedChunk & 0xFFFF) << 4);
 
             BlockPackedCoords = 0;
+            SectionPackedCoords = 0;
             ChunkPackedCoords = packedChunk;
         }
   

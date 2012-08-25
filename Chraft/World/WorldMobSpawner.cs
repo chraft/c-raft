@@ -203,7 +203,7 @@ namespace Chraft.World
         private static bool CanMobTypeSpawnAtLocation(MobType mobType, WorldManager world, int worldX, int worldY, int worldZ)
         {
             Chunk chunk = world.GetChunkFromWorld(worldX, worldZ) as Chunk;
-            if (chunk == null)
+            if (chunk == null || worldY == 0)
                 return false;
 
             BlockBase blockClassCurrent = BlockHelper.Instance.CreateBlockInstance((byte)chunk.GetType(worldX & 0xF, worldY, worldZ & 0xF));

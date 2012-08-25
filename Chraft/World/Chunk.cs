@@ -169,9 +169,9 @@ namespace Chraft.World
                 if(section == null)
                     return null;
 
-                return section[(blockY & 0xf) << 8 | blockZ << 4 | blockX];
+                return section[(blockY & 0xF) << 8 | blockZ << 4 | blockX];
             }
-            set { _Sections[blockY >> 4][(blockY & 0xf) << 8 | blockZ << 4 | blockX] = (byte)value; }
+            set { _Sections[blockY >> 4][(blockY & 0xF) << 8 | blockZ << 4 | blockX] = (byte)value; }
         }
 
         public void SetLightToRecalculate()
@@ -225,7 +225,7 @@ namespace Chraft.World
                 return new StructBlock(coords, 0, 0, World);
             
             byte blockId = section[coords.BlockPackedCoords];
-            byte blockData = (byte)section.Data.getNibble(coords.BlockPackedCoords);
+            byte blockData = (byte)section.Data.getNibble(coords.SectionPackedCoords);
 
             return new StructBlock(coords, blockId, blockData, World);
         }
@@ -271,7 +271,7 @@ namespace Chraft.World
 
             if (section == null)
                 return 0;
-            return (byte)section.Data.getNibble(coords.BlockPackedCoords);
+            return (byte)section.Data.getNibble(coords.SectionPackedCoords);
         }
 
         public byte GetData(int blockX, int blockY, int blockZ)
@@ -279,7 +279,7 @@ namespace Chraft.World
             Section section = _Sections[blockY >> 4];
             if (section == null)
                 return 0;
-            return (byte)section.Data.getNibble(blockX, blockY, blockZ);
+            return (byte)section.Data.getNibble(blockX, (blockY & 0xF), blockZ);
         }
 
         public byte GetDualLight(UniversalCoords coords)
@@ -333,10 +333,15 @@ namespace Chraft.World
         {
             Section section = _Sections[blockY >> 4];
 
-            if (section == null && value != BlockData.Blocks.Air)
-                section = AddNewSection(blockY >> 4);
+            if (section == null)
+            {
+                if (value != BlockData.Blocks.Air)
+                    section = AddNewSection(blockY >> 4);
+                else
+                    return;
+            }
 
-            section[(blockY & 0xf) << 8 | blockZ << 4 | blockX] = (byte)value;
+            section[(blockY & 0xF) << 8 | blockZ << 4 | blockX] = (byte)value;
         }
 
         public byte GetSectionType(int blockX, int blockY, int blockZ)
@@ -346,7 +351,7 @@ namespace Chraft.World
             if (section == null)
                 return 0;
 
-            return section[(blockY & 0xf) << 8 | blockZ << 4 | blockX];
+            return section[(blockY & 0xF) << 8 | blockZ << 4 | blockX];
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
@@ -354,7 +359,7 @@ namespace Chraft.World
             Section section = _Sections[coords.BlockY >> 4];
             section[coords] = type;
 
-            section.Data.setNibble(coords.BlockPackedCoords, data);
+            section.Data.setNibble(coords.SectionPackedCoords, data);
 
             if (needsUpdate)
                 BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
@@ -374,7 +379,7 @@ namespace Chraft.World
         public void SetData(UniversalCoords coords, byte value, bool needsUpdate = true)
         {
             Section section = _Sections[coords.BlockY >> 4];
-            section.Data.setNibble(coords.BlockPackedCoords, value);
+            section.Data.setNibble(coords.SectionPackedCoords, value);
 
             if (needsUpdate)
                 BlockNeedsUpdate(coords.BlockX, coords.BlockY, coords.BlockZ);
@@ -383,7 +388,7 @@ namespace Chraft.World
         public void SetData(int blockX, int blockY, int blockZ, byte value, bool needsUpdate = true)
         {
             Section section = _Sections[blockY >> 4];
-            section.Data.setNibble(blockX, blockY, blockZ, value);
+            section.Data.setNibble(blockX, blockY & 0xF, blockZ, value);
 
             if (needsUpdate)
                 BlockNeedsUpdate(blockX, blockY, blockZ);
@@ -1221,7 +1226,10 @@ namespace Chraft.World
                 i += Section.SIZE;
                 Buffer.BlockCopy(_Buffer, i, section.Data.Data, 0, Section.HALFSIZE);
                 i += Section.HALFSIZE;
-
+                byte[] nonAirBlocks = new byte[4];
+                Buffer.BlockCopy(_Buffer, i, nonAirBlocks, 0, 4);
+                i += 4;
+                section.NonAirBlocks = BitConverter.ToInt32(nonAirBlocks, 0);
                 --sections;
             }
 
@@ -1262,16 +1270,19 @@ namespace Chraft.World
             {
                 Section section = _Sections[i];
 
-                if(section != null)
+                if (section != null)
                 {
-                    strm.WriteByte((byte)i);
-                    strm.Write(section.Types, 0, Section.SIZE);
-                    strm.Write(section.Data.Data, 0, Section.HALFSIZE);
-
-                    // So the next call this section isn't saved
-                    if (section.NonAirBlocks == 0)
+                    if (section.NonAirBlocks > 0)
+                    {
+                        strm.WriteByte((byte)i);
+                        strm.Write(section.Types, 0, Section.SIZE);
+                        strm.Write(section.Data.Data, 0, Section.HALFSIZE);
+                        strm.Write(BitConverter.GetBytes(section.NonAirBlocks), 0, 4);
+                    }
+                    else
                         _Sections[i] = null;
                 }
+
                 ++i;
                 --sections;
             }

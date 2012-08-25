@@ -263,7 +263,7 @@ namespace Chraft.Interfaces
 
                 // TODO: Implement extra data read (enchantment) and items
 
-                if (retval.Durability > 0 || retval.IsEnchantable())
+                //if (retval.Durability > 0 || retval.IsEnchantable())
                     stream.ReadShort();
             }
             return retval;

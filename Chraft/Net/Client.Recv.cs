@@ -903,13 +903,6 @@ namespace Chraft.Net
             RijndaelManaged recv = PacketCryptography.GenerateAES(client.SharedKey);
             RijndaelManaged send = PacketCryptography.GenerateAES(client.SharedKey);
 
-            /*AesCryptoServiceProvider provider = new AesCryptoServiceProvider();
-            provider.Mode = CipherMode.CFB;
-            provider.FeedbackSize = 8;
-            provider.KeySize = 128;
-            provider.Key = client.SharedKey;
-            provider.IV = client.SharedKey;*/
-
             client.Decrypter = recv.CreateDecryptor();
             
             byte[] packetToken;
