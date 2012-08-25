@@ -32,7 +32,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Snow;
             IsAir = true;
             Opacity = 0x0;
-            IsSolid = true;
+            IsSolid = false;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
 
