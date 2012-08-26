@@ -81,6 +81,7 @@
     <Compile Include="PluginAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\ILogger.cs" />
+    <Compile Include="Server\IPluginLogger.cs" />
     <Compile Include="Server\IServer.cs" />
     <Compile Include="World\Blocks\IBlockBase.cs" />
     <Compile Include="World\Blocks\IBlockGrowable.cs" />

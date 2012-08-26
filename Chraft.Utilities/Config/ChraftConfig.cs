@@ -25,11 +25,6 @@
         public static sbyte DefaultStackSize { get; set; }
         public static string RecipesFile { get; internal set; }
         public static bool LoadFromSave { get; internal set; }
-        public static bool IrcEnabled { get; internal set; }
-        public static string IrcServer { get; internal set; }
-        public static string IrcChannel { get; internal set; }
-        public static string IrcNickname { get; internal set; }
-        public static int IrcPort { get; internal set; }
         public static string AllowedChatChars { get; internal set; }
         public static int MaxPlayers { get; internal set; }
         public static string ServerName { get; internal set; }
@@ -47,7 +42,6 @@
             const string loggingSetup = "LoggingSetup";
             const string folderSetup = "FolderSetup";
             const string generalSetup = "GeneralSetup";
-            const string ircSetup = "IrcSetup";
 
             _config = new Configuration("Chraft.config");
 
@@ -84,19 +78,12 @@
             ContainersFolder = _config.GetString(folderSetup, "ContainersFolder", "Containers");
 
             //general setup
+            AllowedChatChars = _config.GetString(generalSetup, "AllowedChatChars",
+                                                 @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV_ -=+~!@#$%^&amp;*()1234567890\[]{}|;':"",./&lt;&gt;?áéíóúäëïöüÁÉÍÓÚÄËÏÖÜÆæ");
             SmeltingRecipesFile = _config.GetString(generalSetup, "SmeltingRecipesFile", "Resources/Smelting.dat");
             ItemsFile = _config.GetString(generalSetup, "ItemsFile", "Resources/Items.csv");
             DefaultStackSize = (sbyte)_config.GetInt(generalSetup, "DefaultStackSize", 64);
             RecipesFile = _config.GetString(generalSetup, "RecipesFile", "Resources/Recipes.dat");
-
-            //irc setup
-            AllowedChatChars = _config.GetString(ircSetup, "AllowedChatChars",
-                                                 @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV_ -=+~!@#$%^&amp;*()1234567890\[]{}|;':"",./&lt;&gt;?áéíóúäëïöüÁÉÍÓÚÄËÏÖÜÆæ");
-            IrcEnabled = _config.GetBoolean(ircSetup, "IrcEnabled", true);
-            IrcServer = _config.GetString(ircSetup, "IrcServer", "irc.esper.net");
-            IrcChannel = _config.GetString(ircSetup, "IrcChannel", "#C#raft");
-            IrcNickname = _config.GetString(ircSetup, "IrcNickname", "ChraftIrcBot");
-            IrcPort = _config.GetInt(ircSetup, "IrcPort", 6667);
         }
     }
 }

@@ -14,8 +14,8 @@ namespace Chraft.PluginSystem.Server
         void AddChunkGenerator(string name, IChunkGenerator generator);
         ILogger GetLogger();
         IBlockHelper GetBlockHelper();
-        void Broadcast(string message, IClient excludeClient = null, bool sendToIrc = true);
-        void BroadcastSync(string message, IClient excludeClient = null, bool sendToIrc = true);
+        void Broadcast(string message, IClient excludeClient = null);
+        void BroadcastSync(string message, IClient excludeClient = null);
         IClient[] GetClients();
         IEnumerable<IClient> GetClients(string name);
         IClient[] GetAuthenticatedClients();
@@ -41,5 +41,6 @@ namespace Chraft.PluginSystem.Server
         IPluginManager GetPluginManager();
         IMobFactory GetMobFactory();
         void BroadcastTimeUpdate(IWorldManager world);
+        IPluginLogger GetPluginLogger();
     }
 }

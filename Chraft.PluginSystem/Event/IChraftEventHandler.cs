@@ -60,7 +60,6 @@ namespace Chraft.PluginSystem.Event
         Player,
         Server,
         Plugin,
-        IRC,
         Entity,
         Block,
         Other
