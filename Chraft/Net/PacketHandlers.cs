@@ -64,6 +64,7 @@ namespace Chraft.Net
             Register(PacketType.LocaleAndViewDistance, 0, 6, ReadLocaleAndViewDistance);
             Register(PacketType.ClientStatus, 2, 0, ReadClientStatus);
             Register(PacketType.EncryptionKeyResponse, 0, 5, ReadEncryptionResponse);
+            Register(PacketType.TabComplete, 0, 3, ReadTabCompletePacket);
         }
 
         public static void Register(PacketType packetID, int length, int minimumLength, OnPacketReceive onReceive)
@@ -308,6 +309,15 @@ namespace Chraft.Net
 
             if(!reader.Failed)
                 Client.HandlePacketEncryptionResponse(client, ekr);
+        }
+
+        public static void ReadTabCompletePacket(Client client, PacketReader reader)
+        {
+            TabCompletePacket tcp = new TabCompletePacket();
+            tcp.Read(reader);
+
+            if (!reader.Failed)
+                Client.HandleTabCompletePacket(client, tcp);
         }
     }
 }

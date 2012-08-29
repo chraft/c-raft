@@ -76,13 +76,13 @@ namespace Chraft.Net
                 if (_onGround != value)
                 {
                     _onGround = value;
-                   
+
                     byte? blockId = _player.World.GetBlockId(UniversalCoords.FromAbsWorld(_player.Position));
 
                     if (blockId == null)
                         return;
 
-                    BlockData.Blocks currentBlock = (BlockData.Blocks) blockId;
+                    BlockData.Blocks currentBlock = (BlockData.Blocks)blockId;
 
                     if (!_onGround)
                     {
@@ -180,7 +180,7 @@ namespace Chraft.Net
 
         private readonly object _QueueSwapLock = new object();
 
-        public int TimesEnqueuedForRecv;      
+        public int TimesEnqueuedForRecv;
 
         internal ByteQueue GetBufferToProcess()
         {
@@ -201,8 +201,8 @@ namespace Chraft.Net
                 DisposeRecvSystem();
                 return;
             }
-            
-            if(!_socket.Connected)
+
+            if (!_socket.Connected)
             {
                 Stop();
                 return;
@@ -224,7 +224,7 @@ namespace Chraft.Net
         }
 
         private void Recv_Process(SocketAsyncEventArgs e)
-        {         
+        {
             lock (_QueueSwapLock)
                 _currentBuffer.Enqueue(e.Buffer, 0, e.BytesTransferred);
 
@@ -235,7 +235,7 @@ namespace Chraft.Net
 
             Server.NetworkSignal.Set();
 
-            Recv_Start();       
+            Recv_Start();
         }
 
         private void Recv_Completed(object sender, SocketAsyncEventArgs e)
@@ -261,7 +261,7 @@ namespace Chraft.Net
             }
         }
 
-#region Misc
+        #region Misc
         public static void HandlePacketKeepAlive(Client client, KeepAlivePacket packet)
         {
             client.LastClientResponse = DateTime.Now;
@@ -341,7 +341,7 @@ namespace Chraft.Net
             //TODO : Implement player abilities.
         }
 
-#endregion
+        #endregion
 
         #region Use
 
@@ -542,7 +542,7 @@ namespace Chraft.Net
                     newBlockId = (byte)BlockData.Blocks.Redstone_Wire;
                     break;
                 case BlockData.Items.Iron_Door:
-                    newBlockId = (byte) BlockData.Blocks.Iron_Door;
+                    newBlockId = (byte)BlockData.Blocks.Iron_Door;
                     break;
                 case BlockData.Items.Wooden_Door:
                     newBlockId = (byte)BlockData.Blocks.Wooden_Door;
@@ -683,10 +683,10 @@ namespace Chraft.Net
         public static void HandlePacketPlayerPositionRotation(Client client, PlayerPositionRotationPacket packet)
         {
             double feetY = packet.Y - client.Owner.EyeHeight;
-            if(client.WaitForInitialPosAck)
+            if (client.WaitForInitialPosAck)
             {
                 AbsWorldCoords coords = new AbsWorldCoords(packet.X, feetY, packet.Z);
-                if(coords == client.Owner.LoginPosition)
+                if (coords == client.Owner.LoginPosition)
                 {
                     client.WaitForInitialPosAck = false;
                     client.SendSecondLoginSequence();
@@ -738,7 +738,7 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerPosition(Client client, PlayerPositionPacket packet)
         {
-            if(client.WaitForInitialPosAck)
+            if (client.WaitForInitialPosAck)
                 return;
 
             //client.Logger.Log(Chraft.LogLevel.Info, "Player position: {0} {1} {2}", packet.X, packet.Y, packet.Z);
@@ -829,13 +829,13 @@ namespace Chraft.Net
                         String.Format(
                             "http://session.minecraft.net/game/checkserver.jsp?user={0}&serverId={1}",
                             client.Username,
-                            // As per http://mc.kev009.com/Protocol_Encryption
+                        // As per http://mc.kev009.com/Protocol_Encryption
                             PacketCryptography.JavaHexDigest(Encoding.UTF8.GetBytes(client.ConnectionId)
                                                                             .Concat(client.SharedKey)
                                                                             .Concat(PacketCryptography.PublicKeyToAsn1(client.Server.ServerKey))
                                                                             .ToArray())
                             ));
-                    
+
                     string authenticated = Http.GetHttpResponse(uri);
                     if (authenticated != "YES")
                     {
@@ -883,28 +883,28 @@ namespace Chraft.Net
 
                 if (client.Server.EncryptionEnabled)
                     client.SendEncryptionRequest();
-                else if(IsAuthenticated(client))
+                else if (IsAuthenticated(client))
                     Task.Factory.StartNew(client.SendLoginSequence);
-                
-            }         
+
+            }
         }
 
         public static void HandlePacketClientStatus(Client client, ClientStatusPacket packet)
         {
             Console.WriteLine("Status arrived {0}", packet.Status);
             if (packet.Status == 0 && IsAuthenticated(client))
-                Task.Factory.StartNew(client.SendLoginSequence);        
+                Task.Factory.StartNew(client.SendLoginSequence);
         }
 
         public static void HandlePacketEncryptionResponse(Client client, EncryptionKeyResponse packet)
         {
             client.SharedKey = PacketCryptography.Decrypt(packet.SharedSecret);
-            
+
             RijndaelManaged recv = PacketCryptography.GenerateAES(client.SharedKey);
             RijndaelManaged send = PacketCryptography.GenerateAES(client.SharedKey);
 
             client.Decrypter = recv.CreateDecryptor();
-            
+
             byte[] packetToken;
 
             packetToken = PacketCryptography.Decrypt(packet.VerifyToken);
@@ -918,7 +918,30 @@ namespace Chraft.Net
             client.Send_Sync_Packet(new EncryptionKeyResponse());
 
             client.Encrypter = send.CreateEncryptor();
-            
+
+        }
+
+        public static void HandleTabCompletePacket(Client client, TabCompletePacket packet)
+        {
+            var str = new StringBuilder();
+            var s = (from a in client.GetServer().GetClients() where a.Username.Contains(packet.Text) select a).ToList();
+            if (!s.Any())
+            {
+                return;
+            }
+            if (s.Count() > 1)
+            {
+                foreach (var c in s)
+                {
+                    str.Append(c.Username);
+                }
+                str.Append('\0');
+            }
+            else
+            {
+                str.Append(s[0].Username);
+            }
+            client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
         }
 
         #endregion
