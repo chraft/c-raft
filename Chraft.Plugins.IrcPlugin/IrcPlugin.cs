@@ -80,12 +80,12 @@ namespace Chraft.Plugins.IrcPlugin
         public void Initialize()
         {
             _logger = Server.GetPluginLogger();
-            _logger.Log(LogLevel.Info, Name, "[IrcPlugin] Initialize ircplugin Version {0}.", Version);
+            _logger.Log(LogLevel.Info, Name, "Initialize ircplugin Version {0}.", Version);
 
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Checking folder {0}", ConfigurationDirectory);
+            _logger.Log(LogLevel.Debug, Name, "Checking folder {0}", ConfigurationDirectory);
             if (!Directory.Exists(ConfigurationDirectory)) { Directory.CreateDirectory(ConfigurationDirectory); }
 
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Checking configfile {0}", ConfigurationFilename);
+            _logger.Log(LogLevel.Debug, Name, "Checking configfile {0}", ConfigurationFilename);
             if (!File.Exists(ConfigurationFilename))
             {
                 GenerateNewConfigurationFile();
@@ -112,13 +112,20 @@ namespace Chraft.Plugins.IrcPlugin
         /// </summary>
         public void OnEnabled()
         {
-            StartIrcClient();
+            if (RunningConfiguration.Enabled)
+            {
+                StartIrcClient();
 
-            IsPluginEnabled = true;
-            PluginManager.RegisterEvent(Event.ServerBroadcast, _serverListener, this);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Registered for ServerBroadcast.");
+                IsPluginEnabled = true;
+                PluginManager.RegisterEvent(Event.ServerBroadcast, _serverListener, this);
+                _logger.Log(LogLevel.Debug, Name, "Registered for ServerBroadcast.");
 
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Enabled.");
+                _logger.Log(LogLevel.Debug, Name, "Enabled.");
+            }
+            else
+            {
+                _logger.Log(LogLevel.Debug, Name, "Disabled in file.");
+            }
         }
 
         /// <summary>
@@ -128,9 +135,9 @@ namespace Chraft.Plugins.IrcPlugin
         {
             IsPluginEnabled = false;
             PluginManager.UnregisterEvent(Event.ServerBroadcast, _serverListener, this);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Unregistered for ServerBroadcast.");
+            _logger.Log(LogLevel.Debug, Name, "Unregistered for ServerBroadcast.");
 
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Disabled.");
+            _logger.Log(LogLevel.Debug, Name, "Disabled.");
         }
 
         #endregion
@@ -221,16 +228,16 @@ namespace Chraft.Plugins.IrcPlugin
             RunningConfiguration = (IrcPluginConfiguration)deserializer.Deserialize(textReader);
             textReader.Close();
 
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcEnabled: {0}", RunningConfiguration.Enabled);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcServer: {0}", RunningConfiguration.Server);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcChannel: {0}", RunningConfiguration.Channel);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcNickName: {0}", RunningConfiguration.Nickname);
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] IrcPort: {0}", RunningConfiguration.Port);
+            _logger.Log(LogLevel.Debug, Name, "IrcEnabled: {0}", RunningConfiguration.Enabled);
+            _logger.Log(LogLevel.Debug, Name, "IrcServer: {0}", RunningConfiguration.Server);
+            _logger.Log(LogLevel.Debug, Name, "IrcChannel: {0}", RunningConfiguration.Channel);
+            _logger.Log(LogLevel.Debug, Name, "IrcNickName: {0}", RunningConfiguration.Nickname);
+            _logger.Log(LogLevel.Debug, Name, "IrcPort: {0}", RunningConfiguration.Port);
         }
 
         private void GenerateNewConfigurationFile()
         {
-            _logger.Log(LogLevel.Debug, Name, "[IrcPlugin] Creating a new configuration file");
+            _logger.Log(LogLevel.Debug, Name, "Creating a new configuration file");
             IrcPluginConfiguration config = new IrcPluginConfiguration();
             config.Enabled = false;
             config.Server = "irc.esper.net";
