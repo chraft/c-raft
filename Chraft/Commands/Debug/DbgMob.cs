@@ -30,6 +30,7 @@ using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Entity;
+using Chraft.World.Paths;
 
 namespace Chraft.Commands.Debug
 {
@@ -72,6 +73,24 @@ namespace Chraft.Commands.Debug
                         foreach (EntityBase entity in client.Server.GetNearbyEntitiesInternal(client.Owner.World, coords))
                         {
                             entity.TeleportTo(entity.Position);
+                        }
+                    }
+                    else if (tokens[0] == "path")
+                    {
+                        PathFinder finder = new PathFinder(client.Owner.World);
+                        var path = finder.CreatePathToCoordinate(client.Owner, new AbsWorldCoords(client.Owner.World.FromFace(hit.TargetBlock, hit.FaceHit)));
+                        if (path != null)
+                        {
+                            foreach (var item in path)
+                            {
+                                client.Owner.World.SetBlockAndData(item.Coordinate,
+                                                                   (byte)
+                                                                   Chraft.Utilities.Blocks.BlockData.Blocks.
+                                                                       Redstone_Torch_On, 0);
+                            }
+                        } else
+                        {
+                            client.SendMessage(String.Format("Unable to determine path to '{0}'", hit.TargetBlock.Offset(0, 1, 0)));
                         }
                     }
                     else

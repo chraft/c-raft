@@ -24,6 +24,7 @@ using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Math;
@@ -93,7 +94,7 @@ namespace Chraft.Entity
             this.Type = type;
             this.World = world;
             this.MobUpdateFrequency = 1;
-            this.Speed = 0.7;
+            this.Speed = 0.1;
 		}
 
         protected virtual void DoInteraction(IClient client, IItemStack item)
@@ -114,10 +115,22 @@ namespace Chraft.Entity
                 }
                 if (this.Velocity > Vector3.Origin)
                 {
-                    Velocity.Y -= 0.04; // Gravity
+                    //if (IsJumping)
+                    //    Velocity.Y += 0.04;
 
                     // TODO: this.MoveTo might be called to frequently - this needs to be reviewed
-                    this.MoveTo(ApplyVelocity(this.Velocity), (float) this.Yaw, (float) this.Pitch);
+                    
+                    //Server.Logger.Log(LogLevel.Info, "Velocity BEFORE ApplyVelocity (XYZ): " + Velocity.ToString());
+                    var coords = ApplyVelocity(this.Velocity);
+                    //Server.Logger.Log(LogLevel.Info, "Velocity AFTER ApplyVelocity (XYZ): " + Velocity.ToString());
+                    
+                    //Server.Logger.Log(LogLevel.Info, String.Format("Mob pos: {0}, New Pos: {1}", this.Position, coords));
+                    this.MoveTo(coords, (float)this.Yaw, (float)this.Pitch);
+
+                    Velocity.X *= 0.8;
+                    Velocity.Y *= 0.8;
+                    Velocity.Z *= 0.8;
+                    Velocity.Y -= 0.02; // Gravity
                     //Server.Logger.Log(LogLevel.Debug, this.Velocity.ToString());
 
                     double friction = 0.98;
@@ -127,9 +140,9 @@ namespace Chraft.Entity
 
                         // TODO: adjust based on Block friction
                     }
-                    Velocity.X *= friction;
-                    Velocity.Y *= 0.98;
-                    Velocity.Z *= friction;
+                    //Velocity.X *= friction;
+                    ////Velocity.Y *= 0.98;
+                    //Velocity.Z *= friction;
 
                     if (OnGround)
                         Velocity.Y *= -0.5;
@@ -147,83 +160,105 @@ namespace Chraft.Entity
         protected double Speed { get; set; }
 	    private double _strafingMovement = 0.0;
         private double _forwardMovement = 0.0;
+	    private Vector3? _nextPosition = null;
+	    private int _pathPosition = 0;
         protected virtual void DoMobUpdate()
         {
+            // Get the next position in the path that is further than twice the width of the current entity
+            double width = this.Width*2.0;
+            double widthSqr = width*width;
+
             if (PathCoordinates == null || PathCoordinates.Count == 0)
             {
                 PathCoordinates = GetNewPath();
+                _pathPosition = 0;
             }
             else
             {
-                PathCoordinate pathCoordinate = PathCoordinates[0];
-                if (pathCoordinate == null)
+                if (this._nextPosition == null || _nextPosition.Value.DistanceSquared(new Vector3(this.Position.X, _nextPosition.Value.Y, this.Position.Z)) < widthSqr)
                 {
-                    PathCoordinates = null;
-                }
-                else
-                {
-                    PathCoordinates.RemoveAt(0);
-                    
-                    // Get the next position in the path that is further than twice the width of the current entity
-                    double width = this.Width*2.0;
-                    double widthSqr = width*width;
-
-                    Vector3? nextPosition = pathCoordinate.AsEntityPosition(this).ToVector();
-                    
-                    while (nextPosition != null && nextPosition.Value.DistanceSquared(new Vector3(this.Position.X, nextPosition.Value.Y, this.Position.Z)) < widthSqr)
+                    PathCoordinate pathCoordinate = PathCoordinates[0];
+                    if (pathCoordinate == null)
                     {
-                        if (PathCoordinates.Count == 0)
-                        {
-                            nextPosition = null;
-                            PathCoordinates = null;
-                        }
-                        else
-                        {
-                            pathCoordinate = PathCoordinates[0];
-                            PathCoordinates.RemoveAt(0);
-                            nextPosition = pathCoordinate.AsEntityPosition(this).ToVector();
-                        }
+                        PathCoordinates = null;
                     }
-
-                    IsJumping = false;
-
-                    if (nextPosition != null)
+                    else
                     {
-                        double currentY = Math.Floor(BoundingBox.Minimum.Y + 0.5);
+                        _pathPosition++;
+                        PathCoordinates.RemoveAt(0);
 
-                        Vector3 difference = nextPosition.Value - new Vector3(this.Position.X, currentY, this.Position.Z);
-
-                        double newYaw = ((Math.Atan2(difference.Z, difference.X)*180.0)/Math.PI) - 90.0;
-                        double yawMovement = (newYaw - Yaw);
-                        _forwardMovement = Speed;
-                        for (; yawMovement < -180F; yawMovement += 360F) { }
-                        for (; yawMovement >= 180F; yawMovement -= 360F) { }
-
-                        Yaw += yawMovement.Clamp(-30.0, 30.0);
+                        Vector3? nextPosition = pathCoordinate.AsEntityPosition(this).ToVector();
                         
-                        if (Target != null)
+                        while (nextPosition != null &&
+                               nextPosition.Value.DistanceSquared(new Vector3(this.Position.X, nextPosition.Value.Y,
+                                                                              this.Position.Z)) < widthSqr)
                         {
-                            double xDiff = Target.Position.X - Position.X;
-                            double zDiff = Target.Position.Z - Position.Z;
-                            double previousYaw = Yaw;
-                            Yaw = Math.Atan2(zDiff, xDiff).ToDegrees() -90.0;
-                            double turnDirection = ((previousYaw - Yaw)).ToRadians();// + 90.0).ToRadians();
-                            _strafingMovement = -Math.Sin(turnDirection) * Speed * 1.0;
-                            _forwardMovement = Math.Cos(turnDirection) * Speed * 1.0;
-                            //Server.Logger.Log(LogLevel.Debug, "PrevYaw: {0}, NewYaw: {1}, Turn: {2}", previousYaw, Yaw, turnDirection);
+                            if (PathCoordinates.Count == 0)
+                            {
+                                nextPosition = null;
+                                PathCoordinates = null;
+                            }
+                            else
+                            {
+                                pathCoordinate = PathCoordinates[0];
+                                PathCoordinates.RemoveAt(0);
+                                nextPosition = pathCoordinate.AsEntityPosition(this).ToVector();
+                                _pathPosition++;
+                            }
                         }
+                        _nextPosition = nextPosition;
+                        //Server.Logger.Log(LogLevel.Info, "Path position {0}", _pathPosition);
+                        //if (_nextPosition != null)
+                        //    Server.Logger.Log(LogLevel.Info, _nextPosition.Value.ToString());
 
-                        if (difference.Y > 0.0)
-                        {
-                            IsJumping = true;
-                        }
                     }
+                }
+
+                IsJumping = false;
+
+                if (_nextPosition != null)
+                {
+                    double currentY = Math.Floor(BoundingBox.Minimum.Y + 0.5);
+
+                    Vector3 difference = _nextPosition.Value -
+                                         new Vector3(this.Position.X, currentY, this.Position.Z);
+
+                    //Server.Logger.Log(LogLevel.Info, "Velocity to nextPosition (XYZ): " + Velocity.ToString());
+
+                    double newYaw = ((Math.Atan2(difference.Z, difference.X) * 180.0) / Math.PI) - 90.0;
+                    double yawMovement = (newYaw - Yaw) % 360.0;
+                    _forwardMovement = Speed;
+                    for (; yawMovement < -180F; yawMovement += 360F)
+                    {
+                    }
+                    for (; yawMovement >= 180F; yawMovement -= 360F)
+                    {
+                    }
+
+                    Yaw += yawMovement.Clamp(-30.0, 30.0);
 
                     if (Target != null)
                     {
-                        this.FaceEntity(Target, 30, 30);
-                        //Server.Logger.Log(LogLevel.Debug, "FacingYaw: {0}", Yaw);
+                        double xDiff = Target.Position.X - Position.X;
+                        double zDiff = Target.Position.Z - Position.Z;
+                        double previousYaw = Yaw;
+                        Yaw = Math.Atan2(zDiff, xDiff).ToDegrees() - 90.0;
+                        double turnDirection = ((previousYaw - Yaw /*+ 90.0*/)).ToRadians();
+                        _strafingMovement = -Math.Sin(turnDirection) * Speed * 1.0;
+                        _forwardMovement = Math.Cos(turnDirection) * Speed * 1.0;
+                        //Server.Logger.Log(LogLevel.Debug, "PrevYaw: {0}, NewYaw: {1}, Turn: {2}", previousYaw, Yaw, turnDirection);
                     }
+
+                    if (difference.Y > 0.0)
+                    {
+                        IsJumping = true;
+                    }
+                }
+
+                if (Target != null)
+                {
+                    this.FaceEntity(Target, 30, 30);
+                    //Server.Logger.Log(LogLevel.Debug, "FacingYaw: {0}", Yaw);
                 }
 
                 _strafingMovement *= 0.98;

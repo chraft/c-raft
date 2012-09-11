@@ -83,6 +83,7 @@ namespace Chraft.Net
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--
         PlayerAbilities = 0xCA,             //   <-->
+        TabComplete = 0xCB,                 //   <-->
         LocaleAndViewDistance = 0xCC,       //   <--
         ClientStatus = 0xCD,                //   <--
         PluginMessage = 0xFA,               //   <-->

@@ -36,7 +36,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.TallGrass;
             IsSingleHit = true;
             IsAir = true;
-            IsSolid = true;
+            IsSolid = false;
             Opacity = 0x0;
             BlockBoundsOffset = new BoundingBox(0.1, 0, 0.1, 0.9, 0.8, 0.9);
         }

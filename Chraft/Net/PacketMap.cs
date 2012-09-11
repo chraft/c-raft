@@ -96,6 +96,7 @@ namespace Chraft.Net
             { typeof(SetSlotPacket), PacketType.SetSlot },
             { typeof(SoundOrParticleEffectPacket), PacketType.SoundOrParticleEffect },
             { typeof(SpawnPositionPacket), PacketType.SpawnPosition },
+            { typeof(TabCompletePacket), PacketType.TabComplete },
             { typeof(TimeUpdatePacket), PacketType.TimeUpdate },
             { typeof(ThunderBoltPacket), PacketType.Thunderbolt },
             { typeof(TransactionPacket), PacketType.Transaction },

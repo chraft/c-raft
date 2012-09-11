@@ -280,8 +280,6 @@ namespace Chraft.Net.Packets
         public short Slot { get; set; }
         public ItemStack Item { get; set; }
 
-        protected override int Length { get { return 11; } }
-
         public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
@@ -291,10 +289,11 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            SetCapacity();
+            SetCapacity(7);
             Writer.Write(EntityId);
             Writer.Write(Slot);
             (Item ?? ItemStack.Void).Write(Writer);
+            Length = (int)Writer.UnderlyingStream.Length;
         }
     }
 
@@ -586,11 +585,9 @@ namespace Chraft.Net.Packets
         }
 
         public override void Write()
-        {
-            if (Item == null || Item.Type == -1)
-                SetCapacity(16);
-            else
-                SetCapacity(19);
+        {           
+            SetCapacity(16);
+            
 
             Writer.Write(X);
             Writer.Write(Y);
@@ -1846,10 +1843,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            if (Item == null || Item.Type == -1)
-                SetCapacity(4);
-            else
-                SetCapacity(6);
+            SetCapacity(4);
 
             Writer.Write(WindowId);
             Writer.Write(Slot);

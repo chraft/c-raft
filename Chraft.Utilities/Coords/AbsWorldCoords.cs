@@ -73,5 +73,10 @@ namespace Chraft.Utilities.Coords
                     coords1.Y != coords2.Y ||
                     coords1.Z != coords2.Z;
         }
+
+        public override string ToString()
+        {
+            return string.Format("X:{0}, Y:{1}, Z:{2}", X, Y, Z);
+        }
     }
 }

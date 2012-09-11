@@ -64,40 +64,48 @@ namespace Chraft.Net.Packets
         public static MapChunkData GetMapChunkData(Chunk chunk)
         {
             MapChunkData chunkData = new MapChunkData();
-            int dataDim = (chunk.SectionsNum * Section.BYTESIZE) + 256; // (Number of sections * (Section dimension + Add array) + Biome array
-
-            chunkData.Data = new byte[dataDim];
-
-            int halfSize = chunk.SectionsNum * Section.HALFSIZE;
-            int offsetData = chunk.SectionsNum * Section.SIZE;
-            int offsetLight = offsetData + halfSize;
-            int offsetSkyLight = offsetLight + halfSize;
+            
 
             ushort mask = 1;
             int sectionIndex = 0;
+
+            int sectionsSent = 0;
+
+            for (int i = 0; i < 16; ++i )
+            {
+                Section currentSection = chunk.Sections[i];
+                if (currentSection != null)
+                    ++sectionsSent;
+            }
+
+            int dataDim = (sectionsSent * Section.BYTESIZE) + 256; // (Number of sections * (Section dimension + Add array) + Biome array
+
+            chunkData.Data = new byte[dataDim];
+
+            int halfSize = sectionsSent * Section.HALFSIZE;
+            int offsetData = sectionsSent * Section.SIZE;
+            int offsetLight = offsetData + halfSize;
+            int offsetSkyLight = offsetLight + halfSize;
+
             for (int i = 0; i < 16; ++i)
             {
                 Section currentSection = chunk.Sections[i];
 
-                if (currentSection != null && currentSection.NonAirBlocks > 0)
+                if (currentSection != null)
                 {
                     Buffer.BlockCopy(currentSection.Types, 0, chunkData.Data, sectionIndex * Section.SIZE, Section.SIZE);
                     Buffer.BlockCopy(currentSection.Data.Data, 0, chunkData.Data, offsetData + (sectionIndex * Section.HALFSIZE),
-                                     Section.HALFSIZE);
+                                        Section.HALFSIZE);
 
                     Buffer.BlockCopy(chunk.Light.Data, i * Section.HALFSIZE, chunkData.Data, offsetLight + (sectionIndex * Section.HALFSIZE),
-                                     Section.HALFSIZE);
+                                        Section.HALFSIZE);
                     Buffer.BlockCopy(chunk.SkyLight.Data, i * Section.HALFSIZE, chunkData.Data, offsetSkyLight + (sectionIndex * Section.HALFSIZE),
-                                     Section.HALFSIZE);
+                                        Section.HALFSIZE);
 
 
-                    chunkData.PrimaryBitMask |= mask;
+                    chunkData.PrimaryBitMask |= mask << i;
                     ++sectionIndex;
                 }
-
-
-
-                mask <<= 1;
 
                 // TODO: we leave add array and biome array to 0 (ocean), we need to change the chunk generator accordingly
             }
