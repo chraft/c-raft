@@ -19,33 +19,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Chraft.Irc
+namespace Chraft.Plugins.IrcPlugin
 {
-	public class HostMask
+	public delegate void IrcEventHandler(object sender, IrcEventArgs e);
+
+	public class IrcEventArgs : EventArgs
 	{
-		public string Mask { get; private set; }
+		public HostMask Prefix { get; private set; }
+		public string Command { get; private set; }
+		public string[] Args { get; private set; }
+		public bool Handled { get; set; }
 
-		public string Nickname
+		public IrcEventArgs(HostMask prefix, string command, string[] args)
 		{
-			get
-			{
-				if (!Mask.Contains('!'))
-					return Mask;
-				return Mask.Remove(Mask.IndexOf('!'));
-			}
-		}
-
-		public string Server
-		{
-			get
-			{
-				return Mask.Trim('@', '!', '+', '&', '$', '^', '%', '?', '~');
-			}
-		}
-
-		public HostMask(string mask)
-		{
-			Mask = mask;
+			Prefix = prefix;
+			Command = command;
+			Args = args;
+			Handled = false;
 		}
 	}
 }

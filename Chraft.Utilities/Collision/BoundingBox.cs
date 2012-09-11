@@ -201,6 +201,8 @@ namespace Chraft.Utilities.Collision
         /// </param>
         public BoundingBox OffsetWithClipping(ref Vector3 motion, BoundingBox[] potentialCollisions)
         {
+            System.Diagnostics.Debug.Assert(motion.X < 1.0 && motion.Y < 1.0 && motion.Z < 1.0, "OffsetWithClipping: motion X/Y/Z must be less than 1.0");
+            
             if (potentialCollisions == null || potentialCollisions.Length == 0)
                 return this + motion;
             
@@ -213,6 +215,7 @@ namespace Chraft.Utilities.Collision
                 foreach (var collision in potentialCollisions)
                 {
                     // If the collision is on the same X or Z axis, then adjust the Y movement
+                    // Check against the target boundingbox, but adjust against the current boundingbox
                     if (collision.IsVectorWithinXZ(offsetBB.Minimum) || collision.IsVectorWithinXZ(offsetBB.Maximum))
                     {
                         if (motion.Y > 0.0d && offsetBB.Maximum.Y <= collision.Minimum.Y)
@@ -235,6 +238,7 @@ namespace Chraft.Utilities.Collision
                 foreach (var collision in potentialCollisions)
                 {
                     // If the collision is on the same Y or Z axis, then adjust the X movement
+                    // Check against the target boundingbox, but adjust against the current boundingbox
                     if (collision.IsVectorWithinYZ(offsetBB.Minimum) || collision.IsVectorWithinYZ(offsetBB.Maximum))
                     {
                         if (motion.X > 0.0d && offsetBB.Maximum.X <= collision.Minimum.X)
@@ -257,6 +261,7 @@ namespace Chraft.Utilities.Collision
                 foreach (var collision in potentialCollisions)
                 {
                     // If the collision is on the same Y or Z axis, then adjust the X movement
+                    // Check against the target boundingbox, but adjust against the current boundingbox
                     if (collision.IsVectorWithinXY(offsetBB.Minimum) || collision.IsVectorWithinXY(offsetBB.Maximum))
                     {
                         if (motion.Z > 0.0d && offsetBB.Maximum.Z <= collision.Minimum.Z)
@@ -270,7 +275,7 @@ namespace Chraft.Utilities.Collision
                     }
                 }
                 
-                offsetBB = offsetBB + new Vector3(motion.X, 0, 0);
+                offsetBB = offsetBB + new Vector3(0, 0, motion.Z);
             }
             
             return offsetBB;
@@ -281,7 +286,7 @@ namespace Chraft.Utilities.Collision
         #region Intersection
         
         /// <summary>
-        /// Determines whether this instance hsa the specified vector within its bounds.
+        /// Determines whether this instance has the specified vector within its bounds.
         /// </summary>
         /// <returns>
         /// <c>true</c> if this instance is vector within bounds the specified vector; otherwise, <c>false</c>.

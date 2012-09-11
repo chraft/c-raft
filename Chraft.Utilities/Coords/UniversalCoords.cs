@@ -16,6 +16,7 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using Chraft.Utilities.Misc;
 
 namespace Chraft.Utilities.Coords
@@ -34,6 +35,7 @@ namespace Chraft.Utilities.Coords
         public int ChunkZ { get { return WorldZ >> 4; } }
 
         public readonly short BlockPackedCoords;
+        public readonly short SectionPackedCoords;
         public readonly int ChunkPackedCoords;
 
         private UniversalCoords(int worldX, int worldY, int worldZ)
@@ -45,8 +47,9 @@ namespace Chraft.Utilities.Coords
             int chunkX = worldX >> 4;
             int chunkZ = worldZ >> 4;
 
-
-            BlockPackedCoords = (short)((worldY & 0xF) << 8 | (worldZ & 0xF) << 4 | (worldX & 0xF));
+            short packetXZ = (short)((worldZ & 0xF) << 4 | (worldX & 0xF));
+            BlockPackedCoords = (short)(worldY << 8 | packetXZ);
+            SectionPackedCoords = (short)((worldY & 0xF) << 8 | packetXZ);
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -56,7 +59,9 @@ namespace Chraft.Utilities.Coords
             WorldY = (byte)blockY;
             WorldZ = (chunkZ << 4) + blockZ;
 
-            BlockPackedCoords = (short)((blockY & 0xF) << 8 | blockZ << 4 | blockX);
+            short packedXZ = (short)(blockZ << 4 | blockX);
+            BlockPackedCoords = (short)(blockY << 8 | packedXZ);
+            SectionPackedCoords = (short)((blockY & 0xF) << 8 | packedXZ);
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -67,6 +72,7 @@ namespace Chraft.Utilities.Coords
             WorldZ = chunkZ << 4;
 
             BlockPackedCoords = 0;
+            SectionPackedCoords = 0;
             ChunkPackedCoords = (short)chunkX << 16 | (short)chunkZ & 0xFFFF;
         }
 
@@ -77,6 +83,7 @@ namespace Chraft.Utilities.Coords
             WorldZ = (short)((packedChunk & 0xFFFF) << 4);
 
             BlockPackedCoords = 0;
+            SectionPackedCoords = 0;
             ChunkPackedCoords = packedChunk;
         }
   
@@ -113,28 +120,6 @@ namespace Chraft.Utilities.Coords
         {
             return !(left == right);
         }
-        
-        /// <summary>
-        /// Subtracts a <see cref="UniversalCoords"/> from a <see cref="UniversalCoords"/>, yielding a new <see cref="UniversalCoords"/>.
-        /// </summary>
-        /// <param name='left'>
-        /// The <see cref="UniversalCoords"/> to subtract from (the minuend).
-        /// </param>
-        /// <param name='right'>
-        /// The <see cref="UniversalCoords"/> to subtract (the subtrahend).
-        /// </param>
-        /// <returns>
-        /// The <see cref="UniversalCoords"/> that is the <c>left</c> minus <c>right</c>.
-        /// </returns>
-        public static UniversalCoords operator -(UniversalCoords left, UniversalCoords right)
-        {
-            return UniversalCoords.FromWorld(left.WorldX - right.WorldX, left.WorldY - right.WorldY, left.WorldZ - right.WorldZ);
-        }
-  
-        public static UniversalCoords operator +(UniversalCoords left, UniversalCoords right)
-        {
-            return UniversalCoords.FromWorld(left.WorldX + right.WorldX, left.WorldY + right.WorldY, left.WorldZ + right.WorldZ);
-        }  
       
         /// <summary>
         /// The empty UniversalCoords (0,0,0).
@@ -180,12 +165,25 @@ namespace Chraft.Utilities.Coords
         /// </param>
         public double DistanceToSquared(UniversalCoords coords)
         {
-            UniversalCoords diff = coords - this;
-            return diff.WorldX * diff.WorldX + diff.WorldY * diff.WorldY + diff.WorldZ * diff.WorldZ;
+            // Because UniversalCoords cannot store negative Y using a subtraction operator is not possible
+            // UniversalCoords diff = coords - this;
+            var diffX = coords.WorldX - WorldX;
+            var diffY = coords.WorldY - WorldY;
+            var diffZ = coords.WorldZ - WorldZ;
+
+            return diffX * diffX + diffY * diffY + diffZ * diffZ;
         }
         
+        /// <summary>
+        /// Offset the UniversalCoords by the provided values.
+        /// </summary>
+        /// <param name="offsetX"></param>
+        /// <param name="offsetY"></param>
+        /// <param name="offsetZ"></param>
+        /// <returns></returns>
         public UniversalCoords Offset(int offsetX, int offsetY, int offsetZ)
         {
+            Debug.Assert(this.WorldY + offsetY >= 0, "The resulting WorldY value after applying offsetY must be >= 0");
             return UniversalCoords.FromWorld(this.WorldX + offsetX, this.WorldY + offsetY, this.WorldZ + offsetZ);
         }
         

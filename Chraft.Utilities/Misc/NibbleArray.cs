@@ -32,7 +32,8 @@ namespace Chraft.Utilities.Misc
 
         public int getNibble(int blockX, int blockY, int blockZ)
         {
-            return getNibble((blockY & 0xF) << 8 | blockZ << 4 | blockX);
+
+            return getNibble(blockY << 8 | blockZ << 4 | blockX);
         }
 
         public int getNibble(int packed)
@@ -50,7 +51,7 @@ namespace Chraft.Utilities.Misc
 
         public void setNibble(int blockX, int blockY, int blockZ, byte value)
         {
-            setNibble((blockY & 0xF) << 8 | blockZ << 4 | blockX, value);
+            setNibble(blockY << 8 | blockZ << 4 | blockX, value);
         }
 
         public void setNibble(int packed, byte value)
