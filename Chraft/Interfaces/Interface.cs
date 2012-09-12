@@ -77,7 +77,7 @@ namespace Chraft.Interfaces
 			Cursor = ItemStack.Void;
 		}
 
-		internal Interface(InterfaceType type, sbyte slotCount)
+		internal Interface(InterfaceType type, sbyte slotCount) : this()
 		{
 			Type = type;
 			Handle = NextHandle;
