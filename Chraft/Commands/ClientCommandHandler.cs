@@ -20,20 +20,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Chraft.PluginSystem.Commands;
-using Chraft.Plugins;
 
 namespace Chraft.Commands
 {
     public class ClientCommandHandler : IClientCommandHandler
     {
         private List<IClientCommand> commands;
-        private List<IClientCommand> fallBackCommands;
+        private readonly string _chraftCoreNamespace = "Chraft";
+
         public ClientCommandHandler()
         {
             commands = new List<IClientCommand>();
-            fallBackCommands = new List<IClientCommand>();
             Init();
         }
+
         /// <summary>
         /// Finds a command and returns it for use.
         /// 
@@ -44,35 +44,87 @@ namespace Chraft.Commands
         /// <returns>A command with the given name.</returns>
         public ICommand Find(string command)
         {
-            var commandSplit = command.Split(':');
-            if (commandSplit.Length == 2)
+            var parts = command.Split(':');
+
+            // Ambiguous command
+            if (parts.Length > 2 || (parts.Length == 2 && string.IsNullOrEmpty(parts[1])))
+                throw new CommandNotFoundException("The specified command was not found!");
+
+            // Looking exactly for the /PluginName:CommandName command
+            if (parts.Length == 2)
+                return FindByFullName(command);
+
+            // Check for main command names collision
+            var matchedCommands = commands.Where(c => c.Name.ToLower() == command.ToLower()).ToList();
+            var matchedCount = matchedCommands.Count;
+
+            if (matchedCount > 1)
             {
-                var test1 = commandSplit[0];
-                string test2 = commandSplit[1];
-                foreach (var s in PluginManager.PluginCommands.Where(c => c.Key.Name.ToLower() == test2.ToLower() && c.Value.Name.ToLower() == test1.ToLower()))
+                var matchedStrings = new string[matchedCount];
+                string pluginName;
+
+                for (int i = 0; i < matchedCount; i++)
                 {
-                    return s.Key;
+                    pluginName = (matchedCommands[i].Iplugin == null) ? _chraftCoreNamespace : matchedCommands[i].Iplugin.Name;
+                    matchedStrings[i] = string.Format("/{0}:{1}", pluginName, matchedCommands[i].Name);
                 }
+                throw new MultipleCommandsMatchException(matchedStrings);
             }
-            foreach (IClientCommand cmd in commands.Where(cmd => cmd.Name.ToLower() == command.ToLower()))
-            {
-                return cmd;
-            }
-            IClientCommand Cmd;
+
+            if (matchedCount == 1)
+                return matchedCommands[0];
+
+            // We haven't found the command by its main name, checking the shortcuts
+            IClientCommand cmd;
             try
             {
-                Cmd = FindShort(command) as IClientCommand;
+                cmd = FindShort(command) as IClientCommand;
+            }
+            catch (MultipleCommandsMatchException e)
+            {
+                throw e;
             }
             catch (CommandNotFoundException e)
             {
                 throw e;
             }
-            if (Cmd == null)
+            if (cmd == null)
             {
                 throw new CommandNotFoundException("The specified command was not found!");
             }
-            return Cmd;
+            return cmd;
         }
+
+        /// <summary>
+        /// Finds a command by its full name (e.g. "PluginName:CommandName") and returns it for use.
+        /// 
+        /// Exceptions:
+        /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
+        /// </summary>
+        /// <param name="command">The name of the command to find.</param>
+        /// <returns>A command with the given name.</returns>
+        public ICommand FindByFullName(string command)
+        {
+            var commandSplit = command.Split(':');
+
+            if (commandSplit.Length == 2)
+            {
+                var pluginName = commandSplit[0];
+                var commandName = commandSplit[1];
+                if (pluginName.ToLower() == _chraftCoreNamespace.ToLower())
+                {
+                    foreach (var s in commands.Where(c => c.Iplugin == null && (c.Name.ToLower() == commandName.ToLower()) || c.Shortcut.ToLower() == commandName.ToLower()))
+                        return s;
+                }
+                else
+                {
+                    foreach (var s in commands.Where(c => c.Iplugin != null && c.Iplugin.Name.ToLower() == pluginName.ToLower() && (c.Name.ToLower() == commandName.ToLower() || c.Shortcut.ToLower() == commandName.ToLower())))
+                        return s;
+                }
+            }
+            throw new CommandNotFoundException("The specified command was not found!");
+        }
+
         /// <summary>
         /// Finds a command and returns it for use.
         /// 
@@ -81,12 +133,28 @@ namespace Chraft.Commands
         /// </summary>
         /// <param name="Shortcut">The shortcut of the command to find.</param>
         /// <returns>A command with the given shortcut.</returns>
-        public ICommand FindShort(string Shortcut)
+        public ICommand FindShort(string shortcut)
         {
-            foreach (IClientCommand cmd in commands.Where(cmd => cmd.Shortcut.ToLower() == Shortcut.ToLower()))
+            // Check for commands shortcuts collision
+            var matchedCommands = commands.Where(c => !string.IsNullOrEmpty(c.Shortcut) && c.Shortcut.ToLower() == shortcut.ToLower()).ToList();
+            var commandsCount = matchedCommands.Count;
+
+            if (commandsCount > 1)
             {
-                return cmd;
+                var matchedStrings = new string[commandsCount];
+                string pluginName;
+
+                for (int i = 0; i < commandsCount; i++)
+                {
+                    pluginName = (matchedCommands[i].Iplugin == null) ? _chraftCoreNamespace : matchedCommands[i].Iplugin.Name;
+                    matchedStrings[i] = string.Format("/{0}:{1}", pluginName, matchedCommands[i].Shortcut);
+                }
+                throw new MultipleCommandsMatchException(matchedStrings);
             }
+
+            if (commandsCount == 1)
+                return matchedCommands[0];
+
             throw new CommandNotFoundException("The specified command was not found!");
         }
 
@@ -117,17 +185,9 @@ namespace Chraft.Commands
             if (command is IClientCommand)
             {
                 if (commands.Contains(command))
-                {
                     commands.Remove(command as IClientCommand);
-                }
-                else if (fallBackCommands.Contains(command))
-                {
-                    fallBackCommands.Remove(command as IClientCommand);
-                }
                 else
-                {
                     throw new CommandNotFoundException("The given command was not found!");
-                }
             }
         }
         /// <summary>

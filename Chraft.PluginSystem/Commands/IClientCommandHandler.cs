@@ -15,6 +15,16 @@ namespace Chraft.PluginSystem.Commands
         ICommand Find(string command);
 
         /// <summary>
+        /// Finds a command by its full name (e.g. "PluginName:CommandName") and returns it for use.
+        /// 
+        /// Exceptions:
+        /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
+        /// </summary>
+        /// <param name="command">The name of the command to find.</param>
+        /// <returns>A command with the given name.</returns>
+        ICommand FindByFullName(string command);
+
+        /// <summary>
         /// Finds a command and returns it for use.
         /// 
         /// Exceptions:

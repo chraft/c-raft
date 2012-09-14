@@ -95,6 +95,7 @@
     <Compile Include="Commands\CommandNotFoundExcption.cs" />
     <Compile Include="Commands\Debug\DbgPos.cs" />
     <Compile Include="Commands\Help.cs" />
+    <Compile Include="Commands\MultipleCommandsMatchExcption.cs" />
     <Compile Include="Commands\ServerCommandHandler.cs" />
     <Compile Include="Entity\Animal.cs" />
     <Compile Include="Entity\EntityBase.cs" />

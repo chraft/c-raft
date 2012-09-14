@@ -114,6 +114,14 @@ namespace Chraft.Commands
                         {
                             cmd = ClientCommandHandler.Find(tokens[0]) as IClientCommand;
                         }
+                        catch (MultipleCommandsMatchException e)
+                        {
+                            client.SendMessage(ChatColor.Red + "Multiple commands has been found:");
+                            foreach (var s in e.Commands)
+                                client.SendMessage(string.Format(" {0}{1}", ChatColor.Red, s));
+                            
+                            return;
+                        }
                         catch (CommandNotFoundException e) { client.SendMessage(e.Message); return; }
                         try
                         {
