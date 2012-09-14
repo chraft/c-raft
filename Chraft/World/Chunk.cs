@@ -356,7 +356,17 @@ namespace Chraft.World
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
         {
             Section section = _Sections[coords.BlockY >> 4];
+
+            if (section == null)
+            {
+                if ((BlockData.Blocks)type != BlockData.Blocks.Air)
+                    section = AddNewSection(coords.BlockY >> 4);
+                else
+                    return;
+            }
+
             section[coords] = type;
+            OnSetType(coords, (BlockData.Blocks)type);
 
             section.Data.setNibble(coords.SectionPackedCoords, data);
 
@@ -366,10 +376,23 @@ namespace Chraft.World
 
         public void SetBlockAndData(int blockX, int blockY, int blockZ, byte type, byte data, bool needsUpdate = true)
         {
-            int blockIndex = (blockY & 0xf) << 8 | blockZ << 4 | blockX;
+            int blockIndex = (blockY & 0xF) << 8 | blockZ << 4 | blockX;
+
             Section section = _Sections[blockY >> 4];
+
+            if (section == null)
+            {
+                if ((BlockData.Blocks)type != BlockData.Blocks.Air)
+                    section = AddNewSection(blockY >> 4);
+                else
+                    return;
+            }
+
             section[blockIndex] = type;
-            section[blockIndex] = data;
+
+            OnSetType(blockX, blockY, blockZ, (BlockData.Blocks)type);
+
+            section.Data.setNibble(blockIndex, data);
 
             if (needsUpdate)
                 BlockNeedsUpdate(blockX, blockY, blockZ);
@@ -378,6 +401,15 @@ namespace Chraft.World
         public void SetData(UniversalCoords coords, byte value, bool needsUpdate = true)
         {
             Section section = _Sections[coords.BlockY >> 4];
+
+            if (section == null)
+            {
+                if ((BlockData.Blocks)value != BlockData.Blocks.Air)
+                    section = AddNewSection(coords.BlockY >> 4);
+                else
+                    return;
+            }
+
             section.Data.setNibble(coords.SectionPackedCoords, value);
 
             if (needsUpdate)
@@ -387,6 +419,15 @@ namespace Chraft.World
         public void SetData(int blockX, int blockY, int blockZ, byte value, bool needsUpdate = true)
         {
             Section section = _Sections[blockY >> 4];
+
+            if (section == null)
+            {
+                if ((BlockData.Blocks)value != BlockData.Blocks.Air)
+                    section = AddNewSection(blockY >> 4);
+                else
+                    return;
+            }
+
             section.Data.setNibble(blockX, blockY & 0xF, blockZ, value);
 
             if (needsUpdate)
