@@ -493,7 +493,6 @@ namespace Chraft.Net.Packets
                 Stance = stream.ReadDouble();
             }
             Z = stream.ReadDouble();
-            Console.WriteLine("Receiving Position: {0},{1},{2}", X, Y, Z);
             Yaw = stream.ReadFloat();
             Pitch = stream.ReadFloat();
             OnGround = stream.ReadBool();

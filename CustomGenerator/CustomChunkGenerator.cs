@@ -141,22 +141,22 @@ namespace CustomGenerator
                     {
                         //int index = bx << 11 | bz << 7 | by;
                         if (by == 0) // First bedrock Layer
-                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Bedrock);
+                            c.SetType(bx, by, bz, BlockData.Blocks.Bedrock, false);
 
                         else if (by > 0 && by < 5 && _FastRandom.randomDouble() > 0.3) // Randomly put blocks of the remaining 4 layers of bedrock
-                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Bedrock);
+                            c.SetType(bx, by, bz, BlockData.Blocks.Bedrock, false);
 
                         else if (by <= 55)
-                            c.SetSectionType(bx, by, bz, BlockData.Blocks.Stone);
+                            c.SetType(bx, by, bz, BlockData.Blocks.Stone, false);
                         else
                         {
                             if (by > 55 && by < 64)
                             {
-                                c.SetSectionType(bx, by, bz, BlockData.Blocks.Still_Water);
+                                c.SetType(bx, by, bz, BlockData.Blocks.Still_Water, false);
                                 if (by == 63 && type == BIOME_TYPE.SNOW)
                                 {
                                     c.SetBiomeColumn(bx, bz, (byte)BIOME_TYPE.SNOW);
-                                    c.SetSectionType(bx, by, bz, BlockData.Blocks.Ice);
+                                    c.SetType(bx, by, bz, BlockData.Blocks.Ice, false);
                                 }
                             }
 
@@ -183,7 +183,7 @@ namespace CustomGenerator
                                 firstBlockHeight = -1;
                         }
 
-                        if (c.GetSectionType(bx, by, bz) == (byte)BlockData.Blocks.Stone)
+                        if (c.GetType(bx, by, bz) == BlockData.Blocks.Stone)
                             GenerateResource(bx, by, bz, c);
                     }
                 }
@@ -195,17 +195,17 @@ namespace CustomGenerator
 
 
             if (r.Next(100 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Diamond_Ore);
+                c.SetType(x, y, z, BlockData.Blocks.Diamond_Ore, false);
             else if (r.Next(100 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Lapis_Lazuli_Ore);
+                c.SetType(x, y, z, BlockData.Blocks.Lapis_Lazuli_Ore, false);
             else if (r.Next(40 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Gold_Ore);
+                c.SetType(x, y, z, BlockData.Blocks.Gold_Ore, false);
             else if (r.Next(10 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Redstone_Ore_Glowing);
+                c.SetType(x, y, z, BlockData.Blocks.Redstone_Ore_Glowing, false);
             else if (r.Next(4 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Iron_Ore);
+                c.SetType(x, y, z, BlockData.Blocks.Iron_Ore, false);
             else if (r.Next(2 * y) == 0)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Coal_Ore);
+                c.SetType(x, y, z, BlockData.Blocks.Coal_Ore, false);
             
         }
 
@@ -223,7 +223,7 @@ namespace CustomGenerator
                         int worldY = by;
                         //int index = bx << 11 | bz << 7 | by + 1;
 
-                        if (c.GetSectionType(bx, by, bz) == (byte)BlockData.Blocks.Grass && c.GetSectionType(bx, by + 1, bz) == (byte)BlockData.Blocks.Air)
+                        if (c.GetType(bx, by, bz) == BlockData.Blocks.Grass && c.GetType(bx, by + 1, bz) == (byte)BlockData.Blocks.Air)
                         {
                             double grassDens = CalcGrassDensity(worldX, worldZ);
                             if (grassDens > 0.0)
@@ -232,7 +232,7 @@ namespace CustomGenerator
                                 double rand = _FastRandom.standNormalDistrDouble();
                                 if (rand > -0.2 && rand < 0.2)
                                 {
-                                    c.SetSectionType(bx, by + 1, bz, BlockData.Blocks.TallGrass);
+                                    c.SetType(bx, by + 1, bz, BlockData.Blocks.TallGrass, false);
                                     c.SetData(bx, by + 1, bz, 1, false);
                                 }
 
@@ -241,9 +241,9 @@ namespace CustomGenerator
                                 if (_FastRandom.standNormalDistrDouble() < -2)
                                 {
                                     if (_FastRandom.randomBoolean())
-                                        c.SetSectionType(bx, by + 1, bz, BlockData.Blocks.Rose);
+                                        c.SetType(bx, by + 1, bz, BlockData.Blocks.Rose, false);
                                     else
-                                        c.SetSectionType(bx, by + 1, bz,BlockData.Blocks.Yellow_Flower);
+                                        c.SetType(bx, by + 1, bz, BlockData.Blocks.Yellow_Flower, false);
                                 }
                             }
 
@@ -266,10 +266,10 @@ namespace CustomGenerator
                                     else if (randZ > 15)
                                         randZ = 12;
 
-                                    if (c.GetSectionType(randX, by, randZ) == (byte)BlockData.Blocks.Grass)
+                                    if (c.GetType(randX, by, randZ) == BlockData.Blocks.Grass)
                                         GenerateTree(c, randX, by, randZ);
                                     
-                                    else if (biome == BIOME_TYPE.DESERT && c.GetSectionType(randX, by, randZ) == (byte)BlockData.Blocks.Sand)
+                                    else if (biome == BIOME_TYPE.DESERT && c.GetType(randX, by, randZ) == BlockData.Blocks.Sand)
                                         GenerateCactus(c, randX, by, randZ);
                                     
                                 }
@@ -288,7 +288,7 @@ namespace CustomGenerator
                 return;
 
             for (int by = height; by < y + height; ++y)
-                c.SetSectionType(x, y, z, BlockData.Blocks.Cactus);
+                c.SetType(x, y, z, BlockData.Blocks.Cactus, false);
         }
 
         private void GenerateTree(IChunk c, int x, int y, int z)
@@ -306,20 +306,20 @@ namespace CustomGenerator
                 for (int bx = x - 2; bx <= x + 2; bx++)
                     for (int bz = z - 2; bz <= z + 2; bz++)
                     {
-                        c.SetSectionType(bx, by, bz, BlockData.Blocks.Leaves);
+                        c.SetType(bx, by, bz, BlockData.Blocks.Leaves, false);
                         c.SetData(bx, by, bz, 0, false);
                     }
 
             for (int bx = x - 1; bx <= x + 1; bx++)
                 for (int bz = z - 1; bz <= z + 1; bz++)
                 {
-                    c.SetSectionType(bx, y + 6, bz, BlockData.Blocks.Leaves);
+                    c.SetType(bx, y + 6, bz, BlockData.Blocks.Leaves, false);
                     c.SetData(bx, y + 6, bz, 0, false);
                 }
 
             for (int by = y + 1; by < y + 6; by++)
             {
-                c.SetSectionType(x, by, z, BlockData.Blocks.Log);
+                c.SetType(x, by, z, BlockData.Blocks.Log, false);
                 c.SetData(x, by, z, 0, false);
             }
             //}
@@ -339,7 +339,7 @@ namespace CustomGenerator
         private bool CanSeeTheSky(int x, int y, int z, IChunk c)
         {
             int by;
-            for (by = y; _blockHelper.Opacity(c.GetSectionType(x, by, z)) == 0 && by < 128; ++by) ;
+            for (by = y; _blockHelper.Opacity(c.GetType(x, by, z)) == 0 && by < 128; ++by) ;
 
             return by == 128;
         }
@@ -459,7 +459,7 @@ namespace CustomGenerator
                 if (y >= 60 && y <= 66)
                 {
                     c.SetBiomeColumn(x, z, (byte)BIOME_TYPE.MOUNTAINS);
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Sand);
+                    c.SetType(x, y, z, BlockData.Blocks.Sand, false);
                     break;
                 }
 
@@ -467,17 +467,17 @@ namespace CustomGenerator
                 if (heightPercentage == 0.0 && y > 66)
                 {
                     // Grass on top
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Grass);
+                    c.SetType(x, y, z, BlockData.Blocks.Grass, false);
                 }
                 else if (heightPercentage > 0.2)
                 {
                     // Stone
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
+                    c.SetType(x, y, z, BlockData.Blocks.Stone, false);
                 }
                 else
                 {
                     // Dirt
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Dirt);
+                    c.SetType(x, y, z, BlockData.Blocks.Dirt, false);
                 }
 
                 GenerateRiver(c, x, y, z, heightPercentage, type);
@@ -488,17 +488,17 @@ namespace CustomGenerator
                 if (heightPercentage == 0.0 && y > 65)
                 {
                     // Snow on top
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Snow);
+                    c.SetType(x, y, z, BlockData.Blocks.Snow, false);
                     // Grass under the snow
-                    c.SetSectionType(x, y - 1, z, BlockData.Blocks.Grass);
+                    c.SetType(x, y - 1, z, BlockData.Blocks.Grass, false);
                 }
 
                 else if (heightPercentage > 0.2)
                     // Stone
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
+                    c.SetType(x, y, z, BlockData.Blocks.Stone, false);
                 else
                     // Dirt
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Dirt);
+                    c.SetType(x, y, z, BlockData.Blocks.Dirt, false);
                 
 
                 GenerateRiver(c, x, y, z, heightPercentage, type);
@@ -513,7 +513,7 @@ namespace CustomGenerator
                 }
                 else*/
                 if (y < 80)
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Sand);              
+                    c.SetType(x, y, z, BlockData.Blocks.Sand, false);              
 
                 break;
 
@@ -532,17 +532,17 @@ namespace CustomGenerator
             if (lakeIntens < 0.2)
             {
                 if (heightPercentage < 0.001)
-                    c.SetSectionType(x, y, z, BlockData.Blocks.Air);
+                    c.SetType(x, y, z, BlockData.Blocks.Air, false);
                 else if (heightPercentage < 0.02)
                 {
                     if (type == BIOME_TYPE.SNOW)
                     {
                         // To be sure that there's no snow above us
-                        c.SetSectionType(x, y + 1, z, BlockData.Blocks.Air);
-                        c.SetSectionType(x, y, z, BlockData.Blocks.Ice);
+                        c.SetType(x, y + 1, z, BlockData.Blocks.Air, false);
+                        c.SetType(x, y, z, BlockData.Blocks.Ice, false);
                     }
                     else
-                        c.SetSectionType(x, y, z, BlockData.Blocks.Still_Water);
+                        c.SetType(x, y, z, BlockData.Blocks.Still_Water, false);
                     
                 }
             }
@@ -564,7 +564,7 @@ namespace CustomGenerator
 
         private void GenerateInnerLayer(int x, int y, int z, BIOME_TYPE type, IChunk c)
         {
-            c.SetSectionType(x, y, z, BlockData.Blocks.Stone);
+            c.SetType(x, y, z, BlockData.Blocks.Stone, false);
 
         }
 

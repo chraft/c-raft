@@ -147,7 +147,7 @@ namespace Chraft.World
                 return TileEntities.ToArray();
         }
 
-        private byte? this[UniversalCoords coords]
+        /*private byte? this[UniversalCoords coords]
         {
             get
             {
@@ -172,49 +172,51 @@ namespace Chraft.World
                 return section[(blockY & 0xF) << 8 | blockZ << 4 | blockX];
             }
             set { _Sections[blockY >> 4][(blockY & 0xF) << 8 | blockZ << 4 | blockX] = (byte)value; }
-        }
+        }*/
 
         public void SetLightToRecalculate()
         {
             
-        } 
-
-        
+        }
 
         public byte GetLuminance(UniversalCoords coords)
         {
-            byte? type = this[coords];
-            if (type == null)
+            Section section = _Sections[coords.BlockY >> 4];
+
+            if (section == null)
                 return 0;
 
-            return BlockHelper.Instance.Luminance((byte)type);
+            return BlockHelper.Instance.Luminance((byte)section[coords.SectionPackedCoords]);
         }
 
         public byte GetLuminance(int blockX, int blockY, int blockZ)
         {
-            byte? type = this[blockX, blockY, blockZ];
-            if (type == null)
+            Section section = _Sections[blockY >> 4];
+
+            if (section == null)
                 return 0;
 
-            return BlockHelper.Instance.Luminance((byte)type);
+            return BlockHelper.Instance.Luminance(section[(blockY & 0xF) << 8 | blockZ << 4 | blockX]);
         }
 
         public byte GetOpacity(UniversalCoords coords)
         {
-            byte? type = this[coords];
-            if (type == null)
+            Section section = _Sections[coords.BlockY >> 4];
+
+            if (section == null)
                 return 0;
 
-            return BlockHelper.Instance.Opacity((byte)type);
+            return BlockHelper.Instance.Opacity((byte)section[coords.SectionPackedCoords]);
         }
 
         public byte GetOpacity(int blockX, int blockY, int blockZ)
         {
-            byte? type = this[blockX, blockY, blockZ];
-            if (type == null)
+            Section section = _Sections[blockY >> 4];
+
+            if (section == null)
                 return 0;
 
-            return BlockHelper.Instance.Opacity((byte)type);
+            return BlockHelper.Instance.Opacity(section[(blockY & 0xF) << 8 | blockZ << 4 | blockX]);
         }
 
         public IStructBlock GetBlock(UniversalCoords coords)
@@ -294,26 +296,37 @@ namespace Chraft.World
 
         public BlockData.Blocks GetType(UniversalCoords coords)
         {
-            byte? type = this[coords];
+            Section section = _Sections[coords.BlockY >> 4];
 
-            if (type == null)
+            if (section == null)
                 return BlockData.Blocks.Air;
 
-            return (BlockData.Blocks)type;
+            return (BlockData.Blocks)section[coords.SectionPackedCoords];
         }
 
         public BlockData.Blocks GetType(int blockX, int blockY, int blockZ)
         {
-            byte? type = this[blockX, blockY, blockZ];
+            Section section = _Sections[blockY >> 4];
 
-            if (type == null)
+            if (section == null)
                 return BlockData.Blocks.Air;
-            return (BlockData.Blocks)type;
+
+            return (BlockData.Blocks)section[(blockY & 0xF) << 8 | blockZ << 4 | blockX];
         }
 
         public void SetType(UniversalCoords coords, BlockData.Blocks value, bool needsUpdate = true)
         {
-            this[coords] = (byte)value;
+            int sectionId = coords.BlockY >> 4;
+            Section section = _Sections[sectionId];
+
+            if (section == null)
+            {
+                if (value != BlockData.Blocks.Air)
+                    section = AddNewSection(sectionId);
+                else
+                    return;
+            }
+            section[coords.SectionPackedCoords] = (byte)value;
             OnSetType(coords, value);
 
             if (needsUpdate)
@@ -321,15 +334,6 @@ namespace Chraft.World
         }
 
         public void SetType(int blockX, int blockY, int blockZ, BlockData.Blocks value, bool needsUpdate = true)
-        {
-            this[blockX, blockY, blockZ] = (byte)value;
-            OnSetType(blockX, blockY, blockZ, value);
-
-            if (needsUpdate)
-                BlockNeedsUpdate(blockX, blockY, blockZ);
-        }
-
-        public void SetSectionType(int blockX, int blockY, int blockZ, BlockData.Blocks value)
         {
             Section section = _Sections[blockY >> 4];
 
@@ -342,16 +346,11 @@ namespace Chraft.World
             }
 
             section[(blockY & 0xF) << 8 | blockZ << 4 | blockX] = (byte)value;
-        }
 
-        public byte GetSectionType(int blockX, int blockY, int blockZ)
-        {
-            Section section = _Sections[blockY >> 4];
+            OnSetType(blockX, blockY, blockZ, value);
 
-            if (section == null)
-                return 0;
-
-            return section[(blockY & 0xF) << 8 | blockZ << 4 | blockX];
+            if (needsUpdate)
+                BlockNeedsUpdate(blockX, blockY, blockZ);
         }
 
         public void SetBlockAndData(UniversalCoords coords, byte type, byte data, bool needsUpdate = true)
@@ -474,6 +473,9 @@ namespace Chraft.World
 
         public void BlockNeedsUpdate(int blockX, int blockY, int blockZ)
         {
+            if (_UpdateTimer == null)
+                return;
+
             int num = Interlocked.Increment(ref NumBlocksToUpdate);
 
             MarkToSave();
