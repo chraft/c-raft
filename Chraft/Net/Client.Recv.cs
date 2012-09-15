@@ -934,8 +934,8 @@ namespace Chraft.Net
                 foreach (var c in s)
                 {
                     str.Append(c.Username);
+                    str.Append('\0');
                 }
-                str.Append('\0');
             }
             else
             {
