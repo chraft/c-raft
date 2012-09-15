@@ -23,6 +23,7 @@ namespace Chraft.Entity
     public class ExpOrbEntity : EntityBase
     {
         public short Experience { get; protected set; }
+        public short Age { get; protected set; }
 
 		public ExpOrbEntity(Server server, int entityId, short exp)
 			: base(server, entityId)
@@ -37,10 +38,12 @@ namespace Chraft.Entity
         {
             base.DoUpdate();
 
-            PushOutOfBlocks(new AbsWorldCoords(Position.X, (BoundingBox.Minimum.Y + BoundingBox.Maximum.Y) / 2.0, Position.Z));
-            var chunk = World.GetChunk(UniversalCoords.FromAbsWorld(Position));
-            if (chunk == null)
+            Age++;
+            if (Age >= 6000)
+            {
+                Server.RemoveEntity(this);
                 return;
+            }
         }
     }
 }
