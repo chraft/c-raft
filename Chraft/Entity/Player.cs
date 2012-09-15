@@ -550,6 +550,19 @@ namespace Chraft.Entity
             StopFireBurnTimer();
             StopSuffocationTimer();
             StopDrowningTimer();
+            DropExperienceOrbs();
+        }
+
+        protected void DropExperienceOrbs()
+        {
+            var exp = (short)Math.Min(Experience, short.MaxValue);
+            var level = Utilities.Misc.Experience.GetLevel(exp);
+            if (level < 1)
+                return;
+            var expToDrop = (short)Math.Min(level * 7, 100);
+            var orb = new ExpOrbEntity(Server, Server.AllocateEntity(), expToDrop);
+            orb.Position = Position;
+            Server.AddEntity(orb);
         }
 
         #endregion

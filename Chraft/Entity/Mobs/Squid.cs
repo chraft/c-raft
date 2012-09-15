@@ -26,7 +26,7 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Squid : Monster
+    public class Squid : Animal
     {
         public override string Name
         {
