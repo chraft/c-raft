@@ -40,6 +40,23 @@ namespace Chraft.Commands
                 case 0:
                     ChangeGameMode(client, client.Owner.GameMode == 0 ? 1 : 0);
                     break;
+                case 1:
+                    byte gm;
+                    if (byte.TryParse(tokens[0], out gm) && (gm == 0 || gm == 1))
+                    {
+                        if (client.Owner.GameMode == gm)
+                        {
+                            client.SendMessage(ChatColor.Red + "You are already in that mode");
+                            break;
+                        }
+                        ChangeGameMode(client, gm);
+                    }
+                    else
+                    {
+                        Help(client);
+                        break;
+                    }
+                    break;
                 case 2:
                     if (Int32.Parse(tokens[1]) != 0)
                     {
@@ -79,7 +96,7 @@ namespace Chraft.Commands
 
         public void Help(IClient client)
         {
-            (client as Client).SendMessage("/gamemode <player> [0|1]");
+            (client as Client).SendMessage("/gamemode [player] [0|1]");
         }
 
         public string Name
