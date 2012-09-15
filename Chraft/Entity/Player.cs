@@ -58,7 +58,7 @@ namespace Chraft.Entity
         public TimeSpan SaveSpan = TimeSpan.FromSeconds(60.0);
         public int ChangesToSave;
 
-        public int Experience { get; protected set; }
+        public int Experience { get; internal set; }
 
         private Client _client;
 
@@ -588,6 +588,7 @@ namespace Chraft.Entity
             _client.SendInitialTime();
             InitializeInventory();
             InitializeHealth();
+            SendUpdateExperience();
             _client.ScheduleUpdateChunks();
 
             Server.AddEntity(this);
@@ -611,9 +612,9 @@ namespace Chraft.Entity
 
         public void AddExperience(short amount)
         {
-            if (amount <= 0)
-                return;
             long newExp = Experience + amount;
+            if (newExp < 0)
+                newExp = 0;
             if (newExp > Int32.MaxValue)
                 newExp = Int32.MaxValue;
             Experience = (int)newExp;

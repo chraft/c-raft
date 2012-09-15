@@ -51,7 +51,7 @@ namespace Chraft.Net
             float foodSaturation;
             byte gameMode;
             string displayName;
-            int sightRadius;
+            int sightRadius, experience = 0;
 
             var playerNode = doc["Player"];
 
@@ -69,6 +69,8 @@ namespace Chraft.Net
             gameMode = byte.Parse(playerNode["GameMode"].InnerText);
             displayName = playerNode["DisplayName"].InnerText;
             sightRadius = int.Parse(playerNode["SightRadius"].InnerText);
+            if (playerNode["Experience"] != null)
+                experience = int.Parse(playerNode["Experience"].InnerText);
 
             _player.Position = new AbsWorldCoords(x, y, z);
             _player.Yaw = yaw;
@@ -78,6 +80,7 @@ namespace Chraft.Net
             _player.FoodSaturation = foodSaturation;
             _player.GameMode = gameMode;
             _player.DisplayName = displayName;
+            _player.Experience = Math.Max(experience, 0);
             CurrentSightRadius = sightRadius;
             WaitForInitialPosAck = true;
             _player.LoginPosition = _player.Position;
@@ -152,6 +155,9 @@ namespace Chraft.Net
                 root.AppendChild(arg);
                 arg = doc.CreateElement("SightRadius");
                 arg.InnerText = CurrentSightRadius.ToString();
+                root.AppendChild(arg);
+                arg = doc.CreateElement("Experience");
+                arg.InnerText = _player.Experience.ToString();
                 root.AppendChild(arg);
 
                 XmlElement inventoryNode = doc.CreateElement("Inventory");

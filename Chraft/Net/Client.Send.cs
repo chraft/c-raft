@@ -380,6 +380,7 @@ namespace Chraft.Net
             SetGameMode();
             _player.InitializeInventory();
             _player.InitializeHealth();
+            _player.SendUpdateExperience();
             _player.OnJoined();
             Server.AddEntity(_player, false);
             Server.AddAuthenticatedClient(this);
