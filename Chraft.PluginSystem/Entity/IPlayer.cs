@@ -42,5 +42,6 @@ namespace Chraft.PluginSystem.Entity
         bool CanUseCommand(string command);
         string GetPlayerPrefix();
         string GetPlayerSuffix();
+        void AddExperience(short amount);
     }
 }

@@ -1056,6 +1056,19 @@ namespace Chraft
                     Data = mob.Data
                 };
             }
+            else if (entity is ExpOrbEntity)
+            {
+                var orb = (ExpOrbEntity)entity;
+                var coords = UniversalCoords.FromAbsWorld(orb.Position);
+                packet = new ExperienceOrbPacket
+                {
+                    EntityId = orb.EntityId,
+                    Count = 1,
+                    X = coords.WorldX,
+                    Y = coords.WorldY,
+                    Z = coords.WorldZ
+                };
+            }
 
             return packet;
         }

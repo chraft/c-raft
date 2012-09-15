@@ -100,6 +100,7 @@
     <Compile Include="Entity\Animal.cs" />
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
+    <Compile Include="Entity\ExpOrbEntity.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />

@@ -60,6 +60,7 @@
     <Compile Include="CmdTime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CmdVersion.cs" />
+    <Compile Include="CmdGiveXP.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chraft.PluginSystem\Chraft.PluginSystem.csproj">

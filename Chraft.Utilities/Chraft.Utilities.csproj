@@ -60,6 +60,7 @@
     <Compile Include="Misc\CommandType.cs" />
     <Compile Include="Misc\DamageCause.cs" />
     <Compile Include="Misc\Direction.cs" />
+    <Compile Include="Misc\Experience.cs" />
     <Compile Include="Misc\Hash.cs" />
     <Compile Include="Misc\Http.cs" />
     <Compile Include="Misc\MobType.cs" />

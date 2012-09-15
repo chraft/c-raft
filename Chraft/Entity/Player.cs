@@ -16,15 +16,12 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
-using Chraft.Commands;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Commands;
 using Chraft.PluginSystem.Entity;
@@ -32,8 +29,6 @@ using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.World;
-using Chraft.Plugins.Events;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
@@ -41,7 +36,6 @@ using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Net;
-using Chraft.World.Blocks;
 
 namespace Chraft.Entity
 {
@@ -63,6 +57,8 @@ namespace Chraft.Entity
         public DateTime EnqueuedForSaving;
         public TimeSpan SaveSpan = TimeSpan.FromSeconds(60.0);
         public int ChangesToSave;
+
+        public int Experience { get; protected set; }
 
         private Client _client;
 
@@ -295,8 +291,11 @@ namespace Chraft.Entity
                     _client.SendCreateEntity(e);
                     LoadedEntities.TryAdd(e.EntityId, e);
                 }
-                if (Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
-                    PickupItem((ItemEntity)e);
+                if (Health > 0 && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
+                    if (e is ItemEntity)
+                        PickupItem((ItemEntity)e);
+                    else if (e is ExpOrbEntity)
+                        PickupExpOrb((ExpOrbEntity)e);                    
             }
 
             Queue<int> entitiesToRemove = new Queue<int>();
@@ -579,6 +578,49 @@ namespace Chraft.Entity
             _client.ScheduleUpdateChunks();
 
             Server.AddEntity(this);
+        }
+
+        public void SendUpdateExperience()
+        {
+            var exp = (short)(Experience > short.MaxValue ? short.MaxValue : Experience);
+            var level = Utilities.Misc.Experience.GetLevel(exp);
+            var nextLevelExp = Utilities.Misc.Experience.ExpToNextLevel(level);
+            var thisLevelExp = Utilities.Misc.Experience.GetExperience(level);
+            float expOnBar = (exp - thisLevelExp)/(float)nextLevelExp;
+            
+            Client.SendPacket(new ExperiencePacket
+            {
+                Experience = expOnBar,
+                Level = level,
+                TotExperience = exp,
+            });
+        }
+
+        public void AddExperience(short amount)
+        {
+            if (amount <= 0)
+                return;
+            long newExp = Experience + amount;
+            if (newExp > Int32.MaxValue)
+                newExp = Int32.MaxValue;
+            Experience = (int)newExp;
+            SendUpdateExperience();
+        }
+
+        private void PickupExpOrb(ExpOrbEntity orb)
+        {
+            if (Server.GetEntityById(orb.EntityId) == null)
+                return;
+
+            Server.SendPacketToNearbyPlayers(orb.World, UniversalCoords.FromAbsWorld(orb.Position), new CollectItemPacket
+            {
+                EntityId = orb.EntityId,
+                PlayerId = EntityId
+            });
+
+            Server.RemoveEntity(orb);
+
+            AddExperience(orb.Experience);
         }
 
         private void PickupItem(ItemEntity item)
