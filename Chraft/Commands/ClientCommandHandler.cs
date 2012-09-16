@@ -268,9 +268,11 @@ namespace Chraft.Commands
                 if (commandStr.Length == 0)
                 {
                     foreach (var c in commandsByName)
-                        sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Name);
+                        if (!string.IsNullOrEmpty(c.Name.Trim()))
+                            sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Name);
                     foreach (var c in commandsByShortcut)
-                        sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Shortcut);
+                        if (!string.IsNullOrEmpty(c.Shortcut.Trim()))
+                            sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Shortcut);
                     return sb.ToString();
                 }
 
