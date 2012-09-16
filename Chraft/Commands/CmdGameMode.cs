@@ -107,7 +107,7 @@ namespace Chraft.Commands
             if (parts.Length >= 2)
                 return string.Empty;
             if (s.EndsWith(parts[0], StringComparison.OrdinalIgnoreCase))
-                return Utils.AutoComplete.GetPlayers(client, s.Trim());
+                return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
             return "0\01";
         }
 

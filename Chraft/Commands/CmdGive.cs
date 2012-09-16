@@ -161,7 +161,7 @@ namespace Chraft.Commands
             var parts = s.Trim().Split(' ');
             if (parts.Length > 1)
                 return string.Empty;
-            return Utils.AutoComplete.GetPlayers(client, s.Trim());
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
         }
 
         public string Name

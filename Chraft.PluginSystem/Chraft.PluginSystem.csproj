@@ -49,6 +49,7 @@
     <Compile Include="Args\PluginEventArgs.cs" />
     <Compile Include="Args\ServerEventArgs.cs" />
     <Compile Include="Args\WorldEventArgs.cs" />
+    <Compile Include="Commands\AutoComplete.cs" />
     <Compile Include="Commands\IClientCommand.cs" />
     <Compile Include="Commands\IClientCommandHandler.cs" />
     <Compile Include="Commands\ICommand.cs" />

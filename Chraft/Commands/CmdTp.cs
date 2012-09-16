@@ -63,7 +63,7 @@ namespace Chraft.Commands
             var parts = s.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
                 return string.Empty;
-            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name
@@ -123,7 +123,7 @@ namespace Chraft.Commands
             var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
                 return string.Empty;
-            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name

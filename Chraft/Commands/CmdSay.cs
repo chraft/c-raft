@@ -50,7 +50,7 @@ namespace Chraft.Commands
             if (string.IsNullOrEmpty(str.Trim()))
                 return string.Empty;
             var parts = str.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries);
-            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name

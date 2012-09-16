@@ -934,7 +934,7 @@ namespace Chraft.Net
                     client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
                 return;
             }
-            str.Append(AutoComplete.GetPlayers(client, packet.Text));
+            str.Append(PluginSystem.Commands.AutoComplete.GetPlayers(client, packet.Text));
             if (string.IsNullOrEmpty(str.ToString()))
                 return;
             client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
