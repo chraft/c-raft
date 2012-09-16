@@ -158,9 +158,9 @@ namespace Chraft.Commands
             if (string.IsNullOrEmpty(s.Trim()))
                 return string.Empty;
 
-            var parts = s.Trim().Split(' ');
-            if (parts.Length > 1)
+            if (s.TrimStart().IndexOf(' ') != -1)
                 return string.Empty;
+
             return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
         }
 

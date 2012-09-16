@@ -247,6 +247,9 @@ namespace Chraft.Commands
             if (string.IsNullOrEmpty(s.Trim()))
                 return string.Join("\0", args);
 
+            if (s.TrimStart().IndexOf(' ') != -1)
+                return string.Empty;
+
             var sb = new StringBuilder();
 
             foreach (var a in args)

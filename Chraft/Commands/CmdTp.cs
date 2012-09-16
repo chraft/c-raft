@@ -60,10 +60,13 @@ namespace Chraft.Commands
 
         public string AutoComplete(IClient client, string s)
         {
-            var parts = s.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
+            if (string.IsNullOrEmpty(s.Trim()))
                 return string.Empty;
-            return PluginSystem.Commands.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
+
+            if (s.TrimStart().IndexOf(' ') != -1)
+                return string.Empty;
+
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
         }
 
         public string Name
@@ -120,10 +123,13 @@ namespace Chraft.Commands
 
         public string AutoComplete(IClient client, string s)
         {
-            var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
+            if (string.IsNullOrEmpty(s.Trim()))
                 return string.Empty;
-            return PluginSystem.Commands.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
+
+            if (s.TrimStart().IndexOf(' ') != -1)
+                return string.Empty;
+
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
         }
 
         public string Name
