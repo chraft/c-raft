@@ -10,6 +10,9 @@ irc.esper.net:6667 #c#raft
 Website:
 http://www.c-raft.com
 
+Official Team Plugins Repository:
+https://github.com/chraft/c-raft-plugins
+
 Contributing
 =============================
 
@@ -22,7 +25,7 @@ Builds are built on each commit and the status output to the IRC channel.
 Use spaces as tabs (4 per tab), you can set this in visual studio http://msdn.microsoft.com/en-us/library/ms165330(v=vs.80).aspx in MonoDevelop you can set this for the solution in the Solution options / Source Code / Code Formatting / Text file / Text Style, tick Convert tabs to spaces.
 
 Testing:  
-Latest build is available here: http://goo.gl/dwOCr
+Latest builds are available here: http://dl.c-raft.com
 
 Raising Issues:  
 Raise issues here: https://github.com/chraft/c-raft/issues  
