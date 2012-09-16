@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using System;
 using System.Linq;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -37,9 +39,18 @@ namespace Chraft.Commands
             Client client = iClient as Client;
             client.Owner.Server.Broadcast(tokens.Aggregate("", (current, t) => current + (t + " ")));
         }
+
         public void Help(IClient client)
         {
             client.SendMessage("/say <Message> - broadcasts a message to the server.");
+        }
+
+        public string AutoComplete(IClient client, string str)
+        {
+            if (string.IsNullOrEmpty(str.Trim()))
+                return string.Empty;
+            var parts = str.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries);
+            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name

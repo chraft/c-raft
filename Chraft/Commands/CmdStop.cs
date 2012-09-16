@@ -71,6 +71,7 @@ namespace Chraft.Commands
         {
             server.GetLogger().Log(LogLevel.Info, "Shuts down the server.");
         }
+
         public void Use(IClient iClient, string commandName, string[] tokens)
         {
             Client client = iClient as Client;
@@ -85,6 +86,11 @@ namespace Chraft.Commands
         public void Help(IClient client)
         {
             client.SendMessage("Shuts down the server.");
+        }
+
+        public string AutoComplete(IClient client, string s)
+        {
+            return string.Empty;
         }
     }
 }

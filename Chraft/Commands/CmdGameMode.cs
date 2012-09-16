@@ -99,12 +99,22 @@ namespace Chraft.Commands
             (client as Client).SendMessage("/gamemode [player] [0|1]");
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            if (string.IsNullOrEmpty(s.Trim()))
+                return string.Empty;
+            var parts = s.Trim().Split(' ');
+            if (parts.Length >= 2)
+                return string.Empty;
+            if (s.EndsWith(parts[0], StringComparison.OrdinalIgnoreCase))
+                return Utils.AutoComplete.GetPlayers(client, s.Trim());
+            return "0\01";
+        }
+
         public string Name
         {
             get { return "gamemode"; }
         }
-
-
 
         public string Shortcut
         {

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using System;
 using System.Linq;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -54,6 +56,14 @@ namespace Chraft.Commands
         public void Help(IClient client)
         {
             client.SendMessage("/tp <Target> - Teleports you to <Target>'s location.");
+        }
+
+        public string AutoComplete(IClient client, string s)
+        {
+            var parts = s.Split(new []{' '}, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+                return string.Empty;
+            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name
@@ -106,6 +116,14 @@ namespace Chraft.Commands
         public void Help(IClient client)
         {
             client.SendMessage("/tphere <Player> - Teleports <Player> to you.");
+        }
+
+        public string AutoComplete(IClient client, string s)
+        {
+            var parts = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+                return string.Empty;
+            return Utils.AutoComplete.GetPlayers(client, parts[parts.Length - 1].Trim());
         }
 
         public string Name

@@ -207,5 +207,96 @@ namespace Chraft.Commands
                 RegisterCommand((IClientCommand)t.GetConstructor(Type.EmptyTypes).Invoke(null));
             }
         }
+
+        public string AutoComplete(PluginSystem.Net.IClient client, string s)
+        {
+            var sb = new System.Text.StringBuilder(string.Empty);
+            if (s.Length < 2 || !s.StartsWith("/"))
+                return string.Empty;
+
+            s = s.Substring(1);
+            string plugin, commandName, commandStr;
+
+            if (s.IndexOf(':') != -1)
+            {
+                var colonPos = s.IndexOf(':');
+                var spacePos = s.IndexOf(' ');
+                if (spacePos != -1 && spacePos < colonPos)
+                    return string.Empty;
+
+                plugin = s.Substring(0, colonPos);
+
+                if (string.IsNullOrEmpty(plugin))
+                    return string.Empty;
+
+                commandStr = s.Substring(colonPos + 1);
+            }
+            else
+            {
+                plugin = string.Empty;
+                commandStr = s;
+            }
+
+            if (commandStr.IndexOf(' ') != -1)
+            {
+                var spacePos = commandStr.IndexOf(' ');
+                commandName = commandStr.Substring(0, spacePos);
+                commandStr = commandStr.Substring(spacePos);
+            }
+            else
+            {
+                commandName = commandStr;
+                commandStr = string.Empty;
+            }
+
+            var commandsByPlugin =
+                commands.Where(
+                    c =>
+                    (!string.IsNullOrEmpty(plugin) &&
+                     ((c.Iplugin == null && string.Compare(plugin, _chraftCoreNamespace, true) == 0) ||
+                      (c.Iplugin != null && string.Compare(c.Iplugin.Name, plugin, true) == 0)))
+                    || string.IsNullOrEmpty(plugin));
+
+            var commandsByName = commandsByPlugin.Where(c => c.Name.StartsWith(commandName, StringComparison.OrdinalIgnoreCase)).ToList();
+            var commandsByShortcut = commandsByPlugin.Where(c => c.Shortcut.StartsWith(commandName, StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (commandsByName.Count == 0 && commandsByShortcut.Count == 0)
+                return string.Empty;
+
+            if (commandsByName.Count + commandsByShortcut.Count > 1)
+            {
+                if (commandStr.Length == 0)
+                {
+                    foreach (var c in commandsByName)
+                        sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Name);
+                    foreach (var c in commandsByShortcut)
+                        sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), c.Shortcut);
+                    return sb.ToString();
+                }
+
+                var nameExact = commandsByName.Where(c => string.Compare(c.Name, commandName, true) == 0).ToList();
+                var shortcutExact = commandsByShortcut.Where(c => string.Compare(c.Shortcut, commandName, true) == 0).ToList();
+
+                if (nameExact.Count > 0)
+                    return sb.Append(nameExact[0].AutoComplete(client, commandStr)).ToString();
+                if (shortcutExact.Count > 0)
+                    return sb.Append(shortcutExact[0].AutoComplete(client, commandStr)).ToString();
+
+                return string.Empty;
+            }
+            
+            if (!string.IsNullOrEmpty(commandStr))
+            {
+                if (commandsByName.Count == 1)
+                    return sb.Append(commandsByName[0].AutoComplete(client, commandStr)).ToString();
+
+                return sb.Append(commandsByShortcut[0].AutoComplete(client, commandStr)).ToString();
+            }
+
+            if (commandsByName.Count == 1)
+                return sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), commandsByName[0].Name).ToString();
+
+            return sb.AppendFormat("/{0}{1}\0", (string.IsNullOrEmpty(plugin) ? "" : plugin + ":"), commandsByShortcut[0].Shortcut).ToString();
+        }
     }
 }

@@ -924,23 +924,19 @@ namespace Chraft.Net
         public static void HandleTabCompletePacket(Client client, TabCompletePacket packet)
         {
             var str = new StringBuilder();
-            var s = (from a in client.GetServer().GetClients() where a.Username.Contains(packet.Text) select a).ToList();
-            if (!s.Any())
+            if (string.IsNullOrEmpty(packet.Text.Trim()))
+                return;
+
+            if (packet.Text.StartsWith("/"))
             {
+                str.Append(client.Server.ClientCommandHandler.AutoComplete(client, packet.Text));
+                if (!string.IsNullOrEmpty(str.ToString()))
+                    client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
                 return;
             }
-            if (s.Count() > 1)
-            {
-                foreach (var c in s)
-                {
-                    str.Append(c.Username);
-                    str.Append('\0');
-                }
-            }
-            else
-            {
-                str.Append(s[0].Username);
-            }
+            str.Append(AutoComplete.GetPlayers(client, packet.Text));
+            if (string.IsNullOrEmpty(str.ToString()))
+                return;
             client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
         }
 

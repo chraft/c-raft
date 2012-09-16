@@ -241,6 +241,20 @@ namespace Chraft.Commands
             }
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            var args = new string[] { "build", "mode", "information", "other", "short" };
+            if (string.IsNullOrEmpty(s.Trim()))
+                return string.Join("\0", args);
+
+            var sb = new StringBuilder();
+
+            foreach (var a in args)
+                if (a.StartsWith(s.Trim(), StringComparison.OrdinalIgnoreCase))
+                    sb.Append(a).Append('\0');
+            return sb.ToString();
+        }
+
         public void Help(IServer server)
         {
             server.GetLogger().Log(LogLevel.Info, "helps");

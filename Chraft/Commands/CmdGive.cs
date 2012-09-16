@@ -153,13 +153,21 @@ namespace Chraft.Commands
             client.SendMessage("/give <Item OR Block>[:MetaData] [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            if (string.IsNullOrEmpty(s.Trim()))
+                return string.Empty;
+
+            var parts = s.Trim().Split(' ');
+            if (parts.Length > 1)
+                return string.Empty;
+            return Utils.AutoComplete.GetPlayers(client, s.Trim());
+        }
+
         public string Name
         {
             get { return "give"; }
-            set {}
         }
-
-
 
         public string Shortcut
         {

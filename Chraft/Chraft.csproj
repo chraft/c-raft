@@ -129,6 +129,7 @@
     <Compile Include="Persistence\DataFile.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\PluginLogger.cs" />
+    <Compile Include="Utils\AutoComplete.cs" />
     <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="World\Blocks\Base\BlockBase.cs" />

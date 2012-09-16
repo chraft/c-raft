@@ -1,4 +1,4 @@
-﻿using Chraft.PluginSystem.Commands;
+﻿using Chraft.PluginSystem.Net;
 
 namespace Chraft.PluginSystem.Commands
 {
@@ -57,5 +57,7 @@ namespace Chraft.PluginSystem.Commands
         /// </summary>
         /// <returns>Array of <see cref="IClientCommand"/></returns>
         ICommand[] GetCommands();
+
+        string AutoComplete(IClient client, string sourceStr);
     }
 }
