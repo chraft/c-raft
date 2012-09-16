@@ -100,7 +100,7 @@ namespace Chraft.Utils
                             p.Groups.Select(
                                 s =>
                                 _permissionXml.Descendants("Groups").Descendants("Group").Where(
-                                    n => (string) n.Attribute("Name") == s.ToLower())).SelectMany(groupPerm => groupPerm)
+                                    n => ((string) n.Attribute("Name")).ToLower() == s.ToLower())).SelectMany(groupPerm => groupPerm)
                         )
                     {
                         if (string.IsNullOrEmpty(p.Prefix))
