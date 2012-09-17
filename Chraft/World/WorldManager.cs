@@ -491,8 +491,8 @@ namespace Chraft.World
                 chunk = toRecalculate.Dequeue();
 
                 if (chunk.LightToRecalculate)
-#if PROFILE
                 {
+#if PROFILE              
                     watch.Reset();
                     watch.Start();
 #endif
@@ -501,6 +501,8 @@ namespace Chraft.World
 #if PROFILE
                     watch.Stop();
                     Console.WriteLine("Chunk {0} - {1} skylight recalc: {2} ms", chunk.Coords.ChunkX, chunk.Coords.ChunkZ, watch.ElapsedMilliseconds);
+                }
+#else
                 }
 #endif
 

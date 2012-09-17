@@ -25,6 +25,7 @@ using Chraft.Net;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities;
@@ -97,15 +98,11 @@ namespace Chraft.World
         public UniversalCoords Coords { get; set; }
 
         private Section[] _Sections;
-        private int _SectionsNum;
         private int _MaxSections;
 
-        private byte[] _BiomesArray = new byte[256];
+        public int SectionsToBeUpdated { get; set; }
 
-        public int SectionsNum
-        {
-            get { return _SectionsNum; }
-        }
+        private byte[] _BiomesArray = new byte[256];
 
         public int MaxSections
         {
@@ -484,9 +481,8 @@ namespace Chraft.World
 
         public Section AddNewSection(int pos)
         {
-            Section section = new Section(this);
+            Section section = new Section(this, pos);
             _Sections[pos] = section;
-            ++_SectionsNum;
 
             return section;
         }
@@ -522,11 +518,11 @@ namespace Chraft.World
             MarkToSave();
 
             BlocksUpdateLock.EnterReadLock();
-            if (num <= 20)
-            {
-                short packedCoords = (short)(blockX << 12 | blockZ << 8 | blockY);
-                BlocksToBeUpdated.AddOrUpdate(packedCoords, packedCoords, (key, oldValue) => packedCoords);
-            }
+            
+            short packedCoords = (short)(blockX << 12 | blockZ << 8 | blockY);
+            SectionsToBeUpdated |= 1 << (blockY >> 4);
+            BlocksToBeUpdated.AddOrUpdate(packedCoords, packedCoords, (key, oldValue) => packedCoords);
+            
             BlocksUpdateLock.ExitReadLock();
 
             int started = Interlocked.CompareExchange(ref _TimerStarted, 1, 0);
@@ -1251,39 +1247,33 @@ namespace Chraft.World
 
         }
 
-        private static byte[] _Buffer = new byte[16 * Section.BYTESIZE];
+        private static byte[] _Buffer = new byte[16 * Section.BYTESIZE + (16 * 5) + (HALFSIZE*2)];
 
         private void LoadAllBlocks(Stream strm)
         {
             int sections = strm.ReadByte();
-            _SectionsNum = sections;
-            strm.Read(_Buffer, 0, (sections * Section.BYTESIZE) + sections);
+            int bytesToRead = (sections * Section.BYTESIZE) + (sections * 5) + (HALFSIZE * 2);
+            strm.Read(_Buffer, 0, bytesToRead);
 
             int i = 0;
             while(sections > 0)
             {
                 int sectionId = _Buffer[i++];
-
-                Section section = _Sections[sectionId] = new Section(this);
+                Section section = _Sections[sectionId] = new Section(this, sectionId);
                 Buffer.BlockCopy(_Buffer, i, section.Types, 0, Section.SIZE);
                 i += Section.SIZE;
                 Buffer.BlockCopy(_Buffer, i, section.Data.Data, 0, Section.HALFSIZE);
                 i += Section.HALFSIZE;
-                byte[] nonAirBlocks = new byte[4];
-                Buffer.BlockCopy(_Buffer, i, nonAirBlocks, 0, 4);
+                
+                section.NonAirBlocks = BitConverter.ToInt32(_Buffer, i);
                 i += 4;
-                section.NonAirBlocks = BitConverter.ToInt32(nonAirBlocks, 0);
                 --sections;
             }
-
-            Buffer.BlockCopy(_Buffer, i, Light.Data, 0, Section.HALFSIZE);
+                
+            Buffer.BlockCopy(_Buffer, i, Light.Data, 0, HALFSIZE);
             i += HALFSIZE;
-            Buffer.BlockCopy(_Buffer, i, SkyLight.Data, 0, Section.HALFSIZE);
+            Buffer.BlockCopy(_Buffer, i, SkyLight.Data, 0, HALFSIZE);
 
-            /*strm.Read(Types, 0, SIZE);
-            strm.Read(Data.Data, 0, HALFSIZE);
-            strm.Read(Light.Data, 0, HALFSIZE);
-            strm.Read(SkyLight.Data, 0, HALFSIZE);*/
         }
 
         private bool EnterSave()
@@ -1302,40 +1292,6 @@ namespace Chraft.World
         {
             Saving = false;
             Monitor.Exit(_SavingLock);
-        }
-
-        private void WriteAllBlocks(Stream strm)
-        {
-            int sections = _SectionsNum;
-            strm.WriteByte((byte)sections);
-            int i = 0;
-            while(sections > 0)
-            {
-                Section section = _Sections[i];
-
-                if (section != null)
-                {
-                    if (section.NonAirBlocks > 0)
-                    {
-                        strm.WriteByte((byte)i);
-                        strm.Write(section.Types, 0, Section.SIZE);
-                        strm.Write(section.Data.Data, 0, Section.HALFSIZE);
-                        strm.Write(BitConverter.GetBytes(section.NonAirBlocks), 0, 4);
-                    }
-                    else
-                        _Sections[i] = null;
-                }
-
-                ++i;
-                --sections;
-            }
-
-            strm.Write(Light.Data, 0, HALFSIZE);
-            strm.Write(SkyLight.Data, 0, HALFSIZE);
-            /*strm.Write(Types, 0, SIZE);
-            strm.Write(Data.Data, 0, HALFSIZE);
-            strm.Write(Light.Data, 0, HALFSIZE);
-            strm.Write(SkyLight.Data, 0, HALFSIZE);*/
         }
 
         public void MarkToSave()
@@ -1389,6 +1345,50 @@ namespace Chraft.World
                     ExitSave();
                 }
             }
+        }
+
+        private void WriteAllBlocks(Stream strm)
+        {
+            Queue<Section> toSave = new Queue<Section>();
+            int sections = 0;
+            for (int i = 0; i < 16; ++i)
+            {
+                Section section = _Sections[i];
+
+                if (section != null)
+                {
+                    if (section.NonAirBlocks > 0)
+                    {
+                        ++sections;
+                        toSave.Enqueue(section);
+                    }
+                    else
+                        _Sections[i] = null; // Free some memory 
+                }
+            }
+
+            //strm.WriteByte((byte)sections);
+            Debug.Assert(sections <= 16);
+            strm.WriteByte((byte)sections);
+
+            while (toSave.Count > 0)
+            {
+                Section section = toSave.Dequeue();
+
+                //strm.WriteByte((byte)section.SectionId);
+                strm.WriteByte((byte)section.SectionId);
+                strm.Write(section.Types, 0, Section.SIZE);
+                strm.Write(section.Data.Data, 0, Section.HALFSIZE);
+                strm.Write(BitConverter.GetBytes(section.NonAirBlocks), 0, 4);
+            }
+
+            strm.Write(Light.Data, 0, HALFSIZE);
+
+            /*World.Logger.Log(LogLevel.Info, "Chunk Write {0} {1}", Coords.ChunkX, Coords.ChunkZ);
+            World.Logger.Log(LogLevel.Info, "Skylight: {0}", BitConverter.ToString(SkyLight.Data));
+            World.Logger.Log(LogLevel.Info, "----------------------------------------------");*/
+
+            strm.Write(SkyLight.Data, 0, HALFSIZE);
         }
 
         internal void AddClient(Client client)
@@ -1666,9 +1666,7 @@ namespace Chraft.World
 
             if (num == 1)
             {
-                short keyCoords = BlocksUpdating.Keys.First();
-                short index;
-                BlocksUpdating.TryGetValue(keyCoords, out index);
+                short index = BlocksUpdating.Values.First();
                 int blockX = (index >> 12 & 0xf);
                 int blockY = (index & 0xff);
                 int blockZ = (index >> 8 & 0xf);
@@ -1686,10 +1684,8 @@ namespace Chraft.World
                 short[] blocks = new short[num];
 
                 int count = 0;
-                foreach (short key in BlocksUpdating.Keys)
+                foreach (short index in BlocksUpdating.Values)
                 {
-                    short index;
-                    BlocksUpdating.TryGetValue(key, out index);
                     int blockX = (index >> 12 & 0xf);
                     int blockY = (index & 0xff);
                     int blockZ = (index >> 8 & 0xf);
@@ -1703,10 +1699,11 @@ namespace Chraft.World
             }
             else
             {
-                World.Server.SendPacketToNearbyPlayers(World, Coords, new MapChunkPacket { Chunk = this, Logger = World.Logger});
+                World.Server.SendPacketToNearbyPlayers(World, Coords, new MapChunkPacket { Chunk = this, Logger = World.Logger, FirstInit = false});
             }
 
             BlocksUpdating.Clear();
+            SectionsToBeUpdated = 0;
             Interlocked.Exchange(ref _TimerStarted, 0);
         }
     }

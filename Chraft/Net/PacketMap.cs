@@ -42,6 +42,7 @@ namespace Chraft.Net
             { typeof(BlockChangePacket), PacketType.BlockChange },
             { typeof(BlockActionPacket), PacketType.BlockAction },
             { typeof(ChatMessagePacket), PacketType.ChatMessage },
+            { typeof(ClientStatusPacket), PacketType.ClientStatus},
             { typeof(CloseWindowPacket), PacketType.CloseWindow },
             { typeof(CollectItemPacket), PacketType.CollectItem },
 			{ typeof(CreativeInventoryActionPacket), PacketType.CreativeInventoryAction },

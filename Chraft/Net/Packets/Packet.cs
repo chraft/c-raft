@@ -516,7 +516,6 @@ namespace Chraft.Net.Packets
                 Writer.Write(Y);
             }
             Writer.Write(Z);
-            Console.WriteLine("Sending Position: {0},{1},{2}", X, Y, Z);
             Writer.Write(Yaw);
             Writer.Write(Pitch);
             Writer.Write(OnGround);
