@@ -15,19 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity.Items;
-using Chraft.Net;
-using System.Runtime.Serialization;
 using Chraft.Net.Packets;
-using Chraft.Persistence;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
-using Chraft.Utilities;
 using Chraft.Utilities.Coords;
-using Chraft.World;
 using Chraft.Entity;
 
 
@@ -42,8 +33,9 @@ namespace Chraft.Interfaces
 
 		internal event EventHandler<InterfaceClickedEventArgs> Clicked;
 
-        internal virtual ItemInventory[] Slots { get; set; }
-        public short SlotCount { get { return (short)Slots.Length; } }
+	    protected ItemInventory[] _slots;
+
+        public short SlotCount { get { return (short)_slots.Length; } }
 		public string Title { get; set; }
         internal sbyte Handle { get; set; }
 		internal InterfaceType Type { get; private set; }
@@ -57,15 +49,16 @@ namespace Chraft.Interfaces
 		{
 			get
 			{
-				return Slots[slot];
+				return _slots[slot];
 			}
 			set
 			{
-                if (Slots[slot] != null)
-					Slots[slot].Changed -= ItemStack_Changed;
-                Slots[slot] = value ?? ItemHelper.Void;
+                if (_slots[slot] != null)
+					_slots[slot].Changed -= ItemStack_Changed;
+                _slots[slot] = value ?? ItemHelper.Void;
                 //Do not keep a slot number in the item object itself, manage it on an interface level
-				Slots[slot].Changed += ItemStack_Changed;
+			    _slots[slot].Slot = slot;
+				_slots[slot].Changed += ItemStack_Changed;
 				SendUpdate(slot);
 			}
 		}
@@ -82,14 +75,14 @@ namespace Chraft.Interfaces
 		{
 			Type = type;
 			Handle = NextHandle;
-			Slots = new ItemInventory[slotCount];
+			_slots = new ItemInventory[slotCount];
 			Title = "C#raft Interface";
 			NextHandle = NextHandle == 127 ? (sbyte)1 : (sbyte)(NextHandle + 1); // Handles between 1 and 127. 0 is reserved for Inventory
 		}
 
         public IItemInventory[] GetSlots()
         {
-            return Slots;
+            return _slots;
         }
 
         public IItemInventory GetItem(short slot)
@@ -162,11 +155,11 @@ namespace Chraft.Interfaces
 				// Ensure a true void stack for our calculations
                 if (ItemHelper.IsVoid(Cursor))
 					Cursor = ItemHelper.Void;
-                if (ItemHelper.IsVoid(target.Slots[e.Slot]))
+                if (ItemHelper.IsVoid(target._slots[e.Slot]))
 					target[e.Slot] = ItemHelper.Void;
 
 				// The fun begins.
-				if (target.Slots[e.Slot].StacksWith(Cursor))
+				if (target._slots[e.Slot].StacksWith(Cursor))
 				{
                     if (ItemHelper.IsVoid(Cursor))
 					{	// Useless click
@@ -174,7 +167,7 @@ namespace Chraft.Interfaces
 					}
 					else if (e.RightClick)
 					{	// Right-click on same item
-						if (target.Slots[e.Slot].Count >= 64)
+						if (target._slots[e.Slot].Count >= 64)
 						{	// Stack is already full: ignore
 							e.Cancel();
 						}
@@ -187,7 +180,7 @@ namespace Chraft.Interfaces
 					else
 					{
                         // Left-click on same item
-						int total = target.Slots[e.Slot].Count + Cursor.Count;
+						int total = target._slots[e.Slot].Count + Cursor.Count;
 						if (total <= 64)
 						{	// Move all items to stack
 							target[e.Slot].Count = unchecked((sbyte)total);
@@ -200,7 +193,7 @@ namespace Chraft.Interfaces
 						}
 					}
 				}
-                else if (!ItemHelper.IsVoid(Cursor) && e.RightClick && ItemHelper.IsVoid(target.Slots[e.Slot]))
+                else if (!ItemHelper.IsVoid(Cursor) && e.RightClick && ItemHelper.IsVoid(target._slots[e.Slot]))
                 {
                     // Right-click on empty slot with items in cursor: drop one item from Cursor into slot
 
@@ -212,10 +205,10 @@ namespace Chraft.Interfaces
                 }
                 else if (e.RightClick && ItemHelper.IsVoid(Cursor))
                 {	// Right-click with empty cursor: split stack in half
-                    sbyte count = target.Slots[e.Slot].Count;
+                    sbyte count = target._slots[e.Slot].Count;
                     target[e.Slot].Count /= 2;
-                    count -= target.Slots[e.Slot].Count;
-                    Cursor = target.Slots[e.Slot];
+                    count -= target._slots[e.Slot].Count;
+                    Cursor = target._slots[e.Slot].Clone();
                     Cursor.Count = count;
                     //Cursor = new ItemStack(target.Slots[e.Slot].Type, (sbyte)count, target.Slots[e.Slot].Durability);
                 }
@@ -225,7 +218,7 @@ namespace Chraft.Interfaces
                 }
                 else
                 {	// Left-click on different type: swap stacks
-                    var swap = target[e.Slot];
+                    var swap = target[e.Slot].Clone();
                     target[e.Slot] = Cursor;
                     Cursor = swap;
                 }
@@ -252,7 +245,7 @@ namespace Chraft.Interfaces
 		{
 			if (IsOpen && !IsTransactionInProgress && Owner != null)
 			{
-				var item = slot < 0 ? Cursor : Slots[slot];
+                var item = slot < 0 ? Cursor : _slots[slot];
                 Owner.Client.SendPacket(new SetSlotPacket
 				{
                     Item = ItemHelper.IsVoid(item) ? ItemHelper.Void : item,
@@ -302,7 +295,7 @@ namespace Chraft.Interfaces
 		{
 			for (short i = 0; i < SlotCount; i++)
 			{
-                if (Slots[i] != null && !ItemHelper.IsVoid(Slots[i]))
+                if (_slots[i] != null && !ItemHelper.IsVoid(_slots[i]))
 					SendUpdate(i);
 			}
 		}
@@ -348,10 +341,9 @@ namespace Chraft.Interfaces
             // Drop all items from the workbench
             for (short i = 0; i < SlotCount; i++)
             {
-                var stack = Slots[i];
-                if (!ItemHelper.IsVoid(stack))
+                if (!ItemHelper.IsVoid(_slots[i]))
                 {
-                    Owner.Server.DropItem(Owner.World, coords, stack);
+                    Owner.Server.DropItem(Owner.World, coords, _slots[i]);
                     this[i] = ItemHelper.Void;
                 }
             }
@@ -360,7 +352,7 @@ namespace Chraft.Interfaces
         public bool IsEmpty()
         {
             bool empty = true;
-            foreach (var item in this.Slots)
+            foreach (var item in _slots)
             {
                 if (!ItemHelper.IsVoid(item))
                 {

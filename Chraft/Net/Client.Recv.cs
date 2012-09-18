@@ -459,7 +459,7 @@ namespace Chraft.Net
         {
             Player player = client.Owner;
             // if(!Permissions.CanPlayerBuild(Username)) return;
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
+            if (player.Inventory[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
             UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
@@ -475,8 +475,8 @@ namespace Chraft.Net
             StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, (byte)baseBlockData, player.World);
 
             // Placed Item Info
-            short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
-            short pMetaData = player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
+            short pType = player.Inventory[player.Inventory.ActiveSlot].Type;
+            short pMetaData = player.Inventory[player.Inventory.ActiveSlot].Durability;
 
             UniversalCoords newBlockCoords = player.World.FromFace(baseBlockCoords, packet.Face);
             StructBlock newBlock;
@@ -597,11 +597,11 @@ namespace Chraft.Net
                 return;
             }
 
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 0 || player.Inventory.Slots[player.Inventory.ActiveSlot].Count < 1)
+            if (player.Inventory[player.Inventory.ActiveSlot].Type <= 0 || player.Inventory[player.Inventory.ActiveSlot].Count < 1)
                 return;
 
             // TODO: Neaten this out, or address via handler?
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type > 255 || packet.Face == BlockFace.Held) // Client is using an Item.
+            if (player.Inventory[player.Inventory.ActiveSlot].Type > 255 || packet.Face == BlockFace.Held) // Client is using an Item.
             {
                 HandlePacketPlayerItemPlacement(client, packet);
                 return;
@@ -609,8 +609,8 @@ namespace Chraft.Net
 
             // Built Block Info
 
-            byte bType = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
-            byte bMetaData = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
+            byte bType = (byte)player.Inventory[player.Inventory.ActiveSlot].Type;
+            byte bMetaData = (byte)player.Inventory[player.Inventory.ActiveSlot].Durability;
 
             StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
 

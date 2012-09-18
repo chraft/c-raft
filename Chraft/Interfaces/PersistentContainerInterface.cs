@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using Chraft.Entity.Items;
 using Chraft.Interfaces.Containers;
 using Chraft.Net.Packets;
 using Chraft.Utilities;
@@ -56,7 +57,7 @@ namespace Chraft.Interfaces
                 if (!SharedSlotClicked(packet))
                     return;
                 base.OnClicked(packet);
-                Container.ChangeSlot(packet.WindowId, packet.Slot, Slots[packet.Slot]);
+                Container.ChangeSlot(packet.WindowId, packet.Slot, this[packet.Slot]);
             }
             else
                 base.OnClicked(packet);
@@ -83,8 +84,8 @@ namespace Chraft.Interfaces
 
         protected override void DoOpen()
         {
-            for (int i = 0; i < Container.SlotsCount; i++)
-                Slots[i] = Container[i];
+            for (short i = 0; i < Container.SlotsCount; i++)
+                this[i] = Container[i];
             base.DoOpen();
         }
     }

@@ -168,11 +168,11 @@ namespace Chraft.Net
                 ItemInventory item;
                 XmlElement itemDoc;
 
-                for (int i = 5; i <= 44; i++)
+                for (short i = 5; i <= 44; i++)
                 {
-                    if (_player.Inventory.Slots[i] == null || ItemHelper.IsVoid(_player.Inventory.Slots[i]))
+                    if (_player.Inventory[i] == null || ItemHelper.IsVoid(_player.Inventory[i]))
                         continue;
-                    item = _player.Inventory.Slots[i];
+                    item = _player.Inventory[i];
                     itemDoc = doc.CreateElement("Item");
                     itemDoc.SetAttribute("Slot", i.ToString());
                     itemDoc.SetAttribute("Type", item.Type.ToString());

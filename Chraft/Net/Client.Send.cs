@@ -639,7 +639,7 @@ namespace Chraft.Net
             {
                 EntityId = c.Owner.EntityId,
                 Slot = slot,
-                Item = c.Owner.Inventory.Slots[slot]
+                Item = c.Owner.Inventory[slot]
             });
         }
 

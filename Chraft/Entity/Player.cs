@@ -445,14 +445,14 @@ namespace Chraft.Entity
 
         public void DamageArmor(short damage)
         {
-            for (int i = 5; i < 9; i++)
+            for (short i = 5; i < 9; i++)
             {
-                if (Inventory.Slots[i] != null && !ItemHelper.IsVoid(Inventory.Slots[i]))
+                if (Inventory[i] != null && !ItemHelper.IsVoid(Inventory[i]))
                 {
-                    if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
+                    if (Inventory[i].Type == (short)BlockData.Blocks.Pumpkin)
                         continue;
 
-                    Inventory.DamageItem((short)i, Math.Abs(damage));
+                    Inventory.DamageItem(i, Math.Abs(damage));
                 }
             }
         }
@@ -465,36 +465,36 @@ namespace Chraft.Entity
             short effectiveArmor = 0;
 
             // Helmet
-            if (Inventory.Slots[5] != null && !ItemHelper.IsVoid(Inventory.Slots[5]))
+            if (Inventory[5] != null && !ItemHelper.IsVoid(Inventory[5]))
             {
                 // We can wear a pumpkin, but it'll not give us any armor
-                if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
+                if (Inventory[5].Type != (short)BlockData.Blocks.Pumpkin)
                 {
                     baseArmorPoints += 3;
-                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type] - Inventory.Slots[5].Durability);
-                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type];
+                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[5].Type] - Inventory[5].Durability);
+                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[5].Type];
                 }
             }
             // Chest
-            if (Inventory.Slots[6] != null && !ItemHelper.IsVoid(Inventory.Slots[6]))
+            if (Inventory[6] != null && !ItemHelper.IsVoid(Inventory[6]))
             {
                 baseArmorPoints += 8;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[6].Type] - Inventory[6].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[6].Type];
             }
             // Pants
-            if (Inventory.Slots[7] != null && !ItemHelper.IsVoid(Inventory.Slots[7]))
+            if (Inventory[7] != null && !ItemHelper.IsVoid(Inventory[7]))
             {
                 baseArmorPoints += 6;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[7].Type] - Inventory[7].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[7].Type];
             }
             // Boots
-            if (Inventory.Slots[8] != null && !ItemHelper.IsVoid(Inventory.Slots[8]))
+            if (Inventory[8] != null && !ItemHelper.IsVoid(Inventory[8]))
             {
                 baseArmorPoints += 3;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[8].Type] - Inventory[8].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[8].Type];
             }
             if (totalBaseDurability > 0)
                 effectiveArmor = (short)Math.Floor(baseArmorPoints*((double) totalCurrentDurability/totalBaseDurability));
@@ -532,7 +532,7 @@ namespace Chraft.Entity
             else if (killedBy is Player)
             {
                 var p = (Player)killedBy;
-                deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory.Slots[Inventory.ActiveSlot].Type);
+                deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory[Inventory.ActiveSlot].Type);
             }
             else if (killedBy is Mob)
             {
@@ -836,7 +836,7 @@ namespace Chraft.Entity
         public void DropActiveSlotItem()
         {
 
-            var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
+            var activeItemStack = Inventory[Inventory.ActiveSlot];
             if (activeItemStack.Count > 0)
             {
                 if (activeItemStack.Count == 1)

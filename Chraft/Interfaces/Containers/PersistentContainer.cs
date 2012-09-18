@@ -42,7 +42,7 @@ namespace Chraft.Interfaces.Containers
         public WorldManager World;
         public UniversalCoords Coords;
         protected virtual ItemInventory[] Slots { get; set; }
-        public int SlotsCount;
+        public short SlotsCount;
         public virtual ItemInventory this[int slot]
         {
             get

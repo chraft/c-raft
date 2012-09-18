@@ -87,7 +87,6 @@ namespace Chraft.Interfaces
                         newOutput.Damage = output.Damage;
                     }
                 }
-                newOutput.Slot = (short)FurnaceSlots.Output;
                 Container.ChangeSlot(Handle, packet.Slot, newOutput);
                 this[(short)FurnaceSlots.Output] = newOutput;
                 return false;

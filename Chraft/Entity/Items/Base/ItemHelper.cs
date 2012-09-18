@@ -60,12 +60,12 @@ namespace Chraft.Entity.Items
 
         public static bool IsVoid(ItemInventory item)
         {
-            return (item == null || item.Type == -1);
+            return (item == null || item.Type == -1 || item.Count < 1);
         }
 
         public static bool IsVoid(IItemInventory item)
         {
-            return ((item as ItemInventory).Type == -1);
+            return (item == null | (item as ItemInventory).Type == -1 || (item as ItemInventory).Count < 1);
         }
 
         public static ItemInventory Void

@@ -44,7 +44,7 @@ namespace Chraft.Interfaces
         {
             var ingredients = new List<ItemInventory>();
             for (short i = 1; i <= this.CraftingSlotCount; i++)
-                ingredients.Add(ItemHelper.IsVoid(Slots[i]) ? ItemHelper.Void : this[i]);
+                ingredients.Add(ItemHelper.IsVoid(this[i]) ? ItemHelper.Void : this[i]);
             return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
         }
 
@@ -74,7 +74,6 @@ namespace Chraft.Interfaces
                     item.Durability = this[0].Durability;
                     item.Damage = this[0].Damage;
                     Cursor = item;
-                    Cursor.Slot = -1;
                 }
 
                 // Add the newly crafted item to the Cursor
@@ -88,7 +87,7 @@ namespace Chraft.Interfaces
                     {
                         var ingredients = new List<ItemInventory>();
                         for (short i = 1; i <= this.CraftingSlotCount; i++)
-                            ingredients.Add(ItemHelper.IsVoid(Slots[i]) ? ItemHelper.Void : this[i]);
+                            ingredients.Add(ItemHelper.IsVoid(this[i]) ? ItemHelper.Void : this[i]);
 
                         // Use the ingredients
                         recipe.UseIngredients(ingredients.ToArray());
