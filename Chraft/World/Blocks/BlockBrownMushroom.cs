@@ -16,6 +16,7 @@
 #endregion
 using System;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Utilities;
@@ -30,7 +31,9 @@ namespace Chraft.World.Blocks
         {
             Name = "BrownMushroom";
             Type = BlockData.Blocks.Brown_Mushroom;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         public override void Fertilize(EntityBase entity, StructBlock block)

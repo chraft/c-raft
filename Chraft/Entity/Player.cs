@@ -20,6 +20,7 @@ using System.Linq;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem.Args;
@@ -135,10 +136,12 @@ namespace Chraft.Entity
 
                 for (short i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
                 {
-                    Inventory[i] = ItemStack.Void;
+                    Inventory[i] = ItemHelper.Void;
                 }
-
-                Inventory[Inventory.ActiveSlot] = new ItemStack(278, 1, 0);
+                var item = ItemHelper.GetInstance(278);
+                item.Count = 1;
+                item.Durability = 0;
+                Inventory[Inventory.ActiveSlot] = item;
             }
 
             Inventory.UpdateClient();
@@ -444,7 +447,7 @@ namespace Chraft.Entity
         {
             for (int i = 5; i < 9; i++)
             {
-                if (Inventory.Slots[i] != null && !Inventory.Slots[i].IsVoid())
+                if (Inventory.Slots[i] != null && !ItemHelper.IsVoid(Inventory.Slots[i]))
                 {
                     if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
                         continue;
@@ -462,7 +465,7 @@ namespace Chraft.Entity
             short effectiveArmor = 0;
 
             // Helmet
-            if (Inventory.Slots[5] != null && !Inventory.Slots[5].IsVoid())
+            if (Inventory.Slots[5] != null && !ItemHelper.IsVoid(Inventory.Slots[5]))
             {
                 // We can wear a pumpkin, but it'll not give us any armor
                 if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
@@ -473,21 +476,21 @@ namespace Chraft.Entity
                 }
             }
             // Chest
-            if (Inventory.Slots[6] != null && !Inventory.Slots[6].IsVoid())
+            if (Inventory.Slots[6] != null && !ItemHelper.IsVoid(Inventory.Slots[6]))
             {
                 baseArmorPoints += 8;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
                 totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
             }
             // Pants
-            if (Inventory.Slots[7] != null && !Inventory.Slots[7].IsVoid())
+            if (Inventory.Slots[7] != null && !ItemHelper.IsVoid(Inventory.Slots[7]))
             {
                 baseArmorPoints += 6;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
                 totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
             }
             // Boots
-            if (Inventory.Slots[8] != null && !Inventory.Slots[8].IsVoid())
+            if (Inventory.Slots[8] != null && !ItemHelper.IsVoid(Inventory.Slots[8]))
             {
                 baseArmorPoints += 3;
                 totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
@@ -832,10 +835,22 @@ namespace Chraft.Entity
 
         public void DropActiveSlotItem()
         {
+
             var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
             if (activeItemStack.Count > 0)
             {
-                Server.DropItem(this, new ItemStack(activeItemStack.Type, 1, activeItemStack.Durability));
+                if (activeItemStack.Count == 1)
+                {
+                    Server.DropItem(this, activeItemStack);
+                }
+                else
+                {
+                    var item = ItemHelper.GetInstance(activeItemStack.Type);
+                    item.Durability = activeItemStack.Durability;
+                    item.Damage = activeItemStack.Damage;
+                    item.Count = 1;
+                    Server.DropItem(this, item);
+                }
                 Inventory.RemoveItem(Inventory.ActiveSlot);
             }
         }

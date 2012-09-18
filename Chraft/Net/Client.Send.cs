@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem.Net;
@@ -508,7 +509,7 @@ namespace Chraft.Net
                         {
                             EntityId = entity.EntityId,
                             Slot = i,
-                            Item = ItemStack.Void
+                            Item = ItemHelper.Void
                         });
                     }
                 }
@@ -628,7 +629,7 @@ namespace Chraft.Net
             {
                 EntityId = c.Owner.EntityId,
                 Slot = 0,
-                Item = c.Owner.Inventory.ActiveItem
+                Item = c.Owner.Inventory.ActiveItem as ItemInventory
             });
         }
 

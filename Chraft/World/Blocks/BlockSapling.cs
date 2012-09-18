@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.World;
@@ -49,10 +50,13 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(entity, block, targetBlock, targetSide);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            overridedLoot.Add(new ItemStack((short)Type, 1, block.MetaData));
+            overridedLoot = new List<ItemInventory>();
+            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            item.Count = 1;
+            item.Durability = block.MetaData;
+            overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);
         }
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -34,7 +35,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Wall_Sign;
             IsAir = true;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Sign);
+            item.Count = 1;
+            LootTable.Add(item);
             Opacity = 0x0;
         }
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.World;
@@ -40,7 +41,9 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             IsSingleHit = true;
             IsWaterProof = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Reeds, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Reeds);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0.125, 0, 0.125, 0.875, 1, 0.875);
         }
 

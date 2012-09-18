@@ -18,6 +18,7 @@
 using System;
 using System.IO;
 using System.Xml;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Config;
@@ -89,8 +90,8 @@ namespace Chraft.Net
 
             short slot, type, durability, count;
 
-            for (int i = 0; i < 45; i++)
-                _player.Inventory[i] = ItemStack.Void;
+            for (short i = 0; i < 45; i++)
+                _player.Inventory[i] = ItemHelper.Void;
 
             foreach (XmlNode itemXml in playerNode["Inventory"].ChildNodes)
             {
@@ -98,7 +99,10 @@ namespace Chraft.Net
                 type = short.Parse(itemXml.Attributes["Type"].InnerText);
                 durability = short.Parse(itemXml.Attributes["Durability"].InnerText);
                 count = short.Parse(itemXml.Attributes["Count"].InnerText);
-                _player.Inventory[slot] = new ItemStack(type, (sbyte)count, durability);
+                var item = ItemHelper.GetInstance(type);
+                item.Count = (sbyte)count;
+                item.Durability = durability;
+                _player.Inventory[slot] = item;
             }
 
             _player.Inventory.Associate(_player);
@@ -161,12 +165,12 @@ namespace Chraft.Net
                 root.AppendChild(arg);
 
                 XmlElement inventoryNode = doc.CreateElement("Inventory");
-                ItemStack item;
+                ItemInventory item;
                 XmlElement itemDoc;
 
                 for (int i = 5; i <= 44; i++)
                 {
-                    if (_player.Inventory.Slots[i] == null || _player.Inventory.Slots[i].IsVoid())
+                    if (_player.Inventory.Slots[i] == null || ItemHelper.IsVoid(_player.Inventory.Slots[i]))
                         continue;
                     item = _player.Inventory.Slots[i];
                     itemDoc = doc.CreateElement("Item");

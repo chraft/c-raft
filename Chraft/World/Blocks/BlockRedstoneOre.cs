@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -33,10 +34,12 @@ namespace Chraft.World.Blocks
             Luminance = 0x9;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            overridedLoot.Add(new ItemStack((short)BlockData.Items.Redstone, (sbyte)(2 + block.World.Server.Rand.Next(4))));
+            overridedLoot = new List<ItemInventory>();
+            ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Redstone);
+            item.Count = (sbyte) (2 + block.World.Server.Rand.Next(4));
+            overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);
         }
     }

@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
@@ -32,7 +33,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Yellow_Flower;
             IsAir = true;
             IsSingleHit = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
             Opacity = 0x0;
             BlockBoundsOffset = new BoundingBox(0.3, 0, 0.3, 0.7, 0.6, 0.7);
         }

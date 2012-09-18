@@ -13,9 +13,9 @@ namespace Chraft.PluginSystem.Item
         void Close(bool sendCloseToClient);
         void DropAll(UniversalCoords coords);
         bool IsEmpty();
-        IItemStack GetItem(int slot);
-        void SetItem(int slot, IItemStack newItem);
-        IItemStack[] GetSlots();
-        IItemStack GetCursor();
+        IItemInventory GetItem(short slot);
+        void SetItem(short slot, IItemInventory newItem);
+        IItemInventory[] GetSlots();
+        IItemInventory GetCursor();
     }
 }

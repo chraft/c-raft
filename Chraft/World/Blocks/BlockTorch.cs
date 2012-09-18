@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -36,7 +37,9 @@ namespace Chraft.World.Blocks
             IsSingleHit = true;
             Luminance = 0xe;
             BurnEfficiency = 300;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
             Opacity = 0x0;
         }
 

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Interfaces.Containers;
 using Chraft.Net.Packets;
 using Chraft.Utilities;
@@ -41,7 +42,7 @@ namespace Chraft.Interfaces
         {
             if (packet.Slot == (short)FurnaceSlots.Output)
             {
-                if (Container[packet.Slot].IsVoid())
+                if (ItemHelper.IsVoid(Container[packet.Slot]))
                 {
                     Owner.Client.SendPacket(new TransactionPacket
                     {
@@ -51,8 +52,8 @@ namespace Chraft.Interfaces
                     });
                     return false;
                 }
-                ItemStack output = Container[packet.Slot];
-                if (!Cursor.IsVoid())
+                var output = Container[packet.Slot];
+                if (!ItemHelper.IsVoid(Cursor))
                 {
                     if (!Cursor.StacksWith(output) || (Cursor.StacksWith(output) && Cursor.Count >= 64))
                     {
@@ -65,11 +66,13 @@ namespace Chraft.Interfaces
                         return false;
                     }
                 }
-                ItemStack newOutput = ItemStack.Void;
-                if (Cursor.IsVoid())
+                var newOutput = ItemHelper.Void;
+                if (ItemHelper.IsVoid(Cursor))
                 {
-                    Cursor = new ItemStack(output.Type, output.Count, output.Durability);
-                    Cursor.Slot = -1;
+                    Cursor = ItemHelper.GetInstance(output.Type);
+                    Cursor.Count = output.Count;
+                    Cursor.Durability = output.Durability;
+                    Cursor.Damage = output.Damage;
                 }
                 else
                 {
@@ -77,8 +80,14 @@ namespace Chraft.Interfaces
                     int takeFromOutput = (output.Count > freeSpaceInCursor ? freeSpaceInCursor : output.Count);
                     Cursor.Count += (sbyte)takeFromOutput;
                     if (takeFromOutput < output.Count)
-                        newOutput = new ItemStack(output.Type, (sbyte)(output.Count - takeFromOutput), output.Durability);
+                    {
+                        newOutput = ItemHelper.GetInstance(output.Type);
+                        newOutput.Count = (sbyte)(output.Count - takeFromOutput);
+                        newOutput.Durability = output.Durability;
+                        newOutput.Damage = output.Damage;
+                    }
                 }
+                newOutput.Slot = (short)FurnaceSlots.Output;
                 Container.ChangeSlot(Handle, packet.Slot, newOutput);
                 this[(short)FurnaceSlots.Output] = newOutput;
                 return false;

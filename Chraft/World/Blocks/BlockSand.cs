@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
@@ -32,7 +33,9 @@ namespace Chraft.World.Blocks
             Name = "Sand";
             Type = BlockData.Blocks.Sand;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)

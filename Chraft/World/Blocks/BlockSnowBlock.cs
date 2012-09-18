@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -32,12 +33,14 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             // SnowBlock requires 9 snowballs to craft and drops 4-6 snowballs upon destruction.
             // No tools required.
-            overridedLoot = new List<ItemStack>();
-            overridedLoot.Add(new ItemStack((short)BlockData.Items.Snowball, (sbyte)(4 + block.World.Server.Rand.Next(2))));
+            overridedLoot = new List<ItemInventory>();
+            ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Snowball);
+            item.Count = (sbyte) (4 + block.World.Server.Rand.Next(2));
+            overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);
         }
     }

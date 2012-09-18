@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -33,7 +34,9 @@ namespace Chraft.World.Blocks
             Name = "WoodenStairs";
             Type = BlockData.Blocks.Wooden_Stairs;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Blocks.Wood, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Blocks.Wood);
+            item.Count = 1;
+            LootTable.Add(item);
             BurnEfficiency = 300;
         }
 

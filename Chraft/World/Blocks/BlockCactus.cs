@@ -16,6 +16,7 @@
 #endregion
 using System.Linq;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
@@ -37,7 +38,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Cactus;
             IsSolid = true;
             Opacity = 0x0;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0.0625, 0, 0.0625, 0.9375, 0.9375, 0.9375);
         }
 

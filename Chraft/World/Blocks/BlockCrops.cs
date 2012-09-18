@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.World;
@@ -52,25 +53,35 @@ namespace Chraft.World.Blocks
             return true;
         }
 
-        protected override void DropItems(EntityBase who, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase who, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             WorldManager world = block.World as WorldManager;
             Server server = world.Server;
 
-            overridedLoot = new List<ItemStack>();
+            overridedLoot = new List<ItemInventory>();
             // TODO: Fully grown drops 1 Wheat & 0-3 Seeds. 0 seeds - very rarely
             if (block.MetaData == 7)
             {
-                overridedLoot.Add(new ItemStack((short)BlockData.Items.Wheat, 1));
+                ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Wheat);
+                item.Count = 1;
+                overridedLoot.Add(item);
                 sbyte seeds = (sbyte)server.Rand.Next(3);
                 if (seeds > 0)
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+                {
+                    item = ItemHelper.GetInstance((short) BlockData.Items.Seeds);
+                    item.Count = seeds;
+                    overridedLoot.Add(item);
+                }
             }
             else if (block.MetaData >= 5)
             {
                 sbyte seeds = (sbyte)server.Rand.Next(3);
                 if (seeds > 0)
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, seeds));
+                {
+                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Seeds);
+                    item.Count = seeds;
+                    overridedLoot.Add(item);
+                }
             }
             base.DropItems(who, block, overridedLoot);
         }

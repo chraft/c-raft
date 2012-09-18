@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
@@ -33,7 +34,9 @@ namespace Chraft.World.Blocks
             Name = "Slab";
             Type = BlockData.Blocks.Slab;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5, 1);
         }
 

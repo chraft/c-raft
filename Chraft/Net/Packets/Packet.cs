@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
+using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
@@ -278,13 +280,13 @@ namespace Chraft.Net.Packets
     {
         public int EntityId { get; set; }
         public short Slot { get; set; }
-        public ItemStack Item { get; set; }
+        public ItemInventory Item { get; set; }
 
         public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
             Slot = stream.ReadShort();
-            Item = ItemStack.Read(stream);
+            Item = ItemHelper.GetInstance(stream);
         }
 
         public override void Write()
@@ -292,7 +294,7 @@ namespace Chraft.Net.Packets
             SetCapacity(7);
             Writer.Write(EntityId);
             Writer.Write(Slot);
-            (Item ?? ItemStack.Void).Write(Writer);
+            (Item ?? ItemHelper.Void).Write(Writer);
             Length = (int)Writer.UnderlyingStream.Length;
         }
     }
@@ -562,7 +564,7 @@ namespace Chraft.Net.Packets
         public sbyte Y { get; set; }
         public int Z { get; set; }
         public BlockFace Face { get; set; }
-        public ItemStack Item { get; set; }
+        public ItemInventory Item { get; set; }
         public byte CursorsX { get; set; }
         public byte CursorsY { get; set; }
         public byte CursorsZ { get; set; }
@@ -574,7 +576,7 @@ namespace Chraft.Net.Packets
             Z = stream.ReadInt();
 
             Face = (BlockFace)stream.ReadSByte();
-            Item = ItemStack.Read(stream);
+            Item = ItemHelper.GetInstance(stream);
 
             CursorsX = stream.ReadByte();
             CursorsY = stream.ReadByte();
@@ -592,7 +594,7 @@ namespace Chraft.Net.Packets
             Writer.Write(Z);
 
             Writer.Write((sbyte)Face);
-            (Item ?? ItemStack.Void).Write(Writer);
+            (Item ?? ItemHelper.Void).Write(Writer);
 
             Writer.Write(CursorsX);
             Writer.Write(CursorsY);
@@ -1797,7 +1799,7 @@ namespace Chraft.Net.Packets
         public bool RightClick { get; set; }
         public short Transaction { get; set; }
         public bool Shift { get; set; }
-        public ItemStack Item { get; set; }
+        public ItemInventory Item { get; set; }
 
         public override void Read(PacketReader stream)
         {
@@ -1806,7 +1808,7 @@ namespace Chraft.Net.Packets
             RightClick = stream.ReadBool();
             Transaction = stream.ReadShort();
             Shift = stream.ReadBool();
-            Item = ItemStack.Read(stream);
+            Item = ItemHelper.GetInstance(stream);
         }
 
         public override void Write()
@@ -1821,7 +1823,7 @@ namespace Chraft.Net.Packets
             Writer.Write(RightClick);
             Writer.Write(Transaction);
             Writer.Write(Shift);
-            (Item ?? ItemStack.Void).Write(Writer);
+            (Item ?? ItemHelper.Void).Write(Writer);
             Length = (int)Writer.UnderlyingStream.Length;
         }
     }
@@ -1830,13 +1832,13 @@ namespace Chraft.Net.Packets
     {
         public sbyte WindowId { get; set; }
         public short Slot { get; set; }
-        public ItemStack Item { get; set; }
+        public ItemInventory Item { get; set; }
 
         public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
             Slot = stream.ReadShort();
-            Item = ItemStack.Read(stream);
+            Item = ItemHelper.GetInstance(stream);
         }
 
         public override void Write()
@@ -1845,7 +1847,8 @@ namespace Chraft.Net.Packets
 
             Writer.Write(WindowId);
             Writer.Write(Slot);
-            (Item ?? ItemStack.Void).Write(Writer);
+            //(Item ?? ItemHelper.Void).Write(Writer);
+            Item.Write(Writer);
             Length = (int)Writer.UnderlyingStream.Length;
         }
     }
@@ -1853,14 +1856,14 @@ namespace Chraft.Net.Packets
     public class WindowItemsPacket : Packet
     {
         public sbyte WindowId { get; set; }
-        public ItemStack[] Items { get; set; }
+        public ItemInventory[] Items { get; set; }
 
         public override void Read(PacketReader stream)
         {
             WindowId = stream.ReadSByte();
-            Items = new ItemStack[stream.ReadShort()];
+            Items = new ItemInventory[stream.ReadShort()];
             for (int i = 0; i < Items.Length; i++)
-                Items[i] = ItemStack.Read(stream);
+                Items[i] = ItemHelper.GetInstance(stream);
         }
 
         public override void Write()
@@ -1869,7 +1872,7 @@ namespace Chraft.Net.Packets
             Writer.Write(WindowId);
             Writer.Write((short)Items.Length);
             for (int i = 0; i < Items.Length; i++)
-                (Items[i] ?? ItemStack.Void).Write(Writer);
+                (Items[i] ?? ItemHelper.Void).Write(Writer);
 
             Length = (int)Writer.UnderlyingStream.Length;
         }
@@ -1939,12 +1942,12 @@ namespace Chraft.Net.Packets
     public class CreativeInventoryActionPacket : Packet
     {
         public short Slot { get; set; }
-        public ItemStack Item { get; set; }
+        public ItemInventory Item { get; set; }
 
         public override void Read(PacketReader stream)
         {
             Slot = stream.ReadShort();
-            Item = ItemStack.Read(stream);
+            Item = ItemHelper.GetInstance(stream);
         }
 
         public override void Write()

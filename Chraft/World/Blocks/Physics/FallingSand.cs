@@ -16,6 +16,7 @@
 #endregion
 using System;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -68,7 +69,9 @@ namespace Chraft.World.Blocks.Physics
 
             if (BlockHelper.Instance.IsAir((byte)blockId))
             {
-                World.Server.DropItem(World, currentBlockCoords, new ItemStack(BlockId, 1));
+                var item = ItemHelper.GetInstance(BlockId);
+                item.Count = 1;
+                World.Server.DropItem(World, currentBlockCoords, item);
             }
             else
             {

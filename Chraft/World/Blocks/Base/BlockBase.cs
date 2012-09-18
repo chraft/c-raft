@@ -17,6 +17,7 @@
 
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -123,7 +124,7 @@ namespace Chraft.World.Blocks.Base
 
         public bool IsWaterProof { get; protected set; }
 
-        public List<ItemStack> LootTable { get; protected set; }
+        public List<ItemInventory> LootTable { get; protected set; }
 
         public double Slipperiness { get; protected set; }
 
@@ -142,17 +143,17 @@ namespace Chraft.World.Blocks.Base
             IsFertile = false;
             IsPlowed = false;
             BurnEfficiency = 0;
-            LootTable = new List<ItemStack>();
+            LootTable = new List<ItemInventory>();
             Luminance = 0;
             IsWaterProof = false;
             Slipperiness = 0.6;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
-        public List<IItemStack> GetLootTable()
+        public List<IItemInventory> GetLootTable()
         {
             // Todo: this is not a very nice solution i think, can we do something better?
-            return LootTable.ConvertAll(x => (IItemStack) x);
+            return LootTable.ConvertAll(x => (IItemInventory)x);
         }
 
         /// <summary>
@@ -408,7 +409,7 @@ namespace Chraft.World.Blocks.Base
         /// Invoked to drop the loot after block destruction
         /// </summary>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(StructBlock block, List<ItemStack> overridedLoot = null)
+        protected virtual void DropItems(StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             DropItems(null, block, overridedLoot);
         }
@@ -418,9 +419,9 @@ namespace Chraft.World.Blocks.Base
         /// </summary>
         /// <param name="entity">entity that destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected virtual void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            List<ItemStack> toDrop;
+            List<ItemInventory> toDrop;
             if (overridedLoot != null && overridedLoot.Count > 0)
                 toDrop = overridedLoot;
             else if (LootTable != null && LootTable.Count > 0)

@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -32,13 +33,13 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Snow;
             IsAir = true;
             Opacity = 0x0;
-            IsSolid = false;
+            IsSolid = true;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
 
-        protected override void  DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
+            overridedLoot = new List<ItemInventory>();
             Player player = entity as Player;
             if (player != null)
             {
@@ -48,7 +49,9 @@ namespace Chraft.World.Blocks
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
                 {
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
+                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Snowball);
+                    item.Count = 1;
+                    overridedLoot.Add(item);
                 }
             }
             base.DropItems(entity, block, overridedLoot);

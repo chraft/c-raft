@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
@@ -52,26 +53,29 @@ namespace Chraft.Entity.Mobs
         {
             var killedByMob = killedBy as Mob;
             UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
+            ItemInventory item;
             if (killedByMob != null && killedByMob.Type == MobType.Skeleton)
             {
                 // If killed by a skeleton drop a music disc
                 sbyte count = 1;
-                short item;
+
                 if (Server.Rand.Next(2) > 1)
-                {
-                    item = (short)BlockData.Items.Disc13;
-                }
+                    item = ItemHelper.GetInstance(BlockData.Items.Disc13);
                 else
-                {
-                    item = (short)BlockData.Items.DiscCat;
-                }
-                Server.DropItem(World, coords, new Interfaces.ItemStack(item, count, 0));
+                    item = ItemHelper.GetInstance(BlockData.Items.DiscCat);
+                item.Count = count;
+                item.Durability = 0;
+                Server.DropItem(World, coords, item);
             }
             else
             {
                 sbyte count = (sbyte)Server.Rand.Next(2);
                 if (count > 0)
-                    Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.Gunpowder, count, 0));
+                {
+                    item = ItemHelper.GetInstance(BlockData.Items.Gunpowder);
+                    item.Count = count;
+                    Server.DropItem(World, coords, item);
+                }
             }
             base.DoDeath(killedBy);
         }

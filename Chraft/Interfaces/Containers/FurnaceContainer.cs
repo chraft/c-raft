@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Chraft.Entity.Items;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
 using Chraft.Utilities;
@@ -40,19 +41,19 @@ namespace Chraft.Interfaces.Containers
         private short _progressTicks;
         private Timer _burnerTimer;
 
-       private ItemStack InputSlot
+        private ItemInventory InputSlot
         {
             get { return this[(int)FurnaceInterface.FurnaceSlots.Input]; }
             set { ChangeSlot(-1, (short)FurnaceInterface.FurnaceSlots.Input, value); }
         }
 
-        private ItemStack FuelSlot
+        private ItemInventory FuelSlot
         {
             get { return this[(int)FurnaceInterface.FurnaceSlots.Fuel]; }
             set { ChangeSlot(-1, (short)FurnaceInterface.FurnaceSlots.Fuel, value); }
         }
 
-        private ItemStack OutputSlot
+        private ItemInventory OutputSlot
         {
             get { return this[(int)FurnaceInterface.FurnaceSlots.Output]; }
             set { ChangeSlot(-1, (short)FurnaceInterface.FurnaceSlots.Output, value); }
@@ -63,16 +64,16 @@ namespace Chraft.Interfaces.Containers
             SlotsCount = 3;
         }
 
-        public override void ChangeSlot(sbyte senderWindowId, short slot, ItemStack newItem)
+        public override void ChangeSlot(sbyte senderWindowId, short slot, ItemInventory newItem)
         {
             base.ChangeSlot(senderWindowId, slot, newItem);
             StartBurning();
         }
 
-        private SmeltingRecipe GetSmeltingRecipe(ItemStack item)
+        private SmeltingRecipe GetSmeltingRecipe(ItemInventory item)
         {
             SmeltingRecipe recipe = null;
-            if (item != null && !item.IsVoid())
+            if (item != null && !ItemHelper.IsVoid(item))
                 recipe = SmeltingRecipe.GetRecipe(Server.GetSmeltingRecipes(), item);
             return recipe;
         }
@@ -110,7 +111,7 @@ namespace Chraft.Interfaces.Containers
 
         private bool HasFuel()
         {
-            if (FuelSlot.IsVoid())
+            if (ItemHelper.IsVoid(FuelSlot))
                 return false;
             return ((FuelSlot.Type < 256 && BlockHelper.Instance.IsIgnitable((byte)FuelSlot.Type)) ||
                     (FuelSlot.Type >= 256 && BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)FuelSlot.Type)));
@@ -118,7 +119,7 @@ namespace Chraft.Interfaces.Containers
 
         private bool HasIngredient()
         {
-            if (InputSlot.IsVoid())
+            if (ItemHelper.IsVoid(InputSlot))
                 return false;
             SmeltingRecipe recipe = GetSmeltingRecipe(InputSlot);
             return (recipe != null);
@@ -185,7 +186,7 @@ namespace Chraft.Interfaces.Containers
 
         private short GetFuelEfficiency()
         {
-            if (FuelSlot.IsVoid())
+            if (ItemHelper.IsVoid(FuelSlot))
                 return 0;
 
             return (FuelSlot.Type < 256 ? BlockHelper.Instance.BurnEfficiency((byte)FuelSlot.Type) : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
@@ -194,27 +195,30 @@ namespace Chraft.Interfaces.Containers
         private void RemoveFuel()
         {
             if (FuelSlot.Count > 1)
-                FuelSlot = new ItemStack(FuelSlot.Type, --FuelSlot.Count, FuelSlot.Durability);
+                //FuelSlot = new ItemStack(FuelSlot.Type, --FuelSlot.Count, FuelSlot.Durability);
+                FuelSlot.Count--;
             else
-                FuelSlot = ItemStack.Void;
+                FuelSlot = ItemHelper.Void;
         }
 
         private void RemoveIngredient()
         {
             if (InputSlot.Count > 1)
-                InputSlot = new ItemStack(InputSlot.Type, --InputSlot.Count, InputSlot.Durability);
+                //InputSlot = new ItemStack(InputSlot.Type, --InputSlot.Count, InputSlot.Durability);
+                InputSlot.Count--;
             else
-                InputSlot = ItemStack.Void;
+                InputSlot = ItemHelper.Void;
         }
 
         private void AddOutput()
         {
-            if (!OutputSlot.IsVoid())
+            if (!ItemHelper.IsVoid(OutputSlot))
             {
-                OutputSlot = new ItemStack(OutputSlot.Type, ++OutputSlot.Count, OutputSlot.Durability);
+                //OutputSlot = new ItemStack(OutputSlot.Type, ++OutputSlot.Count, OutputSlot.Durability);
+                OutputSlot.Count++;
                 return;
             }
-            ItemStack output = GetSmeltingRecipe(InputSlot).Result;
+            ItemInventory output = GetSmeltingRecipe(InputSlot).Result;
             output.Count = 1;
             OutputSlot = output;
         }
@@ -235,7 +239,7 @@ namespace Chraft.Interfaces.Containers
                 {
                     if (HasIngredient() && HasFuel())
                     {
-                        if (!OutputSlot.IsVoid() && !GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot))
+                        if (!ItemHelper.IsVoid(OutputSlot) && !GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot))
                         {
                             StopBurning();
                             return;
@@ -259,7 +263,7 @@ namespace Chraft.Interfaces.Containers
                 }
 
                 _fuelTicksLeft--;
-                if (InputSlot.IsVoid() || (!OutputSlot.IsVoid() && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
+                if (ItemHelper.IsVoid(InputSlot) || (!ItemHelper.IsVoid(OutputSlot) && (!GetSmeltingRecipe(InputSlot).Result.StacksWith(OutputSlot) || OutputSlot.Count == 64)))
                     _progressTicks = 0;
                 else
                 {

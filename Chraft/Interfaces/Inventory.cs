@@ -16,6 +16,7 @@
 #endregion
 using System;
 using System.Collections.Generic;
+using Chraft.Entity.Items;
 using Chraft.Net.Packets;
 using Chraft.Entity;
 using Chraft.PluginSystem;
@@ -33,7 +34,7 @@ namespace Chraft.Interfaces
 		public short ActiveSlot { get { return _ActiveSlot; } }
 
         
-        public ItemStack ActiveItem { 
+        public IItemInventory ActiveItem { 
             get { return this[ActiveSlot]; }
         }
 
@@ -60,7 +61,7 @@ namespace Chraft.Interfaces
 			UpdateClient();
 		}
 
-        public IItemStack GetActiveItem()
+        public IItemInventory GetActiveItem()
         {
             return ActiveItem;
         }
@@ -72,14 +73,15 @@ namespace Chraft.Interfaces
 
 		internal void OnActiveChanged(short slot)
 		{
-			_ActiveSlot = slot;
+            if (slot >= (short)InventorySlots.QuickSlotFirst && slot <= (short)InventorySlots.QuickSlotLast)
+			    _ActiveSlot = slot;
 		}
 
 		/// <summary>
 		/// Gets an array of quick slots.
 		/// </summary>
 		/// <returns>Quick slots from left to right</returns>
-		public IEnumerable<IItemStack> GetQuickSlots()
+        public IEnumerable<IItemInventory> GetQuickSlots()
 		{
 			for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 				yield return this[i];
@@ -90,43 +92,46 @@ namespace Chraft.Interfaces
 			// Quickslots, stacking
             for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
-                if (!Slots[i].IsVoid() && Slots[i].Type == id && Slots[i].Durability == durability)
+                if (!ItemHelper.IsVoid(this[i]) && this[i].Type == id && this[i].Durability == durability)
 				{
-					if (Slots[i].Count + count <= 64)
+					if (this[i].Count + count <= 64)
 					{
-						Slots[i].Count += count;
+                        this[i].Count += count;
 						return;
 					}
-					count -= (sbyte)(64 - Slots[i].Count);
-					Slots[i].Count = 64;
+                    count -= (sbyte)(64 - this[i].Count);
+                    this[i].Count = 64;
 				}
 			}
 
 			// Inventory, stacking
 			for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
-                if (!Slots[i].IsVoid() && Slots[i].Type == id && Slots[i].Durability == durability)
+                if (!ItemHelper.IsVoid(this[i]) && this[i].Type == id && this[i].Durability == durability)
 				{
-					if (Slots[i].Count + count <= 64)
+                    if (this[i].Count + count <= 64)
 					{
-						Slots[i].Count += count;
+                        this[i].Count += count;
 						return;
 					}
-					count -= (sbyte)(64 - Slots[i].Count);
-					Slots[i].Count = 64;
+                    count -= (sbyte)(64 - this[i].Count);
+                    this[i].Count = 64;
 				}
 			}
 
 			// Quickslots, not stacking
             for (short i = (short)InventorySlots.QuickSlotFirst; i <= (short)InventorySlots.QuickSlotLast; i++)
 			{
-                if (Slots[i].IsVoid())
+                if (ItemHelper.IsVoid(this[i]))
 				{
                     if (isInGame)
                     {
                         Owner.Client.SendPacket(new ChatMessagePacket {Message = "Placing in slot " + i});
                     }
-				    this[i] = new ItemStack(id, count, durability) { Slot = i };
+                    this[i] = ItemHelper.GetInstance(id);
+                    this[i].Count = count;
+                    this[i].Durability = durability;
+                    //this[i] = new ItemStack(id, count, durability) { Slot = i };
 					return;
 				}
 			}
@@ -134,9 +139,12 @@ namespace Chraft.Interfaces
 			// Inventory, not stacking
             for (short i = (short)InventorySlots.InventoryFirst; i <= (short)InventorySlots.InventoryLast; i++)
 			{
-                if (Slots[i].IsVoid())
+                if (ItemHelper.IsVoid(this[i]))
 				{
-					this[i] = new ItemStack(id, count, durability) { Slot = i };
+                    this[i] = ItemHelper.GetInstance(id);
+                    this[i].Count = count;
+                    this[i].Durability = durability;
+                    //this[i] = new ItemStack(id, count, durability) { Slot = i };
 					return;
 				}
 			}
@@ -149,15 +157,10 @@ namespace Chraft.Interfaces
             if (this[slot].Type > 0)
             {
                 if (this[slot].Count == 1)
-                {
-                    this[slot] = ItemStack.Void;
-                }
+                    this[slot] = ItemHelper.Void;
                 else
-                {
                     this[slot].Count -= 1;
-                }
             }
-
             Owner.MarkToSave();
         }
 
@@ -173,7 +176,7 @@ namespace Chraft.Interfaces
                 {
                     if (this[slot].Count == 1)
                     {
-                        this[slot] = ItemStack.Void;
+                        this[slot] = ItemHelper.Void;
                         Owner.MarkToSave();
                         return true;
                     }

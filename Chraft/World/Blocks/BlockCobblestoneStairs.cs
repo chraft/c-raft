@@ -15,6 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -33,7 +34,9 @@ namespace Chraft.World.Blocks
             Name = "CobblestoneStairs";
             Type = BlockData.Blocks.Cobblestone_Stairs;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace targetSide)

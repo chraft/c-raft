@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Chraft.Entity.Items;
 using Chraft.Net;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;
@@ -40,9 +41,9 @@ namespace Chraft.Interfaces.Containers
 
         public WorldManager World;
         public UniversalCoords Coords;
-        protected virtual ItemStack[] Slots { get; set; }
+        protected virtual ItemInventory[] Slots { get; set; }
         public int SlotsCount;
-        public virtual ItemStack this[int slot]
+        public virtual ItemInventory this[int slot]
         {
             get
             {
@@ -52,8 +53,7 @@ namespace Chraft.Interfaces.Containers
             {
                 lock (_containerLock)
                 {
-                    Slots[slot] = value ?? ItemStack.Void;
-                    Slots[slot].Slot = (short) slot;
+                    Slots[slot] = value ?? ItemHelper.Void;
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace Chraft.Interfaces.Containers
         {
             World = world;
             Coords = coords;
-            Slots = new ItemStack[SlotsCount];
+            Slots = new ItemInventory[SlotsCount];
             DataFile = string.Format("x{0}y{1}z{2}.dat", Coords.WorldX, Coords.WorldY, Coords.WorldZ);
             string chunkFolder = string.Format("x{0}z{1}", Coords.ChunkX, Coords.ChunkZ);
             ContainerFolder = Path.Combine(DataPath, chunkFolder);
@@ -82,7 +82,7 @@ namespace Chraft.Interfaces.Containers
                 bool empty = true;
                 foreach (var item in Slots)
                 {
-                    if (item != null && !item.IsVoid())
+                    if (item != null && !ItemHelper.IsVoid(item))
                     {
                         empty = false;
                         break;
@@ -104,7 +104,8 @@ namespace Chraft.Interfaces.Containers
                     using (BigEndianStream bigEndian = new BigEndianStream(containerStream, StreamRole.Server))
                     {
                         for (int i = slotStart; i < slotsCount; i++)
-                            Slots[i] = new ItemStack(bigEndian);
+                            //Slots[i] = new ItemStack(bigEndian);
+                            Slots[i] = ItemHelper.GetInstance(bigEndian);
                         LoadExtraData(bigEndian);
                     }
                 }
@@ -179,7 +180,7 @@ namespace Chraft.Interfaces.Containers
                 {
                     using (BigEndianStream bigEndianStream = new BigEndianStream(fileStream, StreamRole.Server))
                     {
-                        ItemStack stack = ItemStack.Void;
+                        ItemInventory stack = ItemHelper.Void;
                         for (int i = slotStart; i < slotsCount; i++)
                         {
                             stack = Slots[i];
@@ -189,7 +190,7 @@ namespace Chraft.Interfaces.Containers
                             }
                             else
                             {
-                                ItemStack.Void.Write(bigEndianStream);
+                                ItemHelper.Void.Write(bigEndianStream);
                             }
                         }
                         SaveExtraData(bigEndianStream);
@@ -249,7 +250,7 @@ namespace Chraft.Interfaces.Containers
             return true;
         }
 
-        public virtual void ChangeSlot(sbyte senderWindowId, short slot, ItemStack newItem)
+        public virtual void ChangeSlot(sbyte senderWindowId, short slot, ItemInventory newItem)
         {
             Slots[slot] = newItem;
             foreach (var persistentInterface in Interfaces)
@@ -271,11 +272,11 @@ namespace Chraft.Interfaces.Containers
             {
                 for (short i = 0; i < Slots.Count(); i++)
                 {
-                    ItemStack stack = Slots[i];
-                    if (stack != null && !stack.IsVoid())
+                    ItemInventory stack = Slots[i];
+                    if (stack != null && !ItemHelper.IsVoid(stack))
                     {
                         World.Server.DropItem(World, Coords, stack);
-                        this[i] = ItemStack.Void;
+                        this[i] = ItemHelper.Void;
                     }
                 }
             Save();

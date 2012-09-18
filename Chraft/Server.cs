@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Chraft.Commands;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
@@ -1164,7 +1165,7 @@ namespace Chraft
                         {
                             EntityId = entity.EntityId,
                             Slot = i,
-                            Item = ItemStack.Void,
+                            Item = ItemHelper.Void,
                         });
                     }
 
@@ -1371,7 +1372,7 @@ namespace Chraft
         /// <param name="player">The player to be used for position calculations.</param>
         /// <param name="stack">The stack to be dropped.</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(IPlayer player, IItemStack stack)
+        public int DropItem(IPlayer player, IItemInventory stack)
         {
             //todo - proper drop
             return DropItem(player.GetWorld(), UniversalCoords.FromAbsWorld(player.Position.X + 4, player.Position.Y, player.Position.Z), stack);
@@ -1385,8 +1386,11 @@ namespace Chraft
         /// <param name="stack">The stack to be dropped</param>
         /// <param name="velocity">An optional velocity (the velocity will be clamped to -0.4 and 0.4 on each axis)</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(IWorldManager world, UniversalCoords coords, IItemStack stack, Vector3 velocity = new Vector3())
+        public int DropItem(IWorldManager world, UniversalCoords coords, IItemInventory stack, Vector3 velocity = new Vector3())
         {
+            if (ItemHelper.IsVoid(stack))
+                return -1;
+
             int entityId = AllocateEntity();
 
             bool sendVelocity = false;

@@ -440,7 +440,7 @@ namespace Chraft.Entity
                 if (hitBy is Player)
                 {
                     var hitByPlayer = hitBy as Player;
-                    ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
+                    var itemHeld = hitByPlayer.Inventory.ActiveItem;
                     hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " +
                                                    damageAmount + " damage.");
                 }

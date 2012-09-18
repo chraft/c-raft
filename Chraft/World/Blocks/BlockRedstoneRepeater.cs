@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -30,7 +32,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Redstone_Repeater;
             Opacity = 0x0;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Redstone_Repeater, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Redstone_Repeater);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
     }

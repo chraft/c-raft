@@ -101,7 +101,7 @@ namespace Chraft.Entity
             this.Speed = 0.1;
 		}
 
-        protected virtual void DoInteraction(IClient client, IItemStack item)
+        protected virtual void DoInteraction(IClient client, IItemInventory item)
         {
         }
 
@@ -368,7 +368,7 @@ namespace Chraft.Entity
         /// </summary>
         /// <param name="client">The client that is interacting</param>
         /// <param name="item">The item being used (could be Void e.g. Hand)</param>
-        public void InteractWith(IClient client, IItemStack item)
+        public void InteractWith(IClient client, IItemInventory item)
         {
             // TODO: create a plugin event for this action
 

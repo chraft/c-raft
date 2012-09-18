@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
 
@@ -41,17 +42,17 @@ namespace Chraft.Interfaces
 
         protected Recipe GetRecipe()
         {
-            List<ItemStack> ingredients = new List<ItemStack>();
+            var ingredients = new List<ItemInventory>();
             for (short i = 1; i <= this.CraftingSlotCount; i++)
-                ingredients.Add(Slots[i].IsVoid() ? ItemStack.Void : this[i]);
+                ingredients.Add(ItemHelper.IsVoid(Slots[i]) ? ItemHelper.Void : this[i]);
             return Recipe.GetRecipe(Server.GetRecipes(), ingredients.ToArray());
         }
 
         internal override void OnClicked(WindowClickPacket packet)
         {
-            if (packet.Slot == 0 && !this[0].IsVoid())
+            if (packet.Slot == 0 && !ItemHelper.IsVoid(this[0]))
             {
-                if (!Cursor.IsVoid())
+                if (!ItemHelper.IsVoid(Cursor))
                 {
                     if (Cursor.Type != this[0].Type || Cursor.Durability != this[0].Durability || Cursor.Count + this[0].Count > 64)
                     {
@@ -69,24 +70,25 @@ namespace Chraft.Interfaces
                 }
                 else
                 {
-                    this.Cursor = ItemStack.Void;
-                    this.Cursor.Slot = -1;
-                    this.Cursor.Type = this[0].Type;
-                    this.Cursor.Durability = this[0].Durability;
+                    var item = ItemHelper.GetInstance(this[0].Type);
+                    item.Durability = this[0].Durability;
+                    item.Damage = this[0].Damage;
+                    Cursor = item;
+                    Cursor.Slot = -1;
                 }
 
                 // Add the newly crafted item to the Cursor
                 this.Cursor.Count += this[0].Count;
 
                 // Cook Ingredients, and update recipe output slot in case ingredients are now insufficient for another
-                if (!this[0].IsVoid())
+                if (!ItemHelper.IsVoid(this[0]))
                 {
                     Recipe recipe = GetRecipe();
                     if (recipe != null)
                     {
-                        List<ItemStack> ingredients = new List<ItemStack>();
+                        var ingredients = new List<ItemInventory>();
                         for (short i = 1; i <= this.CraftingSlotCount; i++)
-                            ingredients.Add(Slots[i].IsVoid() ? ItemStack.Void : this[i]);
+                            ingredients.Add(ItemHelper.IsVoid(Slots[i]) ? ItemHelper.Void : this[i]);
 
                         // Use the ingredients
                         recipe.UseIngredients(ingredients.ToArray());
@@ -94,9 +96,9 @@ namespace Chraft.Interfaces
                         // Check if any now have a count of 0 then set the slot to void
                         foreach (var item in ingredients)
                         {
-                            if (!item.IsVoid() && item.Count <= 0) // should never be less than 0, just some defensive coding
+                            if (!ItemHelper.IsVoid(item) && item.Count <= 0) // should never be less than 0, just some defensive coding
                             {
-                                this[item.Slot] = ItemStack.Void;
+                                this[item.Slot] = ItemHelper.Void;
                             }
                         }
 
@@ -105,7 +107,7 @@ namespace Chraft.Interfaces
                         if (recipe == null)
                         {
                             // Not enough ingredients, set recipe output slot to void item
-                            this[0] = ItemStack.Void;
+                            this[0] = ItemHelper.Void;
                         }
                     }
                 }
@@ -119,13 +121,9 @@ namespace Chraft.Interfaces
                 {
                     Recipe recipe = GetRecipe();
                     if (recipe == null)
-                    {
-                        this[0] = ItemStack.Void;
-                    }
+                        this[0] = ItemHelper.Void;
                     else
-                    {
                         this[0] = recipe.Result;
-                    }
                 }
             }
         }

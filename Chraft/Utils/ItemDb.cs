@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
@@ -30,7 +31,7 @@ namespace Chraft.Utils
         private Dictionary<string, short> Items = new Dictionary<string, short>();
         private Dictionary<string, short> Durabilities = new Dictionary<string, short>();
 
-        internal ItemStack this[string item]
+        internal IItemInventory this[string item]
         {
             get
             {
@@ -41,16 +42,27 @@ namespace Chraft.Utils
                     {
                         item = ItemName(numeric);
                     }
-                    return Contains(item) ? new ItemStack(Items[item], ChraftConfig.DefaultStackSize, Durabilities[item]) : ItemStack.Void;
+
+                    if (Contains(item))
+                    {
+                        ItemInventory res = ItemHelper.GetInstance(Items[item]);
+                        res.Count = ChraftConfig.DefaultStackSize;
+                        res.Durability = Durabilities[item];
+                        return res;
+                    }
+                    else
+                    {
+                        return ItemHelper.Void;
+                    }
                 }
                 catch (Exception)
                 {
-                    return ItemStack.Void;
+                    return ItemHelper.Void;
                 }
             }
         }
 
-        public IItemStack GetItemStack(string item)
+        public IItemInventory GetItem(string item)
         {
             return this[item];
         }

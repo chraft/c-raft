@@ -102,6 +102,15 @@
     <Compile Include="Entity\EnumCreatureType.cs" />
     <Compile Include="Entity\ExpOrbEntity.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="Entity\Items\Base\ItemBase.cs" />
+    <Compile Include="Entity\Items\Base\ItemHelper.cs" />
+    <Compile Include="Entity\Items\Base\ItemInventory.cs" />
+    <Compile Include="Entity\Items\ItemIronPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemIronShovel.cs" />
+    <Compile Include="Entity\Items\ItemVoid.cs" />
+    <Compile Include="Entity\Items\ItemDiamondPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemStone.cs" />
+    <Compile Include="Entity\Items\ItemCobblestone.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
@@ -268,7 +277,6 @@
     <Compile Include="Interfaces\InterfaceClickedEventArgs.cs" />
     <Compile Include="Interfaces\InterfaceType.cs" />
     <Compile Include="Interfaces\Inventory.cs" />
-    <Compile Include="Interfaces\ItemStack.cs" />
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
     <Compile Include="Interfaces\Recipes\SmeltingRecipe.cs" />

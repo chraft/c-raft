@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Net;
 using System.Runtime.Serialization;
 using Chraft.Net.Packets;
@@ -41,18 +42,18 @@ namespace Chraft.Interfaces
 
 		internal event EventHandler<InterfaceClickedEventArgs> Clicked;
 
-		internal virtual ItemStack[] Slots { get; set; }
+        internal virtual ItemInventory[] Slots { get; set; }
         public short SlotCount { get { return (short)Slots.Length; } }
 		public string Title { get; set; }
         internal sbyte Handle { get; set; }
 		internal InterfaceType Type { get; private set; }
 		//protected internal PacketHandler PacketHandler { protected get; set; }
-		internal ItemStack Cursor { get; set; }
+        internal ItemInventory Cursor { get; set; }
 
 		protected bool _IsOpen = false;
 		public bool IsOpen { get { return _IsOpen; } }
 
-        internal virtual ItemStack this[int slot]
+        internal virtual ItemInventory this[short slot]
 		{
 			get
 			{
@@ -62,10 +63,10 @@ namespace Chraft.Interfaces
 			{
                 if (Slots[slot] != null)
 					Slots[slot].Changed -= ItemStack_Changed;
-				Slots[slot] = value ?? ItemStack.Void;
-				Slots[slot].Slot = (short)slot;
+                Slots[slot] = value ?? ItemHelper.Void;
+                //Do not keep a slot number in the item object itself, manage it on an interface level
 				Slots[slot].Changed += ItemStack_Changed;
-				SendUpdate((short)slot);
+				SendUpdate(slot);
 			}
 		}
 
@@ -74,34 +75,34 @@ namespace Chraft.Interfaces
 		/// </summary>
 		public Interface()
 		{
-			Cursor = ItemStack.Void;
+			Cursor = ItemHelper.Void;
 		}
 
 		internal Interface(InterfaceType type, sbyte slotCount) : this()
 		{
 			Type = type;
 			Handle = NextHandle;
-			Slots = new ItemStack[slotCount];
+			Slots = new ItemInventory[slotCount];
 			Title = "C#raft Interface";
 			NextHandle = NextHandle == 127 ? (sbyte)1 : (sbyte)(NextHandle + 1); // Handles between 1 and 127. 0 is reserved for Inventory
 		}
 
-        public IItemStack[] GetSlots()
+        public IItemInventory[] GetSlots()
         {
             return Slots;
         }
 
-        public IItemStack GetItem(int slot)
+        public IItemInventory GetItem(short slot)
         {
             return this[slot];
         }
 
-        public void SetItem(int slot, IItemStack newItem)
+        public void SetItem(short slot, IItemInventory newItem)
         {
-            this[slot] = newItem as ItemStack;
+            this[slot] = newItem as ItemInventory;
         }
 
-        public IItemStack GetCursor()
+        public IItemInventory GetCursor()
         {
             return Cursor;
         }
@@ -129,19 +130,23 @@ namespace Chraft.Interfaces
 				switch (e.Location)
 				{
 				case ClickLocation.Void:
-                    if (Cursor.IsVoid())
+                    if (ItemHelper.IsVoid(Cursor))
 					{	// Empty click in void: ignore
 						e.Cancel();
 					}
 					else if (e.RightClick)
 					{	// Right-click in void: drop item
-						Owner.Server.DropItem(Owner, new ItemStack(Cursor.Type, 1, Cursor.Durability));
+					    var item = ItemHelper.GetInstance(Cursor.Type);
+					    item.Durability = Cursor.Durability;
+					    item.Damage = Cursor.Damage;
+					    item.Count = 1;
+						Owner.Server.DropItem(Owner, item);
 						Cursor.Count--;
 					}
 					else
 					{	// Left-click in void: drop stack
 						Owner.Server.DropItem(Owner, Cursor);
-						Cursor = ItemStack.Void;
+						Cursor = ItemHelper.Void;
 					}
 					return;
 
@@ -155,15 +160,15 @@ namespace Chraft.Interfaces
 				}
 
 				// Ensure a true void stack for our calculations
-                if (Cursor.IsVoid())
-					Cursor = ItemStack.Void;
-                if (target.Slots[e.Slot].IsVoid())
-					target[e.Slot] = ItemStack.Void;
+                if (ItemHelper.IsVoid(Cursor))
+					Cursor = ItemHelper.Void;
+                if (ItemHelper.IsVoid(target.Slots[e.Slot]))
+					target[e.Slot] = ItemHelper.Void;
 
 				// The fun begins.
 				if (target.Slots[e.Slot].StacksWith(Cursor))
 				{
-                    if (Cursor.IsVoid())
+                    if (ItemHelper.IsVoid(Cursor))
 					{	// Useless click
 						e.Cancel();
 					}
@@ -175,41 +180,44 @@ namespace Chraft.Interfaces
 						}
 						else
 						{	// Increment stack
-							target.Slots[e.Slot].Count++;
+							target[e.Slot].Count++;
 							Cursor.Count--;
 						}
 					}
 					else
-					{	// Left-click on same item
+					{
+                        // Left-click on same item
 						int total = target.Slots[e.Slot].Count + Cursor.Count;
 						if (total <= 64)
 						{	// Move all items to stack
-							target.Slots[e.Slot].Count = unchecked((sbyte)total);
+							target[e.Slot].Count = unchecked((sbyte)total);
 							Cursor.Count = 0;
 						}
 						else
 						{	// Make stack 64, and put remainder in cursor
-							target.Slots[e.Slot].Count = 64;
+							target[e.Slot].Count = 64;
 							Cursor.Count = unchecked((sbyte)(total - 64));
 						}
 					}
 				}
-                else if (!Cursor.IsVoid() && e.RightClick && target.Slots[e.Slot].IsVoid())
+                else if (!ItemHelper.IsVoid(Cursor) && e.RightClick && ItemHelper.IsVoid(target.Slots[e.Slot]))
                 {
                     // Right-click on empty slot with items in cursor: drop one item from Cursor into slot
-                    target.Slots[e.Slot].Type = Cursor.Type;
-                    target.Slots[e.Slot].Durability = Cursor.Durability;
-                    target.Slots[e.Slot].Count = 1;
+
+                    target[e.Slot] = Cursor.Clone();
+                    target[e.Slot].Count = 1;
                     Cursor.Count--;
                     if (Cursor.Count == 0)
-                    	Cursor = ItemStack.Void;
+                    	Cursor = ItemHelper.Void;
                 }
-                else if (e.RightClick && Cursor.IsVoid())
+                else if (e.RightClick && ItemHelper.IsVoid(Cursor))
                 {	// Right-click with empty cursor: split stack in half
-                    int count = target.Slots[e.Slot].Count;
-                    target.Slots[e.Slot].Count /= 2;
+                    sbyte count = target.Slots[e.Slot].Count;
+                    target[e.Slot].Count /= 2;
                     count -= target.Slots[e.Slot].Count;
-                    Cursor = new ItemStack(target.Slots[e.Slot].Type, (sbyte)count, target.Slots[e.Slot].Durability);
+                    Cursor = target.Slots[e.Slot];
+                    Cursor.Count = count;
+                    //Cursor = new ItemStack(target.Slots[e.Slot].Type, (sbyte)count, target.Slots[e.Slot].Durability);
                 }
                 else if (e.RightClick)
                 {	// Right-click on different type: ignored click
@@ -217,7 +225,7 @@ namespace Chraft.Interfaces
                 }
                 else
                 {	// Left-click on different type: swap stacks
-                    ItemStack swap = target[e.Slot];
+                    var swap = target[e.Slot];
                     target[e.Slot] = Cursor;
                     Cursor = swap;
                 }
@@ -244,24 +252,24 @@ namespace Chraft.Interfaces
 		{
 			if (IsOpen && !IsTransactionInProgress && Owner != null)
 			{
-				ItemStack item = slot < 0 ? Cursor : Slots[slot];
+				var item = slot < 0 ? Cursor : Slots[slot];
                 Owner.Client.SendPacket(new SetSlotPacket
 				{
-                    Item = item.IsVoid() ? ItemStack.Void : item,
+                    Item = ItemHelper.IsVoid(item) ? ItemHelper.Void : item,
 					Slot = slot,
 					WindowId = Handle
 				});
 			}
 		}
 
-        protected virtual void OnItemStackChanged(ItemStack stack)
+        protected virtual void OnItemStackChanged(short slot)
         {
-            SendUpdate(stack.Slot);
+            SendUpdate(slot);
         }
 
         private void ItemStack_Changed(object sender, EventArgs e)
         {
-            OnItemStackChanged(((ItemStack)sender));
+            OnItemStackChanged(((ItemInventory)sender).Slot);
 		}
 
 		internal virtual void Associate(Player player)
@@ -294,7 +302,7 @@ namespace Chraft.Interfaces
 		{
 			for (short i = 0; i < SlotCount; i++)
 			{
-                if (Slots[i] != null && !Slots[i].IsVoid())
+                if (Slots[i] != null && !ItemHelper.IsVoid(Slots[i]))
 					SendUpdate(i);
 			}
 		}
@@ -310,10 +318,10 @@ namespace Chraft.Interfaces
             // Drop whatever is in the cursor
 
             //todo - determine why cursor was null
-            if (Cursor != null && !Cursor.IsVoid())
+            if (!ItemHelper.IsVoid(Cursor))
             {
                 Owner.Server.DropItem(Owner, Cursor);
-                Cursor = ItemStack.Void;
+                Cursor = ItemHelper.Void;
             }
         }
 
@@ -340,11 +348,11 @@ namespace Chraft.Interfaces
             // Drop all items from the workbench
             for (short i = 0; i < SlotCount; i++)
             {
-                ItemStack stack = Slots[i];
-                if (!stack.IsVoid())
+                var stack = Slots[i];
+                if (!ItemHelper.IsVoid(stack))
                 {
                     Owner.Server.DropItem(Owner.World, coords, stack);
-                    this[i] = ItemStack.Void;
+                    this[i] = ItemHelper.Void;
                 }
             }
         }
@@ -354,7 +362,7 @@ namespace Chraft.Interfaces
             bool empty = true;
             foreach (var item in this.Slots)
             {
-                if (!item.IsVoid())
+                if (!ItemHelper.IsVoid(item))
                 {
                     empty = false;
                     break;

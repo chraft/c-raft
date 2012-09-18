@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
@@ -51,8 +52,13 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             sbyte count = (sbyte)Server.Rand.Next(3);
+
             if (count > 0)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Items.Grilled_Pork, count, 0));
+            {
+                var item = ItemHelper.GetInstance(BlockData.Items.Grilled_Pork);
+                item.Count = count;
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), item);
+            }
             base.DoDeath(killedBy);
         }
     }

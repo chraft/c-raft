@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -30,7 +32,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Grass;
             IsSolid = true;
             IsFertile = true;
-            LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
+            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Blocks.Dirt);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         public bool CanGrow(StructBlock block, Chunk chunk)

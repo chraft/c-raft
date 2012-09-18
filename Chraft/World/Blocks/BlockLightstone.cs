@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -34,17 +35,21 @@ namespace Chraft.World.Blocks
 
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             Player player = entity as Player;
-            overridedLoot = new List<ItemStack>();
+            overridedLoot = new List<ItemInventory>();
             if (player != null)
-                if (player.Inventory.ActiveItem.Type == (short) BlockData.Items.Wooden_Pickaxe ||
-                    player.Inventory.ActiveItem.Type == (short) BlockData.Items.Stone_Pickaxe ||
-                    player.Inventory.ActiveItem.Type == (short) BlockData.Items.Iron_Pickaxe ||
-                    player.Inventory.ActiveItem.Type == (short) BlockData.Items.Gold_Pickaxe ||
-                    player.Inventory.ActiveItem.Type == (short) BlockData.Items.Diamond_Pickaxe)
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Lightstone_Dust, 1, (sbyte)(2 + block.World.Server.Rand.Next(2))));
+                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Pickaxe ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Pickaxe ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Pickaxe ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Pickaxe ||
+                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Pickaxe)
+                {
+                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Lightstone_Dust);
+                    item.Count = (sbyte)(2 + block.World.Server.Rand.Next(2));
+                    overridedLoot.Add(item);
+                }
             base.DropItems(entity, block, overridedLoot);
         }
     }

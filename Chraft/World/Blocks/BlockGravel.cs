@@ -16,6 +16,7 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -32,10 +33,12 @@ namespace Chraft.World.Blocks
             Name = "Gravel";
             Type = BlockData.Blocks.Gravel;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             Player player = entity as Player;
             if (player != null)
@@ -47,8 +50,10 @@ namespace Chraft.World.Blocks
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade) &&
                     block.World.Server.Rand.Next(10) == 0)
                 {
-                    overridedLoot = new List<ItemStack>(1);
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Flint, 1));
+                    overridedLoot = new List<ItemInventory>(1);
+                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Flint);
+                    item.Count = 1;
+                    overridedLoot.Add(item);
                     base.DropItems(entity, block, overridedLoot);
                     return;
                 }
