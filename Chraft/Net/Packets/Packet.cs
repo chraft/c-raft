@@ -486,7 +486,7 @@ namespace Chraft.Net.Packets
                 X = stream.ReadDouble();
                 Stance = stream.ReadDouble();
                 Y = stream.ReadDouble();
-                
+
             }
             else
             {
@@ -509,7 +509,7 @@ namespace Chraft.Net.Packets
                 Writer.Write(X);
                 Writer.Write(Y);
                 Writer.Write(Stance);
-                
+
             }
             else
             {
@@ -585,9 +585,9 @@ namespace Chraft.Net.Packets
         }
 
         public override void Write()
-        {           
+        {
             SetCapacity(16);
-            
+
 
             Writer.Write(X);
             Writer.Write(Y);
@@ -2153,26 +2153,27 @@ namespace Chraft.Net.Packets
 
     public class PlayerAbilitiesPacket : Packet
     {
-        //Only in creative mode.
-
-        //Invulnerabitity not used yet
+        public byte Abilities { get; set; }
         public bool Invulnerability { get; set; }
         public bool IsFlying { get; set; }
         public bool CanFly { get; set; }
+        public byte WalkingSpeed { get; set; }
+        public byte FlyingSpeed { get; set; }
 
         public override void Read(PacketReader reader)
         {
-            Invulnerability = reader.ReadBool();
-            IsFlying = reader.ReadBool();
-            CanFly = reader.ReadBool();
+            Abilities = reader.ReadByte();
+            Invulnerability = (Abilities & 1) == 1;
+            IsFlying = (Abilities & 2) == 2;
+            CanFly = (Abilities & 4) == 4;
         }
 
         public override void Write()
         {
             SetCapacity(4);
-            Writer.Write(Invulnerability);
-            Writer.Write(IsFlying);
-            Writer.Write(CanFly);
+            Writer.Write((byte)(Invulnerability ? 1 : 0) | (IsFlying ? 2 : 0) | (CanFly ? 4 : 0));
+            Writer.Write(WalkingSpeed);
+            Writer.Write(FlyingSpeed);
         }
     }
 
