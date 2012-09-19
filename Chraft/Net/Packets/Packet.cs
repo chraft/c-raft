@@ -2159,24 +2159,20 @@ namespace Chraft.Net.Packets
         public bool Invulnerability { get; set; }
         public bool IsFlying { get; set; }
         public bool CanFly { get; set; }
-        //InstantDestroy not used yet
-        public bool InstantDestroy { get; set; }
 
         public override void Read(PacketReader reader)
         {
             Invulnerability = reader.ReadBool();
             IsFlying = reader.ReadBool();
             CanFly = reader.ReadBool();
-            InstantDestroy = reader.ReadBool();
         }
 
         public override void Write()
         {
-            SetCapacity(5);
+            SetCapacity(4);
             Writer.Write(Invulnerability);
             Writer.Write(IsFlying);
             Writer.Write(CanFly);
-            Writer.Write(InstantDestroy);
         }
     }
 
