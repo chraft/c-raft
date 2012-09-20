@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -40,7 +39,7 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             overridedLoot = new List<ItemInventory>();
-            Player player = entity as Player;
+            var player = entity as Player;
             if (player != null)
             {
                 if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
@@ -49,7 +48,7 @@ namespace Chraft.World.Blocks
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
                 {
-                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Snowball);
+                    var item = ItemHelper.GetInstance(BlockData.Items.Snowball);
                     item.Count = 1;
                     overridedLoot.Add(item);
                 }

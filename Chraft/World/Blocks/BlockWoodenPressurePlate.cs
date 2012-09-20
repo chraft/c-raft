@@ -16,8 +16,6 @@
 #endregion
 
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -31,7 +29,7 @@ namespace Chraft.World.Blocks
             Name = "WoodenPressurePlate";
             Type = BlockData.Blocks.Wooden_Pressure_Plate;
             IsAir = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
             Opacity = 0x0;

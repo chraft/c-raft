@@ -31,7 +31,7 @@ namespace Chraft.World.Blocks
             Name = "Bed";
             Type = BlockData.Blocks.Bed;
             BurnEfficiency = 300;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Bed);
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Bed);
             item.Count = 1;
             LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5625, 1);

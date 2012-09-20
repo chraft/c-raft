@@ -17,10 +17,7 @@
 using Chraft.Entity;
 using Chraft.Entity.Items;
 using Chraft.Net;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks.Base;
@@ -33,7 +30,7 @@ namespace Chraft.World.Blocks
         {
             Name = "Chest";
             Type = BlockData.Blocks.Chest;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance((short)Type);
             item.Count = 1;
             LootTable.Add(item);
             BurnEfficiency = 300;
@@ -72,8 +69,8 @@ namespace Chraft.World.Blocks
         {
             Chunk chunk = GetBlockChunk(block);
             // Load the blocks surrounding the position (NSEW) not diagonals
-            BlockData.Blocks[] nsewBlocks = new BlockData.Blocks[4];
-            UniversalCoords[] nsewBlockPositions = new UniversalCoords[4];
+            var nsewBlocks = new BlockData.Blocks[4];
+            var nsewBlockPositions = new UniversalCoords[4];
             int nsewCount = 0;
 
             int secondChestIndex = -1;
@@ -94,7 +91,7 @@ namespace Chraft.World.Blocks
             byte direction = base.GetDirection(living, block, targetBlock, face);
             if (secondChestIndex != -1)
             {
-                UniversalCoords secondChestCoords = nsewBlockPositions[secondChestIndex];
+                var secondChestCoords = nsewBlockPositions[secondChestIndex];
                 byte secondChestDirection = chunk.GetData(secondChestCoords);
                 if (secondChestDirection != direction)
                 {

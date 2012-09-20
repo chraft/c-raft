@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Chraft.PluginSystem.Entity;
 
 namespace Chraft.PluginSystem.Item
 {

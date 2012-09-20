@@ -18,10 +18,8 @@ using Chraft.Entity;
 using Chraft.Entity.Items;
 using Chraft.Net;
 using Chraft.Interfaces;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -34,7 +32,7 @@ namespace Chraft.World.Blocks
             Name = "Workbench";
             Type = BlockData.Blocks.Workbench;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
             BurnEfficiency = 300;
@@ -42,8 +40,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock) iBlock;
-            LivingEntity living = (entity as LivingEntity);
+            var block = (StructBlock) iBlock;
+            var living = (entity as LivingEntity);
             if (living == null)
                 return;
 
@@ -87,7 +85,7 @@ namespace Chraft.World.Blocks
 
         public void Interact(IEntityBase entity, IStructBlock block)
         {
-            Player player = entity as Player;
+            var player = entity as Player;
             if (player == null)
                 return;
             if (player.CurrentInterface != null)

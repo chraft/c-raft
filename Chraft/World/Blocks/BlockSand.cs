@@ -16,9 +16,6 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks.Base;
@@ -33,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "Sand";
             Type = BlockData.Blocks.Sand;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }
@@ -58,7 +55,7 @@ namespace Chraft.World.Blocks
         protected void StartPhysics(StructBlock block)
         {
             Remove(block);
-            FallingSand fsBlock = new FallingSand((WorldManager)block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            var fsBlock = new FallingSand(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fsBlock.Start();
             block.World.PhysicsBlocks.TryAdd(fsBlock.EntityId, fsBlock);
         }

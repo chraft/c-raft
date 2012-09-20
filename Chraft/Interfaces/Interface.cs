@@ -16,7 +16,9 @@
 #endregion
 using System;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Item;
 using Chraft.Utilities.Coords;
 using Chraft.Entity;
@@ -58,6 +60,7 @@ namespace Chraft.Interfaces
                 _slots[slot] = value ?? ItemHelper.Void;
                 //Do not keep a slot number in the item object itself, manage it on an interface level
 			    _slots[slot].Slot = slot;
+			    _slots[slot].Owner = this;
 				_slots[slot].Changed += ItemStack_Changed;
 				SendUpdate(slot);
 			}
@@ -299,6 +302,11 @@ namespace Chraft.Interfaces
 					SendUpdate(i);
 			}
 		}
+
+        public IPlayer GetPlayer()
+        {
+            return Owner;
+        }
 
 		public void UpdateCursor()
 		{

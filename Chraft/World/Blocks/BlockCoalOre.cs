@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "CoalOre";
             Type = BlockData.Blocks.Coal_Ore;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Coal);
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Coal);
             item.Count = 1;
             LootTable.Add(item);
         }

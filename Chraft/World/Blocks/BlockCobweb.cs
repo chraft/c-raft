@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "Cobweb";
             Type = BlockData.Blocks.Cobweb;
             Opacity = 0x0;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Bow_String);
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Bow_String);
             item.Count = 1;
             LootTable.Add(item);
         }

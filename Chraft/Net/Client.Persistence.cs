@@ -19,6 +19,7 @@ using System;
 using System.IO;
 using System.Xml;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Config;

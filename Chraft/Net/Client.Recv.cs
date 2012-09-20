@@ -17,7 +17,9 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography;
+using Chraft.Entity.Items;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World.Blocks;
@@ -352,8 +354,6 @@ namespace Chraft.Net
 
         public static void HandlePacketUseEntity(Client client, UseEntityPacket packet)
         {
-            //Console.WriteLine(e.Packet.Target);
-            //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
             Player handledPlayer = client.Owner;
             UniversalCoords coords = UniversalCoords.FromAbsWorld(handledPlayer.Position);
             foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntitiesInternal(handledPlayer.World, coords))
@@ -457,31 +457,36 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerItemPlacement(Client client, PlayerBlockPlacementPacket packet)
         {
-            Player player = client.Owner;
-            // if(!Permissions.CanPlayerBuild(Username)) return;
+            var player = client.Owner;
+
             if (player.Inventory[player.Inventory.ActiveSlot].Type <= 255)
                 return;
 
-            UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            var baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
-            Chunk chunk = player.World.GetChunk(baseBlockCoords) as Chunk;
+            var chunk = player.World.GetChunk(baseBlockCoords) as Chunk;
 
             if (chunk == null)
                 return;
 
-            BlockData.Blocks baseBlockType = chunk.GetType(baseBlockCoords); // Get block being built against.
-            byte baseBlockData = chunk.GetData(baseBlockCoords);
+            var baseBlockType = chunk.GetType(baseBlockCoords); // Get block being built against.
+            var baseBlockData = chunk.GetData(baseBlockCoords);
 
-            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, (byte)baseBlockData, player.World);
+            var baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, baseBlockData, player.World);
 
             // Placed Item Info
-            short pType = player.Inventory[player.Inventory.ActiveSlot].Type;
-            short pMetaData = player.Inventory[player.Inventory.ActiveSlot].Durability;
+            var pType = player.Inventory[player.Inventory.ActiveSlot].Type;
+            var pMetaData = player.Inventory[player.Inventory.ActiveSlot].Durability;
 
-            UniversalCoords newBlockCoords = player.World.FromFace(baseBlockCoords, packet.Face);
+            var newBlockCoords = UniversalCoords.FromFace(baseBlockCoords, packet.Face);
             StructBlock newBlock;
             byte newBlockId = 0;
 
+            if (player.Inventory.ActiveItem is IItemUsable)
+            {
+                var usable = player.Inventory.ActiveItem as IItemUsable;
+                usable.Use(baseBlock, packet.Face);
+            }
             switch (packet.Face)
             {
                 case BlockFace.Held:
@@ -558,63 +563,56 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerBlockPlacement(Client client, PlayerBlockPlacementPacket packet)
         {
-            /*
-             * Scenarios:
-             * 
-             * 1) using an item against a block (e.g. stone and flint)
-             * 2) placing a new block
-             * 3) using a block: e.g. open/close door, open chest, open workbench, open furnace
-             * 
-             * */
+            var baseBlockcoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            var player = client.Owner;
 
-            //  if (!Permissions.CanPlayerBuild(Username)) return;
-            // Using activeslot provides current item info wtihout having to maintain ActiveItem
-
-            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
-
+            // Consume food, charge the bow etc
             if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
-                // TODO: Implement item usage - food etc
+                if (ItemHelper.IsVoid(player.Inventory.ActiveItem))
+                    return;
+
+                if (player.Inventory.ActiveItem is IItemConsumable)
+                {
+                    var consumable = player.Inventory.ActiveItem as IItemConsumable;
+                    consumable.StartConsuming();
+                }
                 return;
             }
 
-            Player player = client.Owner;
-
-            Chunk chunk = player.World.GetChunk(coords) as Chunk;
+            var chunk = player.World.GetChunk(baseBlockcoords) as Chunk;
 
             if (chunk == null)
                 return;
 
-            BlockData.Blocks type = chunk.GetType(coords); // Get block being built against.
-            byte metadata = chunk.GetData(coords);
-            StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
+            var baseBlockType = chunk.GetType(baseBlockcoords); // Get block being built against.
+            byte baseBlockMeta = chunk.GetData(baseBlockcoords);
+            var baseBlock = new StructBlock(baseBlockcoords, (byte)baseBlockType, baseBlockMeta, player.World);
 
-            UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
-            if (BlockHelper.Instance.CreateBlockInstance((byte)type) is IBlockInteractive)
+            // Interaction with the blocks - chest, furnace, enchantment table etc
+            if (BlockHelper.Instance.IsInteractive(baseBlockType))
             {
-                (BlockHelper.Instance.CreateBlockInstance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
+                (BlockHelper.Instance.CreateBlockInstance(baseBlock.Type) as IBlockInteractive).Interact(client.Owner, baseBlock);
                 return;
             }
 
-            if (player.Inventory[player.Inventory.ActiveSlot].Type <= 0 || player.Inventory[player.Inventory.ActiveSlot].Count < 1)
+            if (ItemHelper.IsVoid(player.Inventory.ActiveItem))
                 return;
 
-            // TODO: Neaten this out, or address via handler?
-            if (player.Inventory[player.Inventory.ActiveSlot].Type > 255 || packet.Face == BlockFace.Held) // Client is using an Item.
+
+            if (player.Inventory.ActiveItem is IItemUsable)
             {
-                HandlePacketPlayerItemPlacement(client, packet);
-                return;
+                var consumable = player.Inventory.ActiveItem as IItemUsable;
+                consumable.Use(baseBlock, packet.Face);
+                //HandlePacketPlayerItemPlacement(client, packet);
             }
 
-            // Built Block Info
-
-            byte bType = (byte)player.Inventory[player.Inventory.ActiveSlot].Type;
-            byte bMetaData = (byte)player.Inventory[player.Inventory.ActiveSlot].Durability;
-
-            StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
-
-            BlockHelper.Instance.CreateBlockInstance(bType).Place(player, bBlock, facingBlock, packet.Face);
+            if (player.Inventory.ActiveItem is IItemPlaceable)
+            {
+                var consumable = player.Inventory.ActiveItem as IItemPlaceable;
+                consumable.Place(baseBlock, packet.Face);
+            }
         }
 
         public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
@@ -650,7 +648,8 @@ namespace Chraft.Net
                     if (player.GameMode == 1)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
-
+                case PlayerDiggingPacket.DigAction.CancelledDigging:
+                    break;
                 case PlayerDiggingPacket.DigAction.FinishDigging:
                     StructBlock block = new StructBlock(coords, type, data, player.World);
                     BlockHelper.Instance.CreateBlockInstance(type).Destroy(player, block);
@@ -658,6 +657,9 @@ namespace Chraft.Net
 
                 case PlayerDiggingPacket.DigAction.DropItem:
                     player.DropActiveSlotItem();
+                    break;
+                case PlayerDiggingPacket.DigAction.ShootArrow: // Finish eating food too
+                    client.Owner.FinishUseActiveSlotItem();
                     break;
             }
         }

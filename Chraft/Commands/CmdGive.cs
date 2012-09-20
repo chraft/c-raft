@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;

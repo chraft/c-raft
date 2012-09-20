@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -38,7 +37,7 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             overridedLoot = new List<ItemInventory>();
-            Player player = entity as Player;
+            var player = entity as Player;
             if (player != null)
             {
                 ItemInventory item;

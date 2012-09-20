@@ -31,7 +31,7 @@ namespace Chraft.World.Blocks
         {
             Name = "BrownMushroom";
             Type = BlockData.Blocks.Brown_Mushroom;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance((short)Type);
             item.Count = 1;
             LootTable.Add(item);
         }

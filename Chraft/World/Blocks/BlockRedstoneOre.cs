@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -37,7 +38,7 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             overridedLoot = new List<ItemInventory>();
-            ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Redstone);
+            var item = ItemHelper.GetInstance(BlockData.Items.Redstone);
             item.Count = (sbyte) (2 + block.World.Server.Rand.Next(4));
             overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);

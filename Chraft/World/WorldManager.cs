@@ -1313,65 +1313,6 @@ namespace Chraft.World
                 }
             }
         }
-
-        internal UniversalCoords FromFace(UniversalCoords coords, BlockFace blockFace)
-        {
-            int bx = coords.WorldX;
-            int by = coords.WorldY;
-            int bz = coords.WorldZ;
-
-            switch (blockFace)
-            {
-                case BlockFace.Self:
-                    break;
-
-                case BlockFace.Up:
-                    by++;
-                    break;
-
-                case BlockFace.Down:
-                    by--;
-                    break;
-
-                case BlockFace.North:
-                    bx--;
-                    break;
-
-                case BlockFace.South:
-                    bx++;
-                    break;
-
-                case BlockFace.East:
-                    bz--;
-                    break;
-
-                case BlockFace.West:
-                    bz++;
-                    break;
-
-                case BlockFace.NorthEast:
-                    bx--;
-                    bz--;
-                    break;
-
-                case BlockFace.NorthWest:
-                    bx--;
-                    bz++;
-                    break;
-
-                case BlockFace.SouthEast:
-                    bx++;
-                    bz--;
-                    break;
-
-                case BlockFace.SouthWest:
-                    bx++;
-                    bz++;
-                    break;
-            }
-
-            return UniversalCoords.FromWorld(bx, by, bz);
-        }
     }
 }
 

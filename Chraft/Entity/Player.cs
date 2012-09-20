@@ -30,13 +30,17 @@ using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.World;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Net;
+using Chraft.World.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.Entity
 {
@@ -93,8 +97,20 @@ namespace Chraft.Entity
 
         public byte GameMode { get; set; }
 
-        public float FoodSaturation { get; set; }
-        public short Food { get; set; }
+        public float MaxFoodSaturation { get { return 20; } }
+        private float _foodSaturation; 
+        public float FoodSaturation
+        {
+            get { return _foodSaturation; }
+            set { _foodSaturation = MathExtensions.Clamp(value, 0, MaxFoodSaturation); }
+        }
+
+        public short MaxFood { get { return 20; } }
+        private short _food;
+        public short Food {
+            get { return _food; }
+            set { _food = MathExtensions.Clamp(value, (short)0, MaxFood); }
+        }
 
         protected short _lastDamageRemainder = 0;
 
@@ -855,6 +871,17 @@ namespace Chraft.Entity
             }
         }
 
+        public void FinishUseActiveSlotItem()
+        {
+            if (ItemHelper.IsVoid(Inventory.ActiveItem))
+                return;
+
+            if (Inventory.ActiveItem is IItemConsumable)
+            {
+                var consumable = Inventory.ActiveItem as IItemConsumable;
+                consumable.FinishConsuming();
+            }
+        }
 
         #region Permission related commands
         //Check if the player has permissions to use the command from a command object

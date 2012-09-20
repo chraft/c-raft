@@ -29,7 +29,7 @@ namespace Chraft.World.Blocks
         {
             Name = "Dispenser";
             Type = BlockData.Blocks.Dispenser;
-            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }

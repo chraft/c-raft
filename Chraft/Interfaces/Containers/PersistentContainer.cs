@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Net;
 using Chraft.Utilities;
 using Chraft.Utilities.Coords;

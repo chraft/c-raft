@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -37,7 +36,7 @@ namespace Chraft.World.Blocks
 
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            Player player = entity as Player;
+            var player = entity as Player;
             overridedLoot = new List<ItemInventory>();
             if (player != null)
                 if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Pickaxe ||
@@ -46,7 +45,7 @@ namespace Chraft.World.Blocks
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Pickaxe ||
                     player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Pickaxe)
                 {
-                    ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Lightstone_Dust);
+                    var item = ItemHelper.GetInstance(BlockData.Items.Lightstone_Dust);
                     item.Count = (sbyte)(2 + block.World.Server.Rand.Next(2));
                     overridedLoot.Add(item);
                 }

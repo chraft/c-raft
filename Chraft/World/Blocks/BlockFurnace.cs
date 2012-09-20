@@ -29,7 +29,7 @@ namespace Chraft.World.Blocks
         {
             Name = "Furnace";
             Type = BlockData.Blocks.Furnace;
-            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }

@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "Clay";
             Type = BlockData.Blocks.Clay;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Clay_Balls);
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Clay_Balls);
             item.Count = 4;
             LootTable.Add(item);
         }

@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 
 namespace Chraft.Interfaces.Recipes
 {

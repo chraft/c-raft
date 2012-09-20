@@ -1,8 +1,9 @@
-﻿using Chraft.Utilities.Blocks;
+﻿using Chraft.Entity.Items.Base;
+using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemCobblestone : ItemInventory
+    class ItemCobblestone : ItemPlaceable
     {
         public ItemCobblestone()
         {
@@ -12,7 +13,7 @@ namespace Chraft.Entity.Items
             Damage = 1;
             Count = 1;
             IsStackable = false;
-            MaxStackSize = 1;
+            MaxStackSize = 64;
         }
     }
 }

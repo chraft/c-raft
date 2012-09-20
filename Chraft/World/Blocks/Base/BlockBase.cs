@@ -18,6 +18,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -287,9 +288,9 @@ namespace Chraft.World.Blocks.Base
         /// <summary>
         /// Places the block
         /// </summary>
-        /// <param name="entity">entity who placed the block</param>
-        /// <param name="block">block that is being placed</param>
-        /// <param name="targetBlock">block that is being targeted (aimed)</param>
+        /// <param name="ientity">entity who placed the block</param>
+        /// <param name="iBlock">block that is being placed</param>
+        /// <param name="targetIBlock">block that is being targeted (aimed)</param>
         /// <param name="face">side of the target block</param>
         public virtual void Place(IEntityBase ientity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
@@ -306,7 +307,6 @@ namespace Chraft.World.Blocks.Base
                 }
                 return;
             }
-
             UpdateWorld(block);
             RemoveItem(entity);
             NotifyNearbyBlocks(entity, block, false);
@@ -471,7 +471,6 @@ namespace Chraft.World.Blocks.Base
                 return false;
 
             byte? originalBlock = block.World.GetBlockId(block.Coords);
-
             if ( originalBlock == null || (originalBlock != (byte)BlockData.Blocks.Air &&
                 originalBlock != (byte)BlockData.Blocks.Water &&
                 originalBlock != (byte)BlockData.Blocks.Still_Water &&
@@ -491,7 +490,6 @@ namespace Chraft.World.Blocks.Base
                         return false;
                 }
             }
-
             return true;
         }
 

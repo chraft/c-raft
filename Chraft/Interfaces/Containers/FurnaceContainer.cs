@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
 using Chraft.Utilities;

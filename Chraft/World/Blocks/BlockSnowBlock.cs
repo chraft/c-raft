@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -38,7 +37,7 @@ namespace Chraft.World.Blocks
             // SnowBlock requires 9 snowballs to craft and drops 4-6 snowballs upon destruction.
             // No tools required.
             overridedLoot = new List<ItemInventory>();
-            ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Snowball);
+            var item = ItemHelper.GetInstance(BlockData.Items.Snowball);
             item.Count = (sbyte) (4 + block.World.Server.Rand.Next(2));
             overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);

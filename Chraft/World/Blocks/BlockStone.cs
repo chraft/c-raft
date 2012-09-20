@@ -16,8 +16,6 @@
 #endregion
 
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -30,7 +28,7 @@ namespace Chraft.World.Blocks
             Name = "Stone";
             Type = BlockData.Blocks.Stone;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance(BlockData.Blocks.Cobblestone);
+            var item = ItemHelper.GetInstance(BlockData.Blocks.Cobblestone);
             item.Count = 1;
             LootTable.Add(item);
         }

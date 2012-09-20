@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "DoubleStoneSlab";
             Type = BlockData.Blocks.Double_Stone_Slab;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }

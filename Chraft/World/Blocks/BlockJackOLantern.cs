@@ -29,7 +29,7 @@ namespace Chraft.World.Blocks
         {
             Name = "JackOLantern";
             Type = BlockData.Blocks.Jack_O_Lantern;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
             Luminance = 0xf;

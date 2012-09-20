@@ -35,7 +35,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Ladder;
             IsAir = true;
             IsWaterProof = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
             Opacity = 0x0;
@@ -43,7 +43,7 @@ namespace Chraft.World.Blocks
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
+            var block = (StructBlock)iBlock;
             switch (face)
             {
                 case BlockFace.East:

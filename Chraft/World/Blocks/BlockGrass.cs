@@ -32,7 +32,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Grass;
             IsSolid = true;
             IsFertile = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Blocks.Dirt);
+            var item = ItemHelper.GetInstance(BlockData.Blocks.Dirt);
             item.Count = 1;
             LootTable.Add(item);
         }
@@ -67,7 +67,7 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block, chunk))
                 return;
 
-            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            var oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             byte blockAboveId = (byte)chunk.GetType(oneUp);
             byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
             if (blockAboveLight == null)
@@ -87,7 +87,7 @@ namespace Chraft.World.Blocks
                 int y = block.Coords.WorldY + block.World.Server.Rand.Next(4) - 3;
                 int z = block.Coords.WorldZ + block.World.Server.Rand.Next(2) - 1;
 
-                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z) as Chunk;
+                var nearbyChunk = block.World.GetChunkFromWorld(x, z) as Chunk;
 
                 if (nearbyChunk == null)
                     return;

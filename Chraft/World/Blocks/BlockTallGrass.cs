@@ -17,11 +17,9 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items.Base;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
@@ -44,8 +42,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
-            StructBlock targetBlock = (StructBlock) targetIBlock;
+            var block = (StructBlock)iBlock;
+            var targetBlock = (StructBlock)targetIBlock;
 
             if (face == BlockFace.Down)
                 return;
@@ -59,7 +57,7 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             overridedLoot = new List<ItemInventory>();
-            Player player = entity as Player;
+            var player = entity as Player;
             if (player != null)
             {
                 ItemInventory item;

@@ -16,8 +16,6 @@
 #endregion
 
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -33,7 +31,7 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             IsFertile = true;
             IsPlowed = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Blocks.Soil);
+            var item = ItemHelper.GetInstance(BlockData.Blocks.Soil);
             item.Count = 1;
             LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.9375, 1);

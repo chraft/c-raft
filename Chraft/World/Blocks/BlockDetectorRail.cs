@@ -32,7 +32,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.DetectorRail;
             IsAir = true;
             Opacity = 0x0;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance((short)Type);
             item.Count = 1;
             LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);

@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -39,7 +38,7 @@ namespace Chraft.World.Blocks
             int amount = block.World.Server.Rand.Next(10) - 7;
             if (amount > 0)
             {
-                ItemInventory item = ItemHelper.GetInstance((short) BlockData.Blocks.Brown_Mushroom);
+                var item = ItemHelper.GetInstance((short) BlockData.Blocks.Brown_Mushroom);
                 item.Count = (sbyte)amount;
                 overridedLoot.Add(item);
             }

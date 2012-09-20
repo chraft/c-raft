@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "Jukebox";
             Type = BlockData.Blocks.Jukebox;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
             BurnEfficiency = 300;

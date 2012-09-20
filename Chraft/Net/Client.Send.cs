@@ -22,6 +22,7 @@ using System.Linq;
 using System.Net.Sockets;
 using Chraft.Entity;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem.Net;

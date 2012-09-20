@@ -17,8 +17,7 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks.Base;
@@ -33,14 +32,14 @@ namespace Chraft.World.Blocks
             Name = "Gravel";
             Type = BlockData.Blocks.Gravel;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }
 
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            Player player = entity as Player;
+            var player = entity as Player;
             if (player != null)
             {
                 if ((player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
@@ -80,7 +79,7 @@ namespace Chraft.World.Blocks
 
         protected void StartPhysics(StructBlock block)
         {
-            WorldManager world = (WorldManager)block.World;
+            var world = block.World;
             Remove(block);
             FallingGravel fgBlock = new FallingGravel(world, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fgBlock.Start();

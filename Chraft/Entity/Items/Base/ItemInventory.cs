@@ -17,7 +17,7 @@
 
 using Chraft.PluginSystem.Item;
 
-namespace Chraft.Entity.Items
+namespace Chraft.Entity.Items.Base
 {
     public abstract class ItemInventory : ItemBase, IItemInventory
     {

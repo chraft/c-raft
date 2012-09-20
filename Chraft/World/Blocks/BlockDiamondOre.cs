@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "DiamondOre";
             Type = BlockData.Blocks.Diamond_Ore;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Diamond);
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Diamond);
             item.Count = 1;
             LootTable.Add(item);
         }

@@ -67,8 +67,11 @@
     <Compile Include="IPluginManager.cs" />
     <Compile Include="Item\IInterface.cs" />
     <Compile Include="Item\IInventory.cs" />
+    <Compile Include="Item\IItemConsumable.cs" />
     <Compile Include="Item\IItemDb.cs" />
     <Compile Include="Item\IItemInventory.cs" />
+    <Compile Include="Item\IItemUsable.cs" />
+    <Compile Include="Item\IItemPlaceable.cs" />
     <Compile Include="Listener\IBlockListener.cs" />
     <Compile Include="Listener\IEntityListener.cs" />
     <Compile Include="Listener\IChraftListener.cs" />

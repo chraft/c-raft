@@ -20,12 +20,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Net;
+using Chraft.PluginSystem.Item;
 
-namespace Chraft.Entity.Items
+namespace Chraft.Entity.Items.Base
 {
     public abstract class ItemBase
     {
-
+        public IInterface Owner { get; internal set; }
         public event EventHandler Changed;
 
         public short Slot { get; internal set; }

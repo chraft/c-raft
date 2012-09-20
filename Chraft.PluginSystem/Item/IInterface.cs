@@ -1,3 +1,4 @@
+using Chraft.PluginSystem.Entity;
 using Chraft.Utilities.Coords;
 
 namespace Chraft.PluginSystem.Item
@@ -17,5 +18,6 @@ namespace Chraft.PluginSystem.Item
         void SetItem(short slot, IItemInventory newItem);
         IItemInventory[] GetSlots();
         IItemInventory GetCursor();
+        IPlayer GetPlayer();
     }
 }

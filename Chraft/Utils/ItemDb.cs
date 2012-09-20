@@ -19,8 +19,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
 using Chraft.Utilities.Config;
 
@@ -45,7 +43,7 @@ namespace Chraft.Utils
 
                     if (Contains(item))
                     {
-                        ItemInventory res = ItemHelper.GetInstance(Items[item]);
+                        var res = ItemHelper.GetInstance(Items[item]);
                         res.Count = ChraftConfig.DefaultStackSize;
                         res.Durability = Durabilities[item];
                         return res;

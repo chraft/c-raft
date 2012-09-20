@@ -17,11 +17,9 @@
 using System.Collections.Generic;
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items.Base;
 using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
@@ -53,7 +51,7 @@ namespace Chraft.World.Blocks
         protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             overridedLoot = new List<ItemInventory>();
-            ItemInventory item = ItemHelper.GetInstance((short) Type);
+            var item = ItemHelper.GetInstance((short) Type);
             item.Count = 1;
             item.Durability = block.MetaData;
             overridedLoot.Add(item);
@@ -74,14 +72,14 @@ namespace Chraft.World.Blocks
 
         public void Grow(IStructBlock iBlock, IChunk ichunk)
         {
-            Chunk chunk = ichunk as Chunk;
+            var chunk = ichunk as Chunk;
 
-            StructBlock block = (StructBlock) iBlock;
+            var block = (StructBlock) iBlock;
 
             if (!CanGrow(block, chunk))
                 return;
 
-            UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            var blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             if (block.World.GetEffectiveLight(blockUp) < 9)
                 return;
 
@@ -106,7 +104,7 @@ namespace Chraft.World.Blocks
                 for (int j = block.Coords.WorldX - 2; j <= block.Coords.WorldX + 2; j++)
                     for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
                     {
-                        Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k) as Chunk;
+                        var nearbyChunk = block.World.GetChunkFromWorld(i, k) as Chunk;
                         if (nearbyChunk == null || (nearbyChunk.GetType(j & 0xF, i, k & 0xF) != BlockData.Blocks.Air))
                             continue;
 
@@ -118,7 +116,7 @@ namespace Chraft.World.Blocks
             for (int i = block.Coords.WorldX - 1; i <= block.Coords.WorldX + 1; i++)
                 for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
                 {
-                    Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j) as Chunk;
+                    var nearbyChunk = block.World.GetChunkFromWorld(i, j) as Chunk;
                     if (nearbyChunk == null || nearbyChunk.GetType(i & 0xF, block.Coords.WorldY + 5, j & 0xF) != BlockData.Blocks.Air)
                         continue;
 

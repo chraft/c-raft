@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "Cobblestone";
             Type = BlockData.Blocks.Cobblestone;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance((short)Type);
             item.Count = 1;
             LootTable.Add(item);
         }

@@ -21,6 +21,7 @@ using System.Text;
 using System.IO;
 using System.Xml.Linq;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 
 namespace Chraft.Interfaces.Recipes
 {

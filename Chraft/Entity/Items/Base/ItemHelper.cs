@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items.Base;
 using Chraft.Net;
 using Chraft.PluginSystem.Item;
 using Chraft.Utilities;

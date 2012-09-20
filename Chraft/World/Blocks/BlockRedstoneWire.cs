@@ -16,8 +16,6 @@
 #endregion
 
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -32,7 +30,7 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Redstone_Wire;
             IsAir = true;
             IsSingleHit = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Redstone);
+            var item = ItemHelper.GetInstance(BlockData.Items.Redstone);
             item.Count = 1;
             LootTable.Add(item);
             Opacity = 0x0;

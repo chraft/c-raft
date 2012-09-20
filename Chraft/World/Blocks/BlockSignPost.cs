@@ -16,12 +16,9 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Entity.Items;
-using Chraft.Interfaces;
 using Chraft.Net;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -36,7 +33,7 @@ namespace Chraft.World.Blocks
             IsAir = true;
             IsSolid = true;
             IsWaterProof = true;
-            ItemInventory item = ItemHelper.GetInstance((short)BlockData.Items.Sign);
+            var item = ItemHelper.GetInstance(BlockData.Items.Sign);
             item.Count = 1;
             LootTable.Add(item);
             Opacity = 0x0;
@@ -44,8 +41,8 @@ namespace Chraft.World.Blocks
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
-            LivingEntity living = (entity as LivingEntity);
+            var block = (StructBlock)iBlock;
+            var living = (entity as LivingEntity);
             if (living == null)
                 return;
             switch (living.FacingDirection(8))

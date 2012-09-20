@@ -30,7 +30,7 @@ namespace Chraft.World.Blocks
             Name = "IronBlock";
             Type = BlockData.Blocks.Iron_Block;
             IsSolid = true;
-            ItemInventory item = ItemHelper.GetInstance((short)Type);
+            var item = ItemHelper.GetInstance(Type);
             item.Count = 1;
             LootTable.Add(item);
         }

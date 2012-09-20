@@ -20,6 +20,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
@@ -552,7 +553,9 @@ namespace Chraft.Net.Packets
         public enum DigAction : byte
         {
             StartDigging = 0,
+            CancelledDigging = 1,
             FinishDigging = 2,
+            CheckBlock = 3,
             DropItem = 4,
             ShootArrow = 5
         }
