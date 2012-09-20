@@ -20,17 +20,17 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemRedMushroom : ItemPlaceable
+    class ItemIronHoe : ItemBaseHoe
     {
-        public ItemRedMushroom()
+        public ItemIronHoe()
         {
-            Type = (short)BlockData.Blocks.Red_Mushroom;
-            Name = "RedMushroom";
-            Durability = 0;
+            Type = (short)BlockData.Items.Iron_Hoe;
+            Name = "IronHoe";
+            Durability = 251;
             Damage = 1;
             Count = 1;
-            IsStackable = true;
-            MaxStackSize = 64;
+            IsStackable = false;
+            MaxStackSize = 1;
         }
     }
 }

@@ -15,22 +15,24 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.Entity.Items.Base;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks;
+using Chraft.World.Blocks.Base;
 
-namespace Chraft.Entity.Items
+namespace Chraft.Entity.Items.Base
 {
-    class ItemRedMushroom : ItemPlaceable
+    public abstract class ItemBaseHoe : ItemUsable
     {
-        public ItemRedMushroom()
+        public override void Use(IStructBlock baseBlock, BlockFace face)
         {
-            Type = (short)BlockData.Blocks.Red_Mushroom;
-            Name = "RedMushroom";
-            Durability = 0;
-            Damage = 1;
-            Count = 1;
-            IsStackable = true;
-            MaxStackSize = 64;
+            if (baseBlock.Type == (byte)BlockData.Blocks.Dirt || baseBlock.Type == (byte)BlockData.Blocks.Grass)
+            {
+                var soilBlock = (StructBlock)baseBlock;
+                soilBlock.Type = (byte)BlockData.Blocks.Soil;
+                // Think the client has a Notch bug where hoe's durability is not updated properly.
+                BlockHelper.Instance.CreateBlockInstance(soilBlock.Type).Spawn(soilBlock);
+            }
         }
     }
 }

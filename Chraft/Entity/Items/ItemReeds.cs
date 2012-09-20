@@ -15,20 +15,30 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.PluginSystem.Item;
-using Chraft.PluginSystem.World.Blocks;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks;
 using Chraft.World.Blocks.Base;
 
-namespace Chraft.Entity.Items.Base
+namespace Chraft.Entity.Items
 {
-    public abstract class ItemPlaceable : ItemInventory, IItemPlaceable
+    class ItemReeds : ItemPlaceable
     {
-        public virtual void Place(IStructBlock baseBlock, BlockFace face)
+        public ItemReeds()
         {
-            switch(baseBlock.Type)
+            Type = (short)BlockData.Items.Reeds;
+            Name = "Reeds";
+            Durability = 0;
+            Damage = 1;
+            Count = 1;
+            IsStackable = true;
+            MaxStackSize = 64;
+        }
+
+        public override void Place(PluginSystem.World.Blocks.IStructBlock baseBlock, BlockFace face)
+        {
+            switch (baseBlock.Type)
             {
                 case (byte)BlockData.Blocks.Air:
                 case (byte)BlockData.Blocks.Water:
@@ -37,15 +47,15 @@ namespace Chraft.Entity.Items.Base
                 case (byte)BlockData.Blocks.Still_Lava:
                     return;
             }
+
             var player = Owner.GetPlayer() as Player;
-            byte bType = (byte)player.Inventory.ActiveItem.Type;
+            byte bType = (byte)BlockData.Blocks.Reed;
             byte bMetaData = (byte)player.Inventory.ActiveItem.Durability;
 
             var coordsFromFace = UniversalCoords.FromFace(baseBlock.Coords, face);
             var bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
 
             BlockHelper.Instance.CreateBlockInstance(bType).Place(player, bBlock, baseBlock, face);
-            //Owner.GetPlayer().GetInventory().RemoveItem(Slot);
         }
     }
 }
