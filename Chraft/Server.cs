@@ -69,7 +69,8 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
-        private Timer _globalTick;
+        private Timer _tickTimer;
+        private Thread _mainThread;
         private Task _playerSaveTask;
         private CancellationTokenSource _playerSaveToken;
         public bool NeedsFullSave;
@@ -318,38 +319,57 @@ namespace Chraft
                 Client.RecvSocketEventPool.Push(new SocketAsyncEventArgs());
             }
 
-            _globalTick = new Timer(GlobalTickProc, null, 50, 50);
+            _tickTimer = new Timer(TickTimer, null, 50, 50);
+
+            _mainThread = new Thread(GlobalTickProc);
+            _mainThread.Start();
 
             while (Running)
                 RunProc();
         }
 
         private int _globalTicks;
+        private int _ticksToDo;
+        private ManualResetEventSlim slimResetEvent = new ManualResetEventSlim();
+
+        private void TickTimer(object state)
+        {
+            Interlocked.Increment(ref _ticksToDo);
+            slimResetEvent.Set();
+        }
 
         private void GlobalTickProc(object state)
         {
-            ++_globalTicks;
-
-            foreach (WorldManager worldManager in Worlds)
+            while (Running)
             {
-                worldManager.WorldTick();
-                worldManager.StartSaveProc(20 / Worlds.Count);
-            }
+                slimResetEvent.Wait();
+                
+                while(_ticksToDo > 0)
+                {
+                    ++_globalTicks;
 
-            if ((_globalTicks % 10) == 0)
-                Task.Factory.StartNew(DoPulse);            
-            
+                    foreach (WorldManager worldManager in Worlds)
+                    {
+                        worldManager.WorldTick();
+                        worldManager.StartSaveProc(20 / Worlds.Count);
+                    }
 
-            if (NeedsFullSave)
-            {
-                FullSaving = true;
-                Task.Factory.StartNew(FullSave);
-            }
-            else if ((_globalTicks % 200) == 0 && (_playerSaveTask == null || _playerSaveTask.IsCompleted))
-            {
-                _playerSaveToken = new CancellationTokenSource();
-                var token = _playerSaveToken.Token;
-                _playerSaveTask = Task.Factory.StartNew(()=> SavePlayers(50, token), token);
+
+                    if (NeedsFullSave)
+                    {
+                        FullSaving = true;
+                        Task.Factory.StartNew(FullSave);
+                    }
+                    else if ((_globalTicks % 200) == 0 && (_playerSaveTask == null || _playerSaveTask.IsCompleted))
+                    {
+                        _playerSaveToken = new CancellationTokenSource();
+                        var token = _playerSaveToken.Token;
+                        _playerSaveTask = Task.Factory.StartNew(() => SavePlayers(50, token), token);
+                    }
+
+                    Interlocked.Decrement(ref _ticksToDo);
+                    slimResetEvent.Reset();
+                }
             }
         }
         

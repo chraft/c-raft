@@ -660,17 +660,12 @@ namespace Chraft.World
                     _growStuffTask = Task.Factory.StartNew(GrowProc);
                 }
             }
-   
-            // Every Tick (50ms)
-            if (_physicsSimulationTask == null || _physicsSimulationTask.IsCompleted)
-            {
-                _physicsSimulationTask = Task.Factory.StartNew(PhysicsProc);
-            }
 
-            if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
-            {
-                _entityUpdateTask = Task.Factory.StartNew(EntityProc);
-            }
+            
+            PhysicsProc();
+
+            EntityProc();
+            
 
             // Every 2 Ticks (100ms)
             if (WorldTicks % 2 == 0)
@@ -735,19 +730,40 @@ namespace Chraft.World
 
         private void PhysicsProc()
         {
-            foreach (var physicsBlock in PhysicsBlocks)
+            if (PhysicsBlocks.Count > 10)
             {
-                physicsBlock.Value.Simulate();
+                Parallel.ForEach(PhysicsBlocks, (physicsBlock) =>
+                {
+                    physicsBlock.Value.Simulate();
+                });
+            }
+            else
+            {
+                foreach (var physicsBlock in PhysicsBlocks)
+                {
+                    physicsBlock.Value.Simulate();
+                }
             }
         }
   
         private void EntityProc()
         {
             EntityBase[] entities = Server.GetEntities() as EntityBase[];
-            Parallel.ForEach(entities.Where((entity) => entity.World == this), (e) =>
+
+            if (entities.Length > 20)
             {
-                e.Update();
-            });
+                Parallel.ForEach(entities.Where((entity) => entity.World == this), (e) =>
+                {
+                    e.Update();
+                });
+            }
+            else
+            {
+                foreach (EntityBase entity in entities)
+                {
+                    entity.Update();
+                }
+            }      
         }
         
         private void MobSpawnerProc()
