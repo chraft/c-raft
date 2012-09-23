@@ -73,6 +73,16 @@ namespace Chraft.Entity
             set { _client = value; }
         }
 
+        public override short Health
+        {
+            get { return _health; }
+            set
+            {
+                _health = MathExtensions.Clamp(value, (short) 0, MaxHealth);
+                CheckFood();
+            }
+        }
+
         /// <summary>
         /// The name that we display of the client
         /// </summary>
@@ -97,6 +107,8 @@ namespace Chraft.Entity
 
         public GameMode GameMode { get; set; }
 
+
+        protected Timer FoodEffectTimer;
         public float MaxFoodSaturation { get { return MaxFood; } }
         private float _foodSaturation; 
         public float FoodSaturation
@@ -109,7 +121,23 @@ namespace Chraft.Entity
         private short _food;
         public short Food {
             get { return _food; }
-            set { _food = MathExtensions.Clamp(value, (short)0, MaxFood); }
+            set
+            {
+                _food = MathExtensions.Clamp(value, (short) 0, MaxFood);
+                CheckFood();
+            }
+        }
+
+        public int MaxExhaustion { get { return 40000; } }
+        private int _exhaustion;
+        public int Exhaustion
+        {
+            get { return _exhaustion; }
+            set
+            {
+                _exhaustion = MathExtensions.Clamp(value, 0, MaxExhaustion);
+                CheckExhaustion();
+            }
         }
 
         protected short _lastDamageRemainder = 0;
@@ -173,12 +201,8 @@ namespace Chraft.Entity
 
             FoodSaturation = 5;
 
-            _client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
+            SendUpdateHealthPacket();
+            CheckFood();
         }
         #endregion
 
@@ -246,6 +270,7 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public override void MoveTo(AbsWorldCoords absCoords)
         {
+            AddExhaustionOnMovement(absCoords);
             base.MoveTo(absCoords);
             UpdateEntities();
         }
@@ -260,6 +285,7 @@ namespace Chraft.Entity
         /// <param name="pitch">The absolute pitch to which client should change.</param>
         public override void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
+            AddExhaustionOnMovement(absCoords);
             base.MoveTo(absCoords, yaw, pitch);
             UpdateEntities();
         }
@@ -349,6 +375,25 @@ namespace Chraft.Entity
             Data.IsSprinting = false;
             SendMetadataUpdate();
         }
+
+        /// <summary>
+        /// Inaccurate check whether the player is in water. Should use the bounding box.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsInWater()
+        {
+            var feetBlock = World.GetBlockId(UniversalCoords.FromAbsWorld(Position));
+            var headBlock = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + 1, Position.Z));
+            if (feetBlock == null || headBlock == null)
+                return false;
+
+            if (feetBlock == (byte)BlockData.Blocks.Water || feetBlock == (byte)BlockData.Blocks.Still_Water ||
+                feetBlock == (byte)BlockData.Blocks.Lava || feetBlock == (byte)BlockData.Blocks.Still_Lava ||
+                headBlock == (byte)BlockData.Blocks.Water || headBlock == (byte)BlockData.Blocks.Still_Water ||
+                headBlock == (byte)BlockData.Blocks.Lava || headBlock == (byte)BlockData.Blocks.Still_Lava)
+                return true;
+            return false;
+        }
         #endregion
 
         #region Attack & damage
@@ -367,6 +412,7 @@ namespace Chraft.Entity
             weaponDmg = e.Damage;
             //End Event
 
+            Exhaustion += 300;
             
             target.Damage(DamageCause.EntityAttack, weaponDmg, this);
         }
@@ -385,17 +431,13 @@ namespace Chraft.Entity
             // Armor can't reduce suffocation, fire burn, drowning, starving, magic, generic and falling-in-void damage
             if (cause != DamageCause.Suffocation && cause != DamageCause.Drowning && cause != DamageCause.FireBurn && cause != DamageCause.Void)
                 damageAmount = ApplyArmorReduction(damageAmount);
+            Exhaustion += 300;
             base.Damage(cause, damageAmount, hitBy, args);
         }
 
         protected override void SendUpdateOnDamage()
         {
-            Client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
+            SendUpdateHealthPacket();
             base.SendUpdateOnDamage();
         }
 
@@ -788,6 +830,27 @@ namespace Chraft.Entity
             }
         }
 
+        protected void AddExhaustionOnMovement(AbsWorldCoords coords)
+        {
+            var dx = coords.X - Position.X;
+            var dy = coords.Y - Position.Y;
+            var dz = coords.Z - Position.Z;
+
+            if (IsInWater())
+            {
+                var distance = (short)Math.Round(MathHelper.sqrt_double(dx * dx + dz * dz) * 10);
+                Exhaustion += 15 * distance;
+            }
+            else if (Client.OnGround)
+            {
+                var distance = (short)Math.Round(MathHelper.sqrt_double(dx*dx + dy*dy + dz*dz) * 10);
+                if (Data.IsSprinting)
+                    Exhaustion += 100 * distance;
+                else
+                    Exhaustion += 10 * distance;
+            }
+        }
+
         public bool IsHungry()
         {
             return Food < 20;
@@ -798,19 +861,85 @@ namespace Chraft.Entity
             if (!IsHungry())
                 return false;
             Food += food;
-            FoodSaturation = Math.Min(FoodSaturation + food * saturation * 2.0f, Food);
-            _client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
+            FoodSaturation = Math.Min(FoodSaturation + saturation, Food);
+            SendUpdateHealthPacket();
             return true;
+        }
+
+        protected void CheckExhaustion()
+        {
+            if (Exhaustion < 4000)
+                return;
+
+            Exhaustion -= 4000;
+            if (FoodSaturation > 0)
+                FoodSaturation -= 1.0f;
+            else
+            {
+                Food -= 1;
+                SendUpdateHealthPacket();
+            }
+        }
+
+        protected void CheckFood()
+        {
+            if (IsDead || (Food > 0 && Food < 18))
+            {
+                if (FoodEffectTimer != null)
+                {
+                    StopStarvingDamageTimer();
+                }
+                return;
+            }
+            if (Food == 0 || (Food >= 18 && Health < MaxHealth))
+            {
+                if (FoodEffectTimer == null)
+                {
+                    FoodEffectTimer = new Timer(FoodEffect, null, 4000, 4000);
+                }
+            }
+        }
+
+        protected void FoodEffect(object state)
+        {
+            if (IsDead || (Food > 0 && Food < 18) || (Food >= 18 && Health == MaxHealth))
+            {
+                StopStarvingDamageTimer();
+                return;
+            }
+
+            if (Food >= 18 && Health < MaxHealth)
+            {
+                AddHealth(1);
+            }
+            else if (Food == 0)
+                Damage(DamageCause.Starve, 1);
+        }
+
+        protected void StopStarvingDamageTimer()
+        {
+            if (FoodEffectTimer != null)
+            {
+                FoodEffectTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                FoodEffectTimer.Dispose();
+                FoodEffectTimer = null;
+            }
         }
 
         public void SetHealth(short health)
         {
             Health = health;
+            SendUpdateHealthPacket();
+        }
+
+        public void AddHealth(short health)
+        {
+            Health += health;
+            SendUpdateHealthPacket();
+        }
+
+        protected void SendUpdateHealthPacket()
+        {
             _client.SendPacket(new UpdateHealthPacket
             {
                 Health = Health,

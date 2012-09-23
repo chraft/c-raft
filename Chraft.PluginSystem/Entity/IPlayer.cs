@@ -36,6 +36,7 @@ namespace Chraft.PluginSystem.Entity
 
         void MarkToSave();
         void SetHealth(short health);
+        void AddHealth(short health);
         void DropActiveSlotItem();
         bool CanUseCommand(ICommand command);
         bool CanUseCommand(string command);

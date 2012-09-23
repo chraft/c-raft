@@ -44,7 +44,7 @@ namespace Chraft.Entity
 
         public abstract string Name { get; }
 
-        short _health;
+        protected short _health;
 
         internal MetaData Data { get; set; }
 
@@ -54,7 +54,7 @@ namespace Chraft.Entity
         public virtual short Health
         {
             get { return _health; }
-            set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
+            set { _health = MathExtensions.Clamp(value, (short)0, MaxHealth); }
         }
 
         /// <summary>

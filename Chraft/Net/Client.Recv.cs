@@ -116,6 +116,11 @@ namespace Chraft.Net
                         }
                         _lastGroundY = _player.Position.Y;
 
+                        if (Owner.GetMetaData().IsSprinting)
+                            Owner.Exhaustion += 800;
+                        else
+                            Owner.Exhaustion += 200;
+
                         if (blockCount != 0)
                         {
                             if (blockCount > 0.5)
@@ -165,7 +170,7 @@ namespace Chraft.Net
                     if (_inAirStartTime != null)
                     {
                         // Check how long in the air for (e.g. flying) - don't count if we are in water
-                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Stationary_Water && AirTime.TotalSeconds > 5)
+                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Lava && currentBlock != BlockData.Blocks.Still_Lava && AirTime.TotalSeconds > 5)
                         {
                             // TODO: make the number of seconds configurable
                             Kick("Flying!!");
@@ -547,6 +552,7 @@ namespace Chraft.Net
                     break;
                 case PlayerDiggingPacket.DigAction.FinishDigging:
                     var block = new StructBlock(coords, type, data, player.World);
+                    player.Exhaustion += 25;
                     player.Inventory.ActiveItem.DestroyBlock(block);
                     break;
 
