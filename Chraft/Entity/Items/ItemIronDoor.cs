@@ -26,9 +26,6 @@ namespace Chraft.Entity.Items
         {
             Type = (short)BlockData.Items.Iron_Door;
             Name = "IronDoor";
-            Durability = 0;
-            Damage = 1;
-            Count = 1;
             IsStackable = false;
             MaxStackSize = 1;
         }

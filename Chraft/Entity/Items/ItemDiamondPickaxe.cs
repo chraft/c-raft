@@ -27,8 +27,7 @@ namespace Chraft.Entity.Items
             Type = (short)BlockData.Items.Diamond_Pickaxe;
             Name = "DiamondPickaxe";
             Durability = 1562;
-            Damage = 1;
-            Count = 1;
+            Damage = 5;
             IsStackable = false;
             MaxStackSize = 1;
         }

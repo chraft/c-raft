@@ -97,7 +97,7 @@ namespace Chraft.Entity
 
         public GameMode GameMode { get; set; }
 
-        public float MaxFoodSaturation { get { return 20; } }
+        public float MaxFoodSaturation { get { return MaxFood; } }
         private float _foodSaturation; 
         public float FoodSaturation
         {
@@ -360,7 +360,7 @@ namespace Chraft.Entity
         {
             if (target == null)
                 return;
-            short weaponDmg = GetWeaponDamage();
+            short weaponDmg = Inventory.ActiveItem.GetDamage();
 
             //Start Event
             EntityAttackEventArgs e = new EntityAttackEventArgs(this, weaponDmg, target);
@@ -400,52 +400,6 @@ namespace Chraft.Entity
                 FoodSaturation = FoodSaturation,
             });
             base.SendUpdateOnDamage();
-        }
-
-        public short GetWeaponDamage()
-        {
-            short damage = 1;
-            if (Inventory.ActiveItem.Type < 256)
-                return damage;
-            switch ((BlockData.Items)Inventory.ActiveItem.Type)
-            {
-                case BlockData.Items.Wooden_Spade:
-                case BlockData.Items.Gold_Spade:
-                    damage = 1;
-                    break;
-                case BlockData.Items.Wooden_Pickaxe:
-                case BlockData.Items.Gold_Pickaxe:
-                case BlockData.Items.Stone_Spade:
-                    damage = 2;
-                    break;
-                case BlockData.Items.Wooden_Axe:
-                case BlockData.Items.Gold_Axe:
-                case BlockData.Items.Stone_Pickaxe:
-                case BlockData.Items.Iron_Spade:
-                    damage = 3;
-                    break;
-                case BlockData.Items.Wooden_Sword:
-                case BlockData.Items.Gold_Sword:
-                case BlockData.Items.Stone_Axe:
-                case BlockData.Items.Iron_Pickaxe:
-                case BlockData.Items.Diamond_Spade:
-                    damage = 4;
-                    break;
-                case BlockData.Items.Stone_Sword:
-                case BlockData.Items.Iron_Axe:
-                case BlockData.Items.Diamond_Pickaxe:
-                    damage = 5;
-                    break;
-                case BlockData.Items.Iron_Sword:
-                case BlockData.Items.Diamond_Axe:
-                    damage = 6;
-                    break;
-                case BlockData.Items.Diamond_Sword:
-                    damage = 7;
-                    break;
-            }
-
-            return damage;
         }
 
         protected short ApplyArmorReduction(short initialDamage)

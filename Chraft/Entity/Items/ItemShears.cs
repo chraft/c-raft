@@ -27,8 +27,6 @@ namespace Chraft.Entity.Items
             Type = (short)BlockData.Items.Shears;
             Name = "Shears";
             Durability = 238;
-            Damage = 1;
-            Count = 1;
             IsStackable = false;
             MaxStackSize = 1;
         }

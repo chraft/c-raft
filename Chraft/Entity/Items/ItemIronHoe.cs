@@ -27,8 +27,6 @@ namespace Chraft.Entity.Items
             Type = (short)BlockData.Items.Iron_Hoe;
             Name = "IronHoe";
             Durability = 251;
-            Damage = 1;
-            Count = 1;
             IsStackable = false;
             MaxStackSize = 1;
         }

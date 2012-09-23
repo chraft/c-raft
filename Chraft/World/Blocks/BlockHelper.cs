@@ -108,10 +108,9 @@ namespace Chraft.World.Blocks
         /// <returns></returns>
         internal BlockBase CreateBlockInstance(byte blockId)
         {
-            BlockBase block = null;
             if (_blocks.ContainsKey(blockId))
                 return _blocks[blockId];
-            return block;
+            return null;
         }
 
         public bool IsGrowable(byte blockId)

@@ -27,8 +27,7 @@ namespace Chraft.Entity.Items
             Type = (short)BlockData.Items.Iron_Pickaxe;
             Name = "IronPickaxe";
             Durability = 251;
-            Damage = 1;
-            Count = 1;
+            Damage = 4;
             IsStackable = false;
             MaxStackSize = 1;
         }

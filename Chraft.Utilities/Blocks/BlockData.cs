@@ -527,7 +527,7 @@ namespace Chraft.Utilities.Blocks
 
         public enum Items : short
         {
-            Iron_Spade = 256,
+            Iron_Shovel = 256,
             Iron_Pick = 257,
             Iron_Pickaxe = 257,
             Iron_Axe = 258,
@@ -544,19 +544,19 @@ namespace Chraft.Utilities.Blocks
             Iron_Sword = 267,
 
             Wooden_Sword = 268,
-            Wooden_Spade = 269,
+            Wooden_Shovel = 269,
             Wooden_Pick = 270,
             Wooden_Pickaxe = 270,
             Wooden_Axe = 271,
 
             Stone_Sword = 272,
-            Stone_Spade = 273,
+            Stone_Shovel = 273,
             Stone_Pick = 274,
             Stone_Pickaxe = 274,
             Stone_Axe = 275,
 
             Diamond_Sword = 276,
-            Diamond_Spade = 277,
+            Diamond_Shovel = 277,
             Diamond_Pick = 278,
             Diamond_Pickaxe = 278,
             Diamond_Axe = 279,
@@ -566,7 +566,7 @@ namespace Chraft.Utilities.Blocks
             Mushroom_Soup = 282,
 
             Gold_Sword = 283,
-            Gold_Spade = 284,
+            Gold_Shovel = 284,
             Gold_Pick = 285,
             Gold_Pickaxe = 285,
             Gold_Axe = 286,
@@ -711,7 +711,7 @@ namespace Chraft.Utilities.Blocks
             {Items.Diamond_Hoe, 1562},
             {Items.Diamond_Pants, 368},
             {Items.Diamond_Pick, 1562},
-            {Items.Diamond_Spade, 1562},
+            {Items.Diamond_Shovel, 1562},
             {Items.Diamond_Sword, 1562},
             {Items.Fishing_Rod, 33},
             {Items.Flint_And_Steel, 65},
@@ -722,7 +722,7 @@ namespace Chraft.Utilities.Blocks
             {Items.Gold_Hoe, 33},
             {Items.Gold_Pants, 92},
             {Items.Gold_Pickaxe, 33},
-            {Items.Gold_Spade, 33},
+            {Items.Gold_Shovel, 33},
             {Items.Gold_Sword, 33},
             {Items.Iron_Axe, 251},
             {Items.Iron_Boots, 160},
@@ -731,7 +731,7 @@ namespace Chraft.Utilities.Blocks
             {Items.Iron_Hoe, 251},
             {Items.Iron_Pants, 184},
             {Items.Iron_Pick, 251},
-            {Items.Iron_Spade, 251},
+            {Items.Iron_Shovel, 251},
             {Items.Iron_Sword, 251},
             {Items.Leather_Boots, 40},
             {Items.Leather_Chestplate, 49},
@@ -741,12 +741,12 @@ namespace Chraft.Utilities.Blocks
             {Items.Stone_Axe, 132},
             {Items.Stone_Hoe, 132},
             {Items.Stone_Pick, 132},
-            {Items.Stone_Spade, 132},
+            {Items.Stone_Shovel, 132},
             {Items.Stone_Sword, 132},
             {Items.Wooden_Axe, 60},
             {Items.Wooden_Hoe, 60},
             {Items.Wooden_Pick, 60},
-            {Items.Wooden_Spade, 60},
+            {Items.Wooden_Shovel, 60},
             {Items.Wooden_Sword, 60}
         };
     }

@@ -30,9 +30,6 @@ namespace Chraft.Entity.Items
         {
             Type = (short)BlockData.Items.Ink_Sack;
             Name = "InkSack";
-            Durability = 0;
-            Damage = 1;
-            Count = 1;
             IsStackable = true;
             MaxStackSize = 64;
         }

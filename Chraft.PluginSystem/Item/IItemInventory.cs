@@ -11,5 +11,6 @@ namespace Chraft.PluginSystem.Item
         void DestroyBlock(IStructBlock block);
         void DamageItem(IStructBlock block);
         void DamageItem(short value);
+        short GetDamage();
     }
 }

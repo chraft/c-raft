@@ -35,6 +35,11 @@ namespace Chraft.Entity.Items.Base
             return false;
         }*/
 
+        public ItemInventory()
+        {
+            Damage = 1;
+        }
+
         internal override void Write(Net.BigEndianStream stream)
         {
             base.Write(stream);

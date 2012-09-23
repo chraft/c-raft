@@ -42,8 +42,7 @@ namespace Chraft.Entity.Items.Base
 
         protected virtual byte GetBlockToPlace(IStructBlock baseBlock, BlockFace face)
         {
-            var player = Owner.GetPlayer() as Player;
-            return (byte)player.Inventory.ActiveItem.Type;
+            return (byte)Type;
         }
 
         public virtual void Place(IStructBlock baseBlock, BlockFace face)
@@ -53,7 +52,7 @@ namespace Chraft.Entity.Items.Base
 
             var player = Owner.GetPlayer() as Player;
             byte bType = GetBlockToPlace(baseBlock, face);
-            byte bMetaData = (byte)player.Inventory.ActiveItem.Durability;
+            byte bMetaData = (byte)Durability;
 
             var coordsFromFace = UniversalCoords.FromFace(baseBlock.Coords, face);
             var bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);

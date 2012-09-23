@@ -24,11 +24,10 @@ namespace Chraft.Entity.Items
     {
         public ItemIronShovel()
         {
-            Type = (short)BlockData.Items.Iron_Spade;
+            Type = (short)BlockData.Items.Iron_Shovel;
             Name = "IronShovel";
             Durability = 251;
-            Damage = 1;
-            Count = 1;
+            Damage = 3;
             IsStackable = false;
             MaxStackSize = 1;
         }

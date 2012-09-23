@@ -26,9 +26,6 @@ namespace Chraft.Entity.Items
         {
             Type = (short)BlockData.Items.Redstone;
             Name = "Redstone";
-            Durability = 0;
-            Damage = 1;
-            Count = 1;
             IsStackable = true;
             MaxStackSize = 64;
         }

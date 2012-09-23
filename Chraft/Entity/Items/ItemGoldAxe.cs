@@ -20,19 +20,16 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemReeds : ItemPlaceable
+    class ItemGoldAxe : ItemInventory
     {
-        public ItemReeds()
+        public ItemGoldAxe()
         {
-            Type = (short)BlockData.Items.Reeds;
-            Name = "Reeds";
-            IsStackable = true;
-            MaxStackSize = 64;
-        }
-
-        protected override byte GetBlockToPlace(PluginSystem.World.Blocks.IStructBlock baseBlock, BlockFace face)
-        {
-            return (byte)BlockData.Blocks.Reed;
+            Type = (short)BlockData.Items.Gold_Axe;
+            Name = "GoldAxe";
+            Durability = 33;
+            Damage = 3;
+            IsStackable = false;
+            MaxStackSize = 1;
         }
     }
 }

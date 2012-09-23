@@ -29,7 +29,6 @@ namespace Chraft.PluginSystem.Entity
         void StartSprinting();
         void StopSprinting();
 
-        short GetWeaponDamage();
         void DamageArmor(short damage);
 
         void SynchronizeEntities();

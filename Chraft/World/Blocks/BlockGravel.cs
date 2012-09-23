@@ -42,11 +42,11 @@ namespace Chraft.World.Blocks
             var player = entity as Player;
             if (player != null)
             {
-                if ((player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade) &&
+                if ((player.Inventory.ActiveItem is ItemWoodenShovel ||
+                    player.Inventory.ActiveItem is ItemStoneShovel ||
+                    player.Inventory.ActiveItem is ItemIronShovel ||
+                    player.Inventory.ActiveItem is ItemGoldShovel ||
+                    player.Inventory.ActiveItem is ItemDiamondShovel) &&
                     block.World.Server.Rand.Next(10) == 0)
                 {
                     overridedLoot = new List<ItemInventory>(1);

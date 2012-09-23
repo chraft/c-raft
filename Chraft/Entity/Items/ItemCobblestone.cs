@@ -26,10 +26,7 @@ namespace Chraft.Entity.Items
         {
             Type = (short)BlockData.Blocks.Cobblestone;
             Name = "CobbleStone";
-            Durability = 0;
-            Damage = 1;
-            Count = 1;
-            IsStackable = false;
+            IsStackable = true;
             MaxStackSize = 64;
         }
     }
