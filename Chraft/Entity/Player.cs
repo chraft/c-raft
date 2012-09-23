@@ -166,15 +166,12 @@ namespace Chraft.Entity
         public void InitializeHealth()
         {
             if (Health <= 0)
-            {
                 Health = 20;
-            }
 
-            if (Food <= 0)
-            {
-                Food = 20;
-            }
-            FoodSaturation = 5.0f;
+            if (Food < 0)
+                Food = 0;
+
+            FoodSaturation = 5;
 
             _client.SendPacket(new UpdateHealthPacket
             {
@@ -791,6 +788,25 @@ namespace Chraft.Entity
             }
         }
 
+        public bool IsHungry()
+        {
+            return Food < 20;
+        }
+
+        public bool EatFood(short food, float saturation)
+        {
+            if (!IsHungry())
+                return false;
+            Food += food;
+            FoodSaturation = Math.Min(FoodSaturation + food * saturation * 2.0f, Food);
+            _client.SendPacket(new UpdateHealthPacket
+            {
+                Health = Health,
+                Food = Food,
+                FoodSaturation = FoodSaturation,
+            });
+            return true;
+        }
 
         public void SetHealth(short health)
         {

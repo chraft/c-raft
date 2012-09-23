@@ -42,6 +42,9 @@ namespace Chraft.PluginSystem.Entity
         string GetPlayerPrefix();
         string GetPlayerSuffix();
         void AddExperience(short amount);
+
+        bool IsHungry();
+        bool EatFood(short food, float saturation);
     }
 
     public enum GameMode : byte

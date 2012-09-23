@@ -20,19 +20,16 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemCookedPorkchop : ItemBaseFood
     {
-        public ItemPork()
+        public ItemCookedPorkchop()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
+            Type = (short)BlockData.Items.Cooked_Porkchop;
+            Name = "CookedPorkchop";
             IsStackable = true;
             MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
+            Food = 8;
+            Saturation = 12.8f;
         }
     }
 }

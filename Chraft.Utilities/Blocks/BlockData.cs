@@ -611,8 +611,8 @@ namespace Chraft.Utilities.Blocks
             Gold_Boots = 317,
 
             Flint = 318,
-            Pork = 319,
-            Grilled_Pork = 320,
+            Raw_Porkchop = 319,
+            Cooked_Porkchop = 320,
             Paintings = 321,
             Golden_Apple = 322,
             Sign = 323,

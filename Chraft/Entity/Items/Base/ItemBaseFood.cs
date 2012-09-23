@@ -15,23 +15,20 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.Entity.Items.Base;
-using Chraft.Utilities.Blocks;
+using Chraft.PluginSystem.Item;
 
-namespace Chraft.Entity.Items
+namespace Chraft.Entity.Items.Base
 {
-    class ItemGrilledPork : ItemConsumable
+    public abstract class ItemBaseFood : ItemConsumable, IItemFood
     {
-        public ItemGrilledPork()
-        {
-            Type = (short)BlockData.Items.Grilled_Pork;
-            Name = "GrilledPork";
-            IsStackable = true;
-            MaxStackSize = 64;
-        }
+        public short Food { get; set; }
+        public float Saturation { get; set; }
 
         protected override void OnConsumed()
         {
+            if (!Owner.GetPlayer().IsHungry())
+                return;
+            Owner.GetPlayer().EatFood(Food, Saturation);
             base.OnConsumed();
         }
     }

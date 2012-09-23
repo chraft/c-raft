@@ -14,20 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Chraft.Entity.Items;
 using Chraft.Net;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Misc;
 using Chraft.World;
-using Chraft.Interfaces;
+
 
 namespace Chraft.Entity.Mobs
 {
@@ -42,7 +36,7 @@ namespace Chraft.Entity.Mobs
         {
             get
             {
-                return (short)((this.Data.IsTamed) ? 4 : 2); // Wild 2, Tame 4;
+                return (short)((Data.IsTamed) ? 4 : 2); // Wild 2, Tame 4;
             }
         }
 
@@ -63,7 +57,7 @@ namespace Chraft.Entity.Mobs
             set
             {
                 base.Health = value;
-                this.Data.Health = this.Health;
+                Data.Health = Health;
             }
         }
 
@@ -71,7 +65,7 @@ namespace Chraft.Entity.Mobs
         {
             get
             {
-                return (short)((this.Data.IsTamed) ? 20 : 8); // Wild 8, Tame 20;
+                return (short)((Data.IsTamed) ? 20 : 8); // Wild 8, Tame 20;
             }
         }
 
@@ -85,13 +79,13 @@ namespace Chraft.Entity.Mobs
 
         protected virtual int BonesUntilTamed { get; set; }
 
-        internal Wolf(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
+        internal Wolf(WorldManager world, int entityId, MetaData data = null)
             : base(world, entityId, MobType.Wolf, data)
         {
-            this.Data.IsSitting = false;
-            this.Data.IsTamed = false;
-            this.Data.IsAggressive = false;
-            this.BonesUntilTamed = Server.Rand.Next(10); // How many bones required to tame this wolf?
+            Data.IsSitting = false;
+            Data.IsTamed = false;
+            Data.IsAggressive = false;
+            BonesUntilTamed = Server.Rand.Next(10); // How many bones required to tame this wolf?
         }
 
         protected override void DoDeath(EntityBase killedBy)
@@ -104,37 +98,39 @@ namespace Chraft.Entity.Mobs
             base.DoInteraction(iClient, item);
 
             Client client = iClient as Client;
+            if (client == null)
+                return;
+
             if (item != null && !ItemHelper.IsVoid(item))
             {
-                if ((item.Type == (short)BlockData.Items.Pork || item.Type == (short)BlockData.Items.Grilled_Pork))
+                if (item is ItemRawPorkchop || item is ItemCookedPorkchop)
                 {
                     client.Owner.Inventory.RemoveItem(item.Slot); // consume the item
                     
-                    if (this.Data.IsTamed)
+                    if (Data.IsTamed)
                     {
                         // Feed a tame wolf pork chop
-                        if (this.Health < this.MaxHealth &&
-                            (item.Type == (short)BlockData.Items.Pork || item.Type == (short)BlockData.Items.Grilled_Pork))
+                        if (Health < MaxHealth)
                         {
-                            if (this.Health < this.MaxHealth)
+                            if (Health < MaxHealth)
                             {
-                                this.Health += 3; // Health is clamped, no need to check if exceeds MaxHealth
+                                Health += 3; // Health is clamped, no need to check if exceeds MaxHealth
                                 SendMetadataUpdate();
                             }
                         }
                     }
                 }
-                else if (!this.Data.IsTamed && item.Type == (short)BlockData.Items.Bone)
+                else if (!Data.IsTamed && item.Type == (short)BlockData.Items.Bone)
                 {
                     // Give a bone
-                    this.BonesUntilTamed--;
+                    BonesUntilTamed--;
                     client.Owner.Inventory.RemoveItem(item.Slot); // consume the item
 
-                    if (this.BonesUntilTamed <= 0)
+                    if (BonesUntilTamed <= 0)
                     {
-                        this.Data.IsTamed = true;
-                        this.Data.TamedBy = client.Username;
-                        this.Health = this.MaxHealth;
+                        Data.IsTamed = true;
+                        Data.TamedBy = client.Username;
+                        Health = MaxHealth;
                         // TODO: begin following this.Data.TamedBy
                         SendMetadataUpdate();
                     }

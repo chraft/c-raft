@@ -73,6 +73,7 @@
     <Compile Include="Item\IItemUsable.cs" />
     <Compile Include="Item\IItemPlaceable.cs" />
     <Compile Include="Item\IItemFuel.cs" />
+    <Compile Include="Item\IItemFood.cs" />
     <Compile Include="Listener\IBlockListener.cs" />
     <Compile Include="Listener\IEntityListener.cs" />
     <Compile Include="Listener\IChraftListener.cs" />

@@ -47,7 +47,7 @@ namespace Chraft.Entity.Mobs
 
             if (count > 0)
             {
-                var item = ItemHelper.GetInstance(BlockData.Items.Pork);
+                var item = ItemHelper.GetInstance(BlockData.Items.Raw_Porkchop);
                 item.Count = count;
                 Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), item);
             }

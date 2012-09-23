@@ -110,14 +110,15 @@
     <Compile Include="Entity\Items\Base\ItemUsable.cs" />
     <Compile Include="Entity\Items\Base\ItemPlaceable.cs" />
     <Compile Include="Entity\Items\Base\ItemBaseHoe.cs" />
+    <Compile Include="Entity\Items\Base\ItemBaseFood.cs" />
     <Compile Include="Entity\Items\ItemIronPickaxe.cs" />
     <Compile Include="Entity\Items\ItemIronShovel.cs" />
+    <Compile Include="Entity\Items\ItemRawPorkchop.cs" />
     <Compile Include="Entity\Items\ItemVoid.cs" />
     <Compile Include="Entity\Items\ItemDiamondPickaxe.cs" />
     <Compile Include="Entity\Items\ItemStone.cs" />
     <Compile Include="Entity\Items\ItemCobblestone.cs" />
-    <Compile Include="Entity\Items\ItemPork.cs" />
-    <Compile Include="Entity\Items\ItemGrilledPork.cs" />
+    <Compile Include="Entity\Items\ItemCookedPorkchop.cs" />
     <Compile Include="Entity\Items\ItemDirt.cs" />
     <Compile Include="Entity\Items\ItemChest.cs" />
     <Compile Include="Entity\Items\ItemInkSack.cs" />
