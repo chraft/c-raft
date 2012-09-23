@@ -95,7 +95,7 @@ namespace Chraft.Entity
 
         public bool Ready { get; set; }
 
-        public byte GameMode { get; set; }
+        public GameMode GameMode { get; set; }
 
         public float MaxFoodSaturation { get { return 20; } }
         private float _foodSaturation; 
@@ -383,7 +383,7 @@ namespace Chraft.Entity
         /// <param name="args">First argument should always be the damage amount.</param>
         public override void Damage(DamageCause cause, short damageAmount, IEntityBase hitBy = null, params object[] args)
         {
-            if (GameMode == 1)
+            if (GameMode == GameMode.Creative)
                 return;
             // Armor can't reduce suffocation, fire burn, drowning, starving, magic, generic and falling-in-void damage
             if (cause != DamageCause.Suffocation && cause != DamageCause.Drowning && cause != DamageCause.FireBurn && cause != DamageCause.Void)
@@ -468,7 +468,7 @@ namespace Chraft.Entity
                     if (Inventory[i].Type == (short)BlockData.Blocks.Pumpkin)
                         continue;
 
-                    Inventory.DamageItem(i, Math.Abs(damage));
+                    Inventory[i].DamageItem(Math.Abs(damage));
                 }
             }
         }

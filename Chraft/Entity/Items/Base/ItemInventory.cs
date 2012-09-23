@@ -15,7 +15,11 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
+using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.World.Blocks;
+using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks;
 
 namespace Chraft.Entity.Items.Base
 {
@@ -50,6 +54,48 @@ namespace Chraft.Entity.Items.Base
                  */
 
             }
+        }
+
+        public void DestroyBlock(IStructBlock blockHit)
+        {
+            var player = Owner.GetPlayer() as Player;
+            BlockHelper.Instance.CreateBlockInstance(blockHit.Type).Destroy(player, blockHit);
+            if (player != null && player.GameMode == GameMode.Normal)
+                DamageItem(blockHit);
+        }
+
+        public void DamageItem(short value)
+        {
+            short durability = 0;
+
+            BlockData.ToolDuarability.TryGetValue((BlockData.Items)Type, out durability);
+
+            if (durability > 0)
+            {
+                if (Durability >= durability)
+                {
+                    if (Count == 1)
+                    {
+                        Owner.SetItem(Slot, ItemHelper.Void);
+                    }
+                    else // This will allow stacked tools to work properly.
+                    {
+                        Durability = 0;
+                        Count--;
+                    }
+                }
+                else
+                {
+                    Durability += value;
+                }
+            }
+
+        }
+
+        public void DamageItem(IStructBlock blockHit)
+        {
+            // TODO: Apply proper damage
+            DamageItem(1);
         }
 
         public new ItemInventory Clone()

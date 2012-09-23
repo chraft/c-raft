@@ -20,22 +20,17 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemRedstone : ItemPlaceable
+    class ItemShears : ItemInventory
     {
-        public ItemRedstone()
+        public ItemShears()
         {
-            Type = (short)BlockData.Items.Redstone;
-            Name = "Redstone";
-            Durability = 0;
+            Type = (short)BlockData.Items.Shears;
+            Name = "Shears";
+            Durability = 238;
             Damage = 1;
             Count = 1;
-            IsStackable = true;
-            MaxStackSize = 64;
-        }
-
-        protected override byte GetBlockToPlace(PluginSystem.World.Blocks.IStructBlock baseBlock, BlockFace face)
-        {
-            return (byte)BlockData.Blocks.Redstone_Wire;
+            IsStackable = false;
+            MaxStackSize = 1;
         }
     }
 }

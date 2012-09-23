@@ -10,7 +10,6 @@ namespace Chraft.PluginSystem.Item
 
         void AddItem(short id, sbyte count, short durability, bool isInGame = true);
         void RemoveItem(short slot);
-        bool DamageItem(short slot, short damageAmount = 1);
         IItemInventory GetActiveItem();
     }
 }

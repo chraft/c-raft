@@ -155,7 +155,7 @@ namespace Chraft.Net
         {
             SendPacket(new NewInvalidStatePacket
             {
-                GameMode = _player.GameMode,
+                GameMode = (byte)_player.GameMode,
                 Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
             });
         }

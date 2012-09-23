@@ -21,6 +21,7 @@ using System.Xml;
 using Chraft.Entity.Items;
 using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
+using Chraft.PluginSystem.Entity;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Config;
 
@@ -51,7 +52,7 @@ namespace Chraft.Net
             double x, y, z, yaw, pitch;
             short health, food;
             float foodSaturation;
-            byte gameMode;
+            GameMode gameMode;
             string displayName;
             int sightRadius, experience = 0;
 
@@ -68,7 +69,7 @@ namespace Chraft.Net
             health = short.Parse(playerNode["Health"].InnerText);
             food = short.Parse(playerNode["Food"].InnerText);
             foodSaturation = float.Parse(playerNode["FoodSaturation"].InnerText);
-            gameMode = byte.Parse(playerNode["GameMode"].InnerText);
+            gameMode = (GameMode)byte.Parse(playerNode["GameMode"].InnerText);
             displayName = playerNode["DisplayName"].InnerText;
             sightRadius = int.Parse(playerNode["SightRadius"].InnerText);
             if (playerNode["Experience"] != null)
@@ -153,7 +154,7 @@ namespace Chraft.Net
                 arg.InnerText = _player.FoodSaturation.ToString();
                 root.AppendChild(arg);
                 arg = doc.CreateElement("GameMode");
-                arg.InnerText = _player.GameMode.ToString();
+                arg.InnerText = ((byte)_player.GameMode).ToString();
                 root.AppendChild(arg);
                 arg = doc.CreateElement("DisplayName");
                 arg.InnerText = string.IsNullOrEmpty(_player.DisplayName) ? Username : _player.DisplayName;

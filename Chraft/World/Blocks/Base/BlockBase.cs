@@ -183,20 +183,15 @@ namespace Chraft.World.Blocks.Base
             UpdateWorld(block, true);
 
             // Check if the entity is a player
-            if ((entity != null) && (entity.GetType() == typeof(Player)))
+            if ((entity != null) && (entity is Player))
             {
-                // Check if the player is in creative mode
-                if (((Player)entity).GameMode == System.Convert.ToByte(1))
+                // Check if the player is not in creative mode
+                // Don't drop any items if the player is in creative mode
+                if (((Player)entity).GameMode == GameMode.Normal)
                 {
-                    // Don't drop any items as the player is in creative mode
-                    goto skipDrop;
+                    DropItems(entity as EntityBase, block);
                 }
             }
-
-            DropItems(entity as EntityBase, block);
-
-            skipDrop:
-            DamageItem(entity);
 
             NotifyNearbyBlocks((EntityBase)entity, block);
         }
@@ -444,17 +439,6 @@ namespace Chraft.World.Blocks.Base
             Player player = entity as Player;
             if (player != null && player.GameMode == 0)
                 player.Inventory.RemoveItem(player.Inventory.ActiveSlot);
-        }
-
-        /// <summary>
-        /// Damages the active item in the inventory when the block is destroyed
-        /// </summary>
-        /// <param name="entity">the entity who destroyed the block</param>
-        protected virtual void DamageItem(IEntityBase entity)
-        {
-            Player player = entity as Player;
-            if (player != null && player.GameMode == 0)
-                player.Inventory.DamageItem(player.Inventory.ActiveSlot);
         }
 
         /// <summary>

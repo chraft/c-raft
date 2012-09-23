@@ -129,6 +129,7 @@
     <Compile Include="Entity\Items\ItemRedstone.cs" />
     <Compile Include="Entity\Items\ItemIronDoor.cs" />
     <Compile Include="Entity\Items\ItemWoodenDoor.cs" />
+    <Compile Include="Entity\Items\ItemShears.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />

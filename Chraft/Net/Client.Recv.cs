@@ -19,6 +19,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Chraft.Entity.Items;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
@@ -276,7 +277,7 @@ namespace Chraft.Net
 
         public static void HandlePacketCreativeInventoryAction(Client client, CreativeInventoryActionPacket packet)
         {
-            if (client.Owner.GameMode == 1)
+            if (client.Owner.GameMode == GameMode.Creative)
 
                 if (packet.Item.Type == -1 && packet.Item.Durability == 0 && packet.Item.Count == 0) // We are adding an item to our mouse cursor from the quick bar
                 {
@@ -511,7 +512,7 @@ namespace Chraft.Net
 
         public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
         {
-            Player player = client.Owner;
+            var player = client.Owner;
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
@@ -539,14 +540,14 @@ namespace Chraft.Net
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (BlockHelper.Instance.CreateBlockInstance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
-                    if (player.GameMode == 1)
+                    if (player.GameMode == GameMode.Creative)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
                 case PlayerDiggingPacket.DigAction.CancelledDigging:
                     break;
                 case PlayerDiggingPacket.DigAction.FinishDigging:
-                    StructBlock block = new StructBlock(coords, type, data, player.World);
-                    BlockHelper.Instance.CreateBlockInstance(type).Destroy(player, block);
+                    var block = new StructBlock(coords, type, data, player.World);
+                    player.Inventory.ActiveItem.DestroyBlock(block);
                     break;
 
                 case PlayerDiggingPacket.DigAction.DropItem:

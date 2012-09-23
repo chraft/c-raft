@@ -17,9 +17,6 @@
 
 using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
-using Chraft.Utilities.Coords;
-using Chraft.World.Blocks;
-using Chraft.World.Blocks.Base;
 
 namespace Chraft.Entity.Items
 {
@@ -36,26 +33,9 @@ namespace Chraft.Entity.Items
             MaxStackSize = 64;
         }
 
-        public override void Place(PluginSystem.World.Blocks.IStructBlock baseBlock, BlockFace face)
+        protected override byte GetBlockToPlace(PluginSystem.World.Blocks.IStructBlock baseBlock, BlockFace face)
         {
-            switch (baseBlock.Type)
-            {
-                case (byte)BlockData.Blocks.Air:
-                case (byte)BlockData.Blocks.Water:
-                case (byte)BlockData.Blocks.Lava:
-                case (byte)BlockData.Blocks.Still_Water:
-                case (byte)BlockData.Blocks.Still_Lava:
-                    return;
-            }
-
-            var player = Owner.GetPlayer() as Player;
-            byte bType = (byte)BlockData.Blocks.Crops;
-            byte bMetaData = (byte)player.Inventory.ActiveItem.Durability;
-
-            var coordsFromFace = UniversalCoords.FromFace(baseBlock.Coords, face);
-            var bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
-
-            BlockHelper.Instance.CreateBlockInstance(bType).Place(player, bBlock, baseBlock, face);
+            return (byte)BlockData.Blocks.Crops;
         }
     }
 }

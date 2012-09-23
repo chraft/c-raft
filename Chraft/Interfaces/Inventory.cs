@@ -164,41 +164,6 @@ namespace Chraft.Interfaces
             Owner.MarkToSave();
         }
 
-        public bool DamageItem(short slot, short damageAmount = 1)
-        {
-            short durability = 0;
-
-            BlockData.ToolDuarability.TryGetValue((BlockData.Items)this[slot].Type, out durability);
-
-            if (durability > 0)
-            {
-                if (this[slot].Durability >= durability)
-                {
-                    if (this[slot].Count == 1)
-                    {
-                        this[slot] = ItemHelper.Void;
-                        Owner.MarkToSave();
-                        return true;
-                    }
-                    else // This will allow stacked tools to work properly.
-                    {
-                        this[slot].Durability = 0;
-                        this[slot].Count--;
-                        Owner.MarkToSave();
-                        return true;
-                    }
-                }
-                else
-                {
-                    this[slot].Durability += damageAmount;
-                    Owner.MarkToSave();
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         protected override void DoClose()
         {
             base.DoClose();

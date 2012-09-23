@@ -20,6 +20,7 @@ using Chraft.Net;
 using Chraft.Net.Packets;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Commands;
+using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Net;
 using Chraft.Plugins;
 using Chraft.Utilities;
@@ -44,7 +45,7 @@ namespace Chraft.Commands
                     byte gm;
                     if (byte.TryParse(tokens[0], out gm) && (gm == 0 || gm == 1))
                     {
-                        if (client.Owner.GameMode == gm)
+                        if (client.Owner.GameMode == (GameMode)gm)
                         {
                             client.SendMessage(ChatColor.Red + "You are already in that mode");
                             break;
@@ -69,7 +70,7 @@ namespace Chraft.Commands
                     Client c = client.Owner.Server.GetClients(tokens[0]).FirstOrDefault() as Client;
                     if (c != null)
                     {
-                        if (c.Owner.GameMode == Convert.ToByte(tokens[1]))
+                        if (c.Owner.GameMode == (GameMode)Convert.ToByte(tokens[1]))
                         {
                             client.SendMessage(ChatColor.Red + "Player is already in that mode");
                             break;
@@ -87,9 +88,10 @@ namespace Chraft.Commands
 
         private static void ChangeGameMode(Client client, int mode)
         {
+            client.Owner.GameMode = (GameMode)Convert.ToByte(mode);
             client.SendPacket(new NewInvalidStatePacket
             {
-                GameMode = client.Owner.GameMode = Convert.ToByte(mode),
+                GameMode = (byte)client.Owner.GameMode,
                 Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
             });
         }

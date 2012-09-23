@@ -26,19 +26,33 @@ namespace Chraft.Entity.Items.Base
 {
     public abstract class ItemPlaceable : ItemInventory, IItemPlaceable
     {
-        public virtual void Place(IStructBlock baseBlock, BlockFace face)
+        protected virtual bool CanBePlacedOn(IStructBlock baseBlock, BlockFace face)
         {
-            switch(baseBlock.Type)
+            switch (baseBlock.Type)
             {
                 case (byte)BlockData.Blocks.Air:
                 case (byte)BlockData.Blocks.Water:
                 case (byte)BlockData.Blocks.Lava:
                 case (byte)BlockData.Blocks.Still_Water:
                 case (byte)BlockData.Blocks.Still_Lava:
-                    return;
+                    return false;
             }
+            return true;
+        }
+
+        protected virtual byte GetBlockToPlace(IStructBlock baseBlock, BlockFace face)
+        {
             var player = Owner.GetPlayer() as Player;
-            byte bType = (byte)player.Inventory.ActiveItem.Type;
+            return (byte)player.Inventory.ActiveItem.Type;
+        }
+
+        public virtual void Place(IStructBlock baseBlock, BlockFace face)
+        {
+            if (!CanBePlacedOn(baseBlock, face))
+                return;
+
+            var player = Owner.GetPlayer() as Player;
+            byte bType = GetBlockToPlace(baseBlock, face);
             byte bMetaData = (byte)player.Inventory.ActiveItem.Durability;
 
             var coordsFromFace = UniversalCoords.FromFace(baseBlock.Coords, face);

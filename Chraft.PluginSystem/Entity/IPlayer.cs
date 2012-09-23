@@ -16,7 +16,7 @@ namespace Chraft.PluginSystem.Entity
         bool IsMuted { get; set; }
 
         bool Ready { get; set; }
-        byte GameMode { get; set; }
+        GameMode GameMode { get; set; }
         float FoodSaturation { get; set; }
         short Food { get; set; }
 
@@ -43,5 +43,12 @@ namespace Chraft.PluginSystem.Entity
         string GetPlayerPrefix();
         string GetPlayerSuffix();
         void AddExperience(short amount);
+    }
+
+    public enum GameMode : byte
+    {
+        Normal = 0,
+        Creative = 1,
+        Adventure = 2
     }
 }
