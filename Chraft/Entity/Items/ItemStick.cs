@@ -20,19 +20,15 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemStick : ItemBaseFuel
     {
-        public ItemPork()
+        public ItemStick()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
+            Type = (short)BlockData.Items.Stick;
+            Name = "Stick";
+            BurnEfficiency = 100;
             IsStackable = true;
             MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
         }
     }
 }

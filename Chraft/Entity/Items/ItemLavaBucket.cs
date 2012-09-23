@@ -16,23 +16,26 @@
 #endregion
 
 using Chraft.Entity.Items.Base;
+using Chraft.PluginSystem.Item;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemLavaBucket : ItemBaseFuel, IItemUsable
     {
-        public ItemPork()
+        public ItemLavaBucket()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
-            IsStackable = true;
-            MaxStackSize = 64;
+            Type = (short)BlockData.Items.Lava_Bucket;
+            Name = "LavaBucket";
+            BurnEfficiency = 20000;
+            IsStackable = false;
+            MaxStackSize = 1;
         }
 
-        protected override void OnConsumed()
+        public void Use(IStructBlock baseBlock, BlockFace face)
         {
-            base.OnConsumed();
+            //TODO: Place lava
         }
     }
 }

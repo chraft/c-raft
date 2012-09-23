@@ -15,24 +15,23 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.Entity.Items.Base;
+using Chraft.Entity.Items;
 using Chraft.Utilities.Blocks;
+using Chraft.World.Blocks.Base;
 
-namespace Chraft.Entity.Items
+namespace Chraft.World.Blocks
 {
-    class ItemPork : ItemConsumable
+    class BlockWoodPlanks : BlockBase
     {
-        public ItemPork()
+        public BlockWoodPlanks()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
-            IsStackable = true;
-            MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
+            Name = "WoodPlanks";
+            Type = BlockData.Blocks.Wood_Planks;
+            IsSolid = true;
+            BurnEfficiency = 300;
+            var item = ItemHelper.GetInstance(Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
     }
 }

@@ -41,16 +41,16 @@ namespace Chraft.World.Blocks
             if (player != null)
             {
                 ItemInventory item;
-                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
+                if (player.Inventory.ActiveItem is ItemShears)
                 {
-                    item = ItemHelper.GetInstance((short) Type);
+                    item = ItemHelper.GetInstance((short)Type);
                     item.Count = 1;
                     item.Durability = block.MetaData;
                     overridedLoot.Add(item);
                 }
                 else if (block.World.Server.Rand.Next(5) == 0)
                 {
-                    item = ItemHelper.GetInstance((short) BlockData.Blocks.Sapling);
+                    item = ItemHelper.GetInstance((short)BlockData.Blocks.Sapling);
                     item.Count = 1;
                     overridedLoot.Add(item);
                 }

@@ -20,19 +20,14 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemIronOre : ItemPlaceable
     {
-        public ItemPork()
+        public ItemIronOre()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
+            Type = (short)BlockData.Blocks.Iron_Ore;
+            Name = "IronOre";
             IsStackable = true;
             MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
         }
     }
 }

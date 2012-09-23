@@ -94,7 +94,7 @@ namespace Chraft.World.Blocks
 
             for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {
-                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Log, block.MetaData);
+                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Wood, block.MetaData);
                 if(chunk.GetType(block.Coords.BlockX, i + 1, block.Coords.BlockZ) != BlockData.Blocks.Air)
                     break;
             }

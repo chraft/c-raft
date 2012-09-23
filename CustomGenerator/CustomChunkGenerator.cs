@@ -319,7 +319,7 @@ namespace CustomGenerator
 
             for (int by = y + 1; by < y + 6; by++)
             {
-                c.SetType(x, by, z, BlockData.Blocks.Log, false);
+                c.SetType(x, by, z, BlockData.Blocks.Wood, false);
                 c.SetData(x, by, z, 0, false);
             }
             //}

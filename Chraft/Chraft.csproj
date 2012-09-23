@@ -103,6 +103,7 @@
     <Compile Include="Entity\ExpOrbEntity.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
     <Compile Include="Entity\Items\Base\ItemBase.cs" />
+    <Compile Include="Entity\Items\Base\ItemBaseFuel.cs" />
     <Compile Include="Entity\Items\Base\ItemHelper.cs" />
     <Compile Include="Entity\Items\Base\ItemInventory.cs" />
     <Compile Include="Entity\Items\Base\ItemConsumable.cs" />
@@ -147,6 +148,15 @@
     <Compile Include="Entity\Items\ItemDiamondShovel.cs" />
     <Compile Include="Entity\Items\ItemStoneSword.cs" />
     <Compile Include="Entity\Items\ItemIronAxe.cs" />
+    <Compile Include="Entity\Items\ItemLeaves.cs" />
+    <Compile Include="Entity\Items\ItemCoal.cs" />
+    <Compile Include="Entity\Items\ItemStick.cs" />
+    <Compile Include="Entity\Items\ItemLavaBucket.cs" />
+    <Compile Include="Entity\Items\ItemFurnace.cs" />
+    <Compile Include="Entity\Items\ItemIronOre.cs" />
+    <Compile Include="Entity\Items\ItemWood.cs" />
+    <Compile Include="Entity\Items\ItemWoodPlanks.cs" />
+    <Compile Include="Entity\Items\ItemIronIngot.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
@@ -223,7 +233,7 @@
     <Compile Include="World\Blocks\BlockLeaves.cs" />
     <Compile Include="World\Blocks\BlockLever.cs" />
     <Compile Include="World\Blocks\BlockLightstone.cs" />
-    <Compile Include="World\Blocks\BlockLog.cs" />
+    <Compile Include="World\Blocks\BlockWood.cs" />
     <Compile Include="World\Blocks\BlockMobSpawner.cs" />
     <Compile Include="World\Blocks\BlockMossStone.cs" />
     <Compile Include="World\Blocks\BlockNetherrack.cs" />
@@ -262,7 +272,7 @@
     <Compile Include="World\Blocks\BlockTracks.cs" />
     <Compile Include="World\Blocks\BlockWallSign.cs" />
     <Compile Include="World\Blocks\BlockWater.cs" />
-    <Compile Include="World\Blocks\BlockWood.cs" />
+    <Compile Include="World\Blocks\BlockWoodPlanks.cs" />
     <Compile Include="World\Blocks\BlockWoodenDoor.cs" />
     <Compile Include="World\Blocks\BlockWoodenPressurePlate.cs" />
     <Compile Include="World\Blocks\BlockWoodenStairs.cs" />

@@ -15,23 +15,15 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 
-using Chraft.Entity.Items;
-using Chraft.Utilities.Blocks;
-using Chraft.World.Blocks.Base;
+using Chraft.PluginSystem.Item;
 
-namespace Chraft.World.Blocks
+namespace Chraft.Entity.Items.Base
 {
-    class BlockLog : BlockBase
+    public abstract class ItemBaseFuel : ItemInventory, IItemFuel
     {
-        public BlockLog()
-        {
-            Name = "Log";
-            Type = BlockData.Blocks.Log;
-            IsSolid = true;
-            BurnEfficiency = 300;
-            var item = ItemHelper.GetInstance(Type);
-            item.Count = 1;
-            LootTable.Add(item);
-        }
+        /// <summary>
+        /// Item Flammability/Burn Efficiency measured in world ticks (x0.05secs). Value / 20 => number of seconds burn time. 10secs = 1 item smelted
+        /// </summary>
+        public short BurnEfficiency { get; set; }
     }
 }

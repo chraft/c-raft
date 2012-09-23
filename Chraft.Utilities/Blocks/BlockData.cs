@@ -395,7 +395,7 @@ namespace Chraft.Utilities.Blocks
             Grass = 2,
             Dirt = 3,
             Cobblestone = 4,
-            Wood = 5,
+            Wood_Planks = 5,
             Sapling = 6,
             Bedrock = 7,
             Adminium = 7,
@@ -410,7 +410,7 @@ namespace Chraft.Utilities.Blocks
             Gold_Ore = 14,
             Iron_Ore = 15,
             Coal_Ore = 16,
-            Log = 17,
+            Wood = 17,
             Leaves = 18,
             Sponge = 19,
             Glass = 20,
@@ -686,16 +686,6 @@ namespace Chraft.Utilities.Blocks
             DiscWard = 2265,
             Disc11 = 2266
         }
-
-        /// <summary>
-        /// Item Flammability/Burn Efficiency measured in world ticks (x0.05secs). Value / 20 => number of seconds burn time. 10secs = 1 item smelted
-        /// </summary>
-        public static readonly Dictionary<Items, short> ItemBurnEfficiency = new Dictionary<Items, short>()
-        {
-            {Items.Lava_Bucket, 20000},
-            {Items.Coal, 1600},
-            {Items.Stick, 100},
-        };
 
         public static readonly Dictionary<Items, short> ToolDuarability = new Dictionary<Items, short>() {
             // TODO: Put in a csv for user control.

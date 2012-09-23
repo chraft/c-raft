@@ -121,7 +121,7 @@ namespace Chraft.Entity.Items
 
         public static ItemInventory GetInstance(BigEndianStream stream)
         {
-            ItemInventory item = null;
+            ItemInventory item = Void;
             Type itemClass;
             short type = stream.ReadShort();
             if (type >= 0)
@@ -150,8 +150,11 @@ namespace Chraft.Entity.Items
             if (code.Contains('#'))
                 count = parts[parts.Length - 1];
             //TODO:Dennis make item classes and load them on server startup, before recipe loading
-            return ItemHelper.Void;
-            ItemInventory item = GetInstance(short.Parse(numeric));
+            short itemId;
+            short.TryParse(numeric, out itemId);
+            var item = GetInstance(itemId);
+            if (IsVoid(item))
+                return Void;
             item.Count = sbyte.Parse(count);
             item.Durability = durability == "*" ? (short) -1 : short.Parse(durability);
             return item;

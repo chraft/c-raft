@@ -20,19 +20,14 @@ using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemLeaves : ItemPlaceable
     {
-        public ItemPork()
+        public ItemLeaves()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
+            Type = (short)BlockData.Blocks.Leaves;
+            Name = "Leaves";
             IsStackable = true;
             MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
         }
     }
 }

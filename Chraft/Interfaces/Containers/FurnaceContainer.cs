@@ -15,15 +15,11 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Chraft.Entity.Items;
 using Chraft.Entity.Items.Base;
 using Chraft.Interfaces.Recipes;
-using Chraft.Net.Packets;
-using Chraft.Utilities;
+using Chraft.PluginSystem.Item;
 using Chraft.Utilities.Blocks;
 using Chraft.World;
 using Chraft.World.Blocks;
@@ -115,7 +111,7 @@ namespace Chraft.Interfaces.Containers
             if (ItemHelper.IsVoid(FuelSlot))
                 return false;
             return ((FuelSlot.Type < 256 && BlockHelper.Instance.IsIgnitable((byte)FuelSlot.Type)) ||
-                    (FuelSlot.Type >= 256 && BlockData.ItemBurnEfficiency.ContainsKey((BlockData.Items)FuelSlot.Type)));
+                    (FuelSlot.Type >= 256 && FuelSlot is IItemFuel));
         }
 
         private bool HasIngredient()
@@ -189,8 +185,8 @@ namespace Chraft.Interfaces.Containers
         {
             if (ItemHelper.IsVoid(FuelSlot))
                 return 0;
-
-            return (FuelSlot.Type < 256 ? BlockHelper.Instance.BurnEfficiency((byte)FuelSlot.Type) : BlockData.ItemBurnEfficiency[(BlockData.Items)FuelSlot.Type]);
+            var fuelItem = FuelSlot as IItemFuel;
+            return (FuelSlot.Type < 256 ? BlockHelper.Instance.BurnEfficiency((byte)FuelSlot.Type) : (fuelItem == null ? (short)0 : fuelItem.BurnEfficiency));
         }
 
         private void RemoveFuel()

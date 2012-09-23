@@ -16,23 +16,22 @@
 #endregion
 
 using Chraft.Entity.Items.Base;
+using Chraft.PluginSystem.Item;
 using Chraft.Utilities.Blocks;
 
 namespace Chraft.Entity.Items
 {
-    class ItemPork : ItemConsumable
+    class ItemWoodPlanks : ItemPlaceable, IItemFuel
     {
-        public ItemPork()
+        public short BurnEfficiency { get; set; }
+
+        public ItemWoodPlanks()
         {
-            Type = (short)BlockData.Items.Pork;
-            Name = "Pork";
+            Type = (short)BlockData.Blocks.Wood_Planks;
+            Name = "WoodPlanks";
+            BurnEfficiency = 300;
             IsStackable = true;
             MaxStackSize = 64;
-        }
-
-        protected override void OnConsumed()
-        {
-            base.OnConsumed();
         }
     }
 }
