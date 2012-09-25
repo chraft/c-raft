@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -53,7 +54,7 @@ namespace Chraft.Net
         internal static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
         internal static BufferPool RecvBufferPool = new BufferPool("Receive", 2048, 2048);
 
-
+        
         private byte[] _recvBuffer;
         private SocketAsyncEventArgs _sendSocketEvent;
         private SocketAsyncEventArgs _recvSocketEvent;
@@ -106,6 +107,7 @@ namespace Chraft.Net
         internal byte[] SharedKey { get; set; }
         internal ICryptoTransform Encrypter { get; set; }
         internal ICryptoTransform Decrypter { get; set; }
+        public string IpAddress { get; private set; }
 
         /// <summary>
         /// Instantiates a new Client object.
@@ -127,6 +129,9 @@ namespace Chraft.Net
 
             _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
             //PacketHandler = new PacketHandler(Server, socket);
+            IpAddress = _socket.RemoteEndPoint != null
+                            ? (_socket.RemoteEndPoint as IPEndPoint).Address.ToString()
+                            : (_socket.LocalEndPoint as IPEndPoint).Address.ToString();
         }
 
         public IPlayer GetOwner()
