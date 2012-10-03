@@ -84,6 +84,7 @@
     <Compile Include="ClientEventArgs.cs" />
     <Compile Include="CommandEventArgs.cs" />
     <Compile Include="Commands\ClientCommandHandler.cs" />
+    <Compile Include="Commands\CmdBan.cs" />
     <Compile Include="Commands\CmdGameMode.cs" />
     <Compile Include="Commands\CmdGive.cs" />
     <Compile Include="Commands\CmdPlayers.cs" />
@@ -91,8 +92,11 @@
     <Compile Include="Commands\CmdSpawn.cs" />
     <Compile Include="Commands\CmdStop.cs" />
     <Compile Include="Commands\CmdTp.cs" />
+    <Compile Include="Commands\CmdWhitelist.cs" />
     <Compile Include="Commands\CommandAlreadyExistsExcption.cs" />
     <Compile Include="Commands\CommandNotFoundExcption.cs" />
+    <Compile Include="Commands\CmdUnban.cs" />
+    <Compile Include="Commands\CmdBanIp.cs" />
     <Compile Include="Commands\Debug\DbgPos.cs" />
     <Compile Include="Commands\Help.cs" />
     <Compile Include="Commands\MultipleCommandsMatchExcption.cs" />
@@ -182,9 +186,9 @@
     <Compile Include="Net\StreamRole.cs" />
     <Compile Include="Permissions.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
-    <Compile Include="Persistence\DataFile.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\PluginLogger.cs" />
+    <Compile Include="Utils\BanSystem.cs" />
     <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="World\Blocks\Base\BlockBase.cs" />
@@ -387,6 +391,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Resources\Bans.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -394,6 +402,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\whitelist.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chraft.PluginSystem\Chraft.PluginSystem.csproj">

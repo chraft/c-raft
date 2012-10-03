@@ -29,6 +29,7 @@ using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Blocks;
@@ -593,7 +594,7 @@ namespace Chraft.Entity
 
             _client.StopUpdateChunks();
             UpdateChunks(1, CancellationToken.None, false);
-            _client.SendPacket(new RespawnPacket { });
+            _client.SendPacket(new RespawnPacket { LevelType = ChraftConfig.LevelType, WorldHeight = 256, GameMode = (sbyte)_client.GetOwner().GameMode, });
             UpdateEntities();
             //SendSpawnPosition();
             _client.SendInitialPosition();
@@ -1007,5 +1008,10 @@ namespace Chraft.Entity
             return PermHandler.GetPlayerSuffix(this);
         }
         #endregion
+
+        public IBans GetBan()
+        {
+            return GetServer().GetBanSystem().GetBan(Name);
+        }
     }
 }

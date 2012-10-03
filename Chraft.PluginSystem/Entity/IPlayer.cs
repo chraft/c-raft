@@ -1,6 +1,7 @@
 ﻿using Chraft.PluginSystem.Commands;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
@@ -46,6 +47,7 @@ namespace Chraft.PluginSystem.Entity
 
         bool IsHungry();
         bool EatFood(short food, float saturation);
+        IBans GetBan();
     }
 
     public enum GameMode : byte

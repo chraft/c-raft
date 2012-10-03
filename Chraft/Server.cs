@@ -79,6 +79,7 @@ namespace Chraft
         public ConcurrentQueue<Client> PlayersToSavePostponed;
 
         private Dictionary<string, IChunkGenerator> _generators;
+        public BanSystem BanSystem;
 
 #if PROFILE
         public static PerformanceCounter CpuPerfCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName);
@@ -196,6 +197,8 @@ namespace Chraft
         public Server()
         {
             ChraftConfig.Load();
+            BanSystem = new BanSystem();
+            BanSystem.LoadBansAndWhiteList();
             ClientsConnectionSlots = 30;
             Packet.Role = StreamRole.Server;
             Rand = new Random();
@@ -260,6 +263,11 @@ namespace Chraft
         public IPluginLogger GetPluginLogger()
         {
             return PluginLogger;
+        }
+
+        public IBanSystem GetBanSystem()
+        {
+            return BanSystem;
         }
 
         public ILogger GetLogger()

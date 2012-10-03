@@ -6,7 +6,6 @@ using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
-
 namespace Chraft.PluginSystem.Server
 {
     public interface IServer
@@ -42,5 +41,6 @@ namespace Chraft.PluginSystem.Server
         IMobFactory GetMobFactory();
         void BroadcastTimeUpdate(IWorldManager world);
         IPluginLogger GetPluginLogger();
+        IBanSystem GetBanSystem();
     }
 }

@@ -24,21 +24,17 @@ using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Entity;
-using System.Text.RegularExpressions;
-using Chraft.Utils;
 using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Utilities.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
-using Chraft.PluginSystem;
 using Chraft.World.Blocks.Base;
 using System.Text;
 
@@ -58,10 +54,7 @@ namespace Chraft.Net
                 {
                     return new TimeSpan(0);
                 }
-                else
-                {
-                    return DateTime.Now - _inAirStartTime.Value;
-                }
+                return DateTime.Now - _inAirStartTime.Value;
             }
         }
 
@@ -763,7 +756,6 @@ namespace Chraft.Net
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
             var clientCount = client.Server.GetAuthenticatedClients().Count();
-            //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.ChraftConfig.MaxPlayers) });
             client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, ChraftConfig.MaxPlayers));
         }
 
@@ -807,10 +799,8 @@ namespace Chraft.Net
             RijndaelManaged send = PacketCryptography.GenerateAES(client.SharedKey);
 
             client.Decrypter = recv.CreateDecryptor();
-
-            byte[] packetToken;
-
-            packetToken = PacketCryptography.Decrypt(packet.VerifyToken);
+            
+            byte[] packetToken = PacketCryptography.Decrypt(packet.VerifyToken);
 
             if (!packetToken.SequenceEqual(PacketCryptography.VerifyToken))
             {

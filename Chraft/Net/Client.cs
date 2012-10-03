@@ -128,10 +128,11 @@ namespace Chraft.Net
             ConnectionId = BitConverter.ToString(bytes).Replace("-", "");
 
             _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
-            //PacketHandler = new PacketHandler(Server, socket);
             IpAddress = _socket.RemoteEndPoint != null
-                            ? (_socket.RemoteEndPoint as IPEndPoint).Address.ToString()
-                            : (_socket.LocalEndPoint as IPEndPoint).Address.ToString();
+                          ? (_socket.RemoteEndPoint as IPEndPoint).Address.ToString()
+                          : (_socket.LocalEndPoint as IPEndPoint).Address.ToString();
+            //PacketHandler = new PacketHandler(Server, socket);
+          
         }
 
         public IPlayer GetOwner()

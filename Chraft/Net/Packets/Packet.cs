@@ -27,6 +27,7 @@ using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
+using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
 using Chraft.World;
@@ -184,7 +185,7 @@ namespace Chraft.Net.Packets
         public sbyte ServerMode { get; set; }
         public sbyte Dimension { get; set; }
         public sbyte Difficulty { get; set; }
-        public byte WorldHeight { get; set; }
+        public byte NotUsedWorldHeight { get; set; }
         public byte MaxPlayers { get; set; }
 
         public override void Read(PacketReader reader)
@@ -194,16 +195,16 @@ namespace Chraft.Net.Packets
             ServerMode = reader.ReadSByte();
             Dimension = reader.ReadSByte();
             Difficulty = reader.ReadSByte();
-            WorldHeight = reader.ReadByte();
+            NotUsedWorldHeight = reader.ReadByte();
             MaxPlayers = reader.ReadByte();
         }
 
         public override void Write()
         {
-            string levelType = "DEFAULT"; // TODO: get from config
-            SetCapacity(12, levelType);
+            
+            SetCapacity(12, LevelType);
             Writer.Write(ProtocolOrEntityId);
-            Writer.Write(levelType);
+            Writer.Write(LevelType);
             Writer.Write(ServerMode);
             Writer.Write(Dimension);
             Writer.Write(Difficulty);
@@ -214,7 +215,8 @@ namespace Chraft.Net.Packets
         public enum LevelTypeEnum
         {
             DEFAULT,
-            SUPERFLAT
+            SUPERFLAT,
+            LARGEBIOMES
         }
     }
 
@@ -373,28 +375,27 @@ namespace Chraft.Net.Packets
     {
         public int World { get; set; }
         public sbyte Difficulty { get; set; }
-        public sbyte CreativeMode { get; set; } // 0 for survival, 1 for creative.
-        public short WorldHeight { get; set; } // Default 128
-        public string LevelType { get; set; } // TODO: read from config
+        public sbyte GameMode { get; set; } // 0 for survival, 1 for creative, 2 for adventure
+        public short WorldHeight { get; set; } // Default 256
+        public string LevelType { get; set; } 
 
         public override void Read(PacketReader stream)
         {
             World = stream.ReadInt();
             Difficulty = stream.ReadSByte();
-            CreativeMode = stream.ReadSByte();
+            GameMode = stream.ReadSByte();
             WorldHeight = stream.ReadShort();
             LevelType = stream.ReadString16(9);
         }
 
         public override void Write()
         {
-            string levelType = "DEFAULT";
-            SetCapacity(11, levelType);
+            SetCapacity(11, LevelType);
             Writer.Write(World);
             Writer.Write(Difficulty);
-            Writer.Write(CreativeMode);
+            Writer.Write(GameMode);
             Writer.Write(WorldHeight);
-            Writer.Write(levelType);
+            Writer.Write(LevelType);
         }
     }
 
