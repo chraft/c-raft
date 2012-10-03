@@ -48,7 +48,10 @@ namespace Chraft.Commands
 
         public void Help(IClient client)
         {
-            client.SendMessage("/ban [player] [reason] <duration>");
+            client.SendMessage("/ban [player] [reason] <duration> ");
+            client.SendMessage("e.g. /ban player hax d:30 h:5 m:5 s:5");
+            client.SendMessage("ban player for 30 days, 5 hours, 5 minutes and 5 seconds");
+            
         }
 
         public string AutoComplete(IClient client, string sourceStr)
@@ -84,6 +87,8 @@ namespace Chraft.Commands
         public void Help(IServer server)
         {
             server.GetLogger().Log(LogLevel.Info, "ban [player] [reason] <duration>");
+            server.GetLogger().Log(LogLevel.Info, "e.g. /ban player hax d:30 h:5 m:5 s:5");
+             server.GetLogger().Log(LogLevel.Info,"ban player for 30 days, 5 hours, 5 minutes and 5 seconds");
         }
     }
 }
