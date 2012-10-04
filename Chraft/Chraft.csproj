@@ -87,6 +87,7 @@
     <Compile Include="Commands\CmdBan.cs" />
     <Compile Include="Commands\CmdGameMode.cs" />
     <Compile Include="Commands\CmdGive.cs" />
+    <Compile Include="Commands\CmdKick.cs" />
     <Compile Include="Commands\CmdPlayers.cs" />
     <Compile Include="Commands\CmdSay.cs" />
     <Compile Include="Commands\CmdSpawn.cs" />
