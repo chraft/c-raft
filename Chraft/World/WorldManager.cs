@@ -109,6 +109,8 @@ namespace Chraft.World
                 }
         }
 
+        public int AgeOfWorld { get; set; }
+
         private int _worldTicks;
         
         /// <summary>

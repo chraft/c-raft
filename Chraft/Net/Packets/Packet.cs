@@ -1803,7 +1803,7 @@ namespace Chraft.Net.Packets
     {
         public sbyte WindowId { get; set; }
         public short Slot { get; set; }
-        public bool RightClick { get; set; }
+        public MouseButtonClicked MouseButton { get; set; }
         public short Transaction { get; set; }
         public bool Shift { get; set; }
         public ItemInventory Item { get; set; }
@@ -1812,7 +1812,7 @@ namespace Chraft.Net.Packets
         {
             WindowId = stream.ReadSByte();
             Slot = stream.ReadShort();
-            RightClick = stream.ReadBool();
+            MouseButton = (MouseButtonClicked)stream.ReadByte();
             Transaction = stream.ReadShort();
             Shift = stream.ReadBool();
             Item = ItemHelper.GetInstance(stream);
@@ -1827,11 +1827,18 @@ namespace Chraft.Net.Packets
 
             Writer.Write(WindowId);
             Writer.Write(Slot);
-            Writer.Write(RightClick);
+            Writer.Write((byte)MouseButton);
             Writer.Write(Transaction);
             Writer.Write(Shift);
             (Item ?? ItemHelper.Void).Write(Writer);
             Length = (int)Writer.UnderlyingStream.Length;
+        }
+
+        public enum MouseButtonClicked
+        {
+            Left = 0,
+            Right = 1,
+            Middle = 3
         }
     }
 
