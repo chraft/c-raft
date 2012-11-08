@@ -1605,7 +1605,9 @@ namespace Chraft.Net.Packets
         /// </summary>
         public int SoundData { get; set; }
 
-        protected override int Length { get { return 18; } }
+        public bool NoVolumeIncrease { get; set; }
+
+        protected override int Length { get { return 19; } }
 
         public override void Read(PacketReader stream)
         {
@@ -1614,6 +1616,7 @@ namespace Chraft.Net.Packets
             Y = stream.ReadByte();
             Z = stream.ReadInt();
             SoundData = stream.ReadInt();
+            NoVolumeIncrease = stream.ReadBool();
         }
 
         public override void Write()
@@ -1624,6 +1627,7 @@ namespace Chraft.Net.Packets
             Writer.Write(Y);
             Writer.Write(Z);
             Writer.Write(SoundData);
+            Writer.Write(NoVolumeIncrease);
         }
 
         public enum SoundOrParticleEffect : int
@@ -1639,6 +1643,7 @@ namespace Chraft.Net.Packets
             SOUND_ZOMBIE_WOOD = 1010,
             SOUND_ZOMBIE_METAL = 1011,
             SOUND_ZOMBIE_WOOD_BREAK = 1012,
+            SOUND_WITHER_SPAWN = 1013,
 
             //Particles
             PARTICLE_SMOKE = 2000,       // Has SoundData (direction, see SmokeDirection)
