@@ -375,7 +375,7 @@ namespace Chraft.Net
             }
 
             SendLoginRequest();
-            _player.UpdateChunks(10, CancellationToken.None, true, false);
+            _player.UpdateChunks(4, CancellationToken.None, true, false);
             SendSpawnPosition(false);
             _player.InitializeInventory(); 
             _player.InitializeHealth();
