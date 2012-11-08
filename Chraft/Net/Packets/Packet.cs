@@ -184,6 +184,7 @@ namespace Chraft.Net.Packets
         public byte WorldHeight { get; set; }
         public byte MaxPlayers { get; set; }
 
+
         public override void Read(PacketReader reader)
         {
             ProtocolOrEntityId = reader.ReadInt();
@@ -270,6 +271,7 @@ namespace Chraft.Net.Packets
         public override void Write()
         {
             SetCapacity();
+            Writer.Write((long)0); //TODO Update to Paket 1.4.2 see http://www.wiki.vg/Protocol#Time_Update_.280x04.29
             Writer.Write(Time);
         }
     }
@@ -491,8 +493,8 @@ namespace Chraft.Net.Packets
                 X = stream.ReadDouble();
                 Y = stream.ReadDouble();
                 Stance = stream.ReadDouble();
+                Z = stream.ReadDouble();
             }
-            Z = stream.ReadDouble();
             Console.WriteLine("Receiving Position: {0},{1},{2}", X, Y, Z);
             Yaw = stream.ReadFloat();
             Pitch = stream.ReadFloat();

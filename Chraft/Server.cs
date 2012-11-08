@@ -570,7 +570,7 @@ namespace Chraft
                         // TODO: handle this case, writing on the console a warning and/or writing it plus the bytes on a log
                         client.Logger.Log(LogLevel.Caution, "Unhandled packet arrived, id: {0}", unhandledPacketData[0]);
 
-                        client.Logger.Log(LogLevel.Warning, "Data:\r\n {0}", BitConverter.ToString(unhandledPacketData, 1));
+                        //client.Logger.Log(LogLevel.Warning, "Data:\r\n {0}", BitConverter.ToString(unhandledPacketData, 1));
                         length = 0;
                     }
                     else if (handler.Length == 0)

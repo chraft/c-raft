@@ -287,13 +287,17 @@ namespace Chraft.Net
         }
         internal void SendLoginRequest()
         {
+
+            //TODO Remove this Hard coded shit ....
             Send_Sync_Packet(new LoginRequestPacket
             {
                 ProtocolOrEntityId = _player.EntityId,
-                Dimension = _player.World.Dimension,
+                LevelType = "DEFAULT",
+                ServerMode = (sbyte)01,
+                Dimension = 0,
                 WorldHeight = 128,
-                MaxPlayers = 50,
-                Difficulty = 2
+                MaxPlayers = 100,
+                Difficulty = 0
             });
         }
 
@@ -371,19 +375,18 @@ namespace Chraft.Net
             }
 
             SendLoginRequest();
-            
-            SendInitialTime(false);
             _player.UpdateChunks(4, CancellationToken.None, true, false);
-            SendSpawnPosition(false);
+
             SendInitialPosition(false);
+            SendSpawnPosition(false);
             SendInitialTime(false);
             SetGameMode();
-            _player.InitializeInventory();
-            _player.InitializeHealth();
+            //_player.InitializeInventory(); //need fix here
+            //_player.InitializeHealth(); //need fix here
             _player.OnJoined();
             Server.AddEntity(_player, false);
-            Server.AddAuthenticatedClient(this);
-            SendMotd();
+            //Server.AddAuthenticatedClient(this); //need fix here
+            //SendMotd(); NEED Fix
             StartKeepAliveTimer();
             _player.UpdateEntities();
             Server.SendEntityToNearbyPlayers(_player.World, _player);
