@@ -385,7 +385,7 @@ namespace Chraft.Net
             _player.OnJoined();
             Server.AddEntity(_player, false);
             //Server.AddAuthenticatedClient(this); //need fix here
-            //SendMotd(); //need fix
+            SendMotd();
             StartKeepAliveTimer();
             _player.UpdateEntities();
             Server.SendEntityToNearbyPlayers(_player.World, _player);
