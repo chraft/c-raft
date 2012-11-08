@@ -260,8 +260,9 @@ namespace Chraft.Net.Packets
 
     public class TimeUpdatePacket : Packet
     {
+        public long AgeWorld { get; set; }
         public long Time { get; set; }
-        protected override int Length { get { return 9; } }
+        protected override int Length { get { return 17; } }
 
         public override void Read(PacketReader stream)
         {
@@ -271,7 +272,7 @@ namespace Chraft.Net.Packets
         public override void Write()
         {
             SetCapacity();
-            Writer.Write((long)0); //TODO Update to Paket 1.4.2 see http://www.wiki.vg/Protocol#Time_Update_.280x04.29
+            Writer.Write((long)45464654); //TODO Update to Paket 1.4.2 see http://www.wiki.vg/Protocol#Time_Update_.280x04.29
             Writer.Write(Time);
         }
     }

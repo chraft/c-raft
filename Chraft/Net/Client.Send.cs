@@ -305,6 +305,7 @@ namespace Chraft.Net
         {
             Packet packet = new TimeUpdatePacket
             {
+                AgeWorld = 0, //Todo get Server or World time inTick
                 Time = _player.World.Time
             };
 
@@ -380,11 +381,11 @@ namespace Chraft.Net
             _player.InitializeInventory(); 
             _player.InitializeHealth();
             SendInitialPosition(false);
-            //SendInitialTime(false); //Not work
+            SendInitialTime(false); //Not work
             SetGameMode();
             _player.OnJoined();
             Server.AddEntity(_player, false);
-            //Server.AddAuthenticatedClient(this); //need fix here
+            Server.AddAuthenticatedClient(this); //need fix here
             SendMotd();
             StartKeepAliveTimer();
             _player.UpdateEntities();
