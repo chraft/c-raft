@@ -42,7 +42,14 @@ namespace Chraft.Net
 {
     public partial class Client : IClient
     {
-        internal const int ProtocolVersion = 29;
+        /* For MineCraft 1.4.3
+           internal const int ProtocolVersion = 48;
+           internal const string MinecraftServerVersion = "1.4.3";
+        */
+        internal const int ProtocolVersion = 47;
+        internal const string MinecraftServerVersion = "1.4.2";
+
+
         private readonly Socket _socket;
         public volatile bool Running = true;
         internal PacketHandler PacketHandler { get; private set; }
