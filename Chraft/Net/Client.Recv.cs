@@ -665,7 +665,7 @@ namespace Chraft.Net
             }
         }
 
-        public static void HandlePacketLocaleAndViewDistance(Client client, LocaleAndViewDistancePacket packet)
+        public static void HandlePacketLocaleAndViewDistance(Client client, ClientSettingsPacket packet)
         {
             if (packet.ViewDistance < ChraftConfig.MaxSightRadius)
                 client.CurrentSightRadius = packet.ViewDistance;

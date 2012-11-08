@@ -286,7 +286,7 @@ namespace Chraft.Net
 
         public static void ReadLocaleAndViewDistance(Client client, PacketReader reader)
         {
-            LocaleAndViewDistancePacket lvd = new LocaleAndViewDistancePacket();
+            ClientSettingsPacket lvd = new ClientSettingsPacket();
             lvd.Read(reader);
 
             if(!reader.Failed)

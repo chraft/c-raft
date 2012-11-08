@@ -2200,12 +2200,13 @@ namespace Chraft.Net.Packets
         }
     }
 
-    public class LocaleAndViewDistancePacket : Packet
+    public class ClientSettingsPacket : Packet
     {
         public string Locale { get; set; }
         public byte ViewDistance { get; set; }
         public byte ChatFlags { get; set; }
         public byte Difficulty { get; set; }
+        public bool ShowCape { get; set; }
 
         public override void Read(PacketReader reader)
         {
@@ -2213,15 +2214,17 @@ namespace Chraft.Net.Packets
             ViewDistance = reader.ReadByte();
             ChatFlags = reader.ReadByte();
             Difficulty = reader.ReadByte();
+            ShowCape = reader.ReadBool();
         }
 
         public override void Write()
         {
-            SetCapacity(6, Locale);
+            SetCapacity(7, Locale);
             Writer.Write(Locale);
             Writer.Write(ViewDistance);
             Writer.Write(ChatFlags);
             Writer.Write(Difficulty);
+            Writer.Write(ShowCape);
         }
     }
 

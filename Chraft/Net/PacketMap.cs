@@ -71,7 +71,7 @@ namespace Chraft.Net
             { typeof(HoldingChangePacket), PacketType.HoldingChange },
             { typeof(KeepAlivePacket), PacketType.KeepAlive },
             { typeof(IncrementStatisticPacket), PacketType.IncrementStatistic },
-            { typeof(LocaleAndViewDistancePacket), PacketType.LocaleAndViewDistance },
+            { typeof(ClientSettingsPacket), PacketType.LocaleAndViewDistance },
             { typeof(LoginRequestPacket), PacketType.LoginRequest },
             { typeof(ItemDataPacket), PacketType.MapData },
             { typeof(MapChunkPacket), PacketType.MapChunk },
