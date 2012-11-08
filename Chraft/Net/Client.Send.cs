@@ -381,11 +381,11 @@ namespace Chraft.Net
             _player.InitializeInventory(); 
             _player.InitializeHealth();
             SendInitialPosition(false);
-            SendInitialTime(false); //Not work
+            SendInitialTime(false); 
             SetGameMode();
             _player.OnJoined();
             Server.AddEntity(_player, false);
-            Server.AddAuthenticatedClient(this); //need fix here
+            Server.AddAuthenticatedClient(this);
             SendMotd();
             StartKeepAliveTimer();
             _player.UpdateEntities();
