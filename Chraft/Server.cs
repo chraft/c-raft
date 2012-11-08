@@ -1063,9 +1063,8 @@ namespace Chraft
                     Yaw = item.PackedYaw,
                     Pitch = item.PackedPitch,
                     EntityId = item.EntityId,
-                    ItemId = item.ItemId,
-                    Count = item.Count,
-                    Durability = item.Durability,
+                    //todo - proper slot handling
+                    Slot = item.Durability,
                     Roll = 0
                 };
             }
