@@ -1727,10 +1727,11 @@ namespace Chraft.Net.Packets
         }
     }
 
-    public class ThunderBoltPacket : Packet
+    public class GlobalEntityPacket : Packet
     {
         public int EntityId { get; set; }
-        public bool Unknown { get; set; }
+        //The global entity, currently always 1 for thunderbolt.
+        public byte ID { get; set; }
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
@@ -1740,7 +1741,7 @@ namespace Chraft.Net.Packets
         public override void Read(PacketReader stream)
         {
             EntityId = stream.ReadInt();
-            Unknown = stream.ReadBool();
+            ID = stream.ReadByte();
             X = stream.ReadDoublePacked();
             Y = stream.ReadDoublePacked();
             Z = stream.ReadDoublePacked();
@@ -1750,7 +1751,7 @@ namespace Chraft.Net.Packets
         {
             SetCapacity();
             Writer.Write(EntityId);
-            Writer.Write(Unknown);
+            Writer.Write(ID);
             Writer.Write((int)X);
             Writer.Write((int)Y);
             Writer.Write((int)Z);

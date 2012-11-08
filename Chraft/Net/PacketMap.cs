@@ -99,7 +99,7 @@ namespace Chraft.Net
             { typeof(SpawnPositionPacket), PacketType.SpawnPosition },
             { typeof(TabCompletePacket), PacketType.TabComplete },
             { typeof(TimeUpdatePacket), PacketType.TimeUpdate },
-            { typeof(ThunderBoltPacket), PacketType.Thunderbolt },
+            { typeof(GlobalEntityPacket), PacketType.Thunderbolt },
             { typeof(TransactionPacket), PacketType.Transaction },
             { typeof(UpdateHealthPacket), PacketType.UpdateHealth },
             { typeof(UpdateWindowPropertyPacket), PacketType.UpdateWindowProperty },
