@@ -293,7 +293,7 @@ namespace Chraft.Net
             {
                 ProtocolOrEntityId = _player.EntityId,
                 LevelType = "DEFAULT",
-                ServerMode = (sbyte)01,
+                ServerMode = (sbyte)0, //TODO Get from server
                 Dimension = 0,
                 WorldHeight = 128,
                 MaxPlayers = 100,
@@ -375,18 +375,17 @@ namespace Chraft.Net
             }
 
             SendLoginRequest();
-            _player.UpdateChunks(4, CancellationToken.None, true, false);
-
-            SendInitialPosition(false);
+            _player.UpdateChunks(10, CancellationToken.None, true, false);
             SendSpawnPosition(false);
-            SendInitialTime(false);
+            _player.InitializeInventory(); 
+            _player.InitializeHealth();
+            SendInitialPosition(false);
+            //SendInitialTime(false); //Not work
             SetGameMode();
-            //_player.InitializeInventory(); //need fix here
-            //_player.InitializeHealth(); //need fix here
             _player.OnJoined();
             Server.AddEntity(_player, false);
             //Server.AddAuthenticatedClient(this); //need fix here
-            //SendMotd(); NEED Fix
+            //SendMotd(); //need fix
             StartKeepAliveTimer();
             _player.UpdateEntities();
             Server.SendEntityToNearbyPlayers(_player.World, _player);
