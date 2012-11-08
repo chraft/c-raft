@@ -917,7 +917,7 @@ namespace Chraft
             if (authClients.Length == 0)
                 return;
 
-            TimeUpdatePacket packet = new TimeUpdatePacket {Time = world.Time};
+            TimeUpdatePacket packet = new TimeUpdatePacket {AgeOfWorld = 0, Time = world.Time};
             packet.SetShared(Logger, authClients.Length);
             Parallel.ForEach(authClients, (client) => client.SendPacket(packet));
         }

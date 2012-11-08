@@ -264,17 +264,20 @@ namespace Chraft.Net.Packets
 
     public class TimeUpdatePacket : Packet
     {
+        public long AgeOfWorld { get; set; }
         public long Time { get; set; }
-        protected override int Length { get { return 9; } }
+        protected override int Length { get { return 17; } }
 
         public override void Read(PacketReader stream)
         {
+            AgeOfWorld = stream.ReadLong();
             Time = stream.ReadLong();
         }
 
         public override void Write()
         {
             SetCapacity();
+            Writer.Write(AgeOfWorld);
             Writer.Write(Time);
         }
     }
