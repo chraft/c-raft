@@ -858,10 +858,11 @@ namespace Chraft.Net
 
         public static void HandlePacketServerListPing(Client client, ServerListPingPacket packet)
         {
+
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
             var clientCount = client.Server.GetAuthenticatedClients().Count();
             //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.ChraftConfig.MaxPlayers) });
-            client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, ChraftConfig.MaxPlayers));
+            client.Kick(String.Format("§1\0{0}\0{1}\0{2}\0{3}\0{4}", ProtocolVersion, MinecraftServerVersion, ChraftConfig.MOTD, clientCount, ChraftConfig.MaxPlayers));
         }
 
         public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)

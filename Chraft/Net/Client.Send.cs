@@ -287,13 +287,17 @@ namespace Chraft.Net
         }
         internal void SendLoginRequest()
         {
+
+            //TODO Remove this Hard code
             Send_Sync_Packet(new LoginRequestPacket
             {
                 ProtocolOrEntityId = _player.EntityId,
-                Dimension = _player.World.Dimension,
+                LevelType = "DEFAULT",
+                ServerMode = (sbyte)0, //TODO Get from server
+                Dimension = 0,
                 WorldHeight = 128,
-                MaxPlayers = 50,
-                Difficulty = 2
+                MaxPlayers = 100,
+                Difficulty = 0
             });
         }
 
@@ -301,6 +305,7 @@ namespace Chraft.Net
         {
             Packet packet = new TimeUpdatePacket
             {
+                AgeWorld = 0, //Todo get Server or World time inTick
                 Time = _player.World.Time
             };
 
@@ -371,15 +376,13 @@ namespace Chraft.Net
             }
 
             SendLoginRequest();
-            
-            SendInitialTime(false);
             _player.UpdateChunks(4, CancellationToken.None, true, false);
             SendSpawnPosition(false);
-            SendInitialPosition(false);
-            SendInitialTime(false);
-            SetGameMode();
-            _player.InitializeInventory();
+            _player.InitializeInventory(); 
             _player.InitializeHealth();
+            SendInitialPosition(false);
+            SendInitialTime(false); 
+            SetGameMode();
             _player.OnJoined();
             Server.AddEntity(_player, false);
             Server.AddAuthenticatedClient(this);
