@@ -288,7 +288,7 @@ namespace Chraft.Net
         internal void SendLoginRequest()
         {
 
-            //TODO Remove this Hard coded shit ....
+            //TODO Remove this Hard code
             Send_Sync_Packet(new LoginRequestPacket
             {
                 ProtocolOrEntityId = _player.EntityId,
