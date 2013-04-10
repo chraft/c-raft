@@ -2439,13 +2439,17 @@ namespace Chraft.Net.Packets
     {
         protected override int Length { get { return 2; } }
 
+        public byte Magic { get; set; }
+
         public override void Read(PacketReader stream)
         {
+            Magic = stream.ReadByte();
         }
 
         public override void Write()
         {
             SetCapacity();
+            Writer.Write(Magic);
         }
     }
 

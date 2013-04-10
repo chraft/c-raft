@@ -55,7 +55,7 @@ namespace Chraft.Net
             Register(PacketType.CloseWindow, 2, 0, ReadCloseWindow);
             Register(PacketType.WindowClick, 0, 10, ReadWindowClick);
             Register(PacketType.CreativeInventoryAction, 0, 5, ReadCreativeInventoryAction);
-            Register(PacketType.ServerListPing, 1, 0, ReadServerListPing);
+            Register(PacketType.ServerListPing, 2, 0, ReadServerListPing);
             Register(PacketType.Disconnect, 0, 3, ReadDisconnect);
             Register(PacketType.Transaction, 5 , 0, ReadTransaction);
             Register(PacketType.UpdateSign, 0, 11, ReadUpdateSign);
