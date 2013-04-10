@@ -88,6 +88,8 @@ namespace Chraft.Net
         ClientStatus = 0xCD,                //   <--
         ScoreBoardObjective = 0xCE,         //   <--
         UpdateScore = 0xCF,                 //   <--
+        DisplayScorboard = 0xD0,            //   <--
+        Teams = 0xD1,                       //   <--
         PluginMessage = 0xFA,               //   <-->
         EncryptionKeyResponse = 0xFC,       //   <--
         EncryptionKeyRequest = 0xFD,        //   -->

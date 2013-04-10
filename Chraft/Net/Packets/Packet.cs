@@ -1815,7 +1815,7 @@ namespace Chraft.Net.Packets
         public short Slot { get; set; }
         public MouseButtonClicked MouseButton { get; set; }
         public short Transaction { get; set; }
-        public bool Shift { get; set; }
+        public ClickWindowMode Mode { get; set; }
         public ItemInventory Item { get; set; }
 
         public override void Read(PacketReader stream)
@@ -1824,7 +1824,7 @@ namespace Chraft.Net.Packets
             Slot = stream.ReadShort();
             MouseButton = (MouseButtonClicked)stream.ReadByte();
             Transaction = stream.ReadShort();
-            Shift = stream.ReadBool();
+            Mode = (ClickWindowMode)stream.ReadByte();
             Item = ItemHelper.GetInstance(stream);
         }
 
@@ -1839,7 +1839,14 @@ namespace Chraft.Net.Packets
             Writer.Write(Slot);
             Writer.Write((byte)MouseButton);
             Writer.Write(Transaction);
-            Writer.Write(Shift);
+            if (MouseButton == MouseButtonClicked.Middle)
+            {
+                Writer.Write((byte)ClickWindowMode.MiddleClick);
+            }
+            else
+            {
+                Writer.Write((byte) Mode);
+            }
             (Item ?? ItemHelper.Void).Write(Writer);
             Length = (int)Writer.UnderlyingStream.Length;
         }
@@ -1849,6 +1856,15 @@ namespace Chraft.Net.Packets
             Left = 0,
             Right = 1,
             Middle = 3
+        }
+
+        public enum ClickWindowMode : byte
+        {
+            Click = 0,
+            ClickAndShift = 1,
+            MiddleClick = 3,
+            PaintingMode = 5,
+            DoubleClick = 6
         }
     }
 
@@ -2466,6 +2482,98 @@ namespace Chraft.Net.Packets
         {
             SetCapacity(3, Reason);
             Writer.Write(Reason);
+        }
+    }
+
+    public class DisplayScoreboardPacket : Packet
+    {
+        public BoardPosition Position { get; set; }
+        public string ScoreName { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            Position = (BoardPosition)reader.ReadByte();
+            ScoreName = reader.ReadString16(240);
+        }
+
+        public override void Write()
+        {
+            SetCapacity(4, ScoreName);
+            Writer.Write((byte)Position);
+            Writer.Write(ScoreName);
+        }
+
+        public enum BoardPosition : byte
+        {
+            List = 0,
+            SideBar = 1,
+            BelowName = 2
+        }
+    }
+
+    public class TeamsPacket : Packet
+    {
+        public string TeamName { get; set; }
+        public TeamMode Mode { get; set; }
+        public string TeamDisplayName { get; set; }
+        public string TeamPrefix { get; set; }
+        public string TeamSuffix { get; set; }
+        public byte FriendlyFire { get; set; }
+        public short PlayerCount { get; set; }
+        public string[] Players { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            TeamName = reader.ReadString16(240);
+            Mode = (TeamMode) reader.ReadByte();
+
+            if (Mode == TeamMode.Created || Mode == TeamMode.InfoUpdated)
+            {
+                TeamDisplayName = reader.ReadString16(240);
+                TeamPrefix = reader.ReadString16(240);
+                TeamSuffix = reader.ReadString16(240);
+                FriendlyFire = reader.ReadByte();
+            }
+            if (Mode == TeamMode.Created || Mode == TeamMode.PlayerAdded || Mode == TeamMode.PlayerRemoved)
+            {
+                var count = reader.ReadInt();
+                Players = new string[count];
+                for (int i = 0; i < count; i++)
+                {
+                    Players[i] = reader.ReadString16(140);
+                }
+            }
+        }
+
+        public override void Write()
+        {
+            Writer.Write(TeamName);
+            Writer.Write((byte) Mode);
+
+            if (Mode == TeamMode.Created || Mode == TeamMode.InfoUpdated)
+            {
+                Writer.Write(TeamDisplayName);
+                Writer.Write(TeamPrefix);
+                Writer.Write(TeamSuffix);
+                Writer.Write(FriendlyFire);
+            }
+            if (Mode == TeamMode.Created || Mode == TeamMode.PlayerAdded || Mode == TeamMode.PlayerRemoved)
+            {
+                Writer.Write((short) Players.Length);
+                for (int i = 0; i < Players.Length; i++)
+                {
+                    Writer.Write(Players[i]);
+                }
+            }
+        }
+
+        public enum TeamMode : byte
+        {
+            Created = 0,
+            Removed = 1,
+            InfoUpdated = 2,
+            PlayerAdded = 3,
+            PlayerRemoved =4
         }
     }
 }
