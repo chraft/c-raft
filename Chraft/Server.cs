@@ -1052,22 +1052,6 @@ namespace Chraft
                     Data = new MetaData()
                 };
             }
-            else if (entity is ItemEntity)
-            {
-                ItemEntity item = (ItemEntity)entity;
-                packet = new SpawnItemPacket
-                {
-                    X = item.Position.X,
-                    Y = item.Position.Y,
-                    Z = item.Position.Z,
-                    Yaw = item.PackedYaw,
-                    Pitch = item.PackedPitch,
-                    EntityId = item.EntityId,
-                    //todo - proper slot handling
-                    Slot = item.Durability,
-                    Roll = 0
-                };
-            }
             else if (entity is Mob)
             {
                 Mob mob = (Mob)entity;

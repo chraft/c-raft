@@ -39,7 +39,6 @@ namespace Chraft.Net
         Animation = 0x12,                   //   <->
         EntityAction = 0x13,                //   <--
         NamedEntitySpawn = 0x14,            //   <--
-        PickupSpawn = 0x15,                 //   <->
         CollectItem = 0x16,                 //   <--
         AddObjectVehicle = 0x17,            //   <--
         MobSpawn = 0x18,                    //   <--
@@ -65,9 +64,9 @@ namespace Chraft.Net
         BlockAction = 0x36,                 //   <--
         MapChunkBulk = 0x38,                //   <--
         Explosion = 0x3C,                   //   <--
-        SoundOrParticleEffect = 0x3D,                 //   <--
+        SoundOrParticleEffect = 0x3D,       //   <--
         NewInvalidState = 0x46,             //   ???
-        Thunderbolt = 0x47,                 //   <--
+        GlobalEntityPacket = 0x47,          //   <--
         OpenWindow = 0x64,                  //   <--
         CloseWindow = 0x65,                 //   <--
         WindowClick = 0x66,                 //   -->
@@ -78,7 +77,7 @@ namespace Chraft.Net
         CreativeInventoryAction = 0x6B,     //   <--
         EnchantItem = 0x6C,                 //   -->
         UpdateSign = 0x82,                  //   <->
-        MapData = 0x83,                     //   -->
+        ItemData = 0x83,                    //   -->
         UpdateTileEntity = 0x84,            //   <--
         IncrementStatistic = 0xC8,          //   ???
         PlayerListItem = 0xC9,              //   <--

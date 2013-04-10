@@ -559,7 +559,7 @@ namespace Chraft.Net.Packets
             StartDigging = 0,
             CancelledDigging = 1,
             FinishDigging = 2,
-            CheckBlock = 3,
+            DropItemStack = 3,
             DropItem = 4,
             ShootArrow = 5
         }
@@ -814,12 +814,14 @@ namespace Chraft.Net.Packets
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-        public int FireBallThrowerEid { get; set; }
-        public short FireBallX { get; set; }
-        public short FireBallY { get; set; }
-        public short FireBallZ { get; set; }
+        public byte Pitch { get; set; }
+        public byte Yaw { get; set; }
+        public int Data { get; set; }
+        public short SpeedX { get; set; }
+        public short SpeedY { get; set; }
+        public short SpeedZ { get; set; }
 
-        protected override int Length { get { return FireBallThrowerEid > 0 ? 28 : 22; } }
+        protected override int Length { get { return Data > 0 ? 29 : 23; } }
 
         public override void Read(PacketReader stream)
         {
@@ -828,12 +830,15 @@ namespace Chraft.Net.Packets
             X = stream.ReadInt() / 32.0d; // ((double)intX / 32.0d) => representation of X as double
             Y = stream.ReadInt() / 32.0d;
             Z = stream.ReadInt() / 32.0d;
-            FireBallThrowerEid = stream.ReadInt();
-            if (FireBallThrowerEid != 0)
+            Pitch = stream.ReadByte();
+            Yaw = stream.ReadByte();
+
+            Data = stream.ReadInt();
+            if (Data != 0)
             {
-                FireBallX = stream.ReadShort();
-                FireBallY = stream.ReadShort();
-                FireBallZ = stream.ReadShort();
+                SpeedX = stream.ReadShort();
+                SpeedY = stream.ReadShort();
+                SpeedZ = stream.ReadShort();
             }
         }
 
@@ -842,21 +847,22 @@ namespace Chraft.Net.Packets
             SetCapacity();
             Writer.Write(EntityId);
             Writer.Write((sbyte)Type);
-            Writer.Write((int)(X * 32));
+            Writer.Write((int)(X * 32)); //todo verify
             Writer.Write((int)(Y * 32));
             Writer.Write((int)(Z * 32));
-            Writer.Write(FireBallThrowerEid);
-            if (FireBallThrowerEid != 0)
+            Writer.Write(Data);
+            if (Data != 0)
             {
-                Writer.Write(FireBallX);
-                Writer.Write(FireBallY);
-                Writer.Write(FireBallZ);
+                Writer.Write(SpeedX);
+                Writer.Write(SpeedY);
+                Writer.Write(SpeedZ);
             }
         }
 
         public enum ObjectType : sbyte
         {
             Boat = 1,
+            ItemStack = 2,
             Minecart = 10,
             StorageCart = 11,
             PoweredCart = 12,
@@ -865,9 +871,17 @@ namespace Chraft.Net.Packets
             Arrow = 60,
             ThrownSnowball = 61,
             ThrownEgg = 62,
-            FallingSand = 70,
-            FallingGravel = 71,
-            FishingFloat = 90,
+            ThrownEnderPearl = 65,
+            WitherSkull = 66,
+            FallingObjects = 70,
+            ItemFrames = 71,
+            EyeOfEnder = 72,
+            ThrownPotion = 73,
+            FallingDragonEgg = 74,
+            ThrownExpBottle = 75,
+            FishingFloat = 90
+
+            //todo metadata
         }
     }
 
@@ -1598,7 +1612,7 @@ namespace Chraft.Net.Packets
         /// </summary>
         public int SoundData { get; set; }
 
-        public bool NoVolumeIncrease { get; set; }
+        public bool DisableRelativeVolume { get; set; }
 
         protected override int Length { get { return 19; } }
 
@@ -1609,7 +1623,7 @@ namespace Chraft.Net.Packets
             Y = stream.ReadByte();
             Z = stream.ReadInt();
             SoundData = stream.ReadInt();
-            NoVolumeIncrease = stream.ReadBool();
+            DisableRelativeVolume = stream.ReadBool();
         }
 
         public override void Write()
@@ -1620,7 +1634,7 @@ namespace Chraft.Net.Packets
             Writer.Write(Y);
             Writer.Write(Z);
             Writer.Write(SoundData);
-            Writer.Write(NoVolumeIncrease);
+            Writer.Write(DisableRelativeVolume);
         }
 
         public enum SoundOrParticleEffect : int
@@ -2030,16 +2044,16 @@ namespace Chraft.Net.Packets
         public short ItemType { get; set; }
         public short ItemId { get; set; }
         //Text length of the Text Byte array
-        public byte TextLength { get; set; }
+        public short TextLength { get; set; }
         public byte[] Text { get; set; }
 
-        protected override int Length { get { return 6 + Text.Length; } }
+        protected override int Length { get { return 7 + Text.Length; } }
 
         public override void Read(PacketReader stream)
         {
             ItemType = stream.ReadShort();
             ItemId = stream.ReadShort();
-            TextLength = stream.ReadByte();
+            TextLength = stream.ReadShort();
             Text = stream.ReadBytes(TextLength);
         }
 
@@ -2340,7 +2354,7 @@ namespace Chraft.Net.Packets
     /// </summary>
     public class ServerListPingPacket : Packet
     {
-        protected override int Length { get { return 1; } }
+        protected override int Length { get { return 2; } }
 
         public override void Read(PacketReader stream)
         {

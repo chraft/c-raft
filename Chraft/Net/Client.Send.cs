@@ -296,6 +296,7 @@ namespace Chraft.Net
                 Dimension = _player.World.Dimension,
                 MaxPlayers = (byte)ChraftConfig.MaxPlayers,
                 Difficulty = 2,
+                ServerMode = 0,
                 LevelType = ChraftConfig.LevelType
             });
         }

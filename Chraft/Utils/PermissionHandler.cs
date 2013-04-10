@@ -54,14 +54,10 @@ namespace Chraft.Utils
                         };
             var preAllowList = new List<string>();
             var preDisallowedList = new List<string>();
-            var perm =
-                _permissionXml.Descendants("Users").Descendants("User").Where(
-                    n => ((string) n.Attribute("Name")).ToLower() == client.Username.ToLower()).FirstOrDefault();
+            var perm = _permissionXml.Descendants("Users").Descendants("User").FirstOrDefault(n => ((string) n.Attribute("Name")).ToLower() == client.Username.ToLower());
 
             //default group we grab the first with default attrbute defined
-            var gperm =
-                _permissionXml.Descendants("Groups").Descendants("Group").Where(
-                    n => (string) n.Attribute("IsDefault") == "true").FirstOrDefault();
+            var gperm = _permissionXml.Descendants("Groups").Descendants("Group").FirstOrDefault(n => (string) n.Attribute("IsDefault") == "true");
             if (gperm == null)
             {
                 //no default defined
@@ -295,8 +291,7 @@ namespace Chraft.Utils
         private bool GroupExists(string groupName)
         {
             var count =
-                _permissionXml.Descendants("Groups").Descendants("Group").Where(
-                    n => n.Attribute("Name").Value.ToLower() == groupName.ToLower()).Count();
+                _permissionXml.Descendants("Groups").Descendants("Group").Count(n => n.Attribute("Name").Value.ToLower() == groupName.ToLower());
             return count > 0;
         }
 

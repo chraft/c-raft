@@ -38,10 +38,11 @@ namespace Chraft.Net.Packets
             int length;
             byte[] compressedData = MapChunkPacket.CompressChunkData(totalData, index, out length);
 
-            SetCapacity(7 + length + (12 * ChunksToSend.Count));
+            SetCapacity(8 + length + (12 * ChunksToSend.Count));
 
             Writer.Write((short)ChunksToSend.Count);
             Writer.Write(length);
+            Writer.Write(true); // todo send light status properly
             Writer.Write(compressedData, 0, length);
 
             foreach (Chunk chunkToSend in ChunksToSend)

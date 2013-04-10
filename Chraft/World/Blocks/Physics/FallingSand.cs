@@ -33,7 +33,7 @@ namespace Chraft.World.Blocks.Physics
 
         public FallingSand(WorldManager world, AbsWorldCoords pos) : base(world, pos)
         {
-            Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingSand;
+            Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingObjects;
             BlockId = (byte) BlockData.Blocks.Sand;
             Velocity = new Vector3(0, -0.4D, 0);
         }
