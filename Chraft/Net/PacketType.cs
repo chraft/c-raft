@@ -65,6 +65,7 @@ namespace Chraft.Net
         MapChunkBulk = 0x38,                //   <--
         Explosion = 0x3C,                   //   <--
         SoundOrParticleEffect = 0x3D,       //   <--
+        Particle = 0x3F,                    //   <--
         NewInvalidState = 0x46,             //   ???
         GlobalEntityPacket = 0x47,          //   <--
         OpenWindow = 0x64,                  //   <--
@@ -85,6 +86,8 @@ namespace Chraft.Net
         TabComplete = 0xCB,                 //   <-->
         LocaleAndViewDistance = 0xCC,       //   <--
         ClientStatus = 0xCD,                //   <--
+        ScoreBoardObjective = 0xCE,         //   <--
+        UpdateScore = 0xCF,                 //   <--
         PluginMessage = 0xFA,               //   <-->
         EncryptionKeyResponse = 0xFC,       //   <--
         EncryptionKeyRequest = 0xFD,        //   -->

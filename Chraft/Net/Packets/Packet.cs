@@ -16,23 +16,16 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading;
 using Chraft.Entity.Items;
 using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
-using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
-using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
-using Chraft.World;
-using Chraft.Entity;
-using Chraft.PluginSystem;
 
 namespace Chraft.Net.Packets
 {
@@ -892,9 +885,9 @@ namespace Chraft.Net.Packets
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
-        public sbyte Yaw { get; set; }
         public sbyte Pitch { get; set; }
-        public sbyte HeadYaw { get; set; }
+        public sbyte HeadPitch { get; set; }
+        public sbyte Yaw { get; set; }
         public short VelocityX { get; set; }
         public short VelocityY { get; set; }
         public short VelocityZ { get; set; }
@@ -908,9 +901,10 @@ namespace Chraft.Net.Packets
             X = stream.ReadInt() / 32.0d;
             Y = stream.ReadInt() / 32.0d;
             Z = stream.ReadInt() / 32.0d;
-            Yaw = stream.ReadSByte();
+           
             Pitch = stream.ReadSByte();
-            HeadYaw = stream.ReadSByte();
+            HeadPitch = stream.ReadSByte();
+            Yaw = stream.ReadSByte();
             VelocityX = stream.ReadShort();
             VelocityY = stream.ReadShort();
             VelocityZ = stream.ReadShort();
@@ -925,9 +919,9 @@ namespace Chraft.Net.Packets
             Writer.Write((int)(X * 32));
             Writer.Write((int)(Y * 32));
             Writer.Write((int)(Z * 32));
-            Writer.Write(Yaw);
             Writer.Write(Pitch);
-            Writer.Write(HeadYaw);
+            Writer.Write(HeadPitch);
+            Writer.Write(Yaw);
             Writer.Write(VelocityX);
             Writer.Write(VelocityY);
             Writer.Write(VelocityZ);
@@ -1778,6 +1772,7 @@ namespace Chraft.Net.Packets
         internal InterfaceType InventoryType { get; set; }
         public string WindowTitle { get; set; }
         public sbyte SlotCount { get; set; }
+        public bool UseProvidedWindowTitle { get; set; }
 
         public override void Read(PacketReader stream)
         {
@@ -1785,15 +1780,17 @@ namespace Chraft.Net.Packets
             InventoryType = (InterfaceType)stream.ReadSByte();
             WindowTitle = stream.ReadString16(100);
             SlotCount = stream.ReadSByte();
+            UseProvidedWindowTitle = stream.ReadBool();
         }
 
         public override void Write()
         {
-            SetCapacity(6, WindowTitle);
+            SetCapacity(7, WindowTitle);
             Writer.Write(WindowId);
             Writer.Write((sbyte)InventoryType);
             Writer.Write(WindowTitle);
             Writer.Write(SlotCount);
+            Writer.Write(UseProvidedWindowTitle);
         }
     }
 
@@ -2010,6 +2007,31 @@ namespace Chraft.Net.Packets
         }
     }
 
+    public class UpdateScorePacket : Packet
+    {
+        public string ItemName { get; set; }
+        public byte UpdateOrRemove { get; set; }
+        public string ScoreName { get; set; }
+        public int Value { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            ItemName = reader.ReadString16(240);
+            UpdateOrRemove = reader.ReadByte();
+            ScoreName = reader.ReadString16(240);
+            Value = reader.ReadInt();
+        }
+
+        public override void Write()
+        {
+            SetCapacity(9, ItemName, ScoreName);
+            Writer.Write(ItemName);
+            Writer.Write(UpdateOrRemove);
+            Writer.Write(ScoreName);
+            Writer.Write(Value);
+        }
+    }
+
     public class UpdateSignPacket : Packet
     {
         public int X { get; set; }
@@ -2153,6 +2175,45 @@ namespace Chraft.Net.Packets
         }
     }
 
+    public class ParticlePacket : Packet
+    {
+        public string ParticleName { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
+        public float Z { get; set; }
+        public float OffsetX { get; set; }
+        public float OffsetY { get; set; }
+        public float OffsetZ { get; set; }
+        public float ParticleSpeed { get; set; }
+        public int NumberOfParticles { get; set; }
+
+        public override void Read(PacketReader stream)
+        {
+            ParticleName = stream.ReadString16(240);
+            X = stream.ReadFloat();
+            Y = stream.ReadFloat();
+            Z = stream.ReadFloat();
+            OffsetX = stream.ReadFloat();
+            OffsetY = stream.ReadFloat();
+            OffsetZ = stream.ReadFloat();
+            ParticleSpeed = stream.ReadFloat();
+            NumberOfParticles = stream.ReadInt();
+        }
+
+        public override void Write()
+        {
+            SetCapacity(34, ParticleName);
+            Writer.Write(X);
+            Writer.Write(Y);
+            Writer.Write(Z);
+            Writer.Write(OffsetX);
+            Writer.Write(OffsetY);
+            Writer.Write(OffsetZ);
+            Writer.Write(ParticleSpeed);
+            Writer.Write(NumberOfParticles);
+        }
+    }
+
     /// <summary>
     /// Sent by the notchian server to update the user list (<tab> in the client). The server sends one packet per user per tick, amounting to 20 packets/s for 1 online user, 40 for 2, and so forth.
     /// </summary>
@@ -2201,6 +2262,28 @@ namespace Chraft.Net.Packets
             Writer.Write((byte)(Invulnerability ? 1 : 0) | (IsFlying ? 2 : 0) | (CanFly ? 4 : 0));
             Writer.Write(WalkingSpeed);
             Writer.Write(FlyingSpeed);
+        }
+    }
+
+    public class ScoreBoardObjectivePacket : Packet
+    {
+        public string ObjectiveName { get; set; }
+        public string ObjectiveValue { get; set; }
+        public byte CreateOrRemove { get; set; }
+
+        public override void Read(PacketReader reader)
+        {
+            ObjectiveName = reader.ReadString16(240);
+            ObjectiveValue = reader.ReadString16(240);
+            CreateOrRemove = reader.ReadByte();
+        }
+
+        public override void Write()
+        {
+            SetCapacity(6, ObjectiveName, ObjectiveValue);
+            Writer.Write(ObjectiveName);
+            Writer.Write(ObjectiveValue);
+            Writer.Write(CreateOrRemove);
         }
     }
 
