@@ -164,6 +164,7 @@
     <Compile Include="Entity\Items\ItemWoodPlanks.cs" />
     <Compile Include="Entity\Items\ItemIronIngot.cs" />
     <Compile Include="Entity\Mobs\Blaze.cs" />
+    <Compile Include="Entity\Mobs\Enderman.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />

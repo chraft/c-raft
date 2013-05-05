@@ -26,24 +26,24 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Blaze : Monster
+    public class Enderman : Monster
     {
         public override string Name
         {
-            get { return "Blaze"; }
+            get { return "Enderman"; }
         }
 
-        public override short MaxHealth { get { return 20; } } // 10 hearts
+        public override short MaxHealth { get { return 40; } } // 20 hearts
 
         public override short AttackStrength
         {
             get
             {
-                return 9; // 4.5 hearts
+                return 10; // 5 hearts
             }
         }
 
-        internal Blaze(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
+        internal Enderman(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
             : base(world, entityId, MobType.Blaze, data)
         {
         }
@@ -54,7 +54,7 @@ namespace Chraft.Entity.Mobs
             UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.BlazeRod, count, 0));
+                Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.EnderPearl, count, 0));
             base.DoDeath(killedBy);
         }
     }
