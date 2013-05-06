@@ -1,4 +1,4 @@
-#region C#raft License
+﻿#region C#raft License
 // This file is part of C#raft. Copyright C#raft Team 
 // 
 // C#raft is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity.Items;
-using Chraft.Utilities;
+using Chraft.Net;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
@@ -27,31 +27,22 @@ using Chraft.World;
 
 namespace Chraft.Entity.Mobs
 {
-    public class Squid : Animal
+    public class Bat : Animal
     {
         public override string Name
         {
-            get { return "Squid"; }
+            get { return "Bat"; }
         }
 
-        public override short MaxHealth { get { return 10; } }
+        public override short MaxHealth { get { return 6; } }
 
-        internal Squid(Chraft.World.WorldManager world, int entityId, Chraft.Net.MetaData data = null)
-            : base(world, entityId, MobType.Squid, data)
+        internal Bat(WorldManager world, int entityId, MobType type, MetaData data)
+            : base(world, entityId, type, data)
         {
+            MaxExp = 0;
+            MinExp = 0;
         }
 
-        protected override void DoDeath(EntityBase killedBy)
-        {
-            sbyte count = (sbyte)Server.Rand.Next(3);
-
-            if (count > 0)
-            {
-                var item = ItemHelper.GetInstance(BlockData.Items.Ink_Sack);
-                item.Count = count;
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), item);
-            }
-            base.DoDeath(killedBy);
-        }
+        //DoDeath has not been overridden due to Bats not having any loot.
     }
 }
