@@ -166,6 +166,7 @@
     <Compile Include="Entity\Mobs\Bat.cs" />
     <Compile Include="Entity\Mobs\Mooshroom.cs" />
     <Compile Include="Entity\Mobs\Ocelot.cs" />
+    <Compile Include="Entity\Mobs\Villager.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
@@ -399,6 +400,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Resources\items.xml" />
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
