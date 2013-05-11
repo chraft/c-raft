@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
@@ -54,7 +56,11 @@ namespace Chraft.Entity.Mobs
             UniversalCoords coords = UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z);
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, coords, new Interfaces.ItemStack((short)BlockData.Items.BlazeRod, count, 0));
+            {
+                ItemInventory itm = ItemHelper.GetInstance(BlockData.Items.BlazeRod);
+                itm.Count = count;
+                Server.DropItem(World, coords, itm);
+            }
             base.DoDeath(killedBy);
         }
     }
