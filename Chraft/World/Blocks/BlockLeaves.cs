@@ -16,8 +16,8 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -34,16 +34,26 @@ namespace Chraft.World.Blocks
             BurnEfficiency = 300;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            Player player = entity as Player;
+            overridedLoot = new List<ItemInventory>();
+            var player = entity as Player;
             if (player != null)
             {
-                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
-                    overridedLoot.Add(new ItemStack((short)Type, 1, block.MetaData));              
+                ItemInventory item;
+                if (player.Inventory.ActiveItem is ItemShears)
+                {
+                    item = ItemHelper.GetInstance((short)Type);
+                    item.Count = 1;
+                    item.Durability = block.MetaData;
+                    overridedLoot.Add(item);
+                }
                 else if (block.World.Server.Rand.Next(5) == 0)
-                    overridedLoot.Add(new ItemStack((short)BlockData.Blocks.Sapling, 1));
+                {
+                    item = ItemHelper.GetInstance((short)BlockData.Blocks.Sapling);
+                    item.Count = 1;
+                    overridedLoot.Add(item);
+                }
             }
             base.DropItems(entity, block, overridedLoot);
         }

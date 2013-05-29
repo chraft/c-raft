@@ -24,7 +24,7 @@ namespace Chraft.PluginSystem.World.Blocks
 {
     public interface IBlockBase
     {
-        List<IItemStack> GetLootTable();
+        List<IItemInventory> GetLootTable();
 
         /// <summary>
         /// Destroy the block and drop the loot (if any)

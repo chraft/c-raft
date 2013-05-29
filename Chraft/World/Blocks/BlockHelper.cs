@@ -39,6 +39,7 @@ namespace Chraft.World.Blocks
         private static ConcurrentDictionary<byte, byte> _blocksLuminance;
         private static ConcurrentDictionary<byte, short> _blocksBurnEfficiency;
         private static ConcurrentDictionary<byte, byte> _waterProofBlocks;
+        private static ConcurrentDictionary<byte, byte> _interactiveBlocks;
 
         private static readonly BlockHelper _instance = new BlockHelper();
 
@@ -64,6 +65,7 @@ namespace Chraft.World.Blocks
             _blocksLuminance = new ConcurrentDictionary<byte, byte>();
             _blocksBurnEfficiency = new ConcurrentDictionary<byte, short>();
             _waterProofBlocks = new ConcurrentDictionary<byte, byte>();
+            _interactiveBlocks = new ConcurrentDictionary<byte, byte>();
 
             BlockBase block;
             byte blockId;
@@ -93,6 +95,8 @@ namespace Chraft.World.Blocks
                 _blocksOpacity.TryAdd(blockId, block.Opacity);
                 _blocksLuminance.TryAdd(blockId, block.Luminance);
                 _blocksBurnEfficiency.TryAdd(blockId, block.BurnEfficiency);
+                if (block is IBlockInteractive)
+                    _interactiveBlocks.TryAdd(blockId, blockId);
             }
         }
 
@@ -104,10 +108,9 @@ namespace Chraft.World.Blocks
         /// <returns></returns>
         internal BlockBase CreateBlockInstance(byte blockId)
         {
-            BlockBase block = null;
             if (_blocks.ContainsKey(blockId))
                 return _blocks[blockId];
-            return block;
+            return null;
         }
 
         public bool IsGrowable(byte blockId)
@@ -258,6 +261,16 @@ namespace Chraft.World.Blocks
         public bool IsWaterProof(BlockData.Blocks blockType)
         {
             return _waterProofBlocks.ContainsKey((byte)blockType);
+        }
+
+        public bool IsInteractive(byte blockId)
+        {
+            return _interactiveBlocks.ContainsKey(blockId);
+        }
+
+        public bool IsInteractive(BlockData.Blocks blockType)
+        {
+            return _interactiveBlocks.ContainsKey((byte)blockType);
         }
     }
 }

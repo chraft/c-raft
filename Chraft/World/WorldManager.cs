@@ -109,6 +109,8 @@ namespace Chraft.World
                 }
         }
 
+        public int AgeOfWorld { get; set; }
+
         private int _worldTicks;
         
         /// <summary>
@@ -491,8 +493,8 @@ namespace Chraft.World
                 chunk = toRecalculate.Dequeue();
 
                 if (chunk.LightToRecalculate)
-#if PROFILE
                 {
+#if PROFILE              
                     watch.Reset();
                     watch.Start();
 #endif
@@ -501,6 +503,8 @@ namespace Chraft.World
 #if PROFILE
                     watch.Stop();
                     Console.WriteLine("Chunk {0} - {1} skylight recalc: {2} ms", chunk.Coords.ChunkX, chunk.Coords.ChunkZ, watch.ElapsedMilliseconds);
+                }
+#else
                 }
 #endif
 
@@ -658,17 +662,12 @@ namespace Chraft.World
                     _growStuffTask = Task.Factory.StartNew(GrowProc);
                 }
             }
-   
-            // Every Tick (50ms)
-            if (_physicsSimulationTask == null || _physicsSimulationTask.IsCompleted)
-            {
-                _physicsSimulationTask = Task.Factory.StartNew(PhysicsProc);
-            }
 
-            if (_entityUpdateTask == null || _entityUpdateTask.IsCompleted)
-            {
-                _entityUpdateTask = Task.Factory.StartNew(EntityProc);
-            }
+            
+            PhysicsProc();
+
+            EntityProc();
+            
 
             // Every 2 Ticks (100ms)
             if (WorldTicks % 2 == 0)
@@ -733,19 +732,40 @@ namespace Chraft.World
 
         private void PhysicsProc()
         {
-            foreach (var physicsBlock in PhysicsBlocks)
+            if (PhysicsBlocks.Count > 10)
             {
-                physicsBlock.Value.Simulate();
+                Parallel.ForEach(PhysicsBlocks, (physicsBlock) =>
+                {
+                    physicsBlock.Value.Simulate();
+                });
+            }
+            else
+            {
+                foreach (var physicsBlock in PhysicsBlocks)
+                {
+                    physicsBlock.Value.Simulate();
+                }
             }
         }
   
         private void EntityProc()
         {
             EntityBase[] entities = Server.GetEntities() as EntityBase[];
-            Parallel.ForEach(entities.Where((entity) => entity.World == this), (e) =>
+
+            if (entities.Length > 20)
             {
-                e.Update();
-            });
+                Parallel.ForEach(entities.Where((entity) => entity.World == this), (e) =>
+                {
+                    e.Update();
+                });
+            }
+            else
+            {
+                foreach (EntityBase entity in entities)
+                {
+                    entity.Update();
+                }
+            }      
         }
         
         private void MobSpawnerProc()
@@ -1310,65 +1330,6 @@ namespace Chraft.World
                     return;
                 }
             }
-        }
-
-        internal UniversalCoords FromFace(UniversalCoords coords, BlockFace blockFace)
-        {
-            int bx = coords.WorldX;
-            int by = coords.WorldY;
-            int bz = coords.WorldZ;
-
-            switch (blockFace)
-            {
-                case BlockFace.Self:
-                    break;
-
-                case BlockFace.Up:
-                    by++;
-                    break;
-
-                case BlockFace.Down:
-                    by--;
-                    break;
-
-                case BlockFace.North:
-                    bx--;
-                    break;
-
-                case BlockFace.South:
-                    bx++;
-                    break;
-
-                case BlockFace.East:
-                    bz--;
-                    break;
-
-                case BlockFace.West:
-                    bz++;
-                    break;
-
-                case BlockFace.NorthEast:
-                    bx--;
-                    bz--;
-                    break;
-
-                case BlockFace.NorthWest:
-                    bx--;
-                    bz++;
-                    break;
-
-                case BlockFace.SouthEast:
-                    bx++;
-                    bz--;
-                    break;
-
-                case BlockFace.SouthWest:
-                    bx++;
-                    bz++;
-                    break;
-            }
-
-            return UniversalCoords.FromWorld(bx, by, bz);
         }
     }
 }

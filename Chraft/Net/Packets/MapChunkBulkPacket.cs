@@ -24,12 +24,12 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            int totalDataDim = ChunksToSend.Count*16*Section.BYTESIZE;
+            int totalDataDim = ChunksToSend.Count * 16 * (Section.BYTESIZE + Section.SIZE) + (ChunksToSend.Count * 256);
             byte[] totalData = new byte[totalDataDim];
             int index = 0;
             foreach(Chunk chunkToSend in ChunksToSend)
             {
-                MapChunkData chunkData = MapChunkPacket.GetMapChunkData(chunkToSend);
+                MapChunkData chunkData = MapChunkPacket.GetMapChunkData(chunkToSend, true);
                 _mapChunksData.Enqueue(chunkData);
                 Buffer.BlockCopy(chunkData.Data, 0, totalData, index, chunkData.Data.Length);
                 index += chunkData.Data.Length;
@@ -38,10 +38,11 @@ namespace Chraft.Net.Packets
             int length;
             byte[] compressedData = MapChunkPacket.CompressChunkData(totalData, index, out length);
 
-            SetCapacity(7 + length + (12 * ChunksToSend.Count));
+            SetCapacity(8 + length + (12 * ChunksToSend.Count));
 
             Writer.Write((short)ChunksToSend.Count);
             Writer.Write(length);
+            Writer.Write(true); // todo send light status properly
             Writer.Write(compressedData, 0, length);
 
             foreach (Chunk chunkToSend in ChunksToSend)

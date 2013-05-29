@@ -15,12 +15,10 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
-using Chraft.Interfaces;
+using Chraft.Entity.Items;
 using Chraft.Net;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -34,13 +32,15 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Wall_Sign;
             IsAir = true;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Sign, 1));
+            var item = ItemHelper.GetInstance(BlockData.Items.Sign);
+            item.Count = 1;
+            LootTable.Add(item);
             Opacity = 0x0;
         }
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
+            var block = (StructBlock)iBlock;
 
             switch (face)
             {

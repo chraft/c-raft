@@ -17,9 +17,6 @@ namespace Chraft.PluginSystem.Entity
         bool IsImmuneToFire { get; }
         bool IsDead { get; }
         bool IsEntityAlive { get; }
-        bool Collidable { get; }
-        bool Pushable { get; }
-        bool PreventMobSpawning { get; }
 
         IMetaData GetMetaData();
         bool CanSee(ILivingEntity entity);

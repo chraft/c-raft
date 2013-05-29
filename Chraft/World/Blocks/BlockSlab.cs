@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -33,7 +30,9 @@ namespace Chraft.World.Blocks
             Name = "Slab";
             Type = BlockData.Blocks.Slab;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            var item = ItemHelper.GetInstance(Type);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.5, 1);
         }
 

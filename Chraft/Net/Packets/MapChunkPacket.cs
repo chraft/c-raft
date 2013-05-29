@@ -20,6 +20,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Chraft.PluginSystem;
 using Chraft.Utilities;
+using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World;
 using ICSharpCode.SharpZipLib.Zip.Compression;
@@ -33,6 +34,7 @@ namespace Chraft.Net.Packets
         public byte SizeY { get { return 127; } }
         public byte SizeZ { get { return 15; } }*/
         public Chunk Chunk { get; set; }
+        public bool FirstInit { get; set; }
 
         public override void Read(PacketReader stream)
         {
@@ -61,52 +63,51 @@ namespace Chraft.Net.Packets
 
         public static ConcurrentStack<Deflater> DeflaterPool = new ConcurrentStack<Deflater>();
 
-        public static MapChunkData GetMapChunkData(Chunk chunk)
+        public static MapChunkData GetMapChunkData(Chunk chunk, bool firstInit)
         {
             MapChunkData chunkData = new MapChunkData();
-            
 
             ushort mask = 1;
-            int sectionIndex = 0;
 
-            int sectionsSent = 0;
-
-            for (int i = 0; i < 16; ++i )
-            {
-                Section currentSection = chunk.Sections[i];
-                if (currentSection != null)
-                    ++sectionsSent;
-            }
-
-            int dataDim = (sectionsSent * Section.BYTESIZE) + 256; // (Number of sections * (Section dimension + Add array) + Biome array
-
-            chunkData.Data = new byte[dataDim];
-
-            int halfSize = sectionsSent * Section.HALFSIZE;
-            int offsetData = sectionsSent * Section.SIZE;
-            int offsetLight = offsetData + halfSize;
-            int offsetSkyLight = offsetLight + halfSize;
-
+            Queue<Section> sectionsToBeSent = new Queue<Section>();
             for (int i = 0; i < 16; ++i)
             {
                 Section currentSection = chunk.Sections[i];
-
-                if (currentSection != null)
+                if (currentSection != null && (firstInit || (chunk.SectionsToBeUpdated & 1) << i != 0))
                 {
-                    Buffer.BlockCopy(currentSection.Types, 0, chunkData.Data, sectionIndex * Section.SIZE, Section.SIZE);
-                    Buffer.BlockCopy(currentSection.Data.Data, 0, chunkData.Data, offsetData + (sectionIndex * Section.HALFSIZE),
-                                        Section.HALFSIZE);
-
-                    Buffer.BlockCopy(chunk.Light.Data, i * Section.HALFSIZE, chunkData.Data, offsetLight + (sectionIndex * Section.HALFSIZE),
-                                        Section.HALFSIZE);
-                    Buffer.BlockCopy(chunk.SkyLight.Data, i * Section.HALFSIZE, chunkData.Data, offsetSkyLight + (sectionIndex * Section.HALFSIZE),
-                                        Section.HALFSIZE);
-
-
-                    chunkData.PrimaryBitMask |= mask << i;
-                    ++sectionIndex;
+                    sectionsToBeSent.Enqueue(currentSection);
                 }
+            }
 
+            int dataDim = sectionsToBeSent.Count * (Section.BYTESIZE + Section.SIZE);
+
+            if (firstInit)
+                dataDim += 256;
+
+            chunkData.Data = new byte[dataDim];
+
+            int halfSize = sectionsToBeSent.Count * Section.HALFSIZE;
+            int offsetData = sectionsToBeSent.Count * Section.SIZE;
+            int offsetLight = offsetData + halfSize;
+            int offsetSkyLight = offsetLight + halfSize;
+
+            int sectionIndex = 0;
+            while(sectionsToBeSent.Count > 0)
+            {
+                Section section = sectionsToBeSent.Dequeue();
+
+                Buffer.BlockCopy(section.Types, 0, chunkData.Data, sectionIndex * Section.SIZE, Section.SIZE);
+                Buffer.BlockCopy(section.Data.Data, 0, chunkData.Data, offsetData + (sectionIndex * Section.HALFSIZE),
+                                    Section.HALFSIZE);
+
+                Buffer.BlockCopy(chunk.Light.Data, section.SectionId * Section.HALFSIZE, chunkData.Data, offsetLight + (sectionIndex * Section.HALFSIZE),
+                                    Section.HALFSIZE);
+                Buffer.BlockCopy(chunk.SkyLight.Data, section.SectionId * Section.HALFSIZE, chunkData.Data, offsetSkyLight + (sectionIndex * Section.HALFSIZE),
+                                    Section.HALFSIZE);
+
+
+                chunkData.PrimaryBitMask |= mask << section.SectionId;
+                ++sectionIndex;
                 // TODO: we leave add array and biome array to 0 (ocean), we need to change the chunk generator accordingly
             }
 
@@ -115,7 +116,7 @@ namespace Chraft.Net.Packets
 
         public static byte[] CompressChunkData(byte[] chunkData, int chunkDataRealLength, out int length)
         {
-            byte[] comp = new byte[chunkData.Length];
+            byte[] comp = new byte[chunkDataRealLength];
 
             #if PROFILE_MAPCHUNK
             DateTime start = DateTime.Now;
@@ -163,7 +164,7 @@ namespace Chraft.Net.Packets
 
         public override void Write()
         {
-            MapChunkData chunkData = GetMapChunkData(Chunk);
+            MapChunkData chunkData = GetMapChunkData(Chunk, FirstInit);
 
             int len;
             byte[] chunkCompressed = CompressChunkData(chunkData.Data, chunkData.Data.Length, out len);
@@ -172,7 +173,7 @@ namespace Chraft.Net.Packets
             SetCapacity(18 + len);
             Writer.Write(Coords.ChunkX);
             Writer.Write(Coords.ChunkZ);
-            Writer.Write(false); // Ground Up Continous
+            Writer.Write(FirstInit); // Ground Up Continous
             Writer.Write((ushort)chunkData.PrimaryBitMask);
             Writer.Write((ushort)0); // Add BitMask
             Writer.Write(len);

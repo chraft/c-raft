@@ -19,7 +19,7 @@ namespace Chraft.PluginSystem.Entity
         bool Hunter { get; }
         bool Hunting { get; }
 
-        void InteractWith(IClient client, IItemStack item);
+        void InteractWith(IClient client, IItemInventory item);
 
         void Despawn();
     }

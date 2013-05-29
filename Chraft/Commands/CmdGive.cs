@@ -16,6 +16,8 @@
 #endregion
 using System.Collections.Generic;
 using System.Linq;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.PluginSystem;
@@ -34,7 +36,7 @@ namespace Chraft.Commands
         public void Use(IClient iclient, string commandName, string[] tokens)
         {
             Client client = (Client)iclient;
-            ItemStack item;
+            ItemInventory item;
             string itemName = string.Empty;
             short metaData = 0;
             uint amount = 0;
@@ -50,12 +52,12 @@ namespace Chraft.Commands
             {
                 itemName = tokens[0].Split(':')[0].Trim();
                 short.TryParse(tokens[0].Split(':')[1].Trim(), out metaData);
-                item = client.Owner.Server.Items[itemName];
+                item = client.Owner.Server.Items[itemName] as ItemInventory;
                 item.Durability = metaData;
             }
             else
             {
-                item = client.Owner.Server.Items[tokens[0]];
+                item = client.Owner.Server.Items[tokens[0]] as ItemInventory;
             }
 
             if (tokens.Length == 1)
@@ -68,7 +70,7 @@ namespace Chraft.Commands
                 // Trying to give yourself an item with amount specified
                 if (uint.TryParse(tokens[1], out amount))
                 {
-                    if (item != null && !item.IsVoid())
+                    if (item != null && !ItemHelper.IsVoid(item))
                         who.Add(client);
                     else
                     {
@@ -76,13 +78,13 @@ namespace Chraft.Commands
                         {
                             itemName = tokens[1].Split(':')[0].Trim();
                             short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
-                            item = client.Owner.Server.Items[itemName];
+                            item = client.Owner.Server.Items[itemName] as ItemInventory;
                             item.Durability = metaData;
                         }
 
                         else
                         {
-                            item = client.Owner.Server.Items[tokens[1]];
+                            item = client.Owner.Server.Items[tokens[1]] as ItemInventory;
                         }
                         who.AddRange(client.Owner.Server.GetClients(tokens[0]));
                     }
@@ -96,12 +98,12 @@ namespace Chraft.Commands
                     {
                         itemName = tokens[1].Split(':')[0].Trim();
                         short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
-                        item = client.Owner.Server.Items[itemName];
+                        item = client.Owner.Server.Items[itemName] as ItemInventory;
                         item.Durability = metaData;
                     }
                     else
                     {
-                        item = client.Owner.Server.Items[tokens[1]];
+                        item = client.Owner.Server.Items[tokens[1]] as ItemInventory;
                     }
                 }
             }
@@ -115,18 +117,18 @@ namespace Chraft.Commands
                     {
                         itemName = tokens[1].Split(':')[0].Trim();
                         short.TryParse(tokens[1].Split(':')[1].Trim(), out metaData);
-                        item = client.Owner.Server.Items[itemName];
+                        item = client.Owner.Server.Items[itemName] as ItemInventory;
                         item.Durability = metaData;
                     }
                     else
                     {
-                        item = client.Owner.Server.Items[tokens[1]];
+                        item = client.Owner.Server.Items[tokens[1]] as ItemInventory;
                     }
                 }
 
             }
 
-            if (item == null || item.IsVoid())
+            if (item == null || ItemHelper.IsVoid(item))
             {
                 client.SendMessage("§cUnknown item.");
                 return;
@@ -153,13 +155,21 @@ namespace Chraft.Commands
             client.SendMessage("/give <Item OR Block>[:MetaData] [Amount] - Gives you [Amount] of <Item OR Block>.");
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            if (string.IsNullOrEmpty(s.Trim()))
+                return string.Empty;
+
+            if (s.TrimStart().IndexOf(' ') != -1)
+                return string.Empty;
+
+            return PluginSystem.Commands.AutoComplete.GetPlayers(client, s.Trim());
+        }
+
         public string Name
         {
             get { return "give"; }
-            set {}
         }
-
-
 
         public string Shortcut
         {

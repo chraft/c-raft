@@ -17,6 +17,8 @@
 
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Net.Packets;
@@ -123,7 +125,7 @@ namespace Chraft.World.Blocks.Base
 
         public bool IsWaterProof { get; protected set; }
 
-        public List<ItemStack> LootTable { get; protected set; }
+        public List<ItemInventory> LootTable { get; protected set; }
 
         public double Slipperiness { get; protected set; }
 
@@ -142,17 +144,17 @@ namespace Chraft.World.Blocks.Base
             IsFertile = false;
             IsPlowed = false;
             BurnEfficiency = 0;
-            LootTable = new List<ItemStack>();
+            LootTable = new List<ItemInventory>();
             Luminance = 0;
             IsWaterProof = false;
             Slipperiness = 0.6;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 1, 1);
         }
 
-        public List<IItemStack> GetLootTable()
+        public List<IItemInventory> GetLootTable()
         {
             // Todo: this is not a very nice solution i think, can we do something better?
-            return LootTable.ConvertAll(x => (IItemStack) x);
+            return LootTable.ConvertAll(x => (IItemInventory)x);
         }
 
         /// <summary>
@@ -181,20 +183,15 @@ namespace Chraft.World.Blocks.Base
             UpdateWorld(block, true);
 
             // Check if the entity is a player
-            if ((entity != null) && (entity.GetType() == typeof(Player)))
+            if ((entity != null) && (entity is Player))
             {
-                // Check if the player is in creative mode
-                if (((Player)entity).GameMode == System.Convert.ToByte(1))
+                // Check if the player is not in creative mode
+                // Don't drop any items if the player is in creative mode
+                if (((Player)entity).GameMode == GameMode.Normal)
                 {
-                    // Don't drop any items as the player is in creative mode
-                    goto skipDrop;
+                    DropItems(entity as EntityBase, block);
                 }
             }
-
-            DropItems(entity as EntityBase, block);
-
-            skipDrop:
-            DamageItem(entity);
 
             NotifyNearbyBlocks((EntityBase)entity, block);
         }
@@ -286,9 +283,9 @@ namespace Chraft.World.Blocks.Base
         /// <summary>
         /// Places the block
         /// </summary>
-        /// <param name="entity">entity who placed the block</param>
-        /// <param name="block">block that is being placed</param>
-        /// <param name="targetBlock">block that is being targeted (aimed)</param>
+        /// <param name="ientity">entity who placed the block</param>
+        /// <param name="iBlock">block that is being placed</param>
+        /// <param name="targetIBlock">block that is being targeted (aimed)</param>
         /// <param name="face">side of the target block</param>
         public virtual void Place(IEntityBase ientity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
@@ -305,7 +302,6 @@ namespace Chraft.World.Blocks.Base
                 }
                 return;
             }
-
             UpdateWorld(block);
             RemoveItem(entity);
             NotifyNearbyBlocks(entity, block, false);
@@ -408,7 +404,7 @@ namespace Chraft.World.Blocks.Base
         /// Invoked to drop the loot after block destruction
         /// </summary>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(StructBlock block, List<ItemStack> overridedLoot = null)
+        protected virtual void DropItems(StructBlock block, List<ItemInventory> overridedLoot = null)
         {
             DropItems(null, block, overridedLoot);
         }
@@ -418,9 +414,9 @@ namespace Chraft.World.Blocks.Base
         /// </summary>
         /// <param name="entity">entity that destroyed the block</param>
         /// <param name="block">block that has been destroyed</param>
-        protected virtual void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected virtual void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            List<ItemStack> toDrop;
+            List<ItemInventory> toDrop;
             if (overridedLoot != null && overridedLoot.Count > 0)
                 toDrop = overridedLoot;
             else if (LootTable != null && LootTable.Count > 0)
@@ -446,17 +442,6 @@ namespace Chraft.World.Blocks.Base
         }
 
         /// <summary>
-        /// Damages the active item in the inventory when the block is destroyed
-        /// </summary>
-        /// <param name="entity">the entity who destroyed the block</param>
-        protected virtual void DamageItem(IEntityBase entity)
-        {
-            Player player = entity as Player;
-            if (player != null && player.GameMode == 0)
-                player.Inventory.DamageItem(player.Inventory.ActiveSlot);
-        }
-
-        /// <summary>
         /// Checks if the block can be placed next to the target one
         /// </summary>
         /// <param name="who">the entity who places the block</param>
@@ -470,7 +455,6 @@ namespace Chraft.World.Blocks.Base
                 return false;
 
             byte? originalBlock = block.World.GetBlockId(block.Coords);
-
             if ( originalBlock == null || (originalBlock != (byte)BlockData.Blocks.Air &&
                 originalBlock != (byte)BlockData.Blocks.Water &&
                 originalBlock != (byte)BlockData.Blocks.Still_Water &&
@@ -490,7 +474,6 @@ namespace Chraft.World.Blocks.Base
                         return false;
                 }
             }
-
             return true;
         }
 

@@ -25,7 +25,7 @@ namespace Chraft.World.Blocks.Physics
     {
         public FallingGravel(WorldManager world, AbsWorldCoords pos) : base(world, pos)
         {
-            Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingGravel;
+            Type = Net.Packets.AddObjectVehiclePacket.ObjectType.FallingObjects;
             BlockId = (byte) BlockData.Blocks.Gravel;
         }
     }

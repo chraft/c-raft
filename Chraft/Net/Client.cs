@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -42,7 +43,8 @@ namespace Chraft.Net
 {
     public partial class Client : IClient
     {
-        internal const int ProtocolVersion = 29;
+        internal const int ProtocolVersion = 47;
+        internal const string MinecraftServerVersion = "1.4.2";
         private readonly Socket _socket;
         public volatile bool Running = true;
         internal PacketHandler PacketHandler { get; private set; }
@@ -53,7 +55,7 @@ namespace Chraft.Net
         internal static SocketAsyncEventArgsPool RecvSocketEventPool = new SocketAsyncEventArgsPool(10);
         internal static BufferPool RecvBufferPool = new BufferPool("Receive", 2048, 2048);
 
-
+        
         private byte[] _recvBuffer;
         private SocketAsyncEventArgs _sendSocketEvent;
         private SocketAsyncEventArgs _recvSocketEvent;
@@ -106,6 +108,7 @@ namespace Chraft.Net
         internal byte[] SharedKey { get; set; }
         internal ICryptoTransform Encrypter { get; set; }
         internal ICryptoTransform Decrypter { get; set; }
+        public string IpAddress { get; private set; }
 
         /// <summary>
         /// Instantiates a new Client object.
@@ -126,7 +129,11 @@ namespace Chraft.Net
             ConnectionId = BitConverter.ToString(bytes).Replace("-", "");
 
             _chunkSendTimer = new Timer(SendChunks, null, Timeout.Infinite, Timeout.Infinite);
+            IpAddress = _socket.RemoteEndPoint != null
+                          ? (_socket.RemoteEndPoint as IPEndPoint).Address.ToString()
+                          : (_socket.LocalEndPoint as IPEndPoint).Address.ToString();
             //PacketHandler = new PacketHandler(Server, socket);
+          
         }
 
         public IPlayer GetOwner()
@@ -155,7 +162,7 @@ namespace Chraft.Net
         {
             SendPacket(new NewInvalidStatePacket
             {
-                GameMode = _player.GameMode,
+                GameMode = (byte)_player.GameMode,
                 Reason = NewInvalidStatePacket.NewInvalidReason.ChangeGameMode
             });
         }

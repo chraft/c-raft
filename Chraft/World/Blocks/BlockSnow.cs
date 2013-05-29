@@ -16,8 +16,8 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.Utilities;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -32,23 +32,25 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Snow;
             IsAir = true;
             Opacity = 0x0;
-            IsSolid = false;
+            IsSolid = true;
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.125, 1);
         }
 
-        protected override void  DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            Player player = entity as Player;
+            overridedLoot = new List<ItemInventory>();
+            var player = entity as Player;
             if (player != null)
             {
-                if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Wooden_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Stone_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Iron_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Gold_Spade ||
-                    player.Inventory.ActiveItem.Type == (short)BlockData.Items.Diamond_Spade)
+                if (player.Inventory.ActiveItem is ItemWoodenShovel ||
+                    player.Inventory.ActiveItem is ItemStoneShovel ||
+                    player.Inventory.ActiveItem is ItemIronShovel ||
+                    player.Inventory.ActiveItem is ItemGoldShovel ||
+                    player.Inventory.ActiveItem is ItemDiamondShovel)
                 {
-                    overridedLoot.Add(new ItemStack((short)BlockData.Items.Snowball, 1));
+                    var item = ItemHelper.GetInstance(BlockData.Items.Snowball);
+                    item.Count = 1;
+                    overridedLoot.Add(item);
                 }
             }
             base.DropItems(entity, block, overridedLoot);

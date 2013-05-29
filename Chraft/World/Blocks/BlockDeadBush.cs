@@ -41,7 +41,7 @@ namespace Chraft.World.Blocks
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
+            var block = (StructBlock)iBlock;
             if (face == BlockFace.Down)
                 return;
             byte? blockId = targetIBlock.WorldInterface.GetBlockId(UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY - 1, block.Coords.WorldZ));

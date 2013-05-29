@@ -56,6 +56,11 @@ namespace Chraft.Commands.Debug
 
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            return string.Empty;
+        }
+
         public string Name
         {
             get { return "dbgpos"; }

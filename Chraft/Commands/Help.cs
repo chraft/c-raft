@@ -114,6 +114,14 @@ namespace Chraft.Commands
                         {
                             cmd = ClientCommandHandler.Find(tokens[0]) as IClientCommand;
                         }
+                        catch (MultipleCommandsMatchException e)
+                        {
+                            client.SendMessage(ChatColor.Red + "Multiple commands has been found:");
+                            foreach (var s in e.Commands)
+                                client.SendMessage(string.Format(" {0}{1}", ChatColor.Red, s));
+                            
+                            return;
+                        }
                         catch (CommandNotFoundException e) { client.SendMessage(e.Message); return; }
                         try
                         {
@@ -231,6 +239,23 @@ namespace Chraft.Commands
                         break;
                 }
             }
+        }
+
+        public string AutoComplete(IClient client, string s)
+        {
+            var args = new string[] { "build", "mode", "information", "other", "short" };
+            if (string.IsNullOrEmpty(s.Trim()))
+                return string.Join("\0", args);
+
+            if (s.TrimStart().IndexOf(' ') != -1)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+
+            foreach (var a in args)
+                if (a.StartsWith(s.Trim(), StringComparison.OrdinalIgnoreCase))
+                    sb.Append(a).Append('\0');
+            return sb.ToString();
         }
 
         public void Help(IServer server)

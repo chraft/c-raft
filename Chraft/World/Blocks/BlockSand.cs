@@ -15,9 +15,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
-using Chraft.Utilities;
+using Chraft.Entity.Items;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks.Base;
@@ -32,7 +30,9 @@ namespace Chraft.World.Blocks
             Name = "Sand";
             Type = BlockData.Blocks.Sand;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            var item = ItemHelper.GetInstance(Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         protected override void NotifyDestroy(EntityBase entity, StructBlock sourceBlock, StructBlock targetBlock)
@@ -55,7 +55,7 @@ namespace Chraft.World.Blocks
         protected void StartPhysics(StructBlock block)
         {
             Remove(block);
-            FallingSand fsBlock = new FallingSand((WorldManager)block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
+            var fsBlock = new FallingSand(block.World, new AbsWorldCoords(block.Coords.WorldX + 0.5, block.Coords.WorldY + 0.5, block.Coords.WorldZ + 0.5));
             fsBlock.Start();
             block.World.PhysicsBlocks.TryAdd(fsBlock.EntityId, fsBlock);
         }

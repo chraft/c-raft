@@ -84,22 +84,91 @@
     <Compile Include="ClientEventArgs.cs" />
     <Compile Include="CommandEventArgs.cs" />
     <Compile Include="Commands\ClientCommandHandler.cs" />
+    <Compile Include="Commands\CmdBan.cs" />
     <Compile Include="Commands\CmdGameMode.cs" />
     <Compile Include="Commands\CmdGive.cs" />
+    <Compile Include="Commands\CmdKick.cs" />
     <Compile Include="Commands\CmdPlayers.cs" />
     <Compile Include="Commands\CmdSay.cs" />
     <Compile Include="Commands\CmdSpawn.cs" />
     <Compile Include="Commands\CmdStop.cs" />
     <Compile Include="Commands\CmdTp.cs" />
+    <Compile Include="Commands\CmdWhitelist.cs" />
     <Compile Include="Commands\CommandAlreadyExistsExcption.cs" />
     <Compile Include="Commands\CommandNotFoundExcption.cs" />
+    <Compile Include="Commands\CmdUnban.cs" />
+    <Compile Include="Commands\CmdBanIp.cs" />
     <Compile Include="Commands\Debug\DbgPos.cs" />
     <Compile Include="Commands\Help.cs" />
+    <Compile Include="Commands\MultipleCommandsMatchExcption.cs" />
     <Compile Include="Commands\ServerCommandHandler.cs" />
     <Compile Include="Entity\Animal.cs" />
     <Compile Include="Entity\EntityBase.cs" />
     <Compile Include="Entity\EnumCreatureType.cs" />
+    <Compile Include="Entity\ExpOrbEntity.cs" />
     <Compile Include="Entity\ItemEntity.cs" />
+    <Compile Include="Entity\Items\Base\ItemBase.cs" />
+    <Compile Include="Entity\Items\Base\ItemBaseFuel.cs" />
+    <Compile Include="Entity\Items\Base\ItemHelper.cs" />
+    <Compile Include="Entity\Items\Base\ItemInventory.cs" />
+    <Compile Include="Entity\Items\Base\ItemConsumable.cs" />
+    <Compile Include="Entity\Items\Base\ItemUsable.cs" />
+    <Compile Include="Entity\Items\Base\ItemPlaceable.cs" />
+    <Compile Include="Entity\Items\Base\ItemBaseHoe.cs" />
+    <Compile Include="Entity\Items\Base\ItemBaseFood.cs" />
+    <Compile Include="Entity\Items\ItemIronPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemIronShovel.cs" />
+    <Compile Include="Entity\Items\ItemRawPorkchop.cs" />
+    <Compile Include="Entity\Items\ItemVoid.cs" />
+    <Compile Include="Entity\Items\ItemDiamondPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemStone.cs" />
+    <Compile Include="Entity\Items\ItemCobblestone.cs" />
+    <Compile Include="Entity\Items\ItemCookedPorkchop.cs" />
+    <Compile Include="Entity\Items\ItemDirt.cs" />
+    <Compile Include="Entity\Items\ItemChest.cs" />
+    <Compile Include="Entity\Items\ItemInkSack.cs" />
+    <Compile Include="Entity\Items\ItemRedMushroom.cs" />
+    <Compile Include="Entity\Items\ItemMycelium.cs" />
+    <Compile Include="Entity\Items\ItemIronHoe.cs" />
+    <Compile Include="Entity\Items\ItemSign.cs" />
+    <Compile Include="Entity\Items\ItemSeeds.cs" />
+    <Compile Include="Entity\Items\ItemReeds.cs" />
+    <Compile Include="Entity\Items\ItemRedstone.cs" />
+    <Compile Include="Entity\Items\ItemIronDoor.cs" />
+    <Compile Include="Entity\Items\ItemWoodenDoor.cs" />
+    <Compile Include="Entity\Items\ItemShears.cs" />
+    <Compile Include="Entity\Items\ItemWoodenShovel.cs" />
+    <Compile Include="Entity\Items\ItemGoldShovel.cs" />
+    <Compile Include="Entity\Items\ItemWoodenPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemGoldPickaxe.cs" />
+    <Compile Include="Entity\Items\ItemStoneShovel.cs" />
+    <Compile Include="Entity\Items\ItemWoodenAxe.cs" />
+    <Compile Include="Entity\Items\ItemGoldAxe.cs" />
+    <Compile Include="Entity\Items\ItemStonePickaxe.cs" />
+    <Compile Include="Entity\Items\ItemWoodenSword.cs" />
+    <Compile Include="Entity\Items\ItemDiamondSword.cs" />
+    <Compile Include="Entity\Items\ItemDiamondAxe.cs" />
+    <Compile Include="Entity\Items\ItemIronSword.cs" />
+    <Compile Include="Entity\Items\ItemGoldSword.cs" />
+    <Compile Include="Entity\Items\ItemStoneAxe.cs" />
+    <Compile Include="Entity\Items\ItemDiamondShovel.cs" />
+    <Compile Include="Entity\Items\ItemStoneSword.cs" />
+    <Compile Include="Entity\Items\ItemIronAxe.cs" />
+    <Compile Include="Entity\Items\ItemLeaves.cs" />
+    <Compile Include="Entity\Items\ItemCoal.cs" />
+    <Compile Include="Entity\Items\ItemStick.cs" />
+    <Compile Include="Entity\Items\ItemLavaBucket.cs" />
+    <Compile Include="Entity\Items\ItemFurnace.cs" />
+    <Compile Include="Entity\Items\ItemIronOre.cs" />
+    <Compile Include="Entity\Items\ItemWood.cs" />
+    <Compile Include="Entity\Items\ItemWoodPlanks.cs" />
+    <Compile Include="Entity\Items\ItemIronIngot.cs" />
+    <Compile Include="Entity\Mobs\Blaze.cs" />
+    <Compile Include="Entity\Mobs\Enderman.cs" />
+    <Compile Include="Entity\Mobs\Bat.cs" />
+    <Compile Include="Entity\Mobs\Mooshroom.cs" />
+    <Compile Include="Entity\Mobs\Ocelot.cs" />
+    <Compile Include="Entity\Mobs\Villager.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />
@@ -124,9 +193,9 @@
     <Compile Include="Net\StreamRole.cs" />
     <Compile Include="Permissions.cs" />
     <Compile Include="Persistence\ClientSurrogate.cs" />
-    <Compile Include="Persistence\DataFile.cs" />
     <Compile Include="Plugins\Events\BlockEvent.cs" />
     <Compile Include="Plugins\PluginLogger.cs" />
+    <Compile Include="Utils\BanSystem.cs" />
     <Compile Include="Utils\PlayerNBTConverter.cs" />
     <Compile Include="WorldGen\ChunkProvider.cs" />
     <Compile Include="World\Blocks\Base\BlockBase.cs" />
@@ -176,7 +245,7 @@
     <Compile Include="World\Blocks\BlockLeaves.cs" />
     <Compile Include="World\Blocks\BlockLever.cs" />
     <Compile Include="World\Blocks\BlockLightstone.cs" />
-    <Compile Include="World\Blocks\BlockLog.cs" />
+    <Compile Include="World\Blocks\BlockWood.cs" />
     <Compile Include="World\Blocks\BlockMobSpawner.cs" />
     <Compile Include="World\Blocks\BlockMossStone.cs" />
     <Compile Include="World\Blocks\BlockNetherrack.cs" />
@@ -215,7 +284,7 @@
     <Compile Include="World\Blocks\BlockTracks.cs" />
     <Compile Include="World\Blocks\BlockWallSign.cs" />
     <Compile Include="World\Blocks\BlockWater.cs" />
-    <Compile Include="World\Blocks\BlockWood.cs" />
+    <Compile Include="World\Blocks\BlockWoodPlanks.cs" />
     <Compile Include="World\Blocks\BlockWoodenDoor.cs" />
     <Compile Include="World\Blocks\BlockWoodenPressurePlate.cs" />
     <Compile Include="World\Blocks\BlockWoodenStairs.cs" />
@@ -236,6 +305,7 @@
     <Compile Include="World\Blocks\BlockRedMushroomCap.cs" />
     <Compile Include="World\Blocks\BlockBrownMushroomCap.cs" />
     <Compile Include="World\Blocks\Physics\IBlockPhysics.cs" />
+    <Compile Include="World\Blocks\BlockMycelium.cs" />
     <Compile Include="World\ChunkEntry.cs" />
     <Compile Include="World\ChunkLightUpdate.cs" />
     <Compile Include="Entity\Mob.cs" />
@@ -266,7 +336,6 @@
     <Compile Include="Interfaces\InterfaceClickedEventArgs.cs" />
     <Compile Include="Interfaces\InterfaceType.cs" />
     <Compile Include="Interfaces\Inventory.cs" />
-    <Compile Include="Interfaces\ItemStack.cs" />
     <Compile Include="Interfaces\LargeChestInterface.cs" />
     <Compile Include="Interfaces\Recipes\Recipe.cs" />
     <Compile Include="Interfaces\Recipes\SmeltingRecipe.cs" />
@@ -329,6 +398,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="Resources\Bans.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="Resources\items.xml" />
     <Content Include="Resources\Permissions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -336,6 +410,7 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\whitelist.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Chraft.PluginSystem\Chraft.PluginSystem.csproj">

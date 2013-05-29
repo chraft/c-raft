@@ -41,6 +41,11 @@ namespace Chraft.Commands
             client.SendMessage("/spawn - Teleports you to the spawn.");
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            return string.Empty;
+        }
+
         public string Name
         {
             get { return "spawn"; }

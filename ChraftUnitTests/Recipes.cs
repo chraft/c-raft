@@ -18,6 +18,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
 //using NUnit.Framework;
@@ -30,11 +32,11 @@ namespace ChratUnitTests
         public void MakeWorkBench()
         {
             Recipe[] recipes = Recipe.FromFile("Resources/Recipes.dat");
-            List<ItemStack> ingredients = new List<ItemStack>();
+            var ingredients = new List<ItemInventory>();
+            /*ingredients.Add(new ItemStack(5, 1, 0));
             ingredients.Add(new ItemStack(5, 1, 0));
             ingredients.Add(new ItemStack(5, 1, 0));
-            ingredients.Add(new ItemStack(5, 1, 0));
-            ingredients.Add(new ItemStack(5, 1, 0));
+            ingredients.Add(new ItemStack(5, 1, 0));*/
             //Assert.IsTrue(Recipe.GetRecipe(recipes, ingredients.ToArray()).Result.Type.Equals(58));
         }
     }

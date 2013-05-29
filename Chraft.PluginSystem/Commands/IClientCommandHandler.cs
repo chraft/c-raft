@@ -1,4 +1,4 @@
-﻿using Chraft.PluginSystem.Commands;
+﻿using Chraft.PluginSystem.Net;
 
 namespace Chraft.PluginSystem.Commands
 {
@@ -13,6 +13,16 @@ namespace Chraft.PluginSystem.Commands
         /// <param name="command">The name of the command to find.</param>
         /// <returns>A command with the given name.</returns>
         ICommand Find(string command);
+
+        /// <summary>
+        /// Finds a command by its full name (e.g. "PluginName:CommandName") and returns it for use.
+        /// 
+        /// Exceptions:
+        /// <exception cref="CommandNotFoundException">CommandNotFoundException</exception>
+        /// </summary>
+        /// <param name="command">The name of the command to find.</param>
+        /// <returns>A command with the given name.</returns>
+        ICommand FindByFullName(string command);
 
         /// <summary>
         /// Finds a command and returns it for use.
@@ -47,5 +57,7 @@ namespace Chraft.PluginSystem.Commands
         /// </summary>
         /// <returns>Array of <see cref="IClientCommand"/></returns>
         ICommand[] GetCommands();
+
+        string AutoComplete(IClient client, string sourceStr);
     }
 }

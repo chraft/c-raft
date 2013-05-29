@@ -17,25 +17,24 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography;
+using Chraft.Entity.Items;
 using Chraft.Net.Packets;
+using Chraft.PluginSystem.Entity;
+using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
 using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
 using Chraft.World;
 using Chraft.Entity;
-using System.Text.RegularExpressions;
-using Chraft.Utils;
 using Chraft.Interfaces;
 using System.Threading;
 using System.Threading.Tasks;
 using Chraft.Utilities.Config;
 using System.Net.Sockets;
 using Chraft.World.Blocks;
-using Chraft.PluginSystem;
 using Chraft.World.Blocks.Base;
 using System.Text;
 
@@ -55,10 +54,7 @@ namespace Chraft.Net
                 {
                     return new TimeSpan(0);
                 }
-                else
-                {
-                    return DateTime.Now - _inAirStartTime.Value;
-                }
+                return DateTime.Now - _inAirStartTime.Value;
             }
         }
 
@@ -113,6 +109,11 @@ namespace Chraft.Net
                         }
                         _lastGroundY = _player.Position.Y;
 
+                        if (Owner.GetMetaData().IsSprinting)
+                            Owner.Exhaustion += 800;
+                        else
+                            Owner.Exhaustion += 200;
+
                         if (blockCount != 0)
                         {
                             if (blockCount > 0.5)
@@ -162,7 +163,7 @@ namespace Chraft.Net
                     if (_inAirStartTime != null)
                     {
                         // Check how long in the air for (e.g. flying) - don't count if we are in water
-                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Stationary_Water && AirTime.TotalSeconds > 5)
+                        if (currentBlock != BlockData.Blocks.Water && currentBlock != BlockData.Blocks.Still_Water && currentBlock != BlockData.Blocks.Lava && currentBlock != BlockData.Blocks.Still_Lava && AirTime.TotalSeconds > 5)
                         {
                             // TODO: make the number of seconds configurable
                             Kick("Flying!!");
@@ -274,7 +275,7 @@ namespace Chraft.Net
 
         public static void HandlePacketCreativeInventoryAction(Client client, CreativeInventoryActionPacket packet)
         {
-            if (client.Owner.GameMode == 1)
+            if (client.Owner.GameMode == GameMode.Creative)
 
                 if (packet.Item.Type == -1 && packet.Item.Durability == 0 && packet.Item.Count == 0) // We are adding an item to our mouse cursor from the quick bar
                 {
@@ -352,8 +353,6 @@ namespace Chraft.Net
 
         public static void HandlePacketUseEntity(Client client, UseEntityPacket packet)
         {
-            //Console.WriteLine(e.Packet.Target);
-            //this.SendMessage("You are interacting with " + e.Packet.Target + " " + e.Packet.LeftClick);
             Player handledPlayer = client.Owner;
             UniversalCoords coords = UniversalCoords.FromAbsWorld(handledPlayer.Position);
             foreach (EntityBase eb in handledPlayer.Server.GetNearbyEntitiesInternal(handledPlayer.World, coords))
@@ -455,171 +454,63 @@ namespace Chraft.Net
 
         #region Block Con/Destruction
 
-        public static void HandlePacketPlayerItemPlacement(Client client, PlayerBlockPlacementPacket packet)
-        {
-            Player player = client.Owner;
-            // if(!Permissions.CanPlayerBuild(Username)) return;
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 255)
-                return;
-
-            UniversalCoords baseBlockCoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
-
-            Chunk chunk = player.World.GetChunk(baseBlockCoords) as Chunk;
-
-            if (chunk == null)
-                return;
-
-            BlockData.Blocks baseBlockType = chunk.GetType(baseBlockCoords); // Get block being built against.
-            byte baseBlockData = chunk.GetData(baseBlockCoords);
-
-            StructBlock baseBlock = new StructBlock(baseBlockCoords, (byte)baseBlockType, (byte)baseBlockData, player.World);
-
-            // Placed Item Info
-            short pType = player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
-            short pMetaData = player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
-
-            UniversalCoords newBlockCoords = player.World.FromFace(baseBlockCoords, packet.Face);
-            StructBlock newBlock;
-            byte newBlockId = 0;
-
-            switch (packet.Face)
-            {
-                case BlockFace.Held:
-                    return; // TODO: Process buckets, food, etc.
-            }
-
-            switch (baseBlockType)
-            {
-                case BlockData.Blocks.Air:
-                case BlockData.Blocks.Water:
-                case BlockData.Blocks.Lava:
-                case BlockData.Blocks.Still_Water:
-                case BlockData.Blocks.Still_Lava:
-                    return;
-            }
-
-            switch ((BlockData.Items)pType)
-            {
-                case BlockData.Items.Diamond_Hoe:
-                case BlockData.Items.Gold_Hoe:
-                case BlockData.Items.Iron_Hoe:
-                case BlockData.Items.Stone_Hoe:
-                case BlockData.Items.Wooden_Hoe:
-                    if (baseBlockType == BlockData.Blocks.Dirt || baseBlockType == BlockData.Blocks.Grass)
-                    {
-                        // Think the client has a Notch bug where hoe's durability is not updated properly.
-                        BlockHelper.Instance.CreateBlockInstance((byte)BlockData.Blocks.Soil).Spawn(baseBlock);
-                    }
-                    return;
-                case BlockData.Items.Ink_Sack:
-                    if (pMetaData != 15)
-                        return;
-                    if (baseBlockType == BlockData.Blocks.Red_Mushroom || baseBlockType == BlockData.Blocks.Brown_Mushroom)
-                    {
-                        BlockBaseMushroom baseMushroom = (BlockBaseMushroom)BlockHelper.Instance.CreateBlockInstance((byte)baseBlockType);
-                        baseMushroom.Fertilize(player, baseBlock);
-                    }
-                    return;
-                case BlockData.Items.Minecart:
-                case BlockData.Items.Boat:
-                case BlockData.Items.Storage_Minecart:
-                case BlockData.Items.Powered_Minecart:
-                    // TODO: Create new object
-                    break;
-                case BlockData.Items.Sign:
-                    if (packet.Face == BlockFace.Up)
-                        newBlockId = (byte)BlockData.Blocks.Sign_Post;
-                    else
-                        newBlockId = (byte)BlockData.Blocks.Wall_Sign;
-                    break;
-                case BlockData.Items.Seeds:
-                    newBlockId = (byte)BlockData.Blocks.Crops;
-                    break;
-                case BlockData.Items.Reeds:
-                    newBlockId = (byte)BlockData.Blocks.Reed;
-                    break;
-                case BlockData.Items.Redstone:
-                    newBlockId = (byte)BlockData.Blocks.Redstone_Wire;
-                    break;
-                case BlockData.Items.Iron_Door:
-                    newBlockId = (byte)BlockData.Blocks.Iron_Door;
-                    break;
-                case BlockData.Items.Wooden_Door:
-                    newBlockId = (byte)BlockData.Blocks.Wooden_Door;
-                    break;
-            }
-
-            if (newBlockId != 0)
-            {
-                newBlock = new StructBlock(newBlockCoords, newBlockId, 0, player.World);
-                BlockHelper.Instance.CreateBlockInstance(newBlockId).Place(player, newBlock, baseBlock, packet.Face);
-            }
-        }
-
         public static void HandlePacketPlayerBlockPlacement(Client client, PlayerBlockPlacementPacket packet)
         {
-            /*
-             * Scenarios:
-             * 
-             * 1) using an item against a block (e.g. stone and flint)
-             * 2) placing a new block
-             * 3) using a block: e.g. open/close door, open chest, open workbench, open furnace
-             * 
-             * */
+            var baseBlockcoords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
+            var player = client.Owner;
 
-            //  if (!Permissions.CanPlayerBuild(Username)) return;
-            // Using activeslot provides current item info wtihout having to maintain ActiveItem
-
-            UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
-
+            // Consume food, charge the bow etc
             if (packet.X == -1 && packet.Y == -1 && packet.Z == -1 && packet.Face == BlockFace.Held)
             {
-                // TODO: Implement item usage - food etc
+                if (ItemHelper.IsVoid(player.Inventory.ActiveItem))
+                    return;
+
+                if (player.Inventory.ActiveItem is IItemConsumable)
+                {
+                    var consumable = player.Inventory.ActiveItem as IItemConsumable;
+                    consumable.StartConsuming();
+                }
                 return;
             }
 
-            Player player = client.Owner;
-
-            Chunk chunk = player.World.GetChunk(coords) as Chunk;
+            var chunk = player.World.GetChunk(baseBlockcoords) as Chunk;
 
             if (chunk == null)
                 return;
 
-            BlockData.Blocks type = chunk.GetType(coords); // Get block being built against.
-            byte metadata = chunk.GetData(coords);
-            StructBlock facingBlock = new StructBlock(coords, (byte)type, metadata, player.World);
+            var baseBlockType = chunk.GetType(baseBlockcoords); // Get block being built against.
+            byte baseBlockMeta = chunk.GetData(baseBlockcoords);
+            var baseBlock = new StructBlock(baseBlockcoords, (byte)baseBlockType, baseBlockMeta, player.World);
 
-            UniversalCoords coordsFromFace = player.World.FromFace(coords, packet.Face);
 
-            if (BlockHelper.Instance.CreateBlockInstance((byte)type) is IBlockInteractive)
+            // Interaction with the blocks - chest, furnace, enchantment table etc
+            if (BlockHelper.Instance.IsInteractive(baseBlockType))
             {
-                (BlockHelper.Instance.CreateBlockInstance((byte)type) as IBlockInteractive).Interact(player, facingBlock);
+                (BlockHelper.Instance.CreateBlockInstance(baseBlock.Type) as IBlockInteractive).Interact(client.Owner, baseBlock);
                 return;
             }
 
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type <= 0 || player.Inventory.Slots[player.Inventory.ActiveSlot].Count < 1)
+            if (ItemHelper.IsVoid(player.Inventory.ActiveItem))
                 return;
 
-            // TODO: Neaten this out, or address via handler?
-            if (player.Inventory.Slots[player.Inventory.ActiveSlot].Type > 255 || packet.Face == BlockFace.Held) // Client is using an Item.
+
+            if (player.Inventory.ActiveItem is IItemUsable)
             {
-                HandlePacketPlayerItemPlacement(client, packet);
-                return;
+                var consumable = player.Inventory.ActiveItem as IItemUsable;
+                consumable.Use(baseBlock, packet.Face);
+                //HandlePacketPlayerItemPlacement(client, packet);
             }
 
-            // Built Block Info
-
-            byte bType = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Type;
-            byte bMetaData = (byte)player.Inventory.Slots[player.Inventory.ActiveSlot].Durability;
-
-            StructBlock bBlock = new StructBlock(coordsFromFace, bType, bMetaData, player.World);
-
-            BlockHelper.Instance.CreateBlockInstance(bType).Place(player, bBlock, facingBlock, packet.Face);
+            if (player.Inventory.ActiveItem is IItemPlaceable)
+            {
+                var consumable = player.Inventory.ActiveItem as IItemPlaceable;
+                consumable.Place(baseBlock, packet.Face);
+            }
         }
 
         public static void HandlePacketPlayerDigging(Client client, PlayerDiggingPacket packet)
         {
-            Player player = client.Owner;
+            var player = client.Owner;
 
             UniversalCoords coords = UniversalCoords.FromWorld(packet.X, packet.Y, packet.Z);
 
@@ -647,17 +538,22 @@ namespace Chraft.Net
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     if (BlockHelper.Instance.CreateBlockInstance(type) is BlockLeaves && player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
-                    if (player.GameMode == 1)
+                    if (player.GameMode == GameMode.Creative)
                         goto case PlayerDiggingPacket.DigAction.FinishDigging;
                     break;
-
+                case PlayerDiggingPacket.DigAction.CancelledDigging:
+                    break;
                 case PlayerDiggingPacket.DigAction.FinishDigging:
-                    StructBlock block = new StructBlock(coords, type, data, player.World);
-                    BlockHelper.Instance.CreateBlockInstance(type).Destroy(player, block);
+                    var block = new StructBlock(coords, type, data, player.World);
+                    player.Exhaustion += 25;
+                    player.Inventory.ActiveItem.DestroyBlock(block);
                     break;
 
                 case PlayerDiggingPacket.DigAction.DropItem:
                     player.DropActiveSlotItem();
+                    break;
+                case PlayerDiggingPacket.DigAction.ShootArrow: // Finish eating food too
+                    client.Owner.FinishUseActiveSlotItem();
                     break;
             }
         }
@@ -769,7 +665,7 @@ namespace Chraft.Net
             }
         }
 
-        public static void HandlePacketLocaleAndViewDistance(Client client, LocaleAndViewDistancePacket packet)
+        public static void HandlePacketLocaleAndViewDistance(Client client, ClientSettingsPacket packet)
         {
             if (packet.ViewDistance < ChraftConfig.MaxSightRadius)
                 client.CurrentSightRadius = packet.ViewDistance;
@@ -860,8 +756,7 @@ namespace Chraft.Net
         {
             // Received a ServerListPing, so send back Disconnect with the Reason string containing data (server description, number of users, number of slots), delimited by a §
             var clientCount = client.Server.GetAuthenticatedClients().Count();
-            //client.SendPacket(new DisconnectPacket() { Reason = String.Format("{0}§{1}§{2}", client.Owner.Server.ToString(), clientCount, Chraft.Properties.ChraftConfig.MaxPlayers) });
-            client.Kick(String.Format("{0}§{1}§{2}", client.Server, clientCount, ChraftConfig.MaxPlayers));
+            client.Kick(String.Format("§1\0{0}\0{1}\0{2}\0{3}\0{4}", ProtocolVersion, MinecraftServerVersion, ChraftConfig.MOTD, clientCount, ChraftConfig.MaxPlayers));
         }
 
         public static void HandlePacketDisconnect(Client client, DisconnectPacket packet)
@@ -904,10 +799,8 @@ namespace Chraft.Net
             RijndaelManaged send = PacketCryptography.GenerateAES(client.SharedKey);
 
             client.Decrypter = recv.CreateDecryptor();
-
-            byte[] packetToken;
-
-            packetToken = PacketCryptography.Decrypt(packet.VerifyToken);
+            
+            byte[] packetToken = PacketCryptography.Decrypt(packet.VerifyToken);
 
             if (!packetToken.SequenceEqual(PacketCryptography.VerifyToken))
             {
@@ -924,23 +817,19 @@ namespace Chraft.Net
         public static void HandleTabCompletePacket(Client client, TabCompletePacket packet)
         {
             var str = new StringBuilder();
-            var s = (from a in client.GetServer().GetClients() where a.Username.Contains(packet.Text) select a).ToList();
-            if (!s.Any())
+            if (string.IsNullOrEmpty(packet.Text.Trim()))
+                return;
+
+            if (packet.Text.StartsWith("/"))
             {
+                str.Append(client.Server.ClientCommandHandler.AutoComplete(client, packet.Text));
+                if (!string.IsNullOrEmpty(str.ToString()))
+                    client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
                 return;
             }
-            if (s.Count() > 1)
-            {
-                foreach (var c in s)
-                {
-                    str.Append(c.Username);
-                }
-                str.Append('\0');
-            }
-            else
-            {
-                str.Append(s[0].Username);
-            }
+            str.Append(PluginSystem.Commands.AutoComplete.GetPlayers(client, packet.Text));
+            if (string.IsNullOrEmpty(str.ToString()))
+                return;
             client.Send_Sync_Packet(new TabCompletePacket { Text = str.ToString() });
         }
 

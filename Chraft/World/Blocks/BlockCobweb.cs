@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -28,7 +30,9 @@ namespace Chraft.World.Blocks
             Name = "Cobweb";
             Type = BlockData.Blocks.Cobweb;
             Opacity = 0x0;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Bow_String, 1));
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Bow_String);
+            item.Count = 1;
+            LootTable.Add(item);
         }
     }
 }

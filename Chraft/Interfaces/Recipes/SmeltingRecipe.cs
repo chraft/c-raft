@@ -19,20 +19,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 
 namespace Chraft.Interfaces.Recipes
 {
     public class SmeltingRecipe
     {
-        public ItemStack Result { get; private set; }
-        public ItemStack Ingredient { get; private set; }
-        private SmeltingRecipe(ItemStack result, ItemStack ingredient)
+        public ItemInventory Result { get; private set; }
+        public ItemInventory Ingredient { get; private set; }
+        private SmeltingRecipe(ItemInventory result, ItemInventory ingredient)
 		{
 		    Ingredient = ingredient;
 			Result = result;
 		}
 
-        public static SmeltingRecipe GetRecipe(SmeltingRecipe[] recipes, ItemStack ingredient)
+        public static SmeltingRecipe GetRecipe(SmeltingRecipe[] recipes, ItemInventory ingredient)
         {
             foreach (SmeltingRecipe r in recipes)
             {
@@ -44,8 +46,8 @@ namespace Chraft.Interfaces.Recipes
 
         public static SmeltingRecipe[] FromFile(string file)
         {
-            string[] lines = File.ReadAllLines(file);
-            List<string> recs = new List<string>();
+            var lines = File.ReadAllLines(file);
+            var recs = new List<string>();
 
             for (int i = 0; i < lines.Length; i++)
             {
@@ -55,12 +57,12 @@ namespace Chraft.Interfaces.Recipes
                 recs.Add(lines[i]);
             }
 
-            List<SmeltingRecipe> recipes = new List<SmeltingRecipe>();
+            var recipes = new List<SmeltingRecipe>();
             foreach (string r in recs)
             {
                 string[] rec = r.Split(',');
-                ItemStack result = ItemStack.Parse(rec[1]);
-                ItemStack ingredient = ItemStack.Parse(rec[0]);
+                var result = ItemHelper.Parse(rec[1]);
+                var ingredient = ItemHelper.Parse(rec[0]);
                 recipes.Add(new SmeltingRecipe(result, ingredient));
             }
 
