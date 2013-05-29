@@ -63,7 +63,6 @@ namespace ChraftTestClient
             Register(PacketType.EntityEquipment, 11, 0, ReadEntityEquipment);
             Register(PacketType.DestroyEntity, 5, 0, ReadDestroyEntity);
             Register(PacketType.Animation, 6, 0, ReadAnimation);
-            Register(PacketType.PickupSpawn, 25, 0, ReadPickupSpawn);
             Register(PacketType.CollectItem, 9, 0, ReadCollectItem);
             Register(PacketType.UpdateWindowProperty, 6, 0, ReadUpdateWindowProperty);
             Register(PacketType.EntityMetadata, 0, 6, ReadEntityMetadata);
@@ -262,12 +261,6 @@ namespace ChraftTestClient
         {
             AnimationPacket ap = new AnimationPacket();
             ap.Read(reader);
-        }
-
-        public static void ReadPickupSpawn(TestClient client, PacketReader reader)
-        {
-            SpawnItemPacket si = new SpawnItemPacket();
-            si.Read(reader);
         }
 
         public static void ReadCollectItem(TestClient client, PacketReader reader)

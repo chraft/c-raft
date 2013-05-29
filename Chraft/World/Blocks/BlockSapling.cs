@@ -16,11 +16,10 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
@@ -49,10 +48,13 @@ namespace Chraft.World.Blocks
             return base.CanBePlacedOn(entity, block, targetBlock, targetSide);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            overridedLoot.Add(new ItemStack((short)Type, 1, block.MetaData));
+            overridedLoot = new List<ItemInventory>();
+            var item = ItemHelper.GetInstance((short) Type);
+            item.Count = 1;
+            item.Durability = block.MetaData;
+            overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);
         }
 
@@ -70,14 +72,14 @@ namespace Chraft.World.Blocks
 
         public void Grow(IStructBlock iBlock, IChunk ichunk)
         {
-            Chunk chunk = ichunk as Chunk;
+            var chunk = ichunk as Chunk;
 
-            StructBlock block = (StructBlock) iBlock;
+            var block = (StructBlock) iBlock;
 
             if (!CanGrow(block, chunk))
                 return;
 
-            UniversalCoords blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            var blockUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             if (block.World.GetEffectiveLight(blockUp) < 9)
                 return;
 
@@ -92,7 +94,7 @@ namespace Chraft.World.Blocks
 
             for (int i = block.Coords.WorldY; i < block.Coords.WorldY + 4; i++)
             {
-                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Log, block.MetaData);
+                chunk.SetBlockAndData(block.Coords.BlockX, i, block.Coords.BlockZ, (byte)BlockData.Blocks.Wood, block.MetaData);
                 if(chunk.GetType(block.Coords.BlockX, i + 1, block.Coords.BlockZ) != BlockData.Blocks.Air)
                     break;
             }
@@ -102,7 +104,7 @@ namespace Chraft.World.Blocks
                 for (int j = block.Coords.WorldX - 2; j <= block.Coords.WorldX + 2; j++)
                     for (int k = block.Coords.WorldZ - 2; k <= block.Coords.WorldZ + 2; k++)
                     {
-                        Chunk nearbyChunk = block.World.GetChunkFromWorld(i, k) as Chunk;
+                        var nearbyChunk = block.World.GetChunkFromWorld(i, k) as Chunk;
                         if (nearbyChunk == null || (nearbyChunk.GetType(j & 0xF, i, k & 0xF) != BlockData.Blocks.Air))
                             continue;
 
@@ -114,7 +116,7 @@ namespace Chraft.World.Blocks
             for (int i = block.Coords.WorldX - 1; i <= block.Coords.WorldX + 1; i++)
                 for (int j = block.Coords.WorldZ - 1; j <= block.Coords.WorldZ + 1; j++)
                 {
-                    Chunk nearbyChunk = block.World.GetChunkFromWorld(i, j) as Chunk;
+                    var nearbyChunk = block.World.GetChunkFromWorld(i, j) as Chunk;
                     if (nearbyChunk == null || nearbyChunk.GetType(i & 0xF, block.Coords.WorldY + 5, j & 0xF) != BlockData.Blocks.Air)
                         continue;
 

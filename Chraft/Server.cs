@@ -24,6 +24,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Chraft.Commands;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Interfaces.Recipes;
 using Chraft.Net.Packets;
@@ -68,7 +69,8 @@ namespace Chraft
 
         public static ConcurrentQueue<Client> ClientsToDispose = new ConcurrentQueue<Client>();
 
-        private Timer _globalTick;
+        private Timer _tickTimer;
+        private Thread _mainThread;
         private Task _playerSaveTask;
         private CancellationTokenSource _playerSaveToken;
         public bool NeedsFullSave;
@@ -77,6 +79,7 @@ namespace Chraft
         public ConcurrentQueue<Client> PlayersToSavePostponed;
 
         private Dictionary<string, IChunkGenerator> _generators;
+        public BanSystem BanSystem;
 
 #if PROFILE
         public static PerformanceCounter CpuPerfCounter = new PerformanceCounter("Process", "% Processor Time", Process.GetCurrentProcess().ProcessName);
@@ -194,6 +197,8 @@ namespace Chraft
         public Server()
         {
             ChraftConfig.Load();
+            BanSystem = new BanSystem();
+            BanSystem.LoadBansAndWhiteList();
             ClientsConnectionSlots = 30;
             Packet.Role = StreamRole.Server;
             Rand = new Random();
@@ -260,6 +265,11 @@ namespace Chraft
             return PluginLogger;
         }
 
+        public IBanSystem GetBanSystem()
+        {
+            return BanSystem;
+        }
+
         public ILogger GetLogger()
         {
             return Logger;
@@ -317,38 +327,57 @@ namespace Chraft
                 Client.RecvSocketEventPool.Push(new SocketAsyncEventArgs());
             }
 
-            _globalTick = new Timer(GlobalTickProc, null, 50, 50);
+            _tickTimer = new Timer(TickTimer, null, 50, 50);
+
+            _mainThread = new Thread(GlobalTickProc);
+            _mainThread.Start();
 
             while (Running)
                 RunProc();
         }
 
         private int _globalTicks;
+        private int _ticksToDo;
+        private ManualResetEventSlim slimResetEvent = new ManualResetEventSlim();
+
+        private void TickTimer(object state)
+        {
+            Interlocked.Increment(ref _ticksToDo);
+            slimResetEvent.Set();
+        }
 
         private void GlobalTickProc(object state)
         {
-            ++_globalTicks;
-
-            foreach (WorldManager worldManager in Worlds)
+            while (Running)
             {
-                worldManager.WorldTick();
-                worldManager.StartSaveProc(20 / Worlds.Count);
-            }
+                slimResetEvent.Wait();
+                
+                while(_ticksToDo > 0)
+                {
+                    ++_globalTicks;
 
-            if ((_globalTicks % 10) == 0)
-                Task.Factory.StartNew(DoPulse);            
-            
+                    foreach (WorldManager worldManager in Worlds)
+                    {
+                        worldManager.WorldTick();
+                        worldManager.StartSaveProc(20 / Worlds.Count);
+                    }
 
-            if (NeedsFullSave)
-            {
-                FullSaving = true;
-                Task.Factory.StartNew(FullSave);
-            }
-            else if ((_globalTicks % 200) == 0 && (_playerSaveTask == null || _playerSaveTask.IsCompleted))
-            {
-                _playerSaveToken = new CancellationTokenSource();
-                var token = _playerSaveToken.Token;
-                _playerSaveTask = Task.Factory.StartNew(()=> SavePlayers(50, token), token);
+
+                    if (NeedsFullSave)
+                    {
+                        FullSaving = true;
+                        Task.Factory.StartNew(FullSave);
+                    }
+                    else if ((_globalTicks % 200) == 0 && (_playerSaveTask == null || _playerSaveTask.IsCompleted))
+                    {
+                        _playerSaveToken = new CancellationTokenSource();
+                        var token = _playerSaveToken.Token;
+                        _playerSaveTask = Task.Factory.StartNew(() => SavePlayers(50, token), token);
+                    }
+
+                    Interlocked.Decrement(ref _ticksToDo);
+                    slimResetEvent.Reset();
+                }
             }
         }
         
@@ -888,7 +917,7 @@ namespace Chraft
             if (authClients.Length == 0)
                 return;
 
-            TimeUpdatePacket packet = new TimeUpdatePacket {Time = world.Time};
+            TimeUpdatePacket packet = new TimeUpdatePacket {AgeOfWorld = 0, Time = world.Time};
             packet.SetShared(Logger, authClients.Length);
             Parallel.ForEach(authClients, (client) => client.SendPacket(packet));
         }
@@ -1023,23 +1052,6 @@ namespace Chraft
                     Data = new MetaData()
                 };
             }
-            else if (entity is ItemEntity)
-            {
-                ItemEntity item = (ItemEntity)entity;
-                packet = new SpawnItemPacket
-                {
-                    X = item.Position.X,
-                    Y = item.Position.Y,
-                    Z = item.Position.Z,
-                    Yaw = item.PackedYaw,
-                    Pitch = item.PackedPitch,
-                    EntityId = item.EntityId,
-                    ItemId = item.ItemId,
-                    Count = item.Count,
-                    Durability = item.Durability,
-                    Roll = 0
-                };
-            }
             else if (entity is Mob)
             {
                 Mob mob = (Mob)entity;
@@ -1054,6 +1066,19 @@ namespace Chraft
                     EntityId = mob.EntityId,
                     Type = mob.Type,
                     Data = mob.Data
+                };
+            }
+            else if (entity is ExpOrbEntity)
+            {
+                var orb = (ExpOrbEntity)entity;
+                var coords = UniversalCoords.FromAbsWorld(orb.Position);
+                packet = new ExperienceOrbPacket
+                {
+                    EntityId = orb.EntityId,
+                    Count = 1,
+                    X = coords.WorldX,
+                    Y = coords.WorldY,
+                    Z = coords.WorldZ
                 };
             }
 
@@ -1151,7 +1176,7 @@ namespace Chraft
                         {
                             EntityId = entity.EntityId,
                             Slot = i,
-                            Item = ItemStack.Void,
+                            Item = ItemHelper.Void,
                         });
                     }
 
@@ -1358,7 +1383,7 @@ namespace Chraft
         /// <param name="player">The player to be used for position calculations.</param>
         /// <param name="stack">The stack to be dropped.</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(IPlayer player, IItemStack stack)
+        public int DropItem(IPlayer player, IItemInventory stack)
         {
             //todo - proper drop
             return DropItem(player.GetWorld(), UniversalCoords.FromAbsWorld(player.Position.X + 4, player.Position.Y, player.Position.Z), stack);
@@ -1372,8 +1397,11 @@ namespace Chraft
         /// <param name="stack">The stack to be dropped</param>
         /// <param name="velocity">An optional velocity (the velocity will be clamped to -0.4 and 0.4 on each axis)</param>
         /// <returns>The entity ID of the item drop.</returns>
-        public int DropItem(IWorldManager world, UniversalCoords coords, IItemStack stack, Vector3 velocity = new Vector3())
+        public int DropItem(IWorldManager world, UniversalCoords coords, IItemInventory stack, Vector3 velocity = new Vector3())
         {
+            if (ItemHelper.IsVoid(stack))
+                return -1;
+
             int entityId = AllocateEntity();
 
             bool sendVelocity = false;

@@ -44,7 +44,7 @@ namespace Chraft.Entity
 
         public abstract string Name { get; }
 
-        short _health;
+        protected short _health;
 
         internal MetaData Data { get; set; }
 
@@ -54,7 +54,7 @@ namespace Chraft.Entity
         public virtual short Health
         {
             get { return _health; }
-            set { _health = MathExtensions.Clamp(value, (short)0, this.MaxHealth); }
+            set { _health = MathExtensions.Clamp(value, (short)0, MaxHealth); }
         }
 
         /// <summary>
@@ -440,7 +440,7 @@ namespace Chraft.Entity
                 if (hitBy is Player)
                 {
                     var hitByPlayer = hitBy as Player;
-                    ItemStack itemHeld = hitByPlayer.Inventory.ActiveItem;
+                    var itemHeld = hitByPlayer.Inventory.ActiveItem;
                     hitByPlayer.Client.SendMessage("You hit a " + Name + " with a " + itemHeld.Type + " dealing " +
                                                    damageAmount + " damage.");
                 }

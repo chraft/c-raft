@@ -16,6 +16,7 @@
         Void,
         Lightning,
         Cactus,
+        Starve,
         Custom
     }
 }

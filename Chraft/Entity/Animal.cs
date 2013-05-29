@@ -32,7 +32,8 @@ namespace Chraft.Entity
         protected Animal(WorldManager world, int entityId, MobType type, MetaData data)
             : base(world, entityId, type, data)
         {
-
+            MinExp = 1;
+            MaxExp = 3;
         }
 
         protected override double BlockPathWeight(UniversalCoords coords)

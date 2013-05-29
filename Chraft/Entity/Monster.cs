@@ -33,7 +33,8 @@ namespace Chraft.Entity
         protected Monster(WorldManager world, int entityId, MobType type, MetaData data)
             : base(world, entityId, type, data)
         {
-
+            MinExp = 5;
+            MaxExp = 5;
         }
 
         protected override double BlockPathWeight(UniversalCoords coords)

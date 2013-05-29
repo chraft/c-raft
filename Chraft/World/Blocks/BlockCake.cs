@@ -16,10 +16,8 @@
 #endregion
 using Chraft.Entity;
 using Chraft.Net;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -44,7 +42,7 @@ namespace Chraft.World.Blocks
 
         public void Interact(IEntityBase entity, IStructBlock iBlock)
         {
-            StructBlock block = (StructBlock) iBlock;
+            var block = (StructBlock) iBlock;
             // Eat the cake. No food restoration at the moment.
 
             // Restore hp/food

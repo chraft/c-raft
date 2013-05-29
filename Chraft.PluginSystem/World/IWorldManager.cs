@@ -51,5 +51,6 @@ namespace Chraft.PluginSystem.World
         bool ChunkExists(int chunkX, int chunkZ);
 
         int Time { get; set; }
+        int AgeOfWorld { get; set; }
     }
 }

@@ -20,33 +20,35 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 
 namespace Chraft.Interfaces.Recipes
 {
 	public class Recipe
 	{
-		public ItemStack[,] Ingredients3 { get; private set; }
-		public ItemStack[] Ingredients2 { get; set; }
-		public ItemStack[,] Products { get; private set; }
-		public ItemStack Result { get; private set; }
+        public ItemInventory[,] Ingredients3 { get; private set; }
+        public ItemInventory[] Ingredients2 { get; set; }
+        public ItemInventory[,] Products { get; private set; }
+        public ItemInventory Result { get; private set; }
 		public bool AnyOrder { get; private set; }
 
-		private Recipe(ItemStack result, ItemStack[,] ingredients, ItemStack[,] products, bool anyOrder)
+        private Recipe(ItemInventory result, ItemInventory[,] ingredients, ItemInventory[,] products, bool anyOrder)
 		{
 		    Ingredients3 = ingredients;
 			Result = result;
 			Products = products;
 			AnyOrder = anyOrder;
 
-			List<ItemStack> ings = new List<ItemStack>();
+            var ings = new List<ItemInventory>();
 			for (int h = 0; h < ingredients.GetLength(0); h++)
 				for (int w = 0; w < ingredients.GetLength(1); w++)
-                    if (ingredients[h, w] != null && !ingredients[h, w].IsVoid())
+                    if (ingredients[h, w] != null && !ItemHelper.IsVoid(ingredients[h, w]))
 						ings.Add(ingredients[h, w]);
 			Ingredients2 = ings.ToArray();
 		}
 
-		private bool MatchesOrdered(ItemStack[] ingredients)
+        private bool MatchesOrdered(ItemInventory[] ingredients)
 		{
 			int s = ingredients.Length == 4 ? 2 : 3;
 			int dw = s - Ingredients3.GetLength(1);
@@ -60,9 +62,9 @@ namespace Chraft.Interfaces.Recipes
 					{
 						for (int y = h; y < h + Ingredients3.GetLength(0); y++)
 						{
-							ItemStack ing1 = Ingredients3[y - h, x - w];
-							ItemStack ing2 = ingredients[y * s + x];
-                            if (ing1.IsVoid() && ing2.IsVoid())
+							var ing1 = Ingredients3[y - h, x - w];
+							var ing2 = ingredients[y * s + x];
+                            if (ItemHelper.IsVoid(ing1) && ItemHelper.IsVoid(ing2))
                                 continue;
                              if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 								continue;
@@ -77,11 +79,11 @@ namespace Chraft.Interfaces.Recipes
 			return false;
 		}
 
-		private bool MatchesUnordered(ItemStack[] ingredients)
+        private bool MatchesUnordered(ItemInventory[] ingredients)
 		{
-			foreach (ItemStack ing1 in Ingredients2)
+			foreach (var ing1 in Ingredients2)
 			{
-				foreach (ItemStack ing2 in ingredients)
+				foreach (var ing2 in ingredients)
 				{
 					if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 						goto continue1;
@@ -92,9 +94,9 @@ namespace Chraft.Interfaces.Recipes
 				continue;
 			}
 
-			foreach (ItemStack ing1 in ingredients)
+			foreach (var ing1 in ingredients)
 			{
-				foreach (ItemStack ing2 in Ingredients2)
+				foreach (var ing2 in Ingredients2)
 				{
 					if (ing1.Type == ing2.Type && (ing1.Durability < 0 || ing1.Durability == ing2.Durability) && ing2.Count >= ing1.Count)
 						goto continue2;
@@ -107,7 +109,7 @@ namespace Chraft.Interfaces.Recipes
 			return true;
 		}
 
-		private bool Matches(ItemStack[] ingredients)
+        private bool Matches(ItemInventory[] ingredients)
 		{
             // 1. check that the correct number of ingredients exist (quickly excludes any recipes of differing number of ingredients)
             //    fixes #69: "Recipies do not evaluate full recipe, they select first found"
@@ -127,7 +129,7 @@ namespace Chraft.Interfaces.Recipes
         /// </summary>
         /// <param name="ingredients">ingredients to count</param>
         /// <returns>true if the number of individual ingredients match</returns>
-        private bool MatchesIngredientsCount(ItemStack[] ingredients)
+        private bool MatchesIngredientsCount(ItemInventory[] ingredients)
         {
             return (Ingredients2.Length - CountVoidIngredients(Ingredients2)) == (ingredients.Length - CountVoidIngredients(ingredients));
         }
@@ -137,12 +139,12 @@ namespace Chraft.Interfaces.Recipes
         /// </summary>
         /// <param name="ingredients"></param>
         /// <returns>The number of ItemStack.IsVoid() ingredients</returns>
-        private int CountVoidIngredients(ItemStack[] ingredients)
+        private int CountVoidIngredients(ItemInventory[] ingredients)
         {
             int result = 0;
-            foreach (ItemStack item in ingredients)
+            foreach (var item in ingredients)
             {
-                if (item.IsVoid())
+                if (ItemHelper.IsVoid(item))
                     result++;
             }
 
@@ -153,7 +155,7 @@ namespace Chraft.Interfaces.Recipes
         /// Subtracts the ingredients that are required to craft this recipe, by updating the ingredient.Count property
         /// </summary>
         /// <param name="ingredients">The ingredients to be used</param>
-        public void UseIngredients(ItemStack[] ingredients)
+        public void UseIngredients(ItemInventory[] ingredients)
         {
             // Assumption: 
             // Recipes ingredients are loaded left to right, top to bottom, which is the same order of workbench/inventory recipe slots
@@ -169,7 +171,7 @@ namespace Chraft.Interfaces.Recipes
                 // Based on assumption about load order: simply getting the next non-void ingredient will match the current recipe ingredient, then subtract the number required.
                 for (int i = indx; i < ingredients.Length; i++)
                 {
-                    if (!ingredients[i].IsVoid())
+                    if (!ItemHelper.IsVoid(ingredients[i]))
                     {
                         ingredients[i].Count -= item.Count;
                         indx = i + 1;
@@ -179,7 +181,7 @@ namespace Chraft.Interfaces.Recipes
             }
         }
 
-		public static Recipe GetRecipe(Recipe[] recipes, ItemStack[] ingredients)
+        public static Recipe GetRecipe(Recipe[] recipes, ItemInventory[] ingredients)
 		{
 			foreach (Recipe r in recipes)
 			{
@@ -205,8 +207,8 @@ namespace Chraft.Interfaces.Recipes
             foreach (XElement recipe in recipes)
             {
                 // Define variables
-                ItemStack result;
-                ItemStack[,] ingredients;
+                ItemInventory result;
+                ItemInventory[,] ingredients;
                 bool freeformRecipe = false;
                 int rowCount = 0, row = 0;
 
@@ -215,7 +217,7 @@ namespace Chraft.Interfaces.Recipes
                 string id = recipe.Attribute("Id").Value;
 
                 // - Create the stack
-                result = ItemStack.Parse(string.Format("{0}#{1}", id, amount));
+                result = ItemHelper.Parse(string.Format("{0}#{1}", id, amount));
 
                 // Determine whether or not this is a free-from recipe
                 string match = recipe.Attribute("Match").Value;
@@ -229,7 +231,7 @@ namespace Chraft.Interfaces.Recipes
                 rowCount = rows.Count<XElement>();
 
                 // Initialize the ingredients array
-                ingredients = new ItemStack[rowCount, 3];
+                ingredients = new ItemInventory[rowCount, 3];
 
                 // Loop through the row elements
                 foreach (XElement r in rows)
@@ -245,7 +247,7 @@ namespace Chraft.Interfaces.Recipes
                         string item = items[i];
 
                         // Add the item stack to the ingredients list
-                        ingredients[row, i] = ItemStack.Parse(item);
+                        ingredients[row, i] = ItemHelper.Parse(item);
                     }
 
                     // Increment the row variable
@@ -253,7 +255,7 @@ namespace Chraft.Interfaces.Recipes
                 }
 
                 // Add the recipe to the list
-                loadedRecipes.Add(new Recipe(result, ingredients, new ItemStack[3, 3], freeformRecipe));
+                loadedRecipes.Add(new Recipe(result, ingredients, new ItemInventory[3, 3], freeformRecipe));
             }
 
             // Return the loaded recipes
@@ -280,20 +282,20 @@ namespace Chraft.Interfaces.Recipes
 			foreach (List<string> r in recs)
 			{
 				bool anyOrder = r[0].StartsWith("[[") && r[0].EndsWith("]]");
-				ItemStack result = ItemStack.Parse(r[0].Trim('[', ']'));
+				var result = ItemHelper.Parse(r[0].Trim('[', ']'));
 				r.RemoveAt(0);
 
 				int height = r.Count;
 				int width = r[0].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
-				ItemStack[,] ing = new ItemStack[height, width];
+                var ing = new ItemInventory[height, width];
 				for (int h = 0; h < height; h++)
 				{
 					string[] items = r[h].Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 					for (int w = 0; w < width; w++)
-						ing[h, w] = ItemStack.Parse(items[w]);
+						ing[h, w] = ItemHelper.Parse(items[w]);
 				}
 
-				recipes.Add(new Recipe(result, ing, new ItemStack[3, 3], anyOrder));
+                recipes.Add(new Recipe(result, ing, new ItemInventory[3, 3], anyOrder));
 			}
 
 			return recipes.ToArray();

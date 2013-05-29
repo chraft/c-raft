@@ -64,7 +64,7 @@ namespace Chraft.Commands.Debug
                     if (Enum.TryParse<MobType>(tokens[0], true, out mobType))
                     {                  
                         Mob theMob = MobFactory.Instance.CreateMob(client.Owner.World, client.Server, mobType, null) as Mob;
-                        theMob.Position = new AbsWorldCoords(client.Owner.World.FromFace(hit.TargetBlock, hit.FaceHit));
+                        theMob.Position = new AbsWorldCoords(UniversalCoords.FromFace(hit.TargetBlock, hit.FaceHit));
                         client.Server.AddEntity(theMob);
                     }
                     else if (tokens[0] == "update")
@@ -78,7 +78,7 @@ namespace Chraft.Commands.Debug
                     else if (tokens[0] == "path")
                     {
                         PathFinder finder = new PathFinder(client.Owner.World);
-                        var path = finder.CreatePathToCoordinate(client.Owner, new AbsWorldCoords(client.Owner.World.FromFace(hit.TargetBlock, hit.FaceHit)));
+                        var path = finder.CreatePathToCoordinate(client.Owner, new AbsWorldCoords(UniversalCoords.FromFace(hit.TargetBlock, hit.FaceHit)));
                         if (path != null)
                         {
                             foreach (var item in path)
@@ -104,6 +104,11 @@ namespace Chraft.Commands.Debug
         public void Help(IClient client)
         {
 
+        }
+
+        public string AutoComplete(IClient client, string s)
+        {
+            return string.Empty;
         }
 
         public string Name

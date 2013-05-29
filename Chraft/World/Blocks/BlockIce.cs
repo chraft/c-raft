@@ -40,7 +40,7 @@ namespace Chraft.World.Blocks
                 return;
             }
 
-            StructBlock water = new StructBlock(block.Coords, (byte)BlockData.Blocks.Water, 0, block.World);
+            var water = new StructBlock(block.Coords, (byte)BlockData.Blocks.Water, 0, block.World);
             BlockHelper.Instance.CreateBlockInstance((byte)BlockData.Blocks.Water).Spawn(water);
         }
     }

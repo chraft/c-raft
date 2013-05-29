@@ -16,32 +16,32 @@
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
-using Chraft.Commands;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Commands;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Item;
 using Chraft.PluginSystem.Net;
+using Chraft.PluginSystem.Server;
 using Chraft.PluginSystem.World;
-using Chraft.Plugins.Events;
-using Chraft.Utilities;
+using Chraft.PluginSystem.World.Blocks;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Config;
 using Chraft.Utilities.Coords;
+using Chraft.Utilities.Math;
 using Chraft.Utilities.Misc;
 using Chraft.Utils;
 using Chraft.World;
 using Chraft.Net;
 using Chraft.World.Blocks;
+using Chraft.World.Blocks.Base;
 
 namespace Chraft.Entity
 {
@@ -64,12 +64,24 @@ namespace Chraft.Entity
         public TimeSpan SaveSpan = TimeSpan.FromSeconds(60.0);
         public int ChangesToSave;
 
+        public int Experience { get; internal set; }
+
         private Client _client;
 
         public Client Client
         {
             get { return _client; }
             set { _client = value; }
+        }
+
+        public override short Health
+        {
+            get { return _health; }
+            set
+            {
+                _health = MathExtensions.Clamp(value, (short) 0, MaxHealth);
+                CheckFood();
+            }
         }
 
         /// <summary>
@@ -94,10 +106,40 @@ namespace Chraft.Entity
 
         public bool Ready { get; set; }
 
-        public byte GameMode { get; set; }
+        public GameMode GameMode { get; set; }
 
-        public float FoodSaturation { get; set; }
-        public short Food { get; set; }
+
+        protected Timer FoodEffectTimer;
+        public float MaxFoodSaturation { get { return MaxFood; } }
+        private float _foodSaturation; 
+        public float FoodSaturation
+        {
+            get { return _foodSaturation; }
+            set { _foodSaturation = MathExtensions.Clamp(value, 0, MaxFoodSaturation); }
+        }
+
+        public short MaxFood { get { return 20; } }
+        private short _food;
+        public short Food {
+            get { return _food; }
+            set
+            {
+                _food = MathExtensions.Clamp(value, (short) 0, MaxFood);
+                CheckFood();
+            }
+        }
+
+        public int MaxExhaustion { get { return 40000; } }
+        private int _exhaustion;
+        public int Exhaustion
+        {
+            get { return _exhaustion; }
+            set
+            {
+                _exhaustion = MathExtensions.Clamp(value, 0, MaxExhaustion);
+                CheckExhaustion();
+            }
+        }
 
         protected short _lastDamageRemainder = 0;
 
@@ -139,10 +181,12 @@ namespace Chraft.Entity
 
                 for (short i = 0; i < Inventory.SlotCount; i++) // Void inventory slots (for Holding)
                 {
-                    Inventory[i] = ItemStack.Void;
+                    Inventory[i] = ItemHelper.Void;
                 }
-
-                Inventory[Inventory.ActiveSlot] = new ItemStack(278, 1, 0);
+                var item = ItemHelper.GetInstance(278);
+                item.Count = 1;
+                item.Durability = 0;
+                Inventory[Inventory.ActiveSlot] = item;
             }
 
             Inventory.UpdateClient();
@@ -151,22 +195,15 @@ namespace Chraft.Entity
         public void InitializeHealth()
         {
             if (Health <= 0)
-            {
                 Health = 20;
-            }
 
-            if (Food <= 0)
-            {
-                Food = 20;
-            }
-            FoodSaturation = 5.0f;
+            if (Food < 0)
+                Food = 0;
 
-            _client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
+            FoodSaturation = 5;
+
+            SendUpdateHealthPacket();
+            CheckFood();
         }
         #endregion
 
@@ -234,6 +271,7 @@ namespace Chraft.Entity
         /// <param name="z">The Z coordinate of the target.</param>
         public override void MoveTo(AbsWorldCoords absCoords)
         {
+            AddExhaustionOnMovement(absCoords);
             base.MoveTo(absCoords);
             UpdateEntities();
         }
@@ -248,6 +286,7 @@ namespace Chraft.Entity
         /// <param name="pitch">The absolute pitch to which client should change.</param>
         public override void MoveTo(AbsWorldCoords absCoords, float yaw, float pitch)
         {
+            AddExhaustionOnMovement(absCoords);
             base.MoveTo(absCoords, yaw, pitch);
             UpdateEntities();
         }
@@ -295,8 +334,11 @@ namespace Chraft.Entity
                     _client.SendCreateEntity(e);
                     LoadedEntities.TryAdd(e.EntityId, e);
                 }
-                if (Health > 0 && e is ItemEntity && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
-                    PickupItem((ItemEntity)e);
+                if (Health > 0 && Math.Abs(e.Position.X - Position.X) < 1 && Math.Abs(e.Position.Y - Position.Y) < 1 && Math.Abs(e.Position.Z - Position.Z) < 1)
+                    if (e is ItemEntity)
+                        PickupItem((ItemEntity)e);
+                    else if (e is ExpOrbEntity)
+                        PickupExpOrb((ExpOrbEntity)e);                    
             }
 
             Queue<int> entitiesToRemove = new Queue<int>();
@@ -334,6 +376,25 @@ namespace Chraft.Entity
             Data.IsSprinting = false;
             SendMetadataUpdate();
         }
+
+        /// <summary>
+        /// Inaccurate check whether the player is in water. Should use the bounding box.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsInWater()
+        {
+            var feetBlock = World.GetBlockId(UniversalCoords.FromAbsWorld(Position));
+            var headBlock = World.GetBlockId(UniversalCoords.FromAbsWorld(Position.X, Position.Y + 1, Position.Z));
+            if (feetBlock == null || headBlock == null)
+                return false;
+
+            if (feetBlock == (byte)BlockData.Blocks.Water || feetBlock == (byte)BlockData.Blocks.Still_Water ||
+                feetBlock == (byte)BlockData.Blocks.Lava || feetBlock == (byte)BlockData.Blocks.Still_Lava ||
+                headBlock == (byte)BlockData.Blocks.Water || headBlock == (byte)BlockData.Blocks.Still_Water ||
+                headBlock == (byte)BlockData.Blocks.Lava || headBlock == (byte)BlockData.Blocks.Still_Lava)
+                return true;
+            return false;
+        }
         #endregion
 
         #region Attack & damage
@@ -342,7 +403,7 @@ namespace Chraft.Entity
         {
             if (target == null)
                 return;
-            short weaponDmg = GetWeaponDamage();
+            short weaponDmg = Inventory.ActiveItem.GetDamage();
 
             //Start Event
             EntityAttackEventArgs e = new EntityAttackEventArgs(this, weaponDmg, target);
@@ -352,6 +413,7 @@ namespace Chraft.Entity
             weaponDmg = e.Damage;
             //End Event
 
+            Exhaustion += 300;
             
             target.Damage(DamageCause.EntityAttack, weaponDmg, this);
         }
@@ -365,69 +427,19 @@ namespace Chraft.Entity
         /// <param name="args">First argument should always be the damage amount.</param>
         public override void Damage(DamageCause cause, short damageAmount, IEntityBase hitBy = null, params object[] args)
         {
-            if (GameMode == 1)
+            if (GameMode == GameMode.Creative)
                 return;
             // Armor can't reduce suffocation, fire burn, drowning, starving, magic, generic and falling-in-void damage
             if (cause != DamageCause.Suffocation && cause != DamageCause.Drowning && cause != DamageCause.FireBurn && cause != DamageCause.Void)
                 damageAmount = ApplyArmorReduction(damageAmount);
+            Exhaustion += 300;
             base.Damage(cause, damageAmount, hitBy, args);
         }
 
         protected override void SendUpdateOnDamage()
         {
-            Client.SendPacket(new UpdateHealthPacket
-            {
-                Health = Health,
-                Food = Food,
-                FoodSaturation = FoodSaturation,
-            });
+            SendUpdateHealthPacket();
             base.SendUpdateOnDamage();
-        }
-
-        public short GetWeaponDamage()
-        {
-            short damage = 1;
-            if (Inventory.ActiveItem.Type < 256)
-                return damage;
-            switch ((BlockData.Items)Inventory.ActiveItem.Type)
-            {
-                case BlockData.Items.Wooden_Spade:
-                case BlockData.Items.Gold_Spade:
-                    damage = 1;
-                    break;
-                case BlockData.Items.Wooden_Pickaxe:
-                case BlockData.Items.Gold_Pickaxe:
-                case BlockData.Items.Stone_Spade:
-                    damage = 2;
-                    break;
-                case BlockData.Items.Wooden_Axe:
-                case BlockData.Items.Gold_Axe:
-                case BlockData.Items.Stone_Pickaxe:
-                case BlockData.Items.Iron_Spade:
-                    damage = 3;
-                    break;
-                case BlockData.Items.Wooden_Sword:
-                case BlockData.Items.Gold_Sword:
-                case BlockData.Items.Stone_Axe:
-                case BlockData.Items.Iron_Pickaxe:
-                case BlockData.Items.Diamond_Spade:
-                    damage = 4;
-                    break;
-                case BlockData.Items.Stone_Sword:
-                case BlockData.Items.Iron_Axe:
-                case BlockData.Items.Diamond_Pickaxe:
-                    damage = 5;
-                    break;
-                case BlockData.Items.Iron_Sword:
-                case BlockData.Items.Diamond_Axe:
-                    damage = 6;
-                    break;
-                case BlockData.Items.Diamond_Sword:
-                    damage = 7;
-                    break;
-            }
-
-            return damage;
         }
 
         protected short ApplyArmorReduction(short initialDamage)
@@ -443,14 +455,14 @@ namespace Chraft.Entity
 
         public void DamageArmor(short damage)
         {
-            for (int i = 5; i < 9; i++)
+            for (short i = 5; i < 9; i++)
             {
-                if (Inventory.Slots[i] != null && !Inventory.Slots[i].IsVoid())
+                if (Inventory[i] != null && !ItemHelper.IsVoid(Inventory[i]))
                 {
-                    if (Inventory.Slots[i].Type == (short)BlockData.Blocks.Pumpkin)
+                    if (Inventory[i].Type == (short)BlockData.Blocks.Pumpkin)
                         continue;
 
-                    Inventory.DamageItem((short)i, Math.Abs(damage));
+                    Inventory[i].DamageItem(Math.Abs(damage));
                 }
             }
         }
@@ -463,36 +475,36 @@ namespace Chraft.Entity
             short effectiveArmor = 0;
 
             // Helmet
-            if (Inventory.Slots[5] != null && !Inventory.Slots[5].IsVoid())
+            if (Inventory[5] != null && !ItemHelper.IsVoid(Inventory[5]))
             {
                 // We can wear a pumpkin, but it'll not give us any armor
-                if (Inventory.Slots[5].Type != (short)BlockData.Blocks.Pumpkin)
+                if (Inventory[5].Type != (short)BlockData.Blocks.Pumpkin)
                 {
                     baseArmorPoints += 3;
-                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type] - Inventory.Slots[5].Durability);
-                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[5].Type];
+                    totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[5].Type] - Inventory[5].Durability);
+                    totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[5].Type];
                 }
             }
             // Chest
-            if (Inventory.Slots[6] != null && !Inventory.Slots[6].IsVoid())
+            if (Inventory[6] != null && !ItemHelper.IsVoid(Inventory[6]))
             {
                 baseArmorPoints += 8;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type] - Inventory.Slots[6].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[6].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[6].Type] - Inventory[6].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[6].Type];
             }
             // Pants
-            if (Inventory.Slots[7] != null && !Inventory.Slots[7].IsVoid())
+            if (Inventory[7] != null && !ItemHelper.IsVoid(Inventory[7]))
             {
                 baseArmorPoints += 6;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type] - Inventory.Slots[7].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[7].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[7].Type] - Inventory[7].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[7].Type];
             }
             // Boots
-            if (Inventory.Slots[8] != null && !Inventory.Slots[8].IsVoid())
+            if (Inventory[8] != null && !ItemHelper.IsVoid(Inventory[8]))
             {
                 baseArmorPoints += 3;
-                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type] - Inventory.Slots[8].Durability);
-                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory.Slots[8].Type];
+                totalCurrentDurability += (short)(BlockData.ToolDuarability[(BlockData.Items)Inventory[8].Type] - Inventory[8].Durability);
+                totalBaseDurability += BlockData.ToolDuarability[(BlockData.Items)Inventory[8].Type];
             }
             if (totalBaseDurability > 0)
                 effectiveArmor = (short)Math.Floor(baseArmorPoints*((double) totalCurrentDurability/totalBaseDurability));
@@ -530,7 +542,7 @@ namespace Chraft.Entity
             else if (killedBy is Player)
             {
                 var p = (Player)killedBy;
-                deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory.Slots[Inventory.ActiveSlot].Type);
+                deathBy = "by " + p.DisplayName + " using" + Server.Items.ItemName(Inventory[Inventory.ActiveSlot].Type);
             }
             else if (killedBy is Mob)
             {
@@ -551,6 +563,19 @@ namespace Chraft.Entity
             StopFireBurnTimer();
             StopSuffocationTimer();
             StopDrowningTimer();
+            DropExperienceOrbs();
+        }
+
+        protected void DropExperienceOrbs()
+        {
+            var exp = (short)Math.Min(Experience, short.MaxValue);
+            var level = Utilities.Misc.Experience.GetLevel(exp);
+            if (level < 1)
+                return;
+            var expToDrop = (short)Math.Min(level * 7, 100);
+            var orb = new ExpOrbEntity(Server, Server.AllocateEntity(), expToDrop);
+            orb.Position = Position;
+            Server.AddEntity(orb);
         }
 
         #endregion
@@ -569,16 +594,60 @@ namespace Chraft.Entity
 
             _client.StopUpdateChunks();
             UpdateChunks(1, CancellationToken.None, false);
-            _client.SendPacket(new RespawnPacket { });
+            _client.SendPacket(new RespawnPacket { LevelType = ChraftConfig.LevelType, WorldHeight = 256, GameMode = (sbyte)_client.GetOwner().GameMode, });
             UpdateEntities();
             //SendSpawnPosition();
             _client.SendInitialPosition();
             _client.SendInitialTime();
             InitializeInventory();
             InitializeHealth();
+            SendUpdateExperience();
             _client.ScheduleUpdateChunks();
 
             Server.AddEntity(this);
+        }
+
+        public void SendUpdateExperience()
+        {
+            var exp = (short)(Experience > short.MaxValue ? short.MaxValue : Experience);
+            var level = Utilities.Misc.Experience.GetLevel(exp);
+            var nextLevelExp = Utilities.Misc.Experience.ExpToNextLevel(level);
+            var thisLevelExp = Utilities.Misc.Experience.GetExperience(level);
+            float expOnBar = (exp - thisLevelExp)/(float)nextLevelExp;
+            
+            Client.SendPacket(new ExperiencePacket
+            {
+                Experience = expOnBar,
+                Level = level,
+                TotExperience = exp,
+            });
+        }
+
+        public void AddExperience(short amount)
+        {
+            long newExp = Experience + amount;
+            if (newExp < 0)
+                newExp = 0;
+            if (newExp > Int32.MaxValue)
+                newExp = Int32.MaxValue;
+            Experience = (int)newExp;
+            SendUpdateExperience();
+        }
+
+        private void PickupExpOrb(ExpOrbEntity orb)
+        {
+            if (Server.GetEntityById(orb.EntityId) == null)
+                return;
+
+            Server.SendPacketToNearbyPlayers(orb.World, UniversalCoords.FromAbsWorld(orb.Position), new CollectItemPacket
+            {
+                EntityId = orb.EntityId,
+                PlayerId = EntityId
+            });
+
+            Server.RemoveEntity(orb);
+
+            AddExperience(orb.Experience);
         }
 
         private void PickupItem(ItemEntity item)
@@ -762,10 +831,116 @@ namespace Chraft.Entity
             }
         }
 
+        protected void AddExhaustionOnMovement(AbsWorldCoords coords)
+        {
+            var dx = coords.X - Position.X;
+            var dy = coords.Y - Position.Y;
+            var dz = coords.Z - Position.Z;
+
+            if (IsInWater())
+            {
+                var distance = (short)Math.Round(MathHelper.sqrt_double(dx * dx + dz * dz) * 10);
+                Exhaustion += 15 * distance;
+            }
+            else if (Client.OnGround)
+            {
+                var distance = (short)Math.Round(MathHelper.sqrt_double(dx*dx + dy*dy + dz*dz) * 10);
+                if (Data.IsSprinting)
+                    Exhaustion += 100 * distance;
+                else
+                    Exhaustion += 10 * distance;
+            }
+        }
+
+        public bool IsHungry()
+        {
+            return Food < 20;
+        }
+
+        public bool EatFood(short food, float saturation)
+        {
+            if (!IsHungry())
+                return false;
+            Food += food;
+            FoodSaturation = Math.Min(FoodSaturation + saturation, Food);
+            SendUpdateHealthPacket();
+            return true;
+        }
+
+        protected void CheckExhaustion()
+        {
+            if (Exhaustion < 4000)
+                return;
+
+            Exhaustion -= 4000;
+            if (FoodSaturation > 0)
+                FoodSaturation -= 1.0f;
+            else
+            {
+                Food -= 1;
+                SendUpdateHealthPacket();
+            }
+        }
+
+        protected void CheckFood()
+        {
+            if (IsDead || (Food > 0 && Food < 18))
+            {
+                if (FoodEffectTimer != null)
+                {
+                    StopStarvingDamageTimer();
+                }
+                return;
+            }
+            if (Food == 0 || (Food >= 18 && Health < MaxHealth))
+            {
+                if (FoodEffectTimer == null)
+                {
+                    FoodEffectTimer = new Timer(FoodEffect, null, 4000, 4000);
+                }
+            }
+        }
+
+        protected void FoodEffect(object state)
+        {
+            if (IsDead || (Food > 0 && Food < 18) || (Food >= 18 && Health == MaxHealth))
+            {
+                StopStarvingDamageTimer();
+                return;
+            }
+
+            if (Food >= 18 && Health < MaxHealth)
+            {
+                AddHealth(1);
+            }
+            else if (Food == 0)
+                Damage(DamageCause.Starve, 1);
+        }
+
+        protected void StopStarvingDamageTimer()
+        {
+            if (FoodEffectTimer != null)
+            {
+                FoodEffectTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                FoodEffectTimer.Dispose();
+                FoodEffectTimer = null;
+            }
+        }
 
         public void SetHealth(short health)
         {
             Health = health;
+            SendUpdateHealthPacket();
+        }
+
+        public void AddHealth(short health)
+        {
+            Health += health;
+            SendUpdateHealthPacket();
+        }
+
+        protected void SendUpdateHealthPacket()
+        {
             _client.SendPacket(new UpdateHealthPacket
             {
                 Health = Health,
@@ -776,14 +951,37 @@ namespace Chraft.Entity
 
         public void DropActiveSlotItem()
         {
-            var activeItemStack = Inventory.Slots[Inventory.ActiveSlot];
+
+            var activeItemStack = Inventory[Inventory.ActiveSlot];
             if (activeItemStack.Count > 0)
             {
-                Server.DropItem(this, new ItemStack(activeItemStack.Type, 1, activeItemStack.Durability));
+                if (activeItemStack.Count == 1)
+                {
+                    Server.DropItem(this, activeItemStack);
+                }
+                else
+                {
+                    var item = ItemHelper.GetInstance(activeItemStack.Type);
+                    item.Durability = activeItemStack.Durability;
+                    item.Damage = activeItemStack.Damage;
+                    item.Count = 1;
+                    Server.DropItem(this, item);
+                }
                 Inventory.RemoveItem(Inventory.ActiveSlot);
             }
         }
 
+        public void FinishUseActiveSlotItem()
+        {
+            if (ItemHelper.IsVoid(Inventory.ActiveItem))
+                return;
+
+            if (Inventory.ActiveItem is IItemConsumable)
+            {
+                var consumable = Inventory.ActiveItem as IItemConsumable;
+                consumable.FinishConsuming();
+            }
+        }
 
         #region Permission related commands
         //Check if the player has permissions to use the command from a command object
@@ -810,5 +1008,10 @@ namespace Chraft.Entity
             return PermHandler.GetPlayerSuffix(this);
         }
         #endregion
+
+        public IBans GetBan()
+        {
+            return GetServer().GetBanSystem().GetBan(Name);
+        }
     }
 }

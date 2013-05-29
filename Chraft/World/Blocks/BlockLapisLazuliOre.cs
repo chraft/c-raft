@@ -16,6 +16,8 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -32,10 +34,13 @@ namespace Chraft.World.Blocks
             IsSolid = true;
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            overridedLoot.Add(new ItemStack((short)BlockData.Items.Ink_Sack, (sbyte)(3 + block.World.Server.Rand.Next(17)), 4));
+            overridedLoot = new List<ItemInventory>();
+            ItemInventory item = ItemHelper.GetInstance((short) BlockData.Items.Ink_Sack);
+            item.Count = (sbyte) (3 + block.World.Server.Rand.Next(17));
+            item.Durability = 4;
+            overridedLoot.Add(item);
             base.DropItems(entity, block, overridedLoot);
         }
     }

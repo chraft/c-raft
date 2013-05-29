@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Net;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -45,7 +46,12 @@ namespace Chraft.Entity.Mobs
         {
             sbyte count = (sbyte)Server.Rand.Next(2);
             if (count > 0)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Items.Leather, count, 0));
+            {
+                var item = ItemHelper.GetInstance(BlockData.Items.Leather);
+                item.Count = count;
+                item.Durability = 0;
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), item);
+            }
             base.DoDeath(killedBy);
         }
     }

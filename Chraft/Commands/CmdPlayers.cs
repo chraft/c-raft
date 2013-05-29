@@ -41,6 +41,11 @@ namespace Chraft.Commands
             client.SendMessage("/players - Shows a list of online players.");
         }
 
+        public string AutoComplete(IClient client, string s)
+        {
+            return string.Empty;
+        }
+
         public string Name
         {
             get { return "players"; }

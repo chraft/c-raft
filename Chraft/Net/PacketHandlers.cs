@@ -55,12 +55,12 @@ namespace Chraft.Net
             Register(PacketType.CloseWindow, 2, 0, ReadCloseWindow);
             Register(PacketType.WindowClick, 0, 10, ReadWindowClick);
             Register(PacketType.CreativeInventoryAction, 0, 5, ReadCreativeInventoryAction);
-            Register(PacketType.ServerListPing, 1, 0, ReadServerListPing);
+            Register(PacketType.ServerListPing, 2, 0, ReadServerListPing);
             Register(PacketType.Disconnect, 0, 3, ReadDisconnect);
             Register(PacketType.Transaction, 5 , 0, ReadTransaction);
             Register(PacketType.UpdateSign, 0, 11, ReadUpdateSign);
             Register(PacketType.EnchantItem, 3, 0, ReadEnchantItem);
-            Register(PacketType.PlayerAbilities, 5, 0, ReadPlayerAbilities); 
+            Register(PacketType.PlayerAbilities, 4, 0, ReadPlayerAbilities); 
             Register(PacketType.LocaleAndViewDistance, 0, 6, ReadLocaleAndViewDistance);
             Register(PacketType.ClientStatus, 2, 0, ReadClientStatus);
             Register(PacketType.EncryptionKeyResponse, 0, 5, ReadEncryptionResponse);
@@ -286,7 +286,7 @@ namespace Chraft.Net
 
         public static void ReadLocaleAndViewDistance(Client client, PacketReader reader)
         {
-            LocaleAndViewDistancePacket lvd = new LocaleAndViewDistancePacket();
+            ClientSettingsPacket lvd = new ClientSettingsPacket();
             lvd.Read(reader);
 
             if(!reader.Failed)

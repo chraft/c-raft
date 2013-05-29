@@ -15,11 +15,9 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items;
 using Chraft.PluginSystem.World;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
@@ -40,7 +38,9 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             IsSingleHit = true;
             IsWaterProof = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Reeds, 1));
+            var item = ItemHelper.GetInstance(BlockData.Items.Reeds);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0.125, 0, 0.125, 0.875, 1, 0.875);
         }
 
@@ -66,7 +66,7 @@ namespace Chraft.World.Blocks
 
             bool isWater = false;
 
-            Chunk chunk = GetBlockChunk(block);
+            var chunk = GetBlockChunk(block);
 
             if (chunk == null)
                 return false;
@@ -87,8 +87,8 @@ namespace Chraft.World.Blocks
 
         public bool CanGrow(IStructBlock iBlock, IChunk iChunk)
         {
-            StructBlock block = (StructBlock) iBlock;
-            Chunk chunk = (Chunk)iChunk;
+            var block = (StructBlock) iBlock;
+            var chunk = (Chunk)iChunk;
             if (chunk == null)
                 return false;
 
@@ -133,7 +133,7 @@ namespace Chraft.World.Blocks
 
             if (!isWater && reedHeightBelow < MaxHeight)
             {
-                UniversalCoords baseBlock = UniversalCoords.FromWorld(block.Coords.WorldX,
+                var baseBlock = UniversalCoords.FromWorld(block.Coords.WorldX,
                                                                       block.Coords.WorldY - reedHeightBelow,
                                                                       block.Coords.WorldZ);
                 BlockHelper.Instance.CreateBlockInstance(block.Type).Destroy(new StructBlock(baseBlock, block.Type, block.MetaData, block.World));
@@ -145,8 +145,8 @@ namespace Chraft.World.Blocks
 
         public void Grow(IStructBlock iBlock, IChunk iChunk)
         {
-            Chunk chunk = iChunk as Chunk;
-            StructBlock block = (StructBlock) iBlock;
+            var chunk = iChunk as Chunk;
+            var block = (StructBlock) iBlock;
             if (!CanGrow(block, iChunk))
                 return;
 
@@ -157,9 +157,9 @@ namespace Chraft.World.Blocks
             }
 
             chunk.SetData(block.Coords, 0);
-            UniversalCoords blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
+            var blockAbove = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1,
                                                                    block.Coords.WorldZ);
-            StructBlock newReed = new StructBlock(blockAbove, (byte)Type, 0, block.World);
+            var newReed = new StructBlock(blockAbove, (byte)Type, 0, block.World);
             BlockHelper.Instance.CreateBlockInstance((byte)Type).Spawn(newReed);
         }
     }

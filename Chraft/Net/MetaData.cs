@@ -23,12 +23,13 @@ using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.Utilities;
 using Chraft.Utilities.Misc;
+using System.Collections.Concurrent;
 
 namespace Chraft.Net
 {
     public class MetaData : IMetaData
     {
-        private Dictionary<int, object> Data = new Dictionary<int, object>();
+        private ConcurrentDictionary<int, object> Data = new ConcurrentDictionary<int, object>();
 
         public bool Sheared
         {
@@ -117,8 +118,8 @@ namespace Chraft.Net
 
         public MetaData()
         {
-            if (!Data.ContainsKey(0))
-                Data.Add(0, (byte)0);
+            //if (!Data.ContainsKey(0))
+            Data.TryAdd(0, (byte)0);
         }
 
         internal MetaData(PacketReader rx)

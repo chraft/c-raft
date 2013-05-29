@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Interfaces;
-using Chraft.Utilities;
+
+using Chraft.Entity.Items;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.World.Blocks.Base;
@@ -31,7 +31,9 @@ namespace Chraft.World.Blocks
             IsSolid = true;
             IsFertile = true;
             IsPlowed = true;
-            LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
+            var item = ItemHelper.GetInstance(BlockData.Blocks.Soil);
+            item.Count = 1;
+            LootTable.Add(item);
             BlockBoundsOffset = new BoundingBox(0, 0, 0, 1, 0.9375, 1);
         }
 

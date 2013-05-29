@@ -46,7 +46,7 @@ namespace Chraft.PluginSystem.Args
     public class BlockDestroyEventArgs : BlockEventArgs
     {
         public IEntityBase DestroyedBy { get; set; }
-        public List<IItemStack> LootTable { get; set; }
+        public List<IItemInventory> LootTable { get; set; }
 
         public BlockDestroyEventArgs(IBlockBase block, IEntityBase destroyedBy)
             : base(block)

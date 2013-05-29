@@ -15,6 +15,7 @@ namespace Chraft.PluginSystem.Net
         UniversalCoords? SelectionEnd { get; }
 
         string Username { get; }
+        string IpAddress { get; }
 
         int Ping { get; }
         bool OnGround { get; }
@@ -33,5 +34,6 @@ namespace Chraft.PluginSystem.Net
         void SendInitialTime(bool async = true);
 
         ILogger GetLogger();
+
     }
 }

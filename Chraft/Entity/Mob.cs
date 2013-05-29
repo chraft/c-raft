@@ -42,6 +42,10 @@ namespace Chraft.Entity
 	{
         public MobType Type { get; set; }
 
+        public short MinExp { get; protected set; }
+        public short MaxExp { get; protected set; }
+
+
         /// <summary>
         /// The amount of damage this Mob can inflict
         /// </summary>
@@ -97,7 +101,7 @@ namespace Chraft.Entity
             this.Speed = 0.1;
 		}
 
-        protected virtual void DoInteraction(IClient client, IItemStack item)
+        protected virtual void DoInteraction(IClient client, IItemInventory item)
         {
         }
 
@@ -150,6 +154,13 @@ namespace Chraft.Entity
             }
         }
 
+        protected override void DoDeath(EntityBase killedBy)
+        {
+            base.DoDeath(killedBy);
+
+            if (killedBy != null && killedBy is Player)
+                DropExperienceOrbs();
+        }
 
 
         /// <summary>
@@ -357,7 +368,7 @@ namespace Chraft.Entity
         /// </summary>
         /// <param name="client">The client that is interacting</param>
         /// <param name="item">The item being used (could be Void e.g. Hand)</param>
-        public void InteractWith(IClient client, IItemStack item)
+        public void InteractWith(IClient client, IItemInventory item)
         {
             // TODO: create a plugin event for this action
 
@@ -390,6 +401,24 @@ namespace Chraft.Entity
         public override bool CanSpawnHere()
         {
             return base.CanSpawnHere() && BlockPathWeight(this.BlockPosition) >= 0.0F;
+        }
+
+        protected void DropExperienceOrbs()
+        {
+            short minExp = (MinExp < 0 ? (short)0 : MinExp);
+            short maxExp = (MaxExp > short.MaxValue ? short.MaxValue : MaxExp);
+
+            if (maxExp < 1 || maxExp < minExp)
+                return;
+
+            short exp = (short)(minExp + Server.Rand.Next(0, maxExp - minExp));
+
+            if (exp < 1)
+                return;
+
+            var orb = new ExpOrbEntity(Server, Server.AllocateEntity(), exp);
+            orb.Position = Position;
+            Server.AddEntity(orb);
         }
 	}
 }

@@ -16,11 +16,10 @@
 #endregion
 using System.Collections.Generic;
 using Chraft.Entity;
-using Chraft.Interfaces;
-using Chraft.PluginSystem;
+using Chraft.Entity.Items;
+using Chraft.Entity.Items.Base;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
 using Chraft.Utilities.Collision;
 using Chraft.Utilities.Coords;
@@ -36,15 +35,15 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.TallGrass;
             IsSingleHit = true;
             IsAir = true;
-            IsSolid = false;
+            IsSolid = true;
             Opacity = 0x0;
             BlockBoundsOffset = new BoundingBox(0.1, 0, 0.1, 0.9, 0.8, 0.9);
         }
 
         public override void Place(IEntityBase entity, IStructBlock iBlock, IStructBlock targetIBlock, BlockFace face)
         {
-            StructBlock block = (StructBlock)iBlock;
-            StructBlock targetBlock = (StructBlock) targetIBlock;
+            var block = (StructBlock)iBlock;
+            var targetBlock = (StructBlock)targetIBlock;
 
             if (face == BlockFace.Down)
                 return;
@@ -55,17 +54,27 @@ namespace Chraft.World.Blocks
             base.Place(entity, block, targetBlock, face);
         }
 
-        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemStack> overridedLoot = null)
+        protected override void DropItems(EntityBase entity, StructBlock block, List<ItemInventory> overridedLoot = null)
         {
-            overridedLoot = new List<ItemStack>();
-            Player player = entity as Player;
+            overridedLoot = new List<ItemInventory>();
+            var player = entity as Player;
             if (player != null)
             {
+                ItemInventory item;
                 // If hit by a shear - drop the grass
                 if (player.Inventory.ActiveItem.Type == (short)BlockData.Items.Shears)
-                    overridedLoot.Add(new ItemStack((short) Type, 1, block.MetaData));
+                {
+                    item = ItemHelper.GetInstance((short) Type);
+                    item.Count = 1;
+                    item.Durability = block.MetaData;
+                    overridedLoot.Add(item);
+                }
                 else if (player.Server.Rand.Next(3) == 0)
-                        overridedLoot.Add(new ItemStack((short)BlockData.Items.Seeds, 1));
+                {
+                    item = ItemHelper.GetInstance((short) BlockData.Items.Seeds);
+                    item.Count = 1;
+                    overridedLoot.Add(item);
+                }
             }
             base.DropItems(entity, block, overridedLoot);
         }

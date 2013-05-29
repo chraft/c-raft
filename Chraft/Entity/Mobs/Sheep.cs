@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.PluginSystem;
 using Chraft.PluginSystem.Item;
@@ -99,18 +100,24 @@ namespace Chraft.Entity.Mobs
             return WoolColor.White;
         }
 
-        protected override void DoInteraction(IClient client, IItemStack item)
+        protected override void DoInteraction(IClient client, IItemInventory item)
         {
             base.DoInteraction(client, item);
 
-            if (client != null && item != null && !item.IsVoid())
+            if (client != null && item != null && !ItemHelper.IsVoid(item))
             {
                 if (item.Type == (short)BlockData.Items.Shears && !Data.Sheared)
                 {
                     // Drop wool when sheared
                     sbyte count = (sbyte)Server.Rand.Next(2, 4);
+
                     if (count > 0)
-                        Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Blocks.Wool, count, (short)Data.WoolColor));
+                    {
+                        var drop = ItemHelper.GetInstance(BlockData.Blocks.Wool);
+                        drop.Count = count;
+                        drop.Durability = (short)Data.WoolColor;
+                        Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), drop);
+                    }
                     Data.Sheared = true;
 
                     SendMetadataUpdate();
@@ -132,7 +139,12 @@ namespace Chraft.Entity.Mobs
         protected override void DoDeath(EntityBase killedBy)
         {
             if (!Data.Sheared)
-                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), new Interfaces.ItemStack((short)BlockData.Blocks.Wool, 1, (short)Data.WoolColor));
+            {
+                var item = ItemHelper.GetInstance(BlockData.Blocks.Wool);
+                item.Count = 1;
+                item.Durability = (short)Data.WoolColor;
+                Server.DropItem(World, UniversalCoords.FromAbsWorld(Position.X, Position.Y, Position.Z), item);
+            }
             base.DoDeath(killedBy);
         }
     }

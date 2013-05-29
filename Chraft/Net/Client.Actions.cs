@@ -16,14 +16,11 @@
 #endregion
 using System;
 using System.Linq;
-using Chraft.Entity;
 using Chraft.PluginSystem.Args;
 using Chraft.PluginSystem.Commands;
 using Chraft.PluginSystem.Event;
 using Chraft.PluginSystem.Server;
-using Chraft.Utilities;
 using Chraft.Commands;
-using Chraft.PluginSystem;
 using Chraft.Utilities.Coords;
 using Chraft.Utilities.Misc;
 
@@ -160,6 +157,14 @@ namespace Chraft.Net
             try
             {
                 cmd = _player.Server.ClientCommandHandler.Find(commandName) as IClientCommand;
+            }
+            catch (MultipleCommandsMatchException e)
+            {
+                SendMessage(ChatColor.Red + "Multiple commands has been found:");
+                foreach (var s in e.Commands)
+                    SendMessage(string.Format(" {0}{1}", ChatColor.Red, s));
+
+                return;
             }
             catch (CommandNotFoundException e)
             {

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
-using Chraft.Interfaces;
-using Chraft.Utilities;
+
+using Chraft.Entity.Items;
 using Chraft.Utilities.Blocks;
 using Chraft.World.Blocks.Base;
 
@@ -28,7 +28,9 @@ namespace Chraft.World.Blocks
             Name = "Sandstone";
             Type = BlockData.Blocks.Sandstone;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            var item = ItemHelper.GetInstance(Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
     }
 }

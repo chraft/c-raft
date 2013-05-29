@@ -19,10 +19,8 @@ using System.IO;
 using System.Linq;
 using Chraft.Entity;
 using Chraft.Net.Packets;
-using Chraft.PluginSystem;
 using Chraft.PluginSystem.Entity;
 using Chraft.PluginSystem.World.Blocks;
-using Chraft.Utilities;
 using Chraft.Utilities.Coords;
 using Chraft.World.Blocks.Base;
 
@@ -101,8 +99,8 @@ namespace Chraft.World.Blocks
 
         public override void Destroy(IEntityBase iEntity, IStructBlock iBlock)
         {
-            EntityBase entity = iEntity as EntityBase;
-            StructBlock block = (StructBlock)iBlock;
+            var entity = iEntity as EntityBase;
+            var block = (StructBlock)iBlock;
 
             string folderPath = Path.Combine(entity.World.SignsFolder, "x" + block.Coords.ChunkX + "_z" + block.Coords.ChunkZ);
 
@@ -112,7 +110,7 @@ namespace Chraft.World.Blocks
                 File.Delete(String.Format("{0}{1}sign_{2}_{3}_{4}.txt", folderPath, Path.DirectorySeparatorChar, block.Coords.BlockX,
                                           block.Coords.BlockY, block.Coords.BlockZ));
 
-                Chunk chunk = GetBlockChunk(block);
+                var chunk = GetBlockChunk(block);
                 if(chunk == null)
                     return;
                 

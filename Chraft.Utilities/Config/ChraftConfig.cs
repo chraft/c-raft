@@ -34,16 +34,19 @@
         public static bool UseOfficalAuthentication { get; internal set; }
         public static bool EncryptionEnabled { get; internal set; }
         public static string ServerTextureUrl { get; internal set; }
+        public static string LevelType { get; internal set; }
+        public static bool WhiteList { get; internal set; }
+        public static string WhiteListMesasge { get; internal set; }
         private static Configuration _config;
+        const string serverSetup = "ServerSetup";
+        const string loggingSetup = "LoggingSetup";
+        const string folderSetup = "FolderSetup";
+        const string generalSetup = "GeneralSetup";
 
         public static void Load()
         {
-            const string serverSetup = "ServerSetup";
-            const string loggingSetup = "LoggingSetup";
-            const string folderSetup = "FolderSetup";
-            const string generalSetup = "GeneralSetup";
-
             _config = new Configuration("Chraft.config");
+            _config.AutoSave = true;
 
             //ServerSetup
             Port = _config.GetInt(serverSetup, "Port", 25565);
@@ -63,6 +66,9 @@
             LoadFromSave = _config.GetBoolean(serverSetup, "LoadFromSave", true);
             WeatherChangeFrequency = _config.GetInt(serverSetup, "WeatherChangeFrequency", 1);
             ServerTextureUrl = _config.GetString(serverSetup, "ServerTextureUrl", "");
+            LevelType = _config.GetString(serverSetup, "LevelType", "default");
+            WhiteList = _config.GetBoolean(serverSetup, "WhiteList", false);
+            WhiteListMesasge = _config.GetString(serverSetup, "WhiteListMesasge", "Whitelist mode has been enabled");
 
             //logging setup
             LogFileFormat = _config.GetString(loggingSetup, "LogfileFormat", "{0:yyyy-MM-dd HH:mm:ss} [{1}] {2}");
@@ -84,6 +90,19 @@
             ItemsFile = _config.GetString(generalSetup, "ItemsFile", "Resources/Items.csv");
             DefaultStackSize = (sbyte)_config.GetInt(generalSetup, "DefaultStackSize", 64);
             RecipesFile = _config.GetString(generalSetup, "RecipesFile", "Resources/Recipes.dat");
+
+        }
+
+        public static void SetWhitelist(bool enabled)
+        {
+            _config.Set(serverSetup, "WhiteList", enabled);
+            WhiteList = enabled;
+        }
+
+        public static void SetWhitelistMessage(string message)
+        {
+            _config.Set(serverSetup, "WhiteListMessage", message);
+            WhiteListMesasge = message;
         }
     }
 }

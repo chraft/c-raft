@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -30,7 +32,9 @@ namespace Chraft.World.Blocks
             Type = BlockData.Blocks.Grass;
             IsSolid = true;
             IsFertile = true;
-            LootTable.Add(new ItemStack((short)BlockData.Blocks.Dirt, 1));
+            var item = ItemHelper.GetInstance(BlockData.Blocks.Dirt);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         public bool CanGrow(StructBlock block, Chunk chunk)
@@ -63,7 +67,7 @@ namespace Chraft.World.Blocks
             if (!CanGrow(block, chunk))
                 return;
 
-            UniversalCoords oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
+            var oneUp = UniversalCoords.FromWorld(block.Coords.WorldX, block.Coords.WorldY + 1, block.Coords.WorldZ);
             byte blockAboveId = (byte)chunk.GetType(oneUp);
             byte? blockAboveLight = chunk.World.GetEffectiveLight(oneUp);
             if (blockAboveLight == null)
@@ -83,7 +87,7 @@ namespace Chraft.World.Blocks
                 int y = block.Coords.WorldY + block.World.Server.Rand.Next(4) - 3;
                 int z = block.Coords.WorldZ + block.World.Server.Rand.Next(2) - 1;
 
-                Chunk nearbyChunk = block.World.GetChunkFromWorld(x, z) as Chunk;
+                var nearbyChunk = block.World.GetChunkFromWorld(x, z) as Chunk;
 
                 if (nearbyChunk == null)
                     return;

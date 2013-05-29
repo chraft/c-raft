@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 #endregion
+
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Utilities;
 using Chraft.Utilities.Blocks;
@@ -28,7 +30,9 @@ namespace Chraft.World.Blocks
             Name = "CoalOre";
             Type = BlockData.Blocks.Coal_Ore;
             IsSolid = true;
-            LootTable.Add(new ItemStack((short)BlockData.Items.Coal, 1));
+            var item = ItemHelper.GetInstance((short)BlockData.Items.Coal);
+            item.Count = 1;
+            LootTable.Add(item);
         }
     }
 }

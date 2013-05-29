@@ -37,7 +37,7 @@ namespace Chraft.World.Blocks
 
         public override void Touch(IEntityBase entity, IStructBlock iBlock, BlockFace face)
         {
-            LivingEntity living = entity as LivingEntity;
+            var living = entity as LivingEntity;
             if (living != null)
             {
                 living.TouchedFire();

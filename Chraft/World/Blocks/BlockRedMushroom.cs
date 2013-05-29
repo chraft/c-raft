@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Chraft.Entity;
+using Chraft.Entity.Items;
 using Chraft.Interfaces;
 using Chraft.Net;
 using Chraft.Utilities;
@@ -33,16 +34,18 @@ namespace Chraft.World.Blocks
         {
             Name = "RedMushroom";
             Type = BlockData.Blocks.Red_Mushroom;
-            LootTable.Add(new ItemStack((short)Type, 1));
+            var item = ItemHelper.GetInstance(Type);
+            item.Count = 1;
+            LootTable.Add(item);
         }
 
         public override void Fertilize(EntityBase entity, StructBlock block)
         {
-            Chunk chunk = GetBlockChunk(block);
+            var chunk = GetBlockChunk(block);
             if (chunk == null)
                 return;
 
-            BlockData.Blocks blockBelow = chunk.GetType(block.Coords.BlockX, block.Coords.BlockY - 1,
+            var blockBelow = chunk.GetType(block.Coords.BlockX, block.Coords.BlockY - 1,
                                                      block.Coords.BlockZ);
 
             if (blockBelow != BlockData.Blocks.Dirt && blockBelow != BlockData.Blocks.Grass &&
@@ -91,7 +94,7 @@ namespace Chraft.World.Blocks
             for (int dX = -2; dX < 3; dX++)
                 for (int dZ = -2; dZ < 3; dZ++)
                 {
-                    Chunk currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX,
+                    var currentChunk = block.World.GetChunkFromWorld(block.Coords.WorldX + dX,
                                                                        block.Coords.WorldZ + dZ) as Chunk;
 
                     if(currentChunk == null)
@@ -161,9 +164,8 @@ namespace Chraft.World.Blocks
                             else if (dX == 1 && dZ == -2)
                                 metaData = (byte) MetaData.HugeMushroom.TopNorthEast;
                         }
-
                         currentChunk.SetBlockAndData(block.Coords.BlockX + dX, dY, block.Coords.BlockZ + dZ,
-                                                    (byte) BlockData.Blocks.RedMushroomCap, metaData);
+                                                    (byte)BlockData.Blocks.RedMushroomCap, metaData);
                     }
                 }
         }
