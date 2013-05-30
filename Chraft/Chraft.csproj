@@ -169,6 +169,7 @@
     <Compile Include="Entity\Mobs\Mooshroom.cs" />
     <Compile Include="Entity\Mobs\Ocelot.cs" />
     <Compile Include="Entity\Mobs\Villager.cs" />
+    <Compile Include="Entity\Mobs\Witch.cs" />
     <Compile Include="Entity\Monster.cs" />
     <Compile Include="Interfaces\Containers\ContainerFactory.cs" />
     <Compile Include="Interfaces\Containers\DispenserContainer.cs" />

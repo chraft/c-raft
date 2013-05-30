@@ -84,6 +84,9 @@ namespace Chraft.Entity
                     case MobType.Squid:
                         mobType = typeof(Squid);
                         break;
+                    case MobType.Witch:
+                        mobType = typeof(Witch);
+                        break;
                     case MobType.Wolf:
                         mobType = typeof(Wolf);
                         break;

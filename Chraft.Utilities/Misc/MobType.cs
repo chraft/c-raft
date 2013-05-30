@@ -37,6 +37,7 @@ namespace Chraft.Utilities.Misc
         Cow = 92,
         Hen = 93,
         Squid = 94,
+        Witch = 66,
         Wolf = 95,
         Snowman = 96,
         Village = 120
