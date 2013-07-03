@@ -21,8 +21,6 @@ namespace Chraft.Entity.Mobs
 
         public override short MaxHealth { get { return 26; } } // 13 hearts
 
-        public override BehaviourType bt { get { return BehaviourType.Hostile; } }
-
         public override short AttackStrength
         {
             get
