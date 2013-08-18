@@ -52,9 +52,9 @@ namespace Chraft.World.Blocks.Physics
                                                  EntityId = EntityId,
                                                  Type = Type,
                                                  Data = 0,
-                                                 X = Position.X,
-                                                 Y = Position.Y,
-                                                 Z = Position.Z
+                                                 X = (int)Position.X,
+                                                 Y = (int)Position.Y,
+                                                 Z = (int)Position.Z
                                              };
             World.Server.SendPacketToNearbyPlayers(World, 
                                                    UniversalCoords.FromAbsWorld(Position), 
