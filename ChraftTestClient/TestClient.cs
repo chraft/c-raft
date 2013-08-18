@@ -421,11 +421,12 @@ namespace ChraftTestClient
 
         public static void HandlePacketChatMessage(TestClient client, ChatMessagePacket cm)
         {
-            // Handle some commands?
+            client.SendPacket(cm);
         }
 
         public static void HandlePacketDisconnect(TestClient client, DisconnectPacket dp)
         {
+            client.SendPacket(dp);
             client.Dispose();
 
             using (StreamWriter sw = new StreamWriter(String.Format("disconnect_reason_{0}.log", client.UserName), true))
@@ -444,6 +445,7 @@ namespace ChraftTestClient
 
         public static void HandlePacketSpawnPosition(TestClient client, SpawnPositionPacket sp)
         {
+            client.SendPacket(sp);
             client.SpawnPosition = UniversalCoords.FromWorld(sp.X, sp.Y, sp.Z);
         }
 
