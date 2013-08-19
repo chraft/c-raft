@@ -215,6 +215,7 @@
     <Compile Include="World\Blocks\BlockCake.cs" />
     <Compile Include="World\Blocks\BlockChest.cs" />
     <Compile Include="World\Blocks\BlockClay.cs" />
+    <Compile Include="World\Blocks\BlockCoal.cs" />
     <Compile Include="World\Blocks\BlockCoalOre.cs" />
     <Compile Include="World\Blocks\BlockCobblestone.cs" />
     <Compile Include="World\Blocks\BlockCobblestoneStairs.cs" />
