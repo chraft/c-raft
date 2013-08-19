@@ -27,6 +27,7 @@ namespace Chraft.World.Blocks
         {
             Name = "Glass";
             Type = BlockData.Blocks.Glass;
+            IsSolid = true;
             Opacity = 0x0;
         }
     }

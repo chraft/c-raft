@@ -44,6 +44,7 @@ namespace Chraft.Net
         MobSpawn = 0x18,                    //   <--
         EntityPainting = 0x19,              //   <--
         ExperienceOrb = 0x1A,               //   <--
+        SteerVehicle = 0x1B,                //   -->
         EntityVelocity = 0x1C,              //   <--
         DestroyEntity = 0x1D,               //   <--
         Entity = 0x1E,                      //   <--
@@ -58,6 +59,7 @@ namespace Chraft.Net
         EntityEffect = 0x29,                //   <->
         RemoveEntityEffect = 0x2A,          //   <->
         Experience = 0x2B,                  //   <--
+        EntityProperties = 0x2C,            //   <--
         MapChunk = 0x33,                    //   <--
         MultiBlockChange = 0x34,            //   <--
         BlockChange = 0x35,                 //   <--
